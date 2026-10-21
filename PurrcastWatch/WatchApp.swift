@@ -18,14 +18,18 @@ final class WatchLink: NSObject, ObservableObject, WCSessionDelegate {
     @Published var snap: WeatherSnapshot
 
     override init() {
+        #if DEBUG
         let args = ProcessInfo.processInfo.arguments
+        #else
+        let args: [String] = []
+        #endif
         if let i = args.firstIndex(of: "-scene"), i + 1 < args.count {
             // screenshots: a fixed example, Plus on
             var s = SceneLibrary.scene(args[i + 1]); s.place = Place.here.name
             let c = args.firstIndex(of: "-char").flatMap { $0 + 1 < args.count ? PurrCharacter(rawValue: args[$0 + 1]) : nil } ?? .cat
             snap = WeatherSnapshot(scene: s, character: c, plus: true, characterName: c.defaultName, placeShort: Place.here.short, saved: Date())
         } else {
-            snap = SharedStore.load() ?? .sample
+            snap = SharedStore.load() ?? .waiting
         }
         super.init()
         if WCSession.isSupported() { WCSession.default.delegate = self; WCSession.default.activate() }
@@ -49,7 +53,7 @@ final class WatchLink: NSObject, ObservableObject, WCSessionDelegate {
 struct WatchRoot: View {
     @EnvironmentObject var link: WatchLink
     var body: some View {
-        if link.snap.plus {
+        if link.snap.plusActive {
             TabView {
                 WatchNow(snap: link.snap)
                 WatchHours(snap: link.snap)
@@ -71,7 +75,7 @@ struct WatchNow: View {
             WidgetBackground(level: lv, night: s.isNight, scene: s).ignoresSafeArea()
             VStack(alignment: .leading, spacing: 0) {
                 Text(snap.placeShort).font(.px(12)).opacity(0.85)
-                Text("\(s.temp)°").font(.px(46)).frame(maxWidth: .infinity, alignment: .trailing)
+                Text(snap.deg(s.temp)).font(.px(46)).frame(maxWidth: .infinity, alignment: .trailing)
                 HStack(alignment: .bottom, spacing: 2) {
                     ZStack(alignment: .top) {
                         CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 74)
@@ -84,8 +88,8 @@ struct WatchNow: View {
                     Spacer(minLength: 0)
                     VStack(alignment: .trailing, spacing: 2) {
                         Text(s.cond).font(.px(11))
-                        Text("체감 \(s.feels)°").font(.px(10))
-                        Text("최고 \(s.hi)° 최저 \(s.lo)°").font(.px(9))
+                        Text("체감 \(snap.deg(s.feels))").font(.px(10))
+                        Text("최고 \(snap.deg(s.hi)) 최저 \(snap.deg(s.lo))").font(.px(9))
                     }
                 }
             }
@@ -102,11 +106,11 @@ struct WatchHours: View {
         List {
             ForEach(Array(s.hours.prefix(8).enumerated()), id: \.offset) { _, h in
                 HStack(spacing: 8) {
-                    Text(h.label).font(.px(13)).frame(width: 40, alignment: .leading)
+                    Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 10 : 13)).frame(width: 46, alignment: .leading)
                     PixelIcon(name: h.icon, size: 20)
                     Spacer()
                     if h.chance >= 10 { Text("\(h.chance)%").font(.px(11)).foregroundStyle(Color(hex: "#9CC0FF")) }
-                    Text("\(h.temp)°").font(.px(15))
+                    Text(snap.deg(h.temp)).font(.px(15))
                 }
             }
         }
@@ -123,8 +127,8 @@ struct WatchDays: View {
                     Text(d.name).font(.px(13)).frame(width: 34, alignment: .leading)
                     PixelIcon(name: d.icon, size: 20)
                     Spacer()
-                    Text("\(d.lo)°").font(.px(12)).opacity(0.7)
-                    Text("\(d.hi)°").font(.px(14))
+                    Text(snap.deg(d.lo)).font(.px(12)).opacity(0.7)
+                    Text(snap.deg(d.hi)).font(.px(14))
                 }
             }
         }

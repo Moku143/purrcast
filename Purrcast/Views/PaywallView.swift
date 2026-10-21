@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Purrcast Plus: what you get (swipeable), yearly / monthly, 3-day free trial.
+/// Purrcast Plus: what you get (swipeable), yearly / monthly, free trial when eligible.
+/// Prices, period and trial come from the App Store; the auto-renew terms sit right under the button (3.1.2).
 struct PaywallView: View {
     @EnvironmentObject var model: AppModel
     @EnvironmentObject var purchases: Purchases
@@ -8,23 +9,30 @@ struct PaywallView: View {
     @State private var pick = Purchases.yearly
     @State private var page = 0
 
-    private let features: [(icon: String, title: String, note: String)] = [
-        ("sparkle", "광고 없이", "화면 사이 광고가 사라져요."),
-        ("daynight", "새 예보마다 업데이트", "무료는 하루 1번, Plus는 새 예보가 나올 때마다."),
-        ("umbrella", "가까운 비", "비 올 시각까지 · 한국은 다음 6시간"),
-        ("star", "애플워치", "워치 앱 · 워치 페이스 · 컴플리케이션"),
-        ("heart", "지역 여러 곳", "무료는 1곳 더, Plus는 제한 없이."),
-        ("fish", "캐릭터 바꾸기", "아비시니안 · 브리티시숏헤어, 더 나와요."),
-    ]
+    struct Feature { let art: String; let title: String; let note: String; let check: String }
+    static var features: [Feature] {
+        var f: [Feature] = []
+        if Features.adsInFree { f.append(Feature(art: "ads", title: "광고 없이", note: "화면 사이 광고가 사라져요.", check: "광고 제거")) }
+        f += [
+            Feature(art: "fresh", title: "새 예보마다 업데이트", note: "무료는 아침 예보 하나, Plus는 새 예보가 나올 때마다.", check: "새 예보마다"),
+            Feature(art: "rain", title: "가까운 비", note: "앞으로 6시간, 언제 얼마나 오는지.", check: "가까운 비"),
+            Feature(art: "watch", title: "애플워치", note: "워치 앱 · 컴플리케이션", check: "애플워치"),
+            Feature(art: "places", title: "지역 여러 곳", note: "무료는 1곳 더, Plus는 제한 없이.", check: "지역 여러 곳"),
+            Feature(art: "chars", title: "캐릭터 바꾸기", note: "아비시니안 · 브리티시숏헤어", check: "캐릭터"),
+        ]
+        return f
+    }
 
     var body: some View {
+        let features = Self.features
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Button { dismiss() } label: { Image(systemName: "xmark").font(.system(size: 17, weight: .semibold)) }
-                        .foregroundStyle(UI.sub).accessibilityIdentifier("sheet-close")
+                        .foregroundStyle(UI.sub).accessibilityIdentifier("sheet-close").accessibilityLabel("닫기")
                     Spacer()
                     Button("구독 복원") { Task { await purchases.restore() } }.font(.system(size: 14)).foregroundStyle(UI.sub)
+                        .disabled(purchases.busy)
                 }
                 .padding(.top, 18)
 
@@ -40,7 +48,7 @@ struct PaywallView: View {
                 TabView(selection: $page) {
                     ForEach(Array(features.enumerated()), id: \.offset) { i, f in
                         VStack(alignment: .leading, spacing: 10) {
-                            featureArt(i)
+                            featureArt(f.art)
                             Text(f.title).font(.px(19)).foregroundStyle(UI.ink)
                             Text(f.note).font(.system(size: 14)).foregroundStyle(UI.sub)
                         }
@@ -58,29 +66,34 @@ struct PaywallView: View {
                     }
                 }.frame(maxWidth: .infinity)
 
-                FlowChecks(items: ["광고 제거", "새 예보마다", "가까운 비", "애플워치", "지역 여러 곳", "캐릭터"]).padding(.top, 16)
+                FlowChecks(items: features.map { $0.check }).padding(.top, 16)
 
                 HStack(spacing: 10) {
-                    planCard(Purchases.yearly, title: "연간", note: "월 1,242원 꼴 · 35% 할인", badge: "가장 많이 골라요")
+                    planCard(Purchases.yearly, title: "연간",
+                             note: [purchases.yearlyPerMonth().map { "월 \($0) 꼴" }, purchases.yearlySaving().map { "\($0)% 할인" }].compactMap { $0 }.joined(separator: " · "),
+                             badge: "가장 많이 골라요")
                     planCard(Purchases.monthly, title: "월간", note: "매달 결제", badge: nil)
                 }
                 .padding(.top, 22)
 
-                PrimaryButton(title: model.plus ? "Plus 쓰는 중" : "3일 무료로 시작하기", busy: purchases.busy) {
+                PrimaryButton(title: buttonTitle, busy: purchases.busy) {
                     guard !model.plus else { dismiss(); return }
                     Task { if await purchases.buy(pick) { dismiss() } }
                 }
+                .disabled(!model.plus && purchases.product(pick) == nil)
+                .opacity(!model.plus && purchases.product(pick) == nil ? 0.5 : 1)
                 .padding(.top, 14)
                 .accessibilityIdentifier("subscribe")
 
-                Text("3일 뒤 \(pick == Purchases.yearly ? "연" : "월") \(purchases.price(pick)) · 언제든 해지할 수 있어요")
-                    .font(.system(size: 12)).foregroundStyle(UI.sub).frame(maxWidth: .infinity).padding(.top, 10)
+                Text(disclosure)
+                    .font(.system(size: 11)).foregroundStyle(UI.sub).multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity).padding(.top, 10)
                 HStack(spacing: 6) {
-                    Link("이용약관", destination: Legal.terms)
+                    Link("이용약관(EULA)", destination: Legal.terms)
                     Text("·")
                     Link("개인정보 처리방침", destination: Legal.privacy)
                 }
-                .font(.system(size: 12)).foregroundStyle(UI.sub).frame(maxWidth: .infinity).padding(.top, 4).padding(.bottom, 30)
+                .font(.system(size: 12)).foregroundStyle(UI.sub).frame(maxWidth: .infinity).padding(.top, 6).padding(.bottom, 30)
             }
             .padding(.horizontal, 20)
         }
@@ -88,6 +101,22 @@ struct PaywallView: View {
         .alert(purchases.message ?? "", isPresented: Binding(get: { purchases.message != nil }, set: { if !$0 { purchases.message = nil } })) {
             Button("확인", role: .cancel) {}
         }
+        .task { if !purchases.loaded { await purchases.load() } }
+    }
+
+    private var buttonTitle: String {
+        if model.plus { return "Plus 쓰는 중" }
+        if purchases.product(pick) == nil { return purchases.loaded ? "지금은 구독할 수 없어요" : "가격 불러오는 중…" }
+        if let t = purchases.trialText(pick) { return "\(t)로 시작하기" }
+        return "\(purchases.periodWord(pick)) \(purchases.price(pick) ?? "") 구독하기"
+    }
+
+    /// The auto-renew terms, with the real price and period of the selected plan.
+    private var disclosure: String {
+        guard let price = purchases.price(pick) else { return "구독은 App Store 계정으로 결제되고, App Store 설정에서 언제든 해지할 수 있어요." }
+        let per = purchases.periodWord(pick)
+        let lead = purchases.trialText(pick).map { "\($0) 체험이 끝나면 " } ?? ""
+        return "\(lead)\(per) \(price)이 App Store 계정으로 결제되고, 기간이 끝나기 24시간 전까지 해지하지 않으면 같은 금액으로 자동 갱신돼요. 해지는 App Store 계정 설정에서 언제든 할 수 있어요."
     }
 
     private func planCard(_ id: String, title: String, note: String, badge: String?) -> some View {
@@ -95,7 +124,7 @@ struct PaywallView: View {
         return Button { pick = id } label: {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.system(size: 13, weight: .medium)).foregroundStyle(UI.sub)
-                Text(purchases.price(id)).font(.px(20)).foregroundStyle(UI.ink)
+                Text(purchases.price(id) ?? "–").font(.px(20)).foregroundStyle(UI.ink)
                 Text(note).font(.system(size: 11)).foregroundStyle(UI.sub)
             }
             .frame(maxWidth: .infinity, alignment: .leading).padding(14).padding(.top, 6)
@@ -111,32 +140,32 @@ struct PaywallView: View {
     }
 
     /// Small picture per feature, drawn from app parts (no screenshots, so it stays language-neutral).
-    @ViewBuilder private func featureArt(_ i: Int) -> some View {
+    @ViewBuilder private func featureArt(_ key: String) -> some View {
         ZStack {
             RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.7))
-            switch i {
-            case 0:
+            switch key {
+            case "ads":
                 HStack(spacing: 18) {
                     miniPhone(ad: true)
                     Image(systemName: "arrow.right").foregroundStyle(UI.faint)
                     miniPhone(ad: false)
                 }
-            case 1:
+            case "fresh":
                 HStack(alignment: .bottom, spacing: 10) {
                     ForEach(0..<6, id: \.self) { k in
                         RoundedRectangle(cornerRadius: 3).fill(k == 1 ? UI.faint : UI.accent).frame(width: 14, height: k == 1 ? 18 : 70)
                     }
                 }
-            case 2:
+            case "rain":
                 HStack(alignment: .bottom, spacing: 4) {
                     ForEach(Array([0, 0, 1, 3, 5, 4, 2, 1, 0, 0, 0, 0].enumerated()), id: \.offset) { _, v in
                         RoundedRectangle(cornerRadius: 2).fill(v > 0 ? Color(hex: "#1F5BD0") : UI.line).frame(width: 12, height: CGFloat(max(3, v * 16)))
                     }
                 }
-            case 3:
+            case "watch":
                 RoundedRectangle(cornerRadius: 26).fill(Color(hex: "#1B1F2E")).frame(width: 104, height: 124)
                     .overlay(CharacterSprite(character: .cat, level: 4, rain: .none, width: 70, animate: false).offset(y: 6))
-            case 4:
+            case "places":
                 VStack(spacing: 8) {
                     ForEach([("서울", 18), ("도쿄", 19), ("뉴욕", 12)], id: \.0) { n, t in
                         HStack { Text(n).font(.px(14)); Spacer(); Text("\(t)°").font(.px(16)) }

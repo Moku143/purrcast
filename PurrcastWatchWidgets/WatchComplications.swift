@@ -9,10 +9,10 @@ struct WatchEntry: TimelineEntry { let date: Date; let snap: WeatherSnapshot }
 struct WatchProvider: TimelineProvider {
     func placeholder(in context: Context) -> WatchEntry { WatchEntry(date: Date(), snap: .sample) }
     func getSnapshot(in context: Context, completion: @escaping (WatchEntry) -> Void) {
-        completion(WatchEntry(date: Date(), snap: SharedStore.load() ?? .sample))
+        completion(WatchEntry(date: Date(), snap: SharedStore.load() ?? (context.isPreview ? .sample : .waiting)))
     }
     func getTimeline(in context: Context, completion: @escaping (Timeline<WatchEntry>) -> Void) {
-        let e = WatchEntry(date: Date(), snap: SharedStore.load() ?? .sample)
+        let e = WatchEntry(date: Date(), snap: SharedStore.load() ?? .waiting)
         completion(Timeline(entries: [e], policy: .after(Date().addingTimeInterval(1800))))
     }
 }
@@ -22,15 +22,15 @@ struct ComplicationView: View {
     let entry: WatchEntry
     var body: some View {
         let s = entry.snap.scene
-        if !entry.snap.plus {
+        if !entry.snap.plusActive {
             Text("Plus").font(.system(size: 12, weight: .bold))
         } else {
             switch family {
             case .accessoryRectangular: LockRectangularView(snap: entry.snap)
             case .accessoryCorner:
-                Text("\(s.temp)°").font(.system(size: 20, weight: .bold))
+                Text(entry.snap.deg(s.temp)).font(.system(size: 20, weight: .bold))
                     .widgetLabel { Text(LockText.line(s)) }
-            case .accessoryInline: Text(LockText.inline(s))
+            case .accessoryInline: Text(LockText.inline(entry.snap))
             default: LockCircularView(snap: entry.snap)
             }
         }

@@ -7,6 +7,9 @@ name: TestFlight
 #   ASC_KEY_ID          App Store Connect API key id (Users and Access → Integrations → App Store Connect API, role "App Manager")
 #   ASC_ISSUER_ID       the issuer id shown on the same page
 #   ASC_KEY_P8_BASE64   the downloaded AuthKey_XXXX.p8, base64-encoded
+# and one repository *variable* (same page, "Variables" tab):
+#   SERVER_URL          the forecast server, e.g. https://purrcast.<you>.workers.dev  (without it the build is refused:
+#                       a store build must never run on example weather)
 # Xcode signs with the API key itself (cloud signing), so no certificates or profiles have to be exported.
 
 on:
@@ -30,11 +33,15 @@ jobs:
           done
       - name: Install XcodeGen
         run: brew install xcodegen
-      - name: Generate project with the team id
+      - name: Generate project with the team id and the server
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          SERVER: ${{ vars.SERVER_URL }}
         run: |
+          case "$SERVER" in https://*) ;; *) echo "::error::Set the SERVER_URL repository variable (https://…) — see the top of testflight.yml"; exit 1;; esac
+          curl -fsS "$SERVER/health" || { echo "::error::$SERVER/health does not answer"; exit 1; }
           sed -i '' "s/DEVELOPMENT_TEAM: \"\"/DEVELOPMENT_TEAM: \"$TEAM\"/" project.yml
+          sed -i '' "s#PurrcastServerURL: \"\"#PurrcastServerURL: \"$SERVER\"#g" project.yml
           # build number = run number, so every upload is new
           sed -i '' "s/CURRENT_PROJECT_VERSION: \"1\"/CURRENT_PROJECT_VERSION: \"${{ github.run_number }}\"/" project.yml
           xcodegen generate

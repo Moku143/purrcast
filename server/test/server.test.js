@@ -91,6 +91,8 @@ test('KMA warnings: keep only the ones naming the place', () => {
 
 test('MET URL keeps at most 4 decimals', () => {
   assert.match(metUrl(37.566312345, 126.90190001), /lat=37\.5663&lon=126\.9019$/);
+  const q = readQuery(new URLSearchParams('lat=37.566312&lon=126.901901'));
+  assert.equal(q.lat, 37.57); assert.equal(q.lon, 126.9);
 });
 
 test('scene: clear dry day — no umbrella, no bubble, sun tile, valid for the app', () => {
@@ -101,6 +103,7 @@ test('scene: clear dry day — no umbrella, no bubble, sun tile, valid for the a
   assert.equal(s.level, 4); assert.equal(s.temp, 18); assert.equal(s.hours.length, 13); assert.equal(s.hours[0][0], '지금');
   assert.equal(s.hours[1][0], '14시'); assert.equal(s.tiles[2].label, '일몰'); assert.equal(s.updated, '06:00');
   assert.equal(s.cond, '맑음');
+  assert.equal(s.dayDetail.length, s.days.length); assert.equal(s.dayDetail[1].length, 8); assert.equal(s.dayDetail[1][4][0], '12시');
 });
 
 test('scene: rain from 16 to 17 h → bag + clock-time window, never a countdown', () => {

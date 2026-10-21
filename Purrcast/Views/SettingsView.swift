@@ -15,7 +15,7 @@ struct SettingsView: View {
                     plan
                     SectionLabel(text: "지역")
                     RowGroup {
-                        SettingRow(icon: "star", title: "지금 위치 쓰기", subtitle: Place.here.name) {
+                        SettingRow(icon: "star", title: "지금 위치 쓰기", subtitle: model.hereIsLive ? model.places.first { $0.id == "here" }?.name : (model.location.allowed || model.location.undecided ? "끄면 서울 마포구로 봐요" : "아이폰 설정에서 위치를 허용해 주세요")) {
                             Toggle("", isOn: $model.useLocation).labelsHidden().tint(UI.accent)
                         }
                         RowDivider()
@@ -44,8 +44,6 @@ struct SettingsView: View {
                             }
                         }
                         RowDivider()
-                        SettingRow(icon: "exclaim", title: "기상특보") { toggle($model.notifyAlerts) }
-                        RowDivider()
                         SettingRow(icon: "zzz", title: "조용한 시간") { trailingText("22:00~07:00") }
                     }
 
@@ -64,13 +62,13 @@ struct SettingsView: View {
                             SettingRow(icon: "sparkle", title: "위젯 미리보기 · 추가하는 법") { chevron }
                         }.buttonStyle(.plain).accessibilityIdentifier("widgets")
                         RowDivider()
-                        SettingRow(icon: "star", title: "애플워치", plus: !model.plus) { trailingText(model.plus ? "켜짐" : "꺼짐") }
+                        SettingRow(icon: "star", title: "애플워치", subtitle: model.plus ? "워치에 Purrcast를 설치하면 바로 보여요" : "Plus에서 워치 앱이 열려요", plus: !model.plus) { EmptyView() }
                     }
 
                     SectionLabel(text: "정보")
                     RowGroup {
                         Button { go(.sources) } label: {
-                            SettingRow(title: "데이터 출처", subtitle: "기상청 · MET Norway") { chevron }
+                            SettingRow(title: "데이터 출처", subtitle: model.isSample ? "지금은 예시 날씨" : "기상청 · MET Norway") { chevron }
                         }.buttonStyle(.plain)
                         RowDivider()
                         Link(destination: Legal.privacy) { SettingRow(title: "개인정보 처리방침") { chevron } }.buttonStyle(.plain)
@@ -81,7 +79,7 @@ struct SettingsView: View {
                         RowDivider()
                         SettingRow(title: "버전") { trailingText(Self.version) }
                     }
-                    Text(model.provider.name == "예시 날씨" ? "지금은 예시 날씨로 보여요 (서버 연결 전)" : "")
+                    Text(model.isSample ? "지금은 예시 날씨로 보여요 (서버 연결 전)" : "")
                         .font(.system(size: 11)).foregroundStyle(UI.faint).padding(.top, 14).padding(.bottom, 30)
                 }
             }
@@ -92,7 +90,7 @@ struct SettingsView: View {
     @ViewBuilder private var plan: some View {
         if model.plus {
             RowGroup {
-                SettingRow(icon: "sparkle", title: "Plus 구독 중", subtitle: purchases.renewal ?? "연간") {
+                SettingRow(icon: "sparkle", title: "Plus 구독 중", subtitle: purchases.statusLine) {
                     Link(destination: URL(string: "https://apps.apple.com/account/subscriptions")!) {
                         HStack(spacing: 4) { Text("관리"); Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)) }
                             .font(.system(size: 14)).foregroundStyle(UI.sub)
@@ -104,8 +102,8 @@ struct SettingsView: View {
                 HStack(spacing: 12) {
                     PixelIcon(name: "sparkle", size: 26)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Purrcast Plus · 3일 무료").font(.px(16)).foregroundStyle(UI.ink)
-                        Text("광고 제거 · 애플워치 · 캐릭터 · 가까운 비").font(.system(size: 12)).foregroundStyle(UI.sub)
+                        Text("Purrcast Plus" + (purchases.trialText(Purchases.yearly).map { " · \($0)" } ?? "")).font(.px(16)).foregroundStyle(UI.ink)
+                        Text(PaywallView.features.prefix(4).map { $0.check }.joined(separator: " · ")).font(.system(size: 12)).foregroundStyle(UI.sub)
                     }
                     Spacer()
                     Image(systemName: "chevron.right").font(.system(size: 13, weight: .bold)).foregroundStyle(UI.accent)

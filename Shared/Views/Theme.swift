@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 extension Color {
     init(hex: String) {
@@ -47,8 +50,17 @@ extension Font {
 struct PixelIcon: View {
     let name: String
     var size: CGFloat = 24
+
+    /// An icon name the app does not have (a newer server) falls back to the cloud instead of a blank.
+    static func asset(_ name: String) -> String {
+        #if canImport(UIKit)
+        return UIImage(named: "icon-\(name)") != nil ? "icon-\(name)" : "icon-cloud"
+        #else
+        return "icon-\(name)"
+        #endif
+    }
     var body: some View {
-        Image("icon-\(name)")
+        Image(Self.asset(name))
             .interpolation(.none)
             .resizable()
             .frame(width: size, height: size)

@@ -7,7 +7,7 @@ struct OnboardingView: View {
     @EnvironmentObject var model: AppModel
     @EnvironmentObject var purchases: Purchases
     @State private var step = 0
-    @StateObject private var location = LocationAsker()
+    @State private var showPlus = false
 
     private let count = 6
 
@@ -35,29 +35,30 @@ struct OnboardingView: View {
         }
         .background(LinearGradient(colors: [Color(hex: step == 5 ? "#FFF3D6" : "#E4F3D9"), Color(hex: "#F4F6FA")], startPoint: .top, endPoint: .bottom).ignoresSafeArea())
         .animation(.easeInOut(duration: 0.2), value: step)
+        .sheet(isPresented: $showPlus, onDismiss: { model.onboarded = true }) { PaywallView() }
     }
 
     @ViewBuilder private var buttons: some View {
         switch step {
         case 3:
             VStack(spacing: 10) {
-                PrimaryButton(title: "지금 위치 쓰기") { location.ask(); model.useLocation = true; next() }
-                secondary("직접 찾기") { model.useLocation = false; next() }
+                PrimaryButton(title: "지금 위치 쓰기") { model.location.ask(); model.useLocation = true; next() }
+                secondary("나중에 · 서울로 볼게요") { model.useLocation = false; next() }
             }
         case 4:
             VStack(spacing: 10) {
                 PrimaryButton(title: "알림 켜기") {
-                    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
+                    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in
+                        Task { @MainActor in model.planNotifications() }
+                    }
                     next()
                 }
                 secondary("나중에") { model.notifyRain = false; model.notifyMorning = false; next() }
             }
         case 5:
             VStack(spacing: 10) {
-                PrimaryButton(title: "3일 무료로 시작하기", busy: purchases.busy) {
-                    Task { _ = await purchases.buy(Purchases.yearly); model.onboarded = true }
-                }
-                secondary("무료로 시작하기") { model.onboarded = true }
+                PrimaryButton(title: "Plus 자세히 보기") { showPlus = true }
+                secondary("무료로 시작하기") { model.onboarded = true }.accessibilityIdentifier("start-free")
             }
         default:
             PrimaryButton(title: "다음") { next() }.accessibilityIdentifier("next")
@@ -156,8 +157,6 @@ struct OnboardingView: View {
             RowGroup {
                 SettingRow(icon: "umbrella_closed", title: "비 오기 전") { Toggle("", isOn: $model.notifyRain).labelsHidden().tint(UI.accent) }
                 RowDivider()
-                SettingRow(icon: "exclaim", title: "기상특보") { Toggle("", isOn: $model.notifyAlerts).labelsHidden().tint(UI.accent) }
-                RowDivider()
                 SettingRow(icon: "sun", title: "아침 요약") { Toggle("", isOn: $model.notifyMorning).labelsHidden().tint(UI.accent) }
                 DatePicker("", selection: $model.morningTime, displayedComponents: .hourAndMinute)
                     .datePickerStyle(.wheel).labelsHidden().frame(height: 150).clipped()
@@ -169,20 +168,15 @@ struct OnboardingView: View {
 
     private var plus: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack { Text("Plus").font(.px(22)); Spacer(); Text("3일 무료").font(.px(13)).foregroundStyle(UI.accent) }.padding(.top, 30)
+            HStack { Text("Plus").font(.px(22)); Spacer(); if let t = purchases.trialText(Purchases.yearly) { Text(t).font(.px(13)).foregroundStyle(UI.accent) } }.padding(.top, 30)
             HStack(spacing: -10) {
                 ForEach(PurrCharacter.allCases) { c in CharacterSprite(character: c, level: 3, rain: .none, width: 110, animate: false) }
             }.frame(maxWidth: .infinity).padding(.top, 20)
-            FlowChecks(items: ["광고 제거", "새 예보마다", "가까운 비", "애플워치", "지역 여러 곳", "캐릭터"])
-            Text("연 \(purchases.price(Purchases.yearly)) · 월 \(purchases.price(Purchases.monthly))").font(.px(14)).frame(maxWidth: .infinity)
+            FlowChecks(items: PaywallView.features.map { $0.check })
+            if let y = purchases.price(Purchases.yearly), let m = purchases.price(Purchases.monthly) {
+                Text("연 \(y) · 월 \(m) · 자동 갱신").font(.px(14)).frame(maxWidth: .infinity)
+            }
         }
         .foregroundStyle(UI.ink).padding(.horizontal, 22)
     }
-}
-
-/// Asks for "when in use" location once; the forecast server takes the coordinates later.
-final class LocationAsker: NSObject, ObservableObject, CLLocationManagerDelegate {
-    private let manager = CLLocationManager()
-    override init() { super.init(); manager.delegate = self }
-    func ask() { manager.requestWhenInUseAuthorization() }
 }

@@ -6,8 +6,7 @@ struct WidgetGalleryView: View {
     @Environment(\.dismiss) private var dismiss
 
     var snap: WeatherSnapshot {
-        WeatherSnapshot(scene: model.scene, character: model.character, plus: model.plus,
-                        characterName: model.name(of: model.shownCharacter), placeShort: model.currentPlace.short, saved: Date())
+        model.snapshot
     }
 
     var body: some View {
@@ -28,7 +27,7 @@ struct WidgetGalleryView: View {
                 ZStack {
                     LinearGradient(colors: [Color(hex: "#5B5FA8"), Color(hex: "#2E2F66")], startPoint: .top, endPoint: .bottom)
                     VStack(spacing: 10) {
-                        Text(LockText.inline(snap.scene)).font(.system(size: 13, weight: .semibold))
+                        Text(LockText.inline(snap)).font(.system(size: 13, weight: .semibold))
                         Text("9:41").font(.system(size: 64, weight: .semibold, design: .rounded))
                         HStack(spacing: 12) {
                             LockRectangularView(snap: snap).frame(width: 160, height: 66)

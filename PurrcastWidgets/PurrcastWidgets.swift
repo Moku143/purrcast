@@ -13,24 +13,27 @@ struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> WeatherEntry { WeatherEntry(date: Date(), snap: .sample) }
 
     func getSnapshot(in context: Context, completion: @escaping (WeatherEntry) -> Void) {
-        completion(WeatherEntry(date: Date(), snap: SharedStore.load() ?? .sample))
+        // the widget gallery shows a sample; a placed widget shows what the app saved (or asks to open the app)
+        completion(WeatherEntry(date: Date(), snap: context.isPreview ? (SharedStore.load() ?? .sample) : (SharedStore.load() ?? .waiting)))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<WeatherEntry>) -> Void) {
         Task {
-            let snap = await fetch() ?? SharedStore.load() ?? .sample
-            // free: the 06:00 forecast, refreshed a few times a day; Plus: every 30 minutes
-            let next = Calendar.current.date(byAdding: .minute, value: snap.plus ? 30 : 180, to: Date()) ?? Date().addingTimeInterval(1800)
+            let snap = await fetch() ?? SharedStore.load() ?? .waiting
+            // free: the morning forecast, refreshed a few times a day; Plus: every 30 minutes
+            let next = Calendar.current.date(byAdding: .minute, value: snap.plusActive ? 30 : 180, to: Date()) ?? Date().addingTimeInterval(1800)
             completion(Timeline(entries: [WeatherEntry(date: Date(), snap: snap)], policy: .after(next)))
         }
     }
 
-    /// With a server configured, the widget asks for the saved place itself; otherwise nil (use what the app saved).
+    /// With a server configured, the widget refreshes the app's current place itself (the plan as of now);
+    /// otherwise nil (use what the app saved).
     private func fetch() async -> WeatherSnapshot? {
-        guard WeatherSource.serverURL != nil, var last = SharedStore.load() else { return nil }
-        let place = Place.catalog.first { $0.short == last.placeShort } ?? Place.here
-        guard let s = try? await WeatherSource.make().forecast(for: place, plus: last.plus) else { return nil }
+        guard WeatherSource.serverURL != nil, var last = SharedStore.load(), !last.isSample, let place = last.place else { return nil }
+        guard let s = try? await WeatherSource.make().forecast(for: place, plus: last.plusActive, previousLevel: last.scene.level) else { return nil }
         last.scene = s; last.saved = Date()
+        if !last.plusActive { last.plus = false }
+        SharedStore.save(last)
         return last
     }
 }
@@ -43,7 +46,7 @@ struct HomeWidgetView: View {
         case .systemMedium: MediumWidgetView(snap: entry.snap)
         case .accessoryRectangular: LockRectangularView(snap: entry.snap)
         case .accessoryCircular: LockCircularView(snap: entry.snap)
-        case .accessoryInline: Text(LockText.inline(entry.snap.scene))
+        case .accessoryInline: Text(LockText.inline(entry.snap))
         default: SmallWidgetView(snap: entry.snap)
         }
     }

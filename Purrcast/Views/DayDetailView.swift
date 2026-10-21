@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// Tapping a day in the 10-day list: the day strip on top, the character dressed for that day,
-/// a one-line summary, and the temperature curve over the day.
+/// Tapping a day in the 10-day list: the day strip, the character dressed for that day, a one-line summary,
+/// and the day's 3-hourly forecast (temperature, rain chance, wind, UV, humidity) as a curve and four bands.
+/// Everything comes from the forecast (`dayDetail`); without it only the summary is shown.
 struct DayDetailView: View {
     @EnvironmentObject var model: AppModel
     @Environment(\.dismiss) private var dismiss
@@ -12,17 +13,28 @@ struct DayDetailView: View {
 
     var body: some View {
         let s = model.scene
-        let d = s.days[min(start, s.days.count - 1)]
-        let mid = (d.hi + d.lo) / 2
-        let lv = Rules.level(feels: Double(mid))
+        if s.days.isEmpty {
+            VStack(spacing: 12) {
+                Text("이 날의 예보가 아직 없어요").font(.px(16))
+                Button("닫기") { dismiss() }.tint(UI.accent)
+            }.frame(maxWidth: .infinity, maxHeight: .infinity).background(UI.bg)
+        } else {
+            content(s, index: max(0, min(start, s.days.count - 1)))
+        }
+    }
+
+    private func content(_ s: WeatherScene, index: Int) -> some View {
+        let d = s.days[index]
+        let detail: [WeatherScene.DayHour]? = s.dayDetail.flatMap { index < $0.count && $0[index].count >= 2 ? $0[index] : nil }
+        let lv = Rules.level(feels: Double(d.hi + d.lo) / 2)
         let rain: RainState = d.chance >= 60 ? .umbrella : (d.chance >= 30 ? .bag : .none)
-        ScrollView {
+        return ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 HStack {
-                    Text(title(d, index: start)).font(.px(18))
+                    Text(title(d, index: index)).font(.px(18))
                     Spacer()
                     Button { dismiss() } label: { Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).frame(width: 32, height: 32).background(Color.white).clipShape(Circle()) }
-                        .buttonStyle(.plain).accessibilityIdentifier("sheet-close")
+                        .buttonStyle(.plain).accessibilityIdentifier("sheet-close").accessibilityLabel("닫기")
                 }
 
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -30,29 +42,17 @@ struct DayDetailView: View {
                         ForEach(Array(s.days.enumerated()), id: \.offset) { i, x in
                             Button { start = i } label: {
                                 VStack(spacing: 4) {
-                                    Text(x.name).font(.px(11)).foregroundStyle(i == start ? .white : UI.sub)
+                                    Text(x.name).font(.px(11)).foregroundStyle(i == index ? .white : UI.sub)
                                     PixelIcon(name: x.icon, size: 26)
                                     Text(dayNumber(i)).font(.px(14))
-                                    Text("\(x.hi)°/\(x.lo)°").font(.system(size: 9)).foregroundStyle(i == start ? .white.opacity(0.8) : UI.sub)
+                                    Text("\(model.deg(x.hi))/\(model.deg(x.lo))").font(.system(size: 9)).foregroundStyle(i == index ? .white.opacity(0.8) : UI.sub)
                                 }
-                                .foregroundStyle(i == start ? .white : UI.ink)
+                                .foregroundStyle(i == index ? .white : UI.ink)
                                 .frame(width: 50).padding(.vertical, 8)
-                                .background(i == start ? UI.ink : Color.white)
+                                .background(i == index ? UI.ink : Color.white)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                             }.buttonStyle(.plain)
                         }
-                    }
-                }
-
-                HStack(spacing: 6) {
-                    ForEach(Array(metrics.enumerated()), id: \.offset) { i, m in
-                        Button { metric = i } label: {
-                            VStack(spacing: 3) { PixelIcon(name: m.0, size: 18); Text(m.1).font(.system(size: 11, weight: .medium)) }
-                                .foregroundStyle(i == metric ? .white : UI.ink)
-                                .frame(maxWidth: .infinity).padding(.vertical, 8)
-                                .background(i == metric ? UI.ink : Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }.buttonStyle(.plain)
                     }
                 }
 
@@ -64,27 +64,47 @@ struct DayDetailView: View {
                             Text("\(model.deg(d.hi)) / \(model.deg(d.lo))").font(.px(20))
                             Text("일교차 \(d.hi - d.lo)°").font(.px(11)).padding(.horizontal, 6).padding(.vertical, 2).background(Color(hex: "#FFE8A3"))
                         }
-                        Text(summary(d)).font(.system(size: 13)).foregroundStyle(UI.ink)
+                        Text(summary(d, detail)).font(.system(size: 13)).foregroundStyle(UI.ink)
                     }
                     .padding(12).frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color.white).overlay(Rectangle().stroke(UI.ink, lineWidth: 2))
                 }
 
-                Card(ink: Ink(night: false)) {
-                    Text(metrics[metric].1).font(.px(13))
-                    curve(d, metric: metric).frame(height: 150)
-                    HStack { ForEach(["0시", "6시", "12시", "18시", "24시"], id: \.self) { t in Text(model.hourLabel(t)).font(.system(size: 10)).foregroundStyle(UI.sub); if t != "24시" { Spacer() } } }
-                }
+                if let detail {
+                    HStack(spacing: 6) {
+                        ForEach(Array(metrics.enumerated()), id: \.offset) { i, m in
+                            Button { metric = i } label: {
+                                VStack(spacing: 3) { PixelIcon(name: m.0, size: 18); Text(m.1).font(.system(size: 11, weight: .medium)) }
+                                    .foregroundStyle(i == metric ? .white : UI.ink)
+                                    .frame(maxWidth: .infinity).padding(.vertical, 8)
+                                    .background(i == metric ? UI.ink : Color.white)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }.buttonStyle(.plain)
+                        }
+                    }
 
-                Card(ink: Ink(night: false)) {
-                    Text("시간대별 \(metrics[metric].1)").font(.px(13))
-                    HStack(spacing: 8) {
-                        ForEach(Array(["새벽", "아침", "낮", "밤"].enumerated()), id: \.offset) { i, n in
-                            let v = band(d, i)
-                            VStack(spacing: 4) { Text(n).font(.system(size: 11)); Text(value(v, metric: metric)).font(.px(16)) }
-                                .foregroundStyle(i == 2 ? .white : UI.ink)
-                                .frame(maxWidth: .infinity).padding(.vertical, 10)
-                                .background(i == 2 ? UI.ink : Color.white).overlay(Rectangle().stroke(UI.ink, lineWidth: 1.5))
+                    Card(ink: Ink(night: false)) {
+                        Text(metrics[metric].1).font(.px(13))
+                        curve(values(detail)).frame(height: 150)
+                        HStack {
+                            ForEach(Array(detail.enumerated()), id: \.offset) { i, h in
+                                if i % 2 == 0 {
+                                    Text(model.hourLabel(h.label)).font(.system(size: 10)).foregroundStyle(UI.sub)
+                                    if i < detail.count - 2 { Spacer() }
+                                }
+                            }
+                        }
+                    }
+
+                    Card(ink: Ink(night: false)) {
+                        Text("시간대별 \(metrics[metric].1)").font(.px(13))
+                        HStack(spacing: 8) {
+                            ForEach(Array(bands(detail).enumerated()), id: \.offset) { i, b in
+                                VStack(spacing: 4) { Text(b.0).font(.system(size: 11)); Text(value(b.1)).font(.px(16)) }
+                                    .foregroundStyle(i == 2 ? .white : UI.ink)
+                                    .frame(maxWidth: .infinity).padding(.vertical, 10)
+                                    .background(i == 2 ? UI.ink : Color.white).overlay(Rectangle().stroke(UI.ink, lineWidth: 1.5))
+                            }
                         }
                     }
                 }
@@ -106,34 +126,31 @@ struct DayDetailView: View {
         String(Calendar.current.component(.day, from: Calendar.current.date(byAdding: .day, value: i, to: Date()) ?? Date()))
     }
 
-    private func summary(_ d: WeatherScene.DayRow) -> String {
-        var t = "\(d.lo)°로 가장 쌀쌀하고, 오후에 \(d.hi)°로 가장 따뜻해요."
+    private func summary(_ d: WeatherScene.DayRow, _ detail: [WeatherScene.DayHour]?) -> String {
+        var t: String
+        if let detail, let cold = detail.min(by: { $0.temp < $1.temp }), let warm = detail.max(by: { $0.temp < $1.temp }) {
+            t = "\(model.hourLabel(cold.label)) \(model.deg(Int(cold.temp.rounded())))로 가장 쌀쌀하고, \(model.hourLabel(warm.label)) \(model.deg(Int(warm.temp.rounded())))로 가장 따뜻해요."
+        } else {
+            t = "최저 \(model.deg(d.lo)), 최고 \(model.deg(d.hi))예요."
+        }
         if d.chance >= 30 { t += " 비 올 확률 \(d.chance)%, 우산 챙겨요." }
         return t
     }
 
-    /// Smooth day curve from lo (around 5 am) to hi (around 3 pm), 24 points.
-    private func series(_ d: WeatherScene.DayRow, metric: Int) -> [Double] {
-        (0..<25).map { h in
-            let x = Double(h)
-            let lo = Double(d.lo), span = Double(d.hi - d.lo)
-            var k: Double
-            if x < 5 { k = 0.15 - x * 0.03 }                                   // night, cooling to the low at 5 am
-            else if x <= 15 { k = 0.5 - 0.5 * cos((x - 5) / 10 * Double.pi) }  // warming to the high at 3 pm
-            else { k = max(0.3, 1 - (x - 15) / 14) }                          // evening
-            let t = lo + span * k
-            switch metric {
-            case 1: return Double(d.chance) * max(0, sin(x / 24 * .pi))           // rain chance through the day
-            case 2: return 2 + 3 * sin(x / 24 * .pi)                               // wind m/s
-            case 3: return max(0, 7 * sin((x - 6) / 12 * .pi))                     // UV
-            case 4: return 80 - 30 * sin((x - 3) / 24 * .pi)                       // humidity %
-            default: return t
-            }
+    private func values(_ detail: [WeatherScene.DayHour]) -> [Double] {
+        detail.map { h in
+            switch metric { case 1: return h.chance; case 2: return h.wind; case 3: return h.uv; case 4: return h.rh; default: return h.temp }
         }
     }
 
-    private func band(_ d: WeatherScene.DayRow, _ i: Int) -> Double { series(d, metric: metric)[[3, 8, 14, 21][i]] }
-    private func value(_ v: Double, metric: Int) -> String {
+    /// 새벽 · 아침 · 낮 · 밤 from the 3-hourly values (around 3, 9, 15, 21 h)
+    private func bands(_ detail: [WeatherScene.DayHour]) -> [(String, Double)] {
+        let v = values(detail)
+        let pick = { (i: Int) -> Double in v[min(i, v.count - 1)] }
+        return [("새벽", pick(1)), ("아침", pick(3)), ("낮", pick(5)), ("밤", pick(7))]
+    }
+
+    private func value(_ v: Double) -> String {
         switch metric {
         case 1, 4: return "\(Int(v.rounded()))%"
         case 2: return model.windText(Int(v.rounded()))
@@ -142,20 +159,21 @@ struct DayDetailView: View {
         }
     }
 
-    private func curve(_ d: WeatherScene.DayRow, metric: Int) -> some View {
-        let ys = series(d, metric: metric)
-        let lo = ys.min() ?? 0, hi = max((ys.max() ?? 1), lo + 1)
+    private func curve(_ ys: [Double]) -> some View {
+        let lo = ys.min() ?? 0, hi = max(ys.max() ?? 1, lo + 1)
         return GeometryReader { g in
+            let n = max(1, ys.count - 1)
             let pt = { (i: Int) -> CGPoint in
-                CGPoint(x: g.size.width * CGFloat(i) / 24, y: g.size.height * (1 - CGFloat((ys[i] - lo) / (hi - lo))) * 0.8 + g.size.height * 0.1)
+                CGPoint(x: g.size.width * CGFloat(i) / CGFloat(n), y: g.size.height * (1 - CGFloat((ys[i] - lo) / (hi - lo))) * 0.8 + g.size.height * 0.1)
             }
             ZStack {
                 Path { p in p.move(to: CGPoint(x: 0, y: g.size.height)); for i in 0..<ys.count { p.addLine(to: pt(i)) }; p.addLine(to: CGPoint(x: g.size.width, y: g.size.height)) }
                     .fill(LinearGradient(colors: [Color(hex: "#C9E3A0").opacity(0.7), .clear], startPoint: .top, endPoint: .bottom))
                 Path { p in p.move(to: pt(0)); for i in 1..<ys.count { p.addLine(to: pt(i)) } }
                     .stroke(Color(hex: "#7DBE4E"), style: StrokeStyle(lineWidth: 3, lineJoin: .round))
-                let now = Calendar.current.component(.hour, from: Date())
-                Rectangle().fill(UI.ink).frame(width: 1.5).position(x: pt(now).x, y: g.size.height / 2).opacity(start == 0 ? 0.6 : 0)
+                ForEach(0..<ys.count, id: \.self) { i in
+                    Circle().fill(Color(hex: "#7DBE4E")).frame(width: 6, height: 6).position(pt(i))
+                }
             }
         }
     }

@@ -33,7 +33,8 @@ export default {
 };
 
 export function readQuery(sp) {
-  const lat = parseFloat(sp.get('lat')), lon = parseFloat(sp.get('lon'));
+  // ~1 km is plenty for a forecast and is what the privacy policy promises
+  const lat = Math.round(parseFloat(sp.get('lat')) * 100) / 100, lon = Math.round(parseFloat(sp.get('lon')) * 100) / 100;
   if (!(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)) throw Object.assign(new Error('lat / lon missing or out of range'), { status: 400 });
   const tz = sp.get('tz') || 'Asia/Seoul';
   try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); } catch { throw Object.assign(new Error('bad tz'), { status: 400 }); }

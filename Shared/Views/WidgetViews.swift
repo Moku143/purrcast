@@ -53,16 +53,16 @@ struct MediumWidgetView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         VStack(alignment: .trailing, spacing: 2) {
                             Text("강수확률 \(chanceNow(s))%").font(.px(10))
-                            Text("체감 \(s.feels)°").font(.px(10))
+                            Text("체감 \(snap.deg(s.feels))").font(.px(10))
                         }
-                        Text("\(s.temp)°").font(.px(34))
+                        Text(snap.deg(s.temp)).font(.px(34))
                     }
                     HStack(spacing: 0) {
                         ForEach(Array(s.hours.dropFirst().prefix(5).enumerated()), id: \.offset) { _, h in
                             VStack(spacing: 2) {
-                                Text(h.label).font(.px(9)).opacity(0.8)
+                                Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 7 : 9)).opacity(0.8)
                                 PixelIcon(name: h.icon, size: 16)
-                                Text("\(h.temp)°").font(.px(10))
+                                Text(snap.deg(h.temp)).font(.px(10))
                                 Text(h.mm > 0 ? (h.mm == h.mm.rounded() ? "\(Int(h.mm))mm" : String(format: "%.1fmm", h.mm)) : "–")
                                     .font(.px(8)).foregroundStyle(h.mm > 0 ? ink.blue : ink.faint)
                             }.frame(maxWidth: .infinity)
@@ -98,9 +98,9 @@ struct SmallWidgetView: View {
                 .frame(width: 72, height: 112, alignment: .bottom)
                 Spacer(minLength: 0)
                 VStack(alignment: .trailing, spacing: 3) {
-                    Text("\(s.temp)°").font(.px(30))
+                    Text(snap.deg(s.temp)).font(.px(30))
                     if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11); Text(t).font(.px(9)) } }
-                    Text("체감 \(s.feels)°").font(.px(9))
+                    Text("체감 \(snap.deg(s.feels))").font(.px(9))
                     Text("강수 \(chanceNow(s))%").font(.px(9))
                 }
             }
@@ -117,9 +117,9 @@ struct LockRectangularView: View {
         HStack(spacing: 6) {
             Image(snap.shownCharacter.lock(level: lv)).resizable().scaledToFit().frame(width: 40, height: 52)
             VStack(alignment: .leading, spacing: 1) {
-                HStack(spacing: 3) { PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 12).colorMultiply(.white); Text("\(s.temp)°").font(.system(size: 15, weight: .bold)) }
+                HStack(spacing: 3) { PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 12).colorMultiply(.white); Text(snap.deg(s.temp)).font(.system(size: 15, weight: .bold)) }
                 Text(LockText.line(s)).font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                Text("☂ \(chanceNow(s))% · \(s.lo)~\(s.hi)°").font(.system(size: 11)).opacity(0.8)
+                Text("☂ \(chanceNow(s))% · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.system(size: 11)).opacity(0.8)
             }
             Spacer(minLength: 0)
         }
@@ -131,14 +131,15 @@ struct LockCircularView: View {
     let snap: WeatherSnapshot
     var body: some View {
         let s = snap.scene
+        let u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
         Gauge(value: Double(s.temp), in: Double(min(s.lo, s.temp))...Double(max(s.hi, s.temp, s.lo + 1))) {
             Text("°")
         } currentValueLabel: {
-            Text("\(s.temp)").font(.system(size: 18, weight: .bold))
+            Text("\(u(s.temp))").font(.system(size: 18, weight: .bold))
         } minimumValueLabel: {
-            Text("\(s.lo)").font(.system(size: 9))
+            Text("\(u(s.lo))").font(.system(size: 9))
         } maximumValueLabel: {
-            Text("\(s.hi)").font(.system(size: 9))
+            Text("\(u(s.hi))").font(.system(size: 9))
         }
         .gaugeStyle(.accessoryCircular)
     }
@@ -167,8 +168,9 @@ enum LockText {
     /// One line for the lock screen: the bubble text when there is one, the condition otherwise.
     static func line(_ s: WeatherScene) -> String { s.bubble?.text ?? s.cond }
     /// Inline lock widget (above the clock): "☂ 15~17시 비 · 18°"
-    static func inline(_ s: WeatherScene) -> String {
+    static func inline(_ snap: WeatherSnapshot) -> String {
+        let s = snap.scene
         let lead = (s.bubble?.icon.hasPrefix("umbrella") ?? false) ? "☂ " : ""
-        return lead + line(s) + " · \(s.temp)°"
+        return lead + line(s) + " · " + snap.deg(s.temp)
     }
 }

@@ -4,6 +4,7 @@ import SwiftUI
 struct PurrcastApp: App {
     @StateObject private var model = AppModel()
     @StateObject private var purchases = Purchases()
+    @Environment(\.scenePhase) private var phase
 
     var body: some Scene {
         WindowGroup {
@@ -14,14 +15,27 @@ struct PurrcastApp: App {
                 .task {
                     WatchBridge.shared.start()
                     await purchases.load()
-                    model.plus = purchases.active || model.debugPlus
-                    await model.refresh()
+                    syncPlan()
+                    await model.refresh(force: true)
                 }
-                .onChange(of: purchases.active) { _, on in
-                    // StoreKit decides the plan; the debug launch flag can only force it on
-                    model.plus = on || model.debugPlus
+                .onChange(of: phase) { _, p in
+                    // back from the background: new day / old data → fetch; a lapsed subscription → back to Free
+                    guard p == .active else { return }
+                    Task {
+                        await purchases.refresh()
+                        syncPlan()
+                        await model.refresh()
+                    }
                 }
+                .onChange(of: purchases.active) { _, _ in syncPlan() }
+                .onChange(of: purchases.expires) { _, _ in syncPlan() }
         }
+    }
+
+    /// StoreKit decides the plan; the debug launch flag (debug builds only) can force it on.
+    private func syncPlan() {
+        model.plus = purchases.active || model.debugPlus
+        model.plusUntil = purchases.active ? purchases.expires : nil
     }
 }
 
@@ -60,11 +74,13 @@ struct RootView: View {
         .onAppear(perform: openFromLaunchArguments)
     }
 
-    /// UI tests open a page directly: -open character|paywall|settings|places|sources|widgets|day
+    /// UI tests open a page directly: -open character|paywall|settings|places|sources|widgets|day (debug builds only)
     private func openFromLaunchArguments() {
+        #if DEBUG
         let a = ProcessInfo.processInfo.arguments
         guard let i = a.firstIndex(of: "-open"), i + 1 < a.count else { return }
         if a[i + 1] == "day" { day = 1 } else { route = Route(rawValue: a[i + 1]) }
+        #endif
     }
 }
 

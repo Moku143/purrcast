@@ -1,45 +1,128 @@
 import Foundation
 
-/// One example weather situation, as drawn on the design canvas (Resources/Data/scenes.json).
-/// Until the forecast server is wired in, the app runs on these. The server answers with exactly this JSON shape
-/// (docs/server-api.md), so switching over is only a matter of setting PurrcastServerURL.
+/// One forecast as the app draws it. The server answers with exactly this JSON shape (docs/server-api.md);
+/// the example scenes in Shared/Data/scenes.json use it too (development, screenshots).
+///
+/// Decoding is lenient on purpose: a missing field gets a safe default, numbers may be decimals, and values
+/// that would break the layout (hi below lo, a wind direction of −12°, a clock without ":") are repaired, so a
+/// server mistake shows a slightly plain screen instead of no weather or a crash.
 struct WeatherScene: Codable, Identifiable {
     var id: String = ""
-    var time: String            // day | night
-    var cover: String           // clear | partly | overcast
-    var precip: String          // none | rain | heavy | snow
-    var thunder: String         // on | off
-    var aux: String             // none | wind | fog | heat | frost | dust
-    var level: Int              // outfit 0...9
-    var rain: String            // none | think | bag | umbrella
-    var temp: Int
-    var feels: Int
-    var hi: Int
-    var lo: Int
-    var yday: Int               // vs the same hour yesterday
-    var cond: String
-    var clock: String           // "13:46"
-    var updated: String         // "06:00"
+    var time: String = "day"            // day | night
+    var cover: String = "partly"        // clear | partly | overcast
+    var precip: String = "none"         // none | rain | heavy | snow
+    var thunder: String = "off"         // on | off
+    var aux: String = "none"            // none | wind | fog | heat | frost | dust
+    var level: Int = 4                  // outfit 0...9
+    var rain: String = "none"           // none | think | bag | umbrella
+    var temp: Int = 0
+    var feels: Int = 0
+    var hi: Int = 0
+    var lo: Int = 0
+    var yday: Int = 0                   // vs the same hour yesterday
+    var cond: String = ""
+    var clock: String = "12:00"         // "13:46"
+    var updated: String = ""            // "06:00"
     var bubble: Bubble?
-    var hours: [HourRow]
-    var tiles: [Tile]
-    var wind: Wind
-    var days: [DayRow]
+    var hours: [HourRow] = []
+    var tiles: [Tile] = []
+    var wind = Wind(speed: 0, gust: 0, deg: 0)
+    var days: [DayRow] = []
     var place: String?
     var plus: Bool?
     var snow: Bool?
     var mood: String?
-    var minutes: [Double]?      // next-hour rain, mm/h per minute (Plus, minute-forecast regions)
-    var next6: [NextHour]?      // KMA six-hour slots (Plus, Korea)
+    var minutes: [Double]?              // next-hour rain, mm/h per minute (Plus, where a minute source exists)
+    var next6: [NextHour]?              // next six hourly slots (Plus)
+    var nextSource: String?             // kma | met — which forecast the six hours come from
+    var dayDetail: [[DayHour]]?         // per day, 8 three-hourly values for the day sheet
 
     enum CodingKeys: String, CodingKey {
-        case time, cover, precip, thunder, aux, level, rain, temp, feels, hi, lo, yday, cond, clock, updated, bubble, hours, tiles, wind, days, place, plus, snow, mood, minutes, next6
+        case time, cover, precip, thunder, aux, level, rain, temp, feels, hi, lo, yday, cond, clock, updated, bubble, hours, tiles, wind, days, place, plus, snow, mood, minutes, next6, nextSource, dayDetail
     }
 
-    struct Bubble: Codable { var kind: String; var tone: String; var icon: String; var text: String }
-    struct Wind: Codable { var speed: Int; var gust: Int; var deg: Int }
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        func s(_ k: CodingKeys, _ d: String) -> String { (try? c.decodeIfPresent(String.self, forKey: k)) ?? d }
+        func n(_ k: CodingKeys, _ d: Int) -> Int { ((try? c.decodeIfPresent(Double.self, forKey: k)) ?? nil).map { Int($0.rounded()) } ?? d }
+        time = s(.time, "day"); cover = s(.cover, "partly"); precip = s(.precip, "none"); thunder = s(.thunder, "off")
+        aux = s(.aux, "none"); rain = s(.rain, "none")
+        level = max(0, min(9, n(.level, 4)))
+        temp = n(.temp, 0); feels = n(.feels, temp)
+        let a = n(.hi, temp), b = n(.lo, temp)
+        hi = max(a, b, temp); lo = min(a, b, temp)
+        yday = n(.yday, 0)
+        cond = s(.cond, ""); updated = s(.updated, "")
+        let ck = s(.clock, "")
+        clock = Self.clockMinutes(ck) == nil ? "12:00" : ck
+        bubble = (try? c.decodeIfPresent(Bubble.self, forKey: .bubble))
+        hours = Self.lossy(c, .hours)
+        tiles = Self.lossy(c, .tiles)
+        wind = (try? c.decodeIfPresent(Wind.self, forKey: .wind)) ?? Wind(speed: 0, gust: 0, deg: 0)
+        days = Self.lossy(c, .days)
+        place = (try? c.decodeIfPresent(String.self, forKey: .place)) ?? nil
+        plus = (try? c.decodeIfPresent(Bool.self, forKey: .plus)) ?? nil
+        snow = (try? c.decodeIfPresent(Bool.self, forKey: .snow)) ?? nil
+        mood = (try? c.decodeIfPresent(String.self, forKey: .mood)) ?? nil
+        minutes = (try? c.decodeIfPresent([Double].self, forKey: .minutes)) ?? nil
+        let n6: [NextHour] = Self.lossy(c, .next6)
+        next6 = n6.isEmpty ? nil : n6
+        nextSource = (try? c.decodeIfPresent(String.self, forKey: .nextSource)) ?? nil
+        dayDetail = (try? c.decodeIfPresent([[DayHour]].self, forKey: .dayDetail)) ?? nil
+    }
+
+    /// Decode an array, skipping elements that do not parse instead of failing the whole forecast.
+    private static func lossy<T: Decodable>(_ c: KeyedDecodingContainer<CodingKeys>, _ k: CodingKeys) -> [T] {
+        guard var u = try? c.nestedUnkeyedContainer(forKey: k) else { return [] }
+        var out: [T] = []
+        while !u.isAtEnd {
+            if let v = try? u.decode(T.self) { out.append(v) } else { _ = try? u.decode(Skip.self) }
+        }
+        return out
+    }
+    private struct Skip: Decodable {}
+
+    /// "13:46" → 826, nil when it is not a clock time
+    static func clockMinutes(_ s: String) -> Int? {
+        let a = s.split(separator: ":")
+        guard a.count == 2, let h = Int(a[0]), let m = Int(a[1]), (0..<24).contains(h), (0..<60).contains(m) else { return nil }
+        return h * 60 + m
+    }
+
+    struct Bubble: Codable {
+        var kind: String; var tone: String; var icon: String; var text: String
+        init(kind: String, tone: String, icon: String, text: String) { self.kind = kind; self.tone = tone; self.icon = icon; self.text = text }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            kind = (try? c.decode(String.self, forKey: .kind)) ?? "speech"
+            tone = (try? c.decode(String.self, forKey: .tone)) ?? "white"
+            icon = (try? c.decode(String.self, forKey: .icon)) ?? "none"
+            text = (try? c.decode(String.self, forKey: .text)) ?? ""
+        }
+    }
+    struct Wind: Codable {
+        var speed: Int; var gust: Int; var deg: Int
+        init(speed: Int, gust: Int, deg: Int) { self.speed = speed; self.gust = gust; self.deg = deg }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            func n(_ k: CodingKeys) -> Int { ((try? c.decode(Double.self, forKey: k)).map { Int($0.rounded()) }) ?? 0 }
+            speed = max(0, n(.speed)); gust = max(speed, n(.gust)); deg = ((n(.deg) % 360) + 360) % 360
+        }
+    }
     struct Tile: Codable {
         var kind: String?; var icon: String; var label: String; var value: String?; var unit: String?; var note: String; var uv: Int?
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            kind = try? c.decode(String.self, forKey: .kind)
+            icon = (try? c.decode(String.self, forKey: .icon)) ?? "cloud"
+            label = (try? c.decode(String.self, forKey: .label)) ?? ""
+            value = try? c.decode(String.self, forKey: .value)
+            unit = try? c.decode(String.self, forKey: .unit)
+            note = (try? c.decode(String.self, forKey: .note)) ?? ""
+            uv = (try? c.decode(Double.self, forKey: .uv)).map { Int($0.rounded()) }
+        }
     }
     /// ["14시", "cloud", 18, 20, 0]  → label, icon, temp, chance %, mm
     struct HourRow: Codable {
@@ -47,7 +130,9 @@ struct WeatherScene: Codable, Identifiable {
         init(from decoder: Decoder) throws {
             var c = try decoder.unkeyedContainer()
             label = try c.decode(String.self); icon = try c.decode(String.self)
-            temp = Int(try c.decode(Double.self)); chance = Int(try c.decode(Double.self)); mm = try c.decode(Double.self)
+            temp = Int(try c.decode(Double.self).rounded())
+            chance = max(0, min(100, Int(((try? c.decode(Double.self)) ?? 0).rounded())))
+            mm = max(0, (try? c.decode(Double.self)) ?? 0)
         }
         func encode(to encoder: Encoder) throws {
             var c = encoder.unkeyedContainer()
@@ -60,7 +145,9 @@ struct WeatherScene: Codable, Identifiable {
         init(from decoder: Decoder) throws {
             var c = try decoder.unkeyedContainer()
             name = try c.decode(String.self); icon = try c.decode(String.self)
-            chance = Int(try c.decode(Double.self)); lo = Int(try c.decode(Double.self)); hi = Int(try c.decode(Double.self))
+            chance = max(0, min(100, Int(((try? c.decode(Double.self)) ?? 0).rounded())))
+            let a = Int(try c.decode(Double.self).rounded()), b = Int(try c.decode(Double.self).rounded())
+            lo = min(a, b); hi = max(a, b)
         }
         func encode(to encoder: Encoder) throws {
             var c = encoder.unkeyedContainer()
@@ -72,11 +159,26 @@ struct WeatherScene: Codable, Identifiable {
         var label: String; var mm: Double
         init(from decoder: Decoder) throws {
             var c = try decoder.unkeyedContainer()
-            label = try c.decode(String.self); mm = try c.decode(Double.self)
+            label = try c.decode(String.self); mm = max(0, (try? c.decode(Double.self)) ?? 0)
         }
         func encode(to encoder: Encoder) throws {
             var c = encoder.unkeyedContainer()
             try c.encode(label); try c.encode(mm)
+        }
+    }
+    /// ["9시", 13, 20, 3, 4, 70] → hour label, °C, rain chance %, wind m/s, UV, humidity %  (one of 8 per day)
+    struct DayHour: Codable {
+        var label: String; var temp: Double; var chance: Double; var wind: Double; var uv: Double; var rh: Double
+        init(from decoder: Decoder) throws {
+            var c = try decoder.unkeyedContainer()
+            label = try c.decode(String.self)
+            temp = try c.decode(Double.self)
+            chance = (try? c.decode(Double.self)) ?? 0; wind = (try? c.decode(Double.self)) ?? 0
+            uv = (try? c.decode(Double.self)) ?? 0; rh = (try? c.decode(Double.self)) ?? 0
+        }
+        func encode(to encoder: Encoder) throws {
+            var c = encoder.unkeyedContainer()
+            try c.encode(label); try c.encode(temp); try c.encode(chance); try c.encode(wind); try c.encode(uv); try c.encode(rh)
         }
     }
 
@@ -94,9 +196,18 @@ enum SceneLibrary {
     static let all: [String: WeatherScene] = {
         guard let url = Bundle.main.url(forResource: "scenes", withExtension: "json"),
               let data = try? Data(contentsOf: url),
-              var dict = try? JSONDecoder().decode([String: WeatherScene].self, from: data) else { return [:] }
-        for k in dict.keys { dict[k]?.id = k }
+              let raw = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [:] }
+        var dict: [String: WeatherScene] = [:]
+        for (k, v) in raw {   // one bad scene never takes the others down
+            guard let d = try? JSONSerialization.data(withJSONObject: v), var s = try? JSONDecoder().decode(WeatherScene.self, from: d) else { continue }
+            s.id = k; dict[k] = s
+        }
         return dict
     }()
-    static func scene(_ key: String) -> WeatherScene { all[key] ?? all["clear"]! }
+    /// An example scene; never crashes even if the bundle has none.
+    static func scene(_ key: String) -> WeatherScene {
+        if let s = all[key] ?? all["clear"] ?? all.values.first { return s }
+        var s = WeatherScene(); s.id = key; s.cond = "—"
+        return s
+    }
 }

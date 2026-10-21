@@ -120,7 +120,7 @@ private struct PlaceCard: View {
     }
 
     private var subtitle: String {
-        var t = place.id == "here" ? "지금 위치 · " : ""
+        var t = place.id == "here" && model.hereIsLive ? "지금 위치 · " : ""
         if let s = scene { t += s.clock + " · " + s.cond }
         return t
     }
@@ -128,7 +128,7 @@ private struct PlaceCard: View {
     private var info: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 4) {
-                if place.id == "here" { Image(systemName: "location.fill").font(.system(size: 11)) }
+                if place.id == "here" && model.hereIsLive { Image(systemName: "location.fill").font(.system(size: 11)) }
                 Text(place.name).font(.px(16))
             }
             Text(subtitle).font(.system(size: 12)).foregroundStyle(UI.sub)

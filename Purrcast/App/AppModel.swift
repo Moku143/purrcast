@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 enum WindUnit: String, CaseIterable, Codable { case ms, kmh, mph
     var label: String { self == .ms ? "m/s" : (self == .kmh ? "km/h" : "mph") }
@@ -10,87 +11,136 @@ enum WindUnit: String, CaseIterable, Codable { case ms, kmh, mph
 final class AppModel: ObservableObject {
     // weather
     @Published private(set) var raw: WeatherScene
+    @Published private(set) var hasData: Bool                 // false until a forecast for the current place arrived
     @Published var places: [Place] { didSet { persist() } }
-    @Published var currentIndex = 0 { didSet { Task { await refresh() } } }
+    @Published var currentIndex = 0 { didSet { if currentIndex != oldValue { Task { await refresh(force: true) } } } }
     @Published private(set) var loading = false
     @Published private(set) var lastError: String?
     @Published private(set) var previews: [String: WeatherScene] = [:]   // for the places list
+    @Published private(set) var hereIsLive = false            // "지금 위치" really is the phone's location
     let provider: WeatherProvider
+    let location = LocationService()
 
     // plan · character
-    @Published var plus: Bool { didSet { persist(); publish() } }
+    @Published var plus: Bool { didSet { persist(); if plus != oldValue { publish(); Task { await refresh(force: true) } } } }
+    @Published var plusUntil: Date? { didSet { publish() } }
     @Published var character: PurrCharacter { didSet { persist(); publish() } }
     @Published var names: [String: String] { didSet { persist(); publish() } }
 
     // settings
-    @Published var unitF: Bool { didSet { persist() } }
-    @Published var clock12: Bool { didSet { persist() } }
+    @Published var unitF: Bool { didSet { persist(); publish() } }
+    @Published var clock12: Bool { didSet { persist(); publish() } }
     @Published var wind: WindUnit { didSet { persist() } }
     @Published var pixelFont: Bool { didSet { FontPref.pixel = pixelFont; persist() } }
-    @Published var useLocation: Bool { didSet { persist() } }
-    @Published var notifyRain: Bool { didSet { persist() } }
-    @Published var notifyMorning: Bool { didSet { persist() } }
-    @Published var morningTime: Date { didSet { persist() } }
-    @Published var notifyAlerts: Bool { didSet { persist() } }
+    @Published var useLocation: Bool { didSet { persist(); if useLocation { location.ask() }; Task { await refresh(force: true) } } }
+    @Published var notifyRain: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyRain && !oldValue) } }
+    @Published var notifyMorning: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyMorning && !oldValue) } }
+    @Published var morningTime: Date { didSet { persist(); planNotifications() } }
     @Published var onboarded: Bool { didSet { persist() } }
 
-    /// set by launch arguments (UI tests) so a test always sees the same weather
+    /// UI tests / design review only (compiled out of release builds): a fixed example scene, Plus forced on.
     let pinnedScene: String?
-    /// Plus forced on by a launch argument (UI tests / design review), independent of StoreKit
     let debugPlus: Bool
 
     static let freeExtraPlaces = 1
+    private var generation = 0
+    private var lastRefresh: Date?
+    private var lastLevel: [String: Int] = [:]
 
     init() {
+        #if DEBUG
         let args = ProcessInfo.processInfo.arguments
+        #else
+        let args: [String] = []
+        #endif
         func arg(_ k: String) -> String? { args.firstIndex(of: k).flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil } }
-        pinnedScene = arg("-scene")
-        debugPlus = args.contains("-plus")
+        let pinned = arg("-scene"), forcePlus = args.contains("-plus")
+        pinnedScene = pinned
+        debugPlus = forcePlus
         let d = SharedStore.defaults
-        let testing = pinnedScene != nil || args.contains("-reset")
+        let testing = pinned != nil || args.contains("-reset")
 
-        provider = WeatherSource.make(sceneOverride: pinnedScene)
-        raw = SceneLibrary.scene(pinnedScene ?? Place.here.sample)
+        let prov = WeatherSource.make(sceneOverride: pinned)
+        provider = prov
 
+        var loadedPlaces = [Place.here]
         if !testing, let data = d.data(forKey: "places"), let p = try? JSONDecoder().decode([Place].self, from: data), !p.isEmpty {
-            places = p
-        } else {
-            places = [Place.here]
+            loadedPlaces = p
         }
-        plus = debugPlus || (!testing && d.bool(forKey: "plus"))
+        places = loadedPlaces
+
+        // what to show before the first answer: the last forecast for this place (server mode), or the example
+        if prov.isSample {
+            raw = SceneLibrary.scene(pinned ?? loadedPlaces[0].sample)
+            hasData = true
+        } else if let last = SharedStore.load(), !last.isSample, last.place?.id == loadedPlaces[0].id {
+            raw = last.scene
+            hasData = true
+        } else {
+            raw = WeatherScene()
+            hasData = false
+        }
+
+        plus = forcePlus || (!testing && d.bool(forKey: "plus"))
+        plusUntil = nil
         character = arg("-char").flatMap(PurrCharacter.init(rawValue:)) ?? (testing ? .cat : PurrCharacter(rawValue: d.string(forKey: "character") ?? "") ?? .cat)
         names = testing ? [:] : (d.dictionary(forKey: "names") as? [String: String] ?? [:])
         unitF = !testing && d.bool(forKey: "unitF")
         clock12 = !testing && d.bool(forKey: "clock12")
         wind = WindUnit(rawValue: d.string(forKey: "wind") ?? "") ?? .ms
         pixelFont = testing ? true : (d.object(forKey: "pixelFont") as? Bool ?? true)
-        useLocation = testing ? true : (d.object(forKey: "useLocation") as? Bool ?? true)
+        useLocation = testing ? false : (d.object(forKey: "useLocation") as? Bool ?? true)
         notifyRain = d.object(forKey: "notifyRain") as? Bool ?? true
         notifyMorning = d.object(forKey: "notifyMorning") as? Bool ?? true
         morningTime = d.object(forKey: "morningTime") as? Date ?? Calendar.current.date(from: DateComponents(hour: 7, minute: 0)) ?? Date()
-        notifyAlerts = d.object(forKey: "notifyAlerts") as? Bool ?? true
         onboarded = testing ? !args.contains("-onboarding") : d.bool(forKey: "onboarded")
         FontPref.pixel = pixelFont
     }
 
     // MARK: weather
 
-    var currentPlace: Place { places[min(currentIndex, places.count - 1)] }
+    var currentPlace: Place { places[max(0, min(currentIndex, places.count - 1))] }
+    var isSample: Bool { provider.isSample }
 
-    func refresh() async {
-        loading = true; defer { loading = false }
+    /// Fetch the current place. Answers that arrive after a newer request (quick place switching) are dropped.
+    /// Without `force` it only fetches when the data is old: Plus 10 minutes, free 1 hour, or a new day.
+    func refresh(force: Bool = false) async {
+        if !force, let t = lastRefresh, Date().timeIntervalSince(t) < (plus ? 600 : 3600),
+           Calendar.current.isDate(t, inSameDayAs: Date()) { return }
+        generation += 1
+        let mine = generation
+        loading = true
+        defer { if mine == generation { loading = false } }
+
+        await updateHere()
+        let place = currentPlace
         do {
-            raw = try await provider.forecast(for: currentPlace, plus: plus)
-            lastError = nil
+            let s = try await provider.forecast(for: place, plus: plus, previousLevel: lastLevel[place.id])
+            guard mine == generation else { return }
+            raw = s; hasData = true; lastError = nil; lastRefresh = Date()
+            lastLevel[place.id] = s.level
             publish()
         } catch {
-            lastError = "날씨를 못 받았어요. 잠시 뒤 다시 해 볼게요."
+            guard mine == generation else { return }
+            lastError = hasData ? "새 날씨를 못 받았어요. 마지막으로 받은 날씨예요." : "날씨를 못 받았어요. 아래로 당겨 다시 시도해 주세요."
+        }
+    }
+
+    /// Keep the "here" place on the phone's location (when allowed), else a fixed default city.
+    private func updateHere() async {
+        guard pinnedScene == nil, let i = places.firstIndex(where: { $0.id == "here" }) else { return }
+        if useLocation, let p = await location.currentPlace() {
+            if places[i] != p { places[i] = p }
+            hereIsLive = true
+        } else {
+            hereIsLive = false
+            if places[i] != Place.here { places[i] = Place.here }
         }
     }
 
     func refreshPreviews() async {
         for p in places {
-            if let s = try? await provider.forecast(for: p, plus: plus) { previews[p.id] = s }
+            if let s = try? await provider.forecast(for: p, plus: plus, previousLevel: lastLevel[p.id]) { previews[p.id] = s }
         }
     }
 
@@ -101,14 +151,17 @@ final class AppModel: ObservableObject {
         var s = raw
         if !plus && (s.minutes != nil || s.next6 != nil) {
             s.minutes = nil; s.next6 = nil; s.plus = false; s.updated = "06:00"
-            if var b = s.bubble, b.icon.hasPrefix("umbrella") { b.text = hourWindow(s.hours) + " 비!"; s.bubble = b }
+            let w = hourWindow(s.hours)
+            if var b = s.bubble, b.icon.hasPrefix("umbrella"), !w.isEmpty { b.text = w + " 비!"; s.bubble = b }
         } else if plus { s.plus = true }
         return s
     }
 
-    /// "16~18시" from the hourly rows with rain
+    /// "16~18시" from the hourly rows with rain (rows labelled "N시" only)
     static func hourWindow(_ hours: [WeatherScene.HourRow]) -> String {
-        let r = hours.enumerated().filter { i, h in i > 0 && (h.mm > 0 || h.icon == "raincloud") }.map { $0.element.label.replacingOccurrences(of: "시", with: "") }
+        let r = hours.enumerated()
+            .filter { i, h in i > 0 && (h.mm > 0 || h.icon == "raincloud") && h.label.hasSuffix("시") && Int(h.label.dropLast()) != nil }
+            .map { String($0.element.label.dropLast()) }
         guard let f = r.first, let l = r.last else { return "" }
         return r.count == 1 ? f + "시쯤" : f + "~" + l + "시"
     }
@@ -118,9 +171,12 @@ final class AppModel: ObservableObject {
     var canAddPlace: Bool { plus || places.count < 1 + Self.freeExtraPlaces }
     func add(_ p: Place) { guard !places.contains(where: { $0.id == p.id }) else { return }; places.append(p) }
     func remove(at offsets: IndexSet) {
-        let keep = offsets.filter { places[$0].id != "here" }
-        places.remove(atOffsets: IndexSet(keep))
-        if currentIndex >= places.count { currentIndex = 0 }
+        let removable = IndexSet(offsets.filter { places[$0].id != "here" })
+        guard !removable.isEmpty else { return }
+        let currentID = currentPlace.id
+        places.remove(atOffsets: removable)
+        let newIndex = places.firstIndex { $0.id == currentID } ?? 0
+        if newIndex != currentIndex { currentIndex = newIndex } else if !places.contains(where: { $0.id == currentID }) { Task { await refresh(force: true) } }
     }
 
     // MARK: character
@@ -153,7 +209,7 @@ final class AppModel: ObservableObject {
         return (h < 12 ? "오전 " : "오후 ") + "\(h % 12 == 0 ? 12 : h % 12)시"
     }
 
-    // MARK: persistence · widgets
+    // MARK: persistence · widgets · watch · notifications
 
     private func persist() {
         guard pinnedScene == nil else { return }
@@ -164,18 +220,42 @@ final class AppModel: ObservableObject {
         d.set(unitF, forKey: "unitF"); d.set(clock12, forKey: "clock12"); d.set(wind.rawValue, forKey: "wind")
         d.set(pixelFont, forKey: "pixelFont"); d.set(useLocation, forKey: "useLocation")
         d.set(notifyRain, forKey: "notifyRain"); d.set(notifyMorning, forKey: "notifyMorning"); d.set(morningTime, forKey: "morningTime")
-        d.set(notifyAlerts, forKey: "notifyAlerts"); d.set(onboarded, forKey: "onboarded")
+        d.set(onboarded, forKey: "onboarded")
     }
 
-    /// Hand the current forecast to the widgets and the watch.
+    var snapshot: WeatherSnapshot {
+        WeatherSnapshot(scene: scene, character: character, plus: plus, characterName: name(of: shownCharacter),
+                        placeShort: currentPlace.short, saved: Date(), place: currentPlace, plusUntil: plusUntil,
+                        unitF: unitF, clock12: clock12, isSample: isSample)
+    }
+
+    /// Hand the current forecast to the widgets and the watch, and re-plan notifications from it.
     func publish() {
-        let snap = WeatherSnapshot(scene: scene, character: character, plus: plus, characterName: name(of: shownCharacter),
-                                   placeShort: currentPlace.short, saved: Date())
+        guard hasData else { return }
+        let snap = snapshot
         SharedStore.save(snap)
         WatchBridge.shared.send(snap)
-        if pinnedScene == nil {
-            Notifications.plan(scene: scene, place: currentPlace.short, rain: notifyRain, morning: notifyMorning,
-                               morningTime: morningTime, unitF: unitF)
+        planNotifications()
+    }
+
+    func planNotifications() {
+        guard pinnedScene == nil, hasData else { return }
+        // example weather must never turn into a real-looking alert
+        Notifications.plan(scene: scene, place: currentPlace, rain: notifyRain && !isSample, morning: notifyMorning && !isSample,
+                           morningTime: morningTime, unitF: unitF)
+    }
+
+    /// A toggle went on: ask for permission if nobody asked yet, then plan.
+    private func notificationsChanged(turnedOn: Bool) {
+        guard turnedOn else { planNotifications(); return }
+        UNUserNotificationCenter.current().getNotificationSettings { s in
+            if s.authorizationStatus == .notDetermined {
+                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in
+                    Task { @MainActor in self.planNotifications() }
+                }
+            } else {
+                Task { @MainActor in self.planNotifications() }
+            }
         }
     }
 }

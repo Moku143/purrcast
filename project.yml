@@ -119,6 +119,19 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: app.purrcast.ios.watchkitapp.widgets
         TARGETED_DEVICE_FAMILY: "4"
         SKIP_INSTALL: YES
+  PurrcastTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: PurrcastTests
+    dependencies:
+      - target: Purrcast
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.purrcast.ios.tests
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Purrcast.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Purrcast"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        GENERATE_INFOPLIST_FILE: YES
   PurrcastUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -135,13 +148,14 @@ schemes:
     build:
       targets:
         Purrcast: all
+        PurrcastTests: [test]
         PurrcastUITests: [test]
     run:
       config: Debug
       storeKitConfiguration: Config/Purrcast.storekit
     test:
       config: Debug
-      targets: [PurrcastUITests]
+      targets: [PurrcastTests, PurrcastUITests]
   PurrcastWatch:
     build:
       targets:

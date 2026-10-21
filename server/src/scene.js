@@ -1,6 +1,6 @@
 // Normalized forecast → the app's WeatherScene JSON (docs/server-api.md).
 
-import { local, hhmm, hhmm0, dayKey, sunDay, isNight, pad2 } from './time.js';
+import { local, hhmm, hhmm0, dayKey, sunDay, isNight, pad2, offsetMinutes } from './time.js';
 import { feelsLike, dewPoint, uvUnderCloud } from './physics.js';
 import * as R from './rules.js';
 
@@ -20,6 +20,7 @@ const ri = (v) => (v == null || Number.isNaN(v) ? 0 : Math.round(v));
  */
 export function buildScene(f, o) {
   const { lat, lon, tz } = o;
+  const offsetMin = (t) => offsetMinutes(t, tz);
   const nowT = o.now ?? new Date();
   const plus = o.plan === 'plus';
   const pts = (f.points || []).filter((p) => p.temp != null);
@@ -152,6 +153,17 @@ export function buildScene(f, o) {
     wind: { speed: ri(cur.wind), gust: ri(cur.gust ?? (cur.wind ?? 0) * 1.5), deg: ri(cur.dir) },
     plus,
   };
+  // day sheet: 8 three-hourly values per day (0, 3, … 21 h) — temp, rain chance, wind, UV, humidity
+  scene.dayDetail = [...byDay.entries()].slice(0, days.length).map(([, list]) => {
+    const [y, m, d] = [list[0].t, list[0].t, list[0].t].map((t, i) => [local(t, tz).y, local(t, tz).m, local(t, tz).d][i]);
+    return [0, 3, 6, 9, 12, 15, 18, 21].map((h) => {
+      const target = Date.UTC(y, m - 1, d, h) - offsetMin(list[0].t) * 60000;
+      let best = list[0], bd = Infinity;
+      for (const p of list) { const x = Math.abs(p.t - target); if (x < bd) { bd = x; best = p; } }
+      const uvv = uvUnderCloud(best.uvClear, best.cloud);
+      return [`${h}시`, r1(best.temp), ri(best.pop ?? (wet(best) ? 70 : 0)), r1(best.wind ?? 0), r1(h >= 6 && h <= 18 ? uvv ?? 0 : 0), ri(best.rh ?? 0)];
+    });
+  });
   if (plus && f.next6?.length) {
     scene.next6 = f.next6.slice(0, 6).map((p) => [`${H(p)}시`, r1(p.mm || 0)]);
     scene.nextSource = f.nextSource || 'kma';
@@ -179,6 +191,7 @@ export function validateScene(s) {
   if (!s.wind || !['speed', 'gust', 'deg'].every((k) => Number.isFinite(s.wind[k]))) bad.push('wind');
   if (s.next6 != null && !(Array.isArray(s.next6) && s.next6.every((n) => n.length === 2 && typeof n[0] === 'string' && Number.isFinite(n[1])))) bad.push('next6');
   if (s.minutes != null && !(Array.isArray(s.minutes) && s.minutes.every(Number.isFinite))) bad.push('minutes');
+  if (s.dayDetail != null && !(Array.isArray(s.dayDetail) && s.dayDetail.every((d) => Array.isArray(d) && d.every((h) => h.length === 6 && typeof h[0] === 'string' && h.slice(1).every(Number.isFinite))))) bad.push('dayDetail');
   if (bad.length) throw new Error('scene does not match the app: ' + bad.join(', '));
   return true;
 }

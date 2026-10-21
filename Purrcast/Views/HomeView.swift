@@ -14,22 +14,57 @@ struct HomeView: View {
         ZStack(alignment: .top) {
             background(level: lv, night: s.isNight).ignoresSafeArea()
             SkyTint(scene: s).ignoresSafeArea()
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 12) {
-                    hero(s, ink: ink, level: lv)
-                        .frame(height: heroH)
-                    if let head = nextHour(s) { nextHourCard(s, head: head, ink: ink) }
-                    hourlyCard(s, ink: ink)
-                    dailyCard(s, ink: ink)
-                    tilesGrid(s, ink: ink)
-                    Text(model.provider.name == "예시 날씨" ? "예시 날씨 · 서버 연결 전" : "기상청 · MET Norway").font(.ui(11)).foregroundStyle(ink.sub).padding(.top, 8)
+            if model.hasData {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 12) {
+                        hero(s, ink: ink, level: lv)
+                            .frame(height: heroH)
+                        if let e = model.lastError { notice(e, ink: ink) }
+                        if let head = nextHour(s) { nextHourCard(s, head: head, ink: ink) }
+                        hourlyCard(s, ink: ink)
+                        dailyCard(s, ink: ink)
+                        tilesGrid(s, ink: ink)
+                        Text(model.isSample ? "예시 날씨예요 · 실제 날씨는 서버 연결 후" : "기상청 · Data from MET Norway")
+                            .font(.ui(11)).foregroundStyle(ink.sub).padding(.top, 8)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 44)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 44)
+                .refreshable { await model.refresh(force: true) }
+            } else {
+                waiting(ink: ink)
             }
-            .refreshable { await model.refresh() }
         }
         .foregroundStyle(ink.ink)
+    }
+
+    /// First launch, before any forecast arrived (or it failed): the cat waits, no made-up numbers.
+    private func waiting(ink: Ink) -> some View {
+        VStack(spacing: 18) {
+            Spacer()
+            CharacterSprite(character: model.shownCharacter, level: 4, rain: .none, width: 150)
+            if model.lastError == nil {
+                ProgressView().tint(ink.ink)
+                Text("날씨를 받아 오는 중이에요").font(.px(15))
+            } else {
+                Text(model.lastError ?? "").font(.px(14)).multilineTextAlignment(.center).padding(.horizontal, 30)
+                Button("다시 시도") { Task { await model.refresh(force: true) } }
+                    .font(.px(15)).padding(.horizontal, 22).padding(.vertical, 10).background(ink.btn).clipShape(Capsule())
+                    .accessibilityIdentifier("retry")
+            }
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func notice(_ text: String, ink: Ink) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "wifi.exclamationmark").font(.system(size: 13, weight: .bold))
+            Text(text).font(.ui(12, .medium))
+            Spacer()
+        }
+        .padding(.horizontal, 14).padding(.vertical, 10)
+        .background(ink.card).clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
     // MARK: hero
@@ -59,7 +94,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 7) {
                     Button { route = .places } label: {
                         HStack(spacing: 6) {
-                            Image(systemName: "mappin").font(.system(size: 13, weight: .bold))
+                            Image(systemName: model.hereIsLive && model.currentPlace.id == "here" ? "location.fill" : "mappin").font(.system(size: 13, weight: .bold))
                             Text(s.place ?? model.currentPlace.name).font(.px(17))
                         }
                     }.buttonStyle(.plain).accessibilityIdentifier("place")
@@ -119,7 +154,7 @@ struct HomeView: View {
     private func nextHour(_ s: WeatherScene) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String])? {
         guard s.isPlus else { return nil }
         let chance = s.hours.prefix(3).map { $0.chance }.max() ?? 0
-        let nowMin: Int = { let a = s.clock.split(separator: ":"); return (Int(a[0]) ?? 12) * 60 + (Int(a[1]) ?? 0) }()
+        let nowMin: Int = WeatherScene.clockMinutes(s.clock) ?? 12 * 60
         if let six = s.next6 {
             let R = six.map { $0.mm }
             var head = "6시간 동안 비 소식 없음", sub = "", icon = "cloud"
@@ -132,7 +167,7 @@ struct HomeView: View {
                 sub = "\(Rules.rainKind(R.max() ?? 0)) · \(stop) · 가능성 \(chance)%"
                 icon = st == 0 ? "umbrella" : "umbrella_closed"
             }
-            return ("다음 6시간", "기상청 초단기 · Plus", head, sub, icon, R, six.map { $0.label })
+            return ("다음 6시간", s.nextSource == "met" ? "MET Norway · Plus" : "기상청 초단기 · Plus", head, sub, icon, R, six.map { model.hourLabel($0.label) })
         }
         if let mm = s.minutes {
             var head = "1시간 동안 비 소식 없음", sub = "", icon = "cloud"
@@ -144,7 +179,8 @@ struct HomeView: View {
                 sub = "\(Rules.rainKind(mm.max() ?? 0)) · \(stop) · 가능성 \(chance)%"
                 icon = st == 0 ? "umbrella" : "umbrella_closed"
             }
-            return ("다음 1시간", "분 단위 · Plus", head, sub, icon, mm, ["지금", "15분", "30분", "45분", "60분"])
+            let span = mm.count
+            return ("다음 1시간", "분 단위 · Plus", head, sub, icon, mm, ["지금"] + [1, 2, 3, 4].map { "\(span * $0 / 4)분" })
         }
         return nil
     }
@@ -260,6 +296,7 @@ struct HomeView: View {
     private func wind(_ ms: Int) -> String { model.windText(ms) }
     private func dir(_ deg: Int) -> String {
         let d = ["북", "북북동", "북동", "동북동", "동", "동남동", "남동", "남남동", "남", "남남서", "남서", "서남서", "서", "서북서", "북서", "북북서"]
-        return d[Int((Double(deg) / 22.5).rounded()) % 16] + "풍"
+        let i = Int((Double(((deg % 360) + 360) % 360) / 22.5).rounded()) % 16
+        return d[i] + "풍"
     }
 }

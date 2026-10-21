@@ -4,6 +4,7 @@ import SwiftUI
 /// The chosen one's name can be changed (pencil); the widgets and the watch follow the choice.
 struct CharacterSheet: View {
     @EnvironmentObject var model: AppModel
+    @EnvironmentObject var purchases: Purchases
     @Binding var route: Route?
     @Environment(\.dismiss) private var dismiss
     @State private var renaming: PurrCharacter?
@@ -17,7 +18,6 @@ struct CharacterSheet: View {
             ScrollView {
                 LazyVGrid(columns: cols, spacing: 12) {
                     ForEach(PurrCharacter.allCases) { c in tile(c) }
-                    comingSoon
                 }
                 .padding(.horizontal, 16)
 
@@ -27,7 +27,7 @@ struct CharacterSheet: View {
                             PixelIcon(name: "sparkle", size: 22)
                             Text("캐릭터 바꾸기는 Plus").font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.ink)
                             Spacer()
-                            PlusTag(text: "3일 무료")
+                            if let t = purchases.trialText(Purchases.yearly) { PlusTag(text: t) }
                         }
                         .padding(14).background(UI.accentSoft).clipShape(RoundedRectangle(cornerRadius: 16))
                     }
@@ -77,16 +77,6 @@ struct CharacterSheet: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("pick-\(c.rawValue)")
-    }
-
-    private var comingSoon: some View {
-        VStack(spacing: 10) {
-            Circle().fill(UI.bg).frame(width: 64, height: 64)
-                .overlay(Text("?").font(.px(28)).foregroundStyle(UI.faint))
-            Text("곧 와요").font(.system(size: 12)).foregroundStyle(UI.faint)
-        }
-        .frame(maxWidth: .infinity, minHeight: 168)
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(UI.faint, style: StrokeStyle(lineWidth: 2, dash: [5, 4])))
     }
 
     private func open(_ r: Route) {
