@@ -14,8 +14,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app && xcodebuild -version
+      - name: Xcode version
+        run: xcodebuild -version && xcrun simctl list runtimes | head -5
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
