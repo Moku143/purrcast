@@ -3,11 +3,26 @@
 const WD = { Sun: '일', Mon: '월', Tue: '화', Wed: '수', Thu: '목', Fri: '금', Sat: '토' };
 
 /** Calendar parts of an instant in a time zone. */
+const FMT = new Map();   // one formatter per zone: building them is the expensive part (Workers CPU limit)
+const LOCAL = new Map(); // and each instant is looked up many times per answer
 export function local(date, tz) {
-  const f = new Intl.DateTimeFormat('en-US', {
-    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
-    weekday: 'short', hourCycle: 'h23',
-  });
+  const ck = tz + '|' + Math.floor(date.getTime() / 60000);
+  const hit = LOCAL.get(ck);
+  if (hit) return hit;
+  if (LOCAL.size > 5000) LOCAL.clear();
+  const r = localUncached(date, tz);
+  LOCAL.set(ck, r);
+  return r;
+}
+function localUncached(date, tz) {
+  let f = FMT.get(tz);
+  if (!f) {
+    f = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+      weekday: 'short', hourCycle: 'h23',
+    });
+    FMT.set(tz, f);
+  }
   const o = {};
   for (const p of f.formatToParts(date)) o[p.type] = p.value;
   return { y: +o.year, m: +o.month, d: +o.day, h: +o.hour % 24, mi: +o.minute, wd: WD[o.weekday] || o.weekday };
@@ -63,9 +78,13 @@ export function sunDay(date, lat, lon, tz) {
   return sunTimes(instant(p.y, p.m, p.d, 12, 0, tz), lat, lon);
 }
 
-/** Is the sun down at this instant? */
+/** Is the sun down at this instant? (sun times memoized per place and day) */
+const SUN = new Map();
 export function isNight(date, lat, lon, tz) {
-  const s = sunDay(date, lat, lon, tz);
+  const p = local(date, tz);
+  const key = `${lat},${lon},${tz},${p.y}-${p.m}-${p.d}`;
+  let s = SUN.get(key);
+  if (!s) { s = sunDay(date, lat, lon, tz); if (SUN.size > 500) SUN.clear(); SUN.set(key, s); }
   if (s.polar) return s.polar === 'night';
   return date < s.rise || date >= s.set;
 }

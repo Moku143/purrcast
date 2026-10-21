@@ -42,6 +42,16 @@ Cloudflare Workers 무료 플랜(하루 10만 요청)에서 돌아가고, 코드
 - `node scripts/live-check.mjs` — 실제 MET Norway(+ 키가 있으면 기상청)로 서울 · 제주 · 도쿄 · 뉴욕 · 레이캬비크를 받아 형식 검사. 결과는 `server-output` 브랜치의 `live.txt`
 - `node scripts/make-fixtures.mjs` — 앱 단위 테스트가 쓰는 서버 응답 견본을 다시 만들어요
 
+## 사용자가 늘면 (권장)
+
+- **내 도메인 연결**: workers.dev 주소에서는 Cloudflare 공용 캐시가 꺼져 있어서, 지금은 서버 메모리 캐시만 써요.
+  사용자가 많아지면 도메인(연 1~2만 원)을 Cloudflare에 연결하고 `wrangler.toml`에
+  `routes = [{ pattern = "api.내도메인", custom_domain = true }]`를 넣으면 공용 캐시까지 켜져요.
+  MET Norway는 앱 전체로 초당 20회 이하, 기상청 개발 계정은 하루 1만 회라 캐시가 중요해요.
+- **연락처**: MET Norway는 User-Agent에 연락처를 원해요. `wrangler.toml`의 `CONTACT`에 이메일을 넣어 주세요.
+- **첫 배포 직후**: `…/health?deep=1`을 열면 MET와 기상청에 실제로 한 번씩 물어보고 결과(`met: 200`, `kma: NORMAL_SERVICE`)를 보여 줘요.
+  키 등록 오류(`30 SERVICE_KEY_IS_NOT_REGISTERED_ERROR`)는 승인 후 1~2시간 뒤에 풀리기도 해요.
+
 ## 선택: "전일 대비"
 
 어제 같은 시각 기온과 비교하려면 기록이 필요해요. `npx wrangler kv namespace create HISTORY`로 만든 id를

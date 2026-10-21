@@ -1,13 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { toGrid, amount, parseForecast, parseNow, parseWarnings, vilageBase, ultraBase } from '../src/providers/kma.js';
+import { toGrid, amount, num, parseForecast, parseNow, parseWarnings, splitAreas, vilageBase, ultraBase, kmaXmlError, kmaOK } from '../src/providers/kma.js';
 import { parseMet, metUrl } from '../src/providers/met.js';
 import { buildScene, validateScene } from '../src/scene.js';
 import { level, bubble } from '../src/rules.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike } from '../src/physics.js';
-import worker, { forecast, readQuery } from '../src/index.js';
+import worker, { forecast, readQuery, resetCache } from '../src/index.js';
+import { beforeEach } from 'node:test';
+beforeEach(() => resetCache());
 
 const TZ = 'Asia/Seoul';
 const SEOUL = { lat: 37.5663, lon: 126.9019, tz: TZ };
@@ -60,14 +62,22 @@ test('feels-like: wind chill when cold, heat index when hot', () => {
 test('KMA amounts and parsing', () => {
   assert.equal(amount('강수없음'), 0); assert.equal(amount('1mm 미만'), 0.5); assert.equal(amount('1.0mm'), 1);
   assert.equal(amount('30.0~50.0mm'), 40); assert.equal(amount('50.0mm 이상'), 50); assert.equal(amount('적설없음'), 0);
+  assert.equal(amount('약한 비'), 1); assert.equal(amount('강한 비'), 20); assert.equal(amount(-999), 0);
+  assert.equal(num('-999'), null); assert.equal(num('12.5'), 12.5); assert.equal(num(undefined), null);
   const items = [];
   const add = (date, time, cat, v) => items.push({ fcstDate: date, fcstTime: time, category: cat, fcstValue: v });
+  add('20261021', '1400', 'TMP', '18'); add('20261021', '1400', 'PTY', '0'); add('20261021', '1400', 'SKY', '3');
   add('20261021', '1500', 'TMP', '17'); add('20261021', '1500', 'POP', '60'); add('20261021', '1500', 'PCP', '1.0mm'); add('20261021', '1500', 'PTY', '1'); add('20261021', '1500', 'SKY', '4');
   add('20261021', '1600', 'TMP', '16'); add('20261021', '1600', 'POP', '20'); add('20261021', '1600', 'PCP', '강수없음'); add('20261021', '1600', 'PTY', '0'); add('20261021', '1600', 'SKY', '3');
   add('20261022', '0600', 'TMN', '9'); add('20261022', '1500', 'TMX', '19');
   const f = parseForecast({ response: { header: { resultCode: '00' }, body: { items: { item: items } } } }, 'kma');
-  const p15 = f.points.find((p) => local(p.t, TZ).h === 15 && local(p.t, TZ).d === 21);
-  assert.equal(p15.temp, 17); assert.equal(p15.mm, 1); assert.equal(p15.type, 'rain'); assert.equal(p15.cloud, 90);
+  // KMA reports the weather of 14~15 h at 15 h: our 14 h point (covering 14–15) gets it; temperatures stay put
+  const at = (h) => f.points.find((p) => local(p.t, TZ).h === h && local(p.t, TZ).d === 21);
+  assert.equal(at(14).temp, 18); assert.equal(at(14).mm, 1); assert.equal(at(14).type, 'rain'); assert.equal(at(14).cloud, 90); assert.equal(at(14).pop, 60);
+  assert.equal(at(15).temp, 17); assert.equal(at(15).mm, 0); assert.equal(at(15).type, 'none');
+  assert.equal(parseNow({ response: { header: { resultCode: '00' }, body: { items: { item: [{ baseDate: '20261021', baseTime: '1300', category: 'T1H', obsrValue: -999 }] } } } }), null, 'missing observation');
+  assert.match(kmaXmlError('<OpenAPI_ServiceResponse><cmmMsgHeader><errMsg>SERVICE ERROR</errMsg><returnAuthMsg>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</returnAuthMsg><returnReasonCode>30</returnReasonCode></cmmMsgHeader></OpenAPI_ServiceResponse>').message, /30 SERVICE_KEY_IS_NOT_REGISTERED_ERROR/);
+  assert.equal(kmaOK({ response: { header: { resultCode: '03', resultMsg: 'NO_DATA' } } }), false);
   assert.deepEqual(f.daily['20261022'], { lo: 9, hi: 19 });
   assert.throws(() => parseForecast({ response: { header: { resultCode: '30', resultMsg: 'SERVICE KEY IS NOT REGISTERED' } } }, 'kma'), /30/);
 });
@@ -82,11 +92,19 @@ test('KMA base times', () => {
   assert.equal(ultraBase(at(14, 40)).time, '1330');
 });
 
-test('KMA warnings: keep only the ones naming the place', () => {
-  const j = { response: { header: { resultCode: '00' }, body: { items: { item: [{ t6: 'o 호우경보 : 서울, 인천, 경기도\no 강풍주의보 : 제주도' }] } } } };
-  assert.deepEqual(parseWarnings(j, '서울 마포구').map((w) => w.name), ['호우경보']);
-  assert.deepEqual(parseWarnings(j, '제주 제주시').map((w) => w.name), ['강풍주의보']);
-  assert.deepEqual(parseWarnings(j, '부산 해운대구'), []);
+test('KMA warnings: province, its listed cities, never sea zones', () => {
+  const t6 = 'o 호우경보 : 서울, 경기도(가평, 양평), 강원도(강원북부산지)\no 풍랑주의보 : 인천·경기북부앞바다, 제주도남쪽먼바다\no 강풍주의보 : 제주도\no 폭염주의보 : 광주, 전라남도(나주)';
+  const j = { response: { header: { resultCode: '00' }, body: { items: { item: [{ t6, t7: 'o 강풍 예비특보 : 서울' }] } } } };
+  const names = (place) => parseWarnings(j, place).map((w) => w.name);
+  assert.deepEqual(names('서울 마포구'), ['호우경보']);
+  assert.deepEqual(names('경기 가평군'), ['호우경보']);
+  assert.deepEqual(names('경기 성남시'), [], 'bracketed list does not include 성남');
+  assert.deepEqual(names('인천 연수구'), [], 'sea zones never apply on land');
+  assert.deepEqual(names('제주 제주시'), ['강풍주의보']);
+  assert.deepEqual(names('광주 동구'), ['폭염주의보']);
+  assert.deepEqual(names('부산 해운대구'), []);
+  assert.deepEqual(parseWarnings({ response: { header: { resultCode: '00' }, body: { items: { item: [{ t6: 'o 없 음' }] } } } }, '서울 마포구'), []);
+  assert.deepEqual(splitAreas('서울, 경기도(가평, 양평)'), [{ name: '서울', sub: [] }, { name: '경기도', sub: ['가평', '양평'] }]);
 });
 
 test('MET URL keeps at most 4 decimals', () => {

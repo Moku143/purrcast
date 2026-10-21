@@ -30,6 +30,12 @@ export function parseMet(json) {
       type = /sleet/.test(sym) ? 'sleet' : /snow/.test(sym) ? 'snow' : 'rain';
       if (mm <= 0) type = 'none'; // symbol says showers somewhere in the period but this hour is dry
     }
+    // probability_of_precipitation exists only in the Nordic model; elsewhere estimate it from amount + symbol
+    let chance = pop == null ? null : Math.round(pop);
+    if (chance == null) {
+      chance = mm >= 1 ? 90 : mm >= 0.3 ? 75 : mm > 0 ? 60   // mm is per hour
+        : /rain|sleet|snow|showers/.test(sym) ? 35 : (det.cloud_area_fraction ?? 0) >= 90 ? 15 : (det.cloud_area_fraction ?? 0) >= 60 ? 10 : 0;
+    }
     out.push({
       t, step, source: 'met',
       temp: det.air_temperature ?? null,
@@ -42,7 +48,8 @@ export function parseMet(json) {
       fog: (det.fog_area_fraction ?? 0) >= 50 || /fog/.test(sym),
       uvClear: det.ultraviolet_index_clear_sky ?? null,
       mm: Math.round(mm * 10) / 10,
-      pop: pop == null ? null : Math.round(pop),
+      pop: chance,
+      popEstimated: pop == null,
       type,
       thunder: /thunder/.test(sym),
       symbol: sym,

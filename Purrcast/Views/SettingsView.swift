@@ -139,8 +139,10 @@ struct SourcesView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text("날씨는 Purrcast 서버가 두 곳의 예보를 합쳐서 보내요.").font(.system(size: 15)).foregroundStyle(UI.ink)
-                source("기상청", "한국", "기본 예보 · 기상특보 · 다음 6시간(Plus)", "공공누리 제1유형(출처표시)")
-                source("MET Norway", "전 세계", "해외 예보 · 예보 비교 · Data from MET Norway", "CC BY 4.0")
+                source("기상청", "한국", "기본 예보 · 기상특보 · 다음 6시간(Plus) · 출처: 기상청", "공공누리 제1유형(출처표시)")
+                source("MET Norway", "전 세계", "해외 예보 · 4~10일 예보 · 자외선 · Data from MET Norway", "CC BY 4.0 · 앱에 맞게 그림과 문구로 바꿔 보여줘요")
+                Link("MET Norway 라이선스 (CC BY 4.0)", destination: URL(string: "https://creativecommons.org/licenses/by/4.0/")!)
+                    .font(.system(size: 12)).tint(UI.accent)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("그 밖에").font(.system(size: 13, weight: .semibold)).foregroundStyle(UI.sub)
                     Text("일출 · 일몰: 위치로 폰에서 계산").font(.system(size: 13)).foregroundStyle(UI.ink)

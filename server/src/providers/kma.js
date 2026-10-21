@@ -62,17 +62,27 @@ export function ncstBase(now) {
 
 export function kmaUrl(op, key, params) {
   const svc = op === 'getPwnStatus' ? 'WthrWrnInfoService' : 'VilageFcstInfoService_2.0';
-  const q = new URLSearchParams({ pageNo: '1', numOfRows: op === 'getVilageFcst' ? '1200' : '200', dataType: 'JSON', ...params });
+  // 단기예보 runs out to 5 days (since 2024-11): ~12 categories × ~110 hours, so ask for plenty
+  const q = new URLSearchParams({ pageNo: '1', numOfRows: op === 'getVilageFcst' ? '2000' : '200', dataType: 'JSON', ...params });
   return `${BASE}/${svc}/${op}?serviceKey=${encodeURIComponent(key)}&${q}`;
 }
 
-/** "강수없음" / "1mm 미만" / "1.0mm" / "30.0~50.0mm" / "50.0mm 이상" → mm; "적설없음" / "1cm 미만" → cm */
+/** A KMA number, or null for missing values (the guide marks |v| ≥ 900, e.g. −999, as missing). */
+export function num(v) {
+  const n = typeof v === 'number' ? v : parseFloat(v);
+  return Number.isFinite(n) && Math.abs(n) < 900 ? n : null;
+}
+
+/** "강수없음" / "1mm 미만" / "1.0mm" / "30.0~50.0mm" / "50.0mm 이상" / day-5 words "약한 비" → mm; "적설없음" / "1cm 미만" → cm */
 export function amount(v) {
   if (v == null) return 0;
-  if (typeof v === 'number') return v;
+  if (typeof v === 'number') return Math.abs(v) >= 900 ? 0 : v;
   const s = String(v).trim();
   if (!s || /없음/.test(s) || s === '-' || s === '0') return 0;
   if (/미만/.test(s)) return 0.5;
+  if (/강한/.test(s)) return 20;      // KMA bands: 약한 < 3, 보통 3–15, 강한 ≥ 15 mm/h
+  if (/보통/.test(s)) return 8;
+  if (/약한/.test(s)) return 1;
   const r = s.match(/([\d.]+)\s*~\s*([\d.]+)/);
   if (r) return (parseFloat(r[1]) + parseFloat(r[2])) / 2;
   const n = parseFloat(s);
@@ -82,12 +92,29 @@ export function amount(v) {
 const SKY_CLOUD = { 1: 10, 3: 60, 4: 90 };
 const ptyType = (v) => ({ 0: 'none', 1: 'rain', 2: 'sleet', 3: 'snow', 4: 'rain', 5: 'rain', 6: 'sleet', 7: 'snow' })[+v] ?? 'none';
 
-function items(json) {
+export function items(json) {
   const h = json?.response?.header;
   if (h && h.resultCode && h.resultCode !== '00') throw new Error(`KMA ${h.resultCode} ${h.resultMsg}`);
   const it = json?.response?.body?.items?.item;
   return Array.isArray(it) ? it : it ? [it] : [];
 }
+
+/** Is this a usable KMA answer (only those get cached)? */
+export function kmaOK(json) {
+  return json?.response?.header?.resultCode === '00' && items(json).length > 0;
+}
+
+/** data.go.kr gateway errors come back as XML even with dataType=JSON (key not registered, quota, expired). */
+export function kmaXmlError(text) {
+  const pick = (tag) => (text.match(new RegExp(`<${tag}>([^<]*)</${tag}>`)) || [])[1];
+  const code = pick('returnReasonCode') || pick('resultCode') || '?';
+  const msg = pick('returnAuthMsg') || pick('errMsg') || pick('resultMsg') || 'XML error';
+  return new Error(`KMA gateway ${code} ${msg}`);
+}
+
+// Fields that describe the *preceding* hour in KMA's forecasts ("19시 날씨 = 18~19시"): rain amount, rain type,
+// sky, chance, lightning. Our points cover [t, t + 1 h), so these move to the point an hour earlier.
+const PERIOD_FIELDS = ['PCP', 'RN1', 'SNO', 'PTY', 'SKY', 'POP', 'LGT'];
 
 /** 단기예보 / 초단기예보 items → hourly points (+ daily min / max from TMN / TMX). */
 export function parseForecast(json, source) {
@@ -98,35 +125,41 @@ export function parseForecast(json, source) {
     if (!by.has(k)) by.set(k, { date: it.fcstDate, time: it.fcstTime });
     by.get(k)[it.category] = it.fcstValue;
     if (it.category === 'TMN' || it.category === 'TMX') {
-      daily[it.fcstDate] = daily[it.fcstDate] || {};
-      daily[it.fcstDate][it.category === 'TMN' ? 'lo' : 'hi'] = parseFloat(it.fcstValue);
+      const v = num(it.fcstValue);
+      if (v != null) { daily[it.fcstDate] = daily[it.fcstDate] || {}; daily[it.fcstDate][it.category === 'TMN' ? 'lo' : 'hi'] = v; }
     }
   }
-  const points = [...by.values()].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).map((r) => {
-    const t = instant(+r.date.slice(0, 4), +r.date.slice(4, 6), +r.date.slice(6, 8), +r.time.slice(0, 2), +r.time.slice(2, 4), TZ);
-    const temp = r.TMP ?? r.T1H;
-    const type = ptyType(r.PTY ?? 0);
-    const rainMm = amount(r.PCP ?? r.RN1);
-    const snowCm = amount(r.SNO);
+  const rows = [...by.values()].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).map((r) => ({
+    ...r, t: instant(+r.date.slice(0, 4), +r.date.slice(4, 6), +r.date.slice(6, 8), +r.time.slice(0, 2), +r.time.slice(2, 4), TZ),
+  }));
+  const at = new Map(rows.map((r) => [r.t.getTime(), r]));
+  const points = rows.map((r) => {
+    // weather of [t, t+1h) is reported at t+1h; temperature / wind / humidity are the values at t
+    const w = at.get(r.t.getTime() + 3600000) || r;
+    const pick = (k) => (PERIOD_FIELDS.includes(k) ? w[k] : r[k]);
+    const temp = num(r.TMP ?? r.T1H);
+    const type = ptyType(pick('PTY') ?? 0);
+    const rainMm = amount(pick('PCP') ?? pick('RN1'));
+    const snowCm = amount(pick('SNO'));
     return {
-      t, step: 1, source,
-      temp: temp == null ? null : parseFloat(temp),
-      rh: r.REH == null ? null : parseFloat(r.REH),
+      t: r.t, step: 1, source,
+      temp,
+      rh: num(r.REH),
       dew: null,
-      wind: r.WSD == null ? null : parseFloat(r.WSD),
+      wind: num(r.WSD),
       gust: null,
-      dir: r.VEC == null ? null : parseFloat(r.VEC),
-      cloud: r.SKY == null ? null : SKY_CLOUD[+r.SKY] ?? null,
+      dir: num(r.VEC),
+      cloud: pick('SKY') == null ? null : SKY_CLOUD[+pick('SKY')] ?? null,
       fog: false,
       uvClear: null,
       mm: Math.round((type === 'snow' && snowCm > 0 ? snowCm : rainMm) * 10) / 10,
-      pop: r.POP == null ? null : parseFloat(r.POP),
+      pop: num(pick('POP')),
       type: type !== 'none' || rainMm > 0 ? (type === 'none' ? 'rain' : type) : 'none',
-      thunder: r.LGT != null && parseFloat(r.LGT) > 0,
+      thunder: num(pick('LGT')) > 0,
       symbol: '',
     };
-  });
-  return { points, daily };
+  }).filter((p) => p.temp != null);
+  return { points, daily, total: json?.response?.body?.totalCount ?? null, got: items(json).length };
 }
 
 /** 초단기실황 → the observation now. */
@@ -134,37 +167,66 @@ export function parseNow(json) {
   const o = {};
   let base = null;
   for (const it of items(json)) { o[it.category] = it.obsrValue; base = base || `${it.baseDate}${it.baseTime}`; }
-  if (o.T1H == null) return null;
+  if (num(o.T1H) == null) return null;           // a missing observation must never become −999°
   const type = ptyType(o.PTY ?? 0);
   return {
     t: base ? instant(+base.slice(0, 4), +base.slice(4, 6), +base.slice(6, 8), +base.slice(8, 10), 0, TZ) : null,
-    temp: parseFloat(o.T1H), rh: o.REH == null ? null : parseFloat(o.REH),
-    wind: o.WSD == null ? null : parseFloat(o.WSD), dir: o.VEC == null ? null : parseFloat(o.VEC),
+    temp: num(o.T1H), rh: num(o.REH), wind: num(o.WSD), dir: num(o.VEC),
     mm: amount(o.RN1), type: type === 'none' && amount(o.RN1) > 0 ? 'rain' : type,
   };
 }
 
-// 기상특보: the national status text lists each warning with its areas ("o 호우경보 : 서울, 인천, 경기도(…)").
-// We keep the warnings whose area list names the place's province / city. Experimental: when the text cannot be
-// read nothing is shown, which is the safe failure.
+// 기상특보 from getPwnStatus: `t6` lists the warnings in force, one per line:
+//   "o 호우경보 : 서울, 인천, 경기도(가평, 양평), 강원도(강원북부산지)"   ·   "o 없 음" when there are none.
+// A warning applies when the place's province is listed — and, when the province comes with a list of its
+// own areas in brackets, when the place's city / county is in that list (sub-zones like "서울동남권" count for
+// the whole city). Sea zones (앞바다, 먼바다) never apply to a land place. When the text cannot be read nothing
+// is shown, which is the safe failure. (A stricter version would map coordinates to 특보구역 codes and use getPwnCd.)
 const PROVINCE = {
-  서울: ['서울'], 부산: ['부산'], 대구: ['대구'], 인천: ['인천'], 광주: ['광주'], 대전: ['대전'], 울산: ['울산'], 세종: ['세종'],
+  서울: ['서울'], 부산: ['부산'], 대구: ['대구'], 인천: ['인천'], 광주: ['광주광역시', '광주'], 대전: ['대전'], 울산: ['울산'], 세종: ['세종'],
   경기: ['경기'], 강원: ['강원'], 충북: ['충청북도', '충북'], 충남: ['충청남도', '충남'], 전북: ['전라북도', '전북'],
   전남: ['전라남도', '전남'], 경북: ['경상북도', '경북'], 경남: ['경상남도', '경남'], 제주: ['제주'],
 };
 const SEVERITY = (name) => (/경보/.test(name) ? 2 : /주의보/.test(name) ? 1 : 0);
+const bare = (w) => w.replace(/(특별자치시|특별자치도|특별시|광역시|시|군|구)$/, '');
+
+/** "서울, 경기도(가평, 양평), 강원도(강원북부산지)" → [{ name: '서울', sub: [] }, { name: '경기도', sub: ['가평', '양평'] }, …] */
+export function splitAreas(text) {
+  const out = []; let depth = 0, cur = '';
+  for (const ch of text + ',') {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (ch === ',' && depth === 0) {
+      const m = cur.trim().match(/^([^()]+?)\s*(?:\((.*)\))?$/);
+      if (m) out.push({ name: m[1].trim(), sub: m[2] ? m[2].split(/[,·]/).map((x) => x.trim()).filter(Boolean) : [] });
+      cur = '';
+    } else cur += ch;
+  }
+  return out;
+}
 
 export function parseWarnings(json, placeName) {
-  const first = String(placeName || '').trim().split(/\s+/)[0] || '';
-  const key = Object.keys(PROVINCE).find((k) => first.startsWith(k)) || first;
-  const words = PROVINCE[key] || (key ? [key] : []);
-  const text = items(json).map((it) => Object.values(it).filter((v) => typeof v === 'string').join('\n')).join('\n');
+  const words = String(placeName || '').trim().split(/\s+/);
+  const first = words[0] || '', second = words[1] || '';
+  const key = Object.keys(PROVINCE).find((k) => first.startsWith(k));
+  if (!key) return [];
+  const names = PROVINCE[key];
+  const city = bare(second);
+  const text = items(json).map((it) => it.t6 || '').join('\n');
   const out = [];
   for (const line of text.split(/\n|(?=o\s)/)) {
     const m = line.match(/([가-힣]+(?:주의보|경보))\s*:\s*(.+)/);
-    if (!m) continue;
-    if (/해제/.test(line)) continue;
-    if (words.some((w) => m[2].includes(w))) out.push({ name: m[1], severity: SEVERITY(m[1]) });
+    if (!m || /해제/.test(line)) continue;
+    const hit = splitAreas(m[2]).some((a) => {
+      if (/앞바다|먼바다|해상|연안/.test(a.name)) return false;
+      if (!names.some((n) => a.name.startsWith(n))) return false;
+      if (key === '광주' && a.name.startsWith('광주') === false) return false;
+      if (!a.sub.length) return true;
+      // bracketed areas: city / county names, or sub-zones of the city itself ("서울동남권")
+      if (a.sub.some((x) => /권$/.test(x) || x.startsWith(key))) return true;
+      return !!city && a.sub.some((x) => bare(x) === city || x.includes(city));
+    });
+    if (hit) out.push({ name: m[1], severity: SEVERITY(m[1]) });
   }
   out.sort((a, b) => b.severity - a.severity);
   return out.filter((w, i) => out.findIndex((x) => x.name === w.name) === i);
