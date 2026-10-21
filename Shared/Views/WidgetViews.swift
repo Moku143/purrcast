@@ -6,10 +6,18 @@ import SwiftUI
 struct WidgetBackground: View {
     let level: Int
     let night: Bool
+    var scene: WeatherScene? = nil
     var body: some View {
         let bg = Rules.background[max(0, min(9, level))]
-        LinearGradient(colors: night ? [Color.mix(bg, "#1B2350", 0.72), Color(hex: "#151B3C")] : [Color(hex: bg), Color.mix(bg, "#8E9CC4", 0.28)],
-                       startPoint: .top, endPoint: .bottom)
+        ZStack {
+            LinearGradient(colors: [Color(hex: bg), Color.mix(bg, "#8E9CC4", 0.28)], startPoint: .top, endPoint: .bottom)
+            if let scene {
+                SkyTint(scene: scene)
+                GeometryReader { g in SkyParticles(scene: scene, width: g.size.width, tiles: 1, animate: false) }
+            } else if night {
+                Color(red: 16 / 255, green: 20 / 255, blue: 48 / 255).opacity(0.64)
+            }
+        }
     }
 }
 
@@ -37,7 +45,7 @@ struct MediumWidgetView: View {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 92, animate: false)
                         .frame(width: 92, height: 107, alignment: .bottom).offset(y: 6)
                     if let b = s.bubble {
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: b.text, fontSize: 10).fixedSize().scaleEffect(0.9).offset(y: -18)
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: b.text, fontSize: 10).fixedSize().scaleEffect(0.9).offset(y: 2)
                     }
                 }
                 .frame(width: 110, height: 112, alignment: .bottom)
@@ -84,7 +92,7 @@ struct SmallWidgetView: View {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false)
                         .frame(width: 72, height: 84, alignment: .bottom).offset(y: 10)
                     if let b = s.bubble {
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: "", fontSize: 10).fixedSize().offset(x: 0, y: -16)
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: "", fontSize: 10).fixedSize().offset(x: 0, y: 12)
                     }
                 }
                 .frame(width: 72, height: 112, alignment: .bottom)

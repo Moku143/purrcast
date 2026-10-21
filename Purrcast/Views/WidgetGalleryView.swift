@@ -57,7 +57,7 @@ struct WidgetGalleryView: View {
     }
     private func widgetBox<C: View>(_ w: CGFloat, _ h: CGFloat, @ViewBuilder _ c: () -> C) -> some View {
         c().padding(14).frame(width: w, height: h)
-            .background(WidgetBackground(level: snap.scene.level, night: snap.scene.isNight))
+            .background(WidgetBackground(level: snap.scene.level, night: snap.scene.isNight, scene: snap.scene))
             .clipShape(RoundedRectangle(cornerRadius: 22))
             .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
     }

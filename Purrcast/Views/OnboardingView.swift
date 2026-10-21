@@ -95,7 +95,7 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(spacing: 12) {
                 MediumWidgetView(snap: sample).padding(14).frame(width: 330, height: 160)
-                    .background(WidgetBackground(level: 4, night: false)).clipShape(RoundedRectangle(cornerRadius: 22))
+                    .background(WidgetBackground(level: 4, night: false, scene: sample.scene)).clipShape(RoundedRectangle(cornerRadius: 22))
                 ZStack {
                     LinearGradient(colors: [Color(hex: "#5B5FA8"), Color(hex: "#2E2F66")], startPoint: .top, endPoint: .bottom)
                     VStack(spacing: 6) {

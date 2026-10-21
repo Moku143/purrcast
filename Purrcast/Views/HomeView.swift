@@ -13,6 +13,7 @@ struct HomeView: View {
         let lv = max(0, min(9, s.level))
         ZStack(alignment: .top) {
             background(level: lv, night: s.isNight).ignoresSafeArea()
+            SkyTint(scene: s).ignoresSafeArea()
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 12) {
                     hero(s, ink: ink, level: lv)
@@ -98,7 +99,14 @@ struct HomeView: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: heroH, maxHeight: heroH, alignment: .topLeading)
-        .clipped()
+        .background(alignment: .topLeading) {
+            // weather pixels (clouds, rain, snow, wind …), edge to edge, two tiles high, fading out above the first card
+            SkyParticles(scene: s, width: UIScreen.main.bounds.width, tiles: 2)
+                .frame(width: UIScreen.main.bounds.width, height: heroH, alignment: .top)
+                .clipped()
+                .mask(LinearGradient(stops: [.init(color: .black, location: 0.7), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
+                .offset(x: -16)
+        }
     }
 
     private func roundButton<C: View>(_ ink: Ink, id: String, label: String, action: @escaping () -> Void, @ViewBuilder content c: () -> C) -> some View {

@@ -32,7 +32,7 @@ struct DayDetailView: View {
                                 VStack(spacing: 4) {
                                     Text(x.name).font(.px(11)).foregroundStyle(i == start ? .white : UI.sub)
                                     PixelIcon(name: x.icon, size: 26)
-                                    Text("\(x.hi)").font(.px(14))
+                                    Text(dayNumber(i)).font(.px(14))
                                     Text("\(x.hi)°/\(x.lo)°").font(.system(size: 9)).foregroundStyle(i == start ? .white.opacity(0.8) : UI.sub)
                                 }
                                 .foregroundStyle(i == start ? .white : UI.ink)
@@ -100,6 +100,10 @@ struct DayDetailView: View {
         let f = DateFormatter(); f.locale = Locale(identifier: "ko_KR"); f.dateFormat = "M월 d일 EEEE"
         let lead = index == 0 ? "오늘" : (index == 1 ? "내일" : d.name)
         return "\(lead) · \(f.string(from: date))"
+    }
+
+    private func dayNumber(_ i: Int) -> String {
+        String(Calendar.current.component(.day, from: Calendar.current.date(byAdding: .day, value: i, to: Date()) ?? Date()))
     }
 
     private func summary(_ d: WeatherScene.DayRow) -> String {

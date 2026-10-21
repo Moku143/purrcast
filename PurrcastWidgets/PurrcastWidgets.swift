@@ -54,7 +54,7 @@ struct PurrcastWidget: Widget {
         StaticConfiguration(kind: "PurrcastWidget", provider: Provider()) { entry in
             HomeWidgetView(entry: entry)
                 .containerBackground(for: .widget) {
-                    WidgetBackground(level: entry.snap.scene.level, night: entry.snap.scene.isNight)
+                    WidgetBackground(level: entry.snap.scene.level, night: entry.snap.scene.isNight, scene: entry.snap.scene)
                 }
         }
         .configurationDisplayName("Purrcast")

@@ -1,0 +1,70 @@
+name: TestFlight
+
+# Manual: Actions → TestFlight → Run workflow.
+# Needs four repository secrets (Settings → Secrets and variables → Actions), all from App Store Connect after
+# joining the Apple Developer Program:
+#   APPLE_TEAM_ID       10-character team id (Membership page)
+#   ASC_KEY_ID          App Store Connect API key id (Users and Access → Integrations → App Store Connect API, role "App Manager")
+#   ASC_ISSUER_ID       the issuer id shown on the same page
+#   ASC_KEY_P8_BASE64   the downloaded AuthKey_XXXX.p8, base64-encoded
+# Xcode signs with the API key itself (cloud signing), so no certificates or profiles have to be exported.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  upload:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check secrets
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          KEY: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+          P8: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          for v in TEAM KEY ISS P8; do
+            if [ -z "${!v}" ]; then echo "::error::Missing secret for $v — see the comment at the top of testflight.yml"; exit 1; fi
+          done
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project with the team id
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          sed -i '' "s/DEVELOPMENT_TEAM: \"\"/DEVELOPMENT_TEAM: \"$TEAM\"/" project.yml
+          # build number = run number, so every upload is new
+          sed -i '' "s/CURRENT_PROJECT_VERSION: \"1\"/CURRENT_PROJECT_VERSION: \"${{ github.run_number }}\"/" project.yml
+          xcodegen generate
+      - name: API key
+        env:
+          P8: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          mkdir -p ~/.appstoreconnect
+          echo "$P8" | base64 --decode > ~/.appstoreconnect/AuthKey.p8
+      - name: Archive
+        env:
+          KEY: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -o pipefail
+          xcodebuild archive -project Purrcast.xcodeproj -scheme Purrcast -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath build/Purrcast.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/.appstoreconnect/AuthKey.p8 \
+            -authenticationKeyID "$KEY" -authenticationKeyIssuerID "$ISS" | tail -40
+      - name: Upload to TestFlight
+        env:
+          KEY: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -o pipefail
+          sed "s/TEAM_ID/$TEAM/" Config/ExportOptions.plist > build/ExportOptions.plist
+          xcodebuild -exportArchive -archivePath build/Purrcast.xcarchive \
+            -exportOptionsPlist build/ExportOptions.plist -exportPath build/export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/.appstoreconnect/AuthKey.p8 \
+            -authenticationKeyID "$KEY" -authenticationKeyIssuerID "$ISS" | tail -40
