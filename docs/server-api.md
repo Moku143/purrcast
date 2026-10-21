@@ -10,17 +10,19 @@ the widget extension and the watch). Nothing else changes in the app.
 ## Request
 
 ```
-GET {base}/v1/forecast?lat=37.5663&lon=126.9019&region=kr&tz=Asia/Seoul&plan=plus&lang=ko
+GET {base}/v1/forecast?lat=37.57&lon=126.90&region=kr&tz=Asia/Seoul&plan=plus&lang=ko&prev=4&name=서울 마포구
 Accept: application/json
 ```
 
 | param  | meaning |
 |--------|---------|
-| lat, lon | place, 4 decimals |
+| lat, lon | place, rounded to 2 decimals (~1 km) by the app and again by the server |
 | region | `kr` (기상청 + MET Norway, six-hour rain), `jp` (minute rain), `other` (hourly only) |
 | tz     | IANA time zone of the place; every clock time in the answer is local to it |
 | plan   | `free` → the 06:00 forecast only, no `minutes` / `next6`; `plus` → latest run, with them |
 | lang   | `ko` for now |
+| prev   | optional, the outfit level the app showed last for this place (±1° hysteresis) |
+| name   | optional, the place name ("서울 마포구"); used to match 기상특보 areas |
 
 ## Response — one `WeatherScene` (200, JSON)
 
@@ -50,7 +52,9 @@ Accept: application/json
              { "icon": "raindrop", "label": "습도", "value": "72%", "unit": "", "note": "이슬점 13°" } ],
   "wind": { "speed": 4, "gust": 7, "deg": 225 },       // m/s, m/s, degrees the wind comes from
   "minutes": [0, 0, 0.2, …],                            // Plus · jp/other where available: 60 values, mm/h per minute
-  "next6": [ ["15시", 0], ["16시", 0.8], … ],            // Plus · kr: KMA ultra-short-term, 6 hourly slots, mm
+  "next6": [ ["15시", 0], ["16시", 0.8], … ],            // Plus: next 6 hourly slots, mm
+  "nextSource": "kma",                                  // kma (초단기예보) | met — the card's legend
+  "dayDetail": [ [ ["0시", 9.5, 10, 2.1, 0, 82], … 8 per day ], … one per day ],  // °C, chance %, wind m/s, UV, humidity %
   "plus": true                                          // echo of the plan
 }
 ```
@@ -72,6 +76,12 @@ chance 10–29 % → `think`; otherwise `none`.
 **Bubble**: one at a time, priority: rain coming / now › warnings (특보) › big temperature drop › heat / cold › nothing.
 Rain timing is a clock time, never a countdown: start rounded **down** to 10 minutes, said conservatively
 (“15:50쯤 비!”); free plan says the hour window (“15~17시 비!”).
+
+## Implementation
+
+`server/` in this repo (Cloudflare Worker): `src/index.js` (request, cache, merge, fallbacks), `src/providers/` (MET, KMA),
+`src/rules.js` (the rules below), `src/scene.js` (builds and validates this JSON). `node --test test/*.test.js` runs
+the rules and the contract against fake upstreams; `scripts/live-check.mjs` against the real ones.
 
 ## Sources
 
