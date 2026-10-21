@@ -39,6 +39,8 @@ targets:
     dependencies:
       - target: PurrcastWidgets
         embed: true
+      - target: PurrcastWatch
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.purrcast.ios
