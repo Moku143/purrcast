@@ -173,5 +173,9 @@ final class AppModel: ObservableObject {
                                    placeShort: currentPlace.short, saved: Date())
         SharedStore.save(snap)
         WatchBridge.shared.send(snap)
+        if pinnedScene == nil {
+            Notifications.plan(scene: scene, place: currentPlace.short, rain: notifyRain, morning: notifyMorning,
+                               morningTime: morningTime, unitF: unitF)
+        }
     }
 }

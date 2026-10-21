@@ -58,30 +58,9 @@ struct PlacesView: View {
     }
 
     private func card(_ p: Place, current: Bool) -> some View {
-        let s = model.previews[p.id].map { AppModel.planView($0, plus: model.plus) }
-        let lv = max(0, min(9, s?.level ?? 4))
-        return HStack(spacing: 10) {
-            CharacterSprite(character: model.shownCharacter, level: lv, rain: RainState(rawValue: s?.rain ?? "none") ?? .none, width: 70, animate: false)
-                .frame(width: 70, height: 82).clipped()
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
-                    if p.id == "here" { Image(systemName: "location.fill").font(.system(size: 11)) }
-                    Text(p.name).font(.px(16))
-                }
-                Text((p.id == "here" ? "지금 위치 · " : "") + (s?.clock ?? "") + (s.map { " · " + $0.cond } ?? "")).font(.system(size: 12)).foregroundStyle(UI.sub)
-                if let b = s?.bubble { Text(b.text).font(.px(11)).padding(.horizontal, 8).padding(.vertical, 3).background(Color.white.opacity(0.85)).clipShape(Capsule()) }
-            }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(s.map { model.deg($0.temp) } ?? "–").font(.px(30))
-                if let s { Text("최고 \(model.deg(s.hi)) · 최저 \(model.deg(s.lo))").font(.system(size: 11)).foregroundStyle(UI.sub) }
-            }
-        }
-        .foregroundStyle(UI.ink)
-        .padding(12)
-        .background(Color(hex: Rules.background[lv]).opacity(0.75))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(current ? UI.accent : Color.clear, lineWidth: 2))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
+        let s: WeatherScene? = model.previews[p.id].map { AppModel.planView($0, plus: model.plus) }
+        let lv: Int = max(0, min(9, s?.level ?? 4))
+        return PlaceCard(place: p, scene: s, level: lv, current: current)
     }
 
     private var results: some View {
@@ -108,5 +87,65 @@ struct PlacesView: View {
 
     private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+/// One place in the list: character dressed for it, name, time · condition, bubble, temperature.
+private struct PlaceCard: View {
+    @EnvironmentObject var model: AppModel
+    let place: Place
+    let scene: WeatherScene?
+    let level: Int
+    let current: Bool
+
+    var body: some View {
+        HStack(spacing: 10) {
+            sprite
+            info
+            Spacer()
+            temps
+        }
+        .foregroundStyle(UI.ink)
+        .padding(12)
+        .background(Color(hex: Rules.background[level]).opacity(0.75))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(current ? UI.accent : Color.clear, lineWidth: 2))
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+
+    private var rain: RainState { RainState(rawValue: scene?.rain ?? "none") ?? .none }
+
+    private var sprite: some View {
+        CharacterSprite(character: model.shownCharacter, level: level, rain: rain, width: 70, animate: false)
+            .frame(width: 70, height: 82).clipped()
+    }
+
+    private var subtitle: String {
+        var t = place.id == "here" ? "지금 위치 · " : ""
+        if let s = scene { t += s.clock + " · " + s.cond }
+        return t
+    }
+
+    private var info: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 4) {
+                if place.id == "here" { Image(systemName: "location.fill").font(.system(size: 11)) }
+                Text(place.name).font(.px(16))
+            }
+            Text(subtitle).font(.system(size: 12)).foregroundStyle(UI.sub)
+            if let b = scene?.bubble {
+                Text(b.text).font(.px(11))
+                    .padding(.horizontal, 8).padding(.vertical, 3)
+                    .background(Color.white.opacity(0.85)).clipShape(Capsule())
+            }
+        }
+    }
+
+    private var temps: some View {
+        VStack(alignment: .trailing, spacing: 4) {
+            Text(scene.map { model.deg($0.temp) } ?? "–").font(.px(30))
+            if let s = scene {
+                Text("최고 \(model.deg(s.hi)) · 최저 \(model.deg(s.lo))").font(.system(size: 11)).foregroundStyle(UI.sub)
+            }
+        }
     }
 }
