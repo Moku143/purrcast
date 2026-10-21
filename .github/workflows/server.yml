@@ -1,0 +1,55 @@
+name: Server
+
+on:
+  push:
+    branches: [main]
+    paths: ['server/**', 'Shared/Data/scenes.json', '.github/workflows/server.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Unit tests (fake upstreams)
+        working-directory: server
+        run: node --test test/*.test.js
+      - name: Live check against MET Norway (and 기상청 when the key is set)
+        working-directory: server
+        env:
+          KMA_SERVICE_KEY: ${{ secrets.KMA_SERVICE_KEY }}
+        run: node scripts/live-check.mjs | tee live.txt
+      - name: Publish the live check
+        if: always()
+        run: |
+          mkdir -p out && cp server/live.txt out/ 2>/dev/null || echo "live check did not run" > out/live.txt
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt
+          cd out && git init -q && git checkout -q -b server-output
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "server check ${{ github.run_id }}"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} server-output
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Deploy to Cloudflare (skipped until the secrets exist)
+        working-directory: server
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          KMA_SERVICE_KEY: ${{ secrets.KMA_SERVICE_KEY }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::notice::No Cloudflare secrets yet — server not deployed. See server/README.md."
+            exit 0
+          fi
+          npx --yes wrangler@3 deploy
+          if [ -n "$KMA_SERVICE_KEY" ]; then echo "$KMA_SERVICE_KEY" | npx --yes wrangler@3 secret put KMA_SERVICE_KEY; fi

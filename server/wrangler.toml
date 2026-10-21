@@ -1,0 +1,16 @@
+# Cloudflare Workers (free plan: 100,000 requests a day).
+# Deploy: the "Server" GitHub workflow runs `wrangler deploy` once the CLOUDFLARE_API_TOKEN and
+# CLOUDFLARE_ACCOUNT_ID secrets exist. The KMA key goes in as a Worker secret (the workflow copies KMA_SERVICE_KEY).
+name = "purrcast"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+workers_dev = true
+
+[vars]
+CONTACT = "github.com/Moku143/purrcast"
+
+# Optional "전일 대비" memory. Create once with:  npx wrangler kv namespace create HISTORY
+# then uncomment and paste the id.
+# [[kv_namespaces]]
+# binding = "HISTORY"
+# id = ""

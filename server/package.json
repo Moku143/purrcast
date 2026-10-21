@@ -1,0 +1,12 @@
+{
+  "name": "purrcast-server",
+  "private": true,
+  "type": "module",
+  "description": "Purrcast forecast server: 기상청 + MET Norway → the app's scene JSON (Cloudflare Worker)",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "live": "node scripts/live-check.mjs",
+    "deploy": "wrangler deploy"
+  },
+  "engines": { "node": ">=20" }
+}
