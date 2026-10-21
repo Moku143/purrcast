@@ -1,0 +1,50 @@
+name: iOS build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app && xcodebuild -version
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Build (simulator)
+        run: |
+          set -o pipefail
+          xcodebuild build -project Purrcast.xcodeproj -scheme Purrcast \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log | grep -E "error:|warning: unre|BUILD " || true
+          grep -q "BUILD SUCCEEDED" build.log
+      - name: Screenshot tests
+        if: success()
+        run: |
+          set -o pipefail
+          xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST " || true
+      - name: Export screenshots
+        if: always()
+        run: |
+          mkdir -p shots
+          if [ -d TestResults.xcresult ]; then
+            xcrun xcresulttool export attachments --path TestResults.xcresult --output-path shots 2>/dev/null || true
+            ls -la shots | head -50
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: |
+            shots
+            build.log
+            test.log
+          if-no-files-found: warn
