@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: macos-15
@@ -39,12 +42,15 @@ jobs:
             xcrun xcresulttool export attachments --path TestResults.xcresult --output-path shots 2>/dev/null || true
             ls -la shots | head -50
           fi
-      - uses: actions/upload-artifact@v4
+      - name: Publish results to the ci-output branch
         if: always()
-        with:
-          name: screenshots
-          path: |
-            shots
-            build.log
-            test.log
-          if-no-files-found: warn
+        run: |
+          mkdir -p out && cp -r shots out/ 2>/dev/null || true
+          cp build.log test.log out/ 2>/dev/null || true
+          grep -E "error:|warning: unre" build.log > out/errors.txt 2>/dev/null || true
+          grep -E "error:|failed|Test Case" test.log >> out/errors.txt 2>/dev/null || true
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt
+          cd out && git init -q && git checkout -q -b ci-output
+          git -c user.name=ci -c user.email=ci@purrcast config core.autocrlf false
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "ci output ${{ github.run_id }}"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} ci-output
