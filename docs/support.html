@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Purrcast 도움말</title>
+<style>
+  :root { --bg: #F4F6FA; --ink: #1A2440; --sub: #5B6680; --card: #fff; --acc: #EE7A3B; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #121522; --ink: #EEF1FA; --sub: #A6AFC6; --card: #1C2032; } }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.65 -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 26px; margin: 0 0 18px; }
+  details { background: var(--card); border-radius: 16px; padding: 14px 18px; margin: 10px 0; }
+  summary { font-weight: 600; cursor: pointer; }
+  p { margin: 8px 0 2px; }
+  a { color: var(--acc); }
+  .sub { color: var(--sub); font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Purrcast 도움말</h1>
+
+  <details open><summary>고양이 옷은 무엇을 보고 바뀌나요?</summary>
+    <p>체감온도예요. 큰 숫자는 실제 기온이고, 옷과 배경색은 체감온도로 정해요. 33° 이상 민소매부터 −10° 이하 롱패딩까지 10단계예요.</p></details>
+
+  <details><summary>우산은 언제 펴나요?</summary>
+    <p>지금 비·눈이 오면 우산을 펴요. 12시간 안에 비가 올 것 같으면 가방에 접은 우산을 챙기고, 확률이 애매하면(10~29%) 우산을 고민하는 말풍선이 떠요.</p></details>
+
+  <details><summary>위젯은 어떻게 넣나요?</summary>
+    <p>홈 화면 빈 곳을 길게 누른 뒤 왼쪽 위 ‘편집’ → ‘위젯 추가’ → Purrcast를 골라요. 잠금 화면은 잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 골라요. 위젯은 앱을 한 번 열어야 날씨가 들어가요.</p></details>
+
+  <details><summary>애플워치에서 안 보여요</summary>
+    <p>애플워치 앱은 Plus에서 열려요. 아이폰에서 Purrcast를 한 번 열면 워치로 날씨가 넘어가요.</p></details>
+
+  <details><summary>구독을 해지하거나 되찾고 싶어요</summary>
+    <p>해지: 아이폰 설정 → 맨 위 이름 → 구독 → Purrcast Plus. 다른 기기에서 구독했다면 앱의 Plus 화면 오른쪽 위 ‘구독 복원’을 눌러 주세요.</p></details>
+
+  <details><summary>위치를 꼭 허용해야 하나요?</summary>
+    <p>아니요. 허용하지 않으면 서울 날씨로 시작하고, 지역 화면에서 원하는 곳을 추가할 수 있어요. 위치는 약 1km로 줄여서 날씨를 받을 때만 쓰고 저장하지 않아요. <a href="privacy.html">개인정보 처리방침</a></p></details>
+
+  <details><summary>날씨는 어디서 오나요?</summary>
+    <p>한국은 기상청, 그 밖의 지역은 MET Norway 예보를 써요. 일출·일몰은 위치로 계산해요.</p></details>
+
+  <p class="sub" style="margin-top:24px">그 밖의 문의는 <a href="https://github.com/Moku143/purrcast/issues">여기</a>에 남겨 주세요.</p>
+</main>
+</body>
+</html>

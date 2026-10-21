@@ -1,0 +1,48 @@
+# Purrcast 날씨 서버
+
+기상청 + MET Norway 예보를 받아서 앱이 그대로 그리는 JSON 하나로 만들어 주는 작은 서버예요.
+Cloudflare Workers 무료 플랜(하루 10만 요청)에서 돌아가고, 코드 의존성이 없어요.
+
+- 한국: 기상청 단기예보 (Plus는 초단기실황 · 초단기예보 · 기상특보까지), 4~10일째와 자외선은 MET Norway
+- 그 밖: MET Norway
+- 한쪽이 안 되면 다른 쪽으로 이어서 답해요 (기상청 키가 없거나 기상청이 멈춰도 MET로 동작)
+- 응답 형식: `../docs/server-api.md` · 판단 규칙: `src/rules.js` (디자인 킷 규칙 그대로)
+
+## 연결하기 (한 번만, 약 20분)
+
+1. **기상청 키** (무료, 승인 1~2일)
+   [공공데이터포털](https://www.data.go.kr)에서 로그인 → 아래 세 개를 각각 "활용신청":
+   - 기상청_단기예보 ((구)_동네예보) 조회서비스
+   - 기상청_기상특보 조회서비스
+   승인되면 마이페이지 → 인증키의 **Decoding 키**를 복사해요.
+
+2. **Cloudflare** (무료)
+   [cloudflare.com](https://dash.cloudflare.com/sign-up) 가입 → 오른쪽 위 프로필 → My Profile → API Tokens →
+   Create Token → 템플릿 "Edit Cloudflare Workers" → 만들기 → 토큰 복사.
+   대시보드 오른쪽 아래 **Account ID**도 복사.
+
+3. **GitHub에 넣기**
+   저장소 Settings → Secrets and variables → Actions → New repository secret:
+   - `CLOUDFLARE_API_TOKEN` = 2번 토큰
+   - `CLOUDFLARE_ACCOUNT_ID` = 2번 Account ID
+   - `KMA_SERVICE_KEY` = 1번 Decoding 키 (없으면 한국도 MET Norway로 동작)
+
+4. **배포**
+   Actions → **Server** → Run workflow. 끝나면 로그의 "Deploy" 단계에 주소가 나와요:
+   `https://purrcast.<계정이름>.workers.dev`
+   브라우저로 `…/health`를 열어 `{"ok":true,"kma":true}`가 보이면 끝.
+
+5. **앱에 연결**
+   같은 Settings 화면의 **Variables** 탭 → New repository variable → `SERVER_URL` = 4번 주소.
+   TestFlight 빌드가 이 주소를 앱에 넣어요 (주소가 없거나 응답이 없으면 빌드가 멈춰요 — 예시 날씨로 출시되는 일이 없게).
+
+## 확인
+
+- `node --test test/*.test.js` — 가짜 응답으로 규칙 · 합치기 · 실패 대응 · 앱 형식 검사 (GitHub가 올릴 때마다 실행)
+- `node scripts/live-check.mjs` — 실제 MET Norway(+ 키가 있으면 기상청)로 서울 · 제주 · 도쿄 · 뉴욕 · 레이캬비크를 받아 형식 검사. 결과는 `server-output` 브랜치의 `live.txt`
+- `node scripts/make-fixtures.mjs` — 앱 단위 테스트가 쓰는 서버 응답 견본을 다시 만들어요
+
+## 선택: "전일 대비"
+
+어제 같은 시각 기온과 비교하려면 기록이 필요해요. `npx wrangler kv namespace create HISTORY`로 만든 id를
+`wrangler.toml`의 `[[kv_namespaces]]`에 넣으면 켜져요. 없으면 0(같음)으로 보여요.

@@ -45,4 +45,14 @@ final class ScreenshotTests: XCTestCase {
         shot("onboarding-2", ["-scene", "maybe", "-onboarding"]) { app in app.buttons["next"].tap(); sleep(1) }
         shot("onboarding-3", ["-scene", "maybe", "-onboarding"]) { app in app.buttons["next"].tap(); sleep(1); app.buttons["next"].tap(); sleep(1) }
     }
+
+    /// App Store screenshots: the store workflow runs this on the 6.9" simulator (iPhone 16 Pro Max).
+    func test5StoreShots() {
+        shot("store-1-home", ["-scene", "maybe", "-char", "cat"])
+        shot("store-2-rain", ["-scene", "spring_rain", "-plus", "-char", "abys"])
+        shot("store-3-snow", ["-scene", "winter_snow", "-plus", "-char", "brit"])
+        shot("store-4-characters", ["-scene", "summer_heat", "-plus", "-char", "brit", "-open", "character"], wait: 2)
+        shot("store-5-widgets", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "widgets"], wait: 2)
+        shot("store-6-day", ["-scene", "clear", "-plus", "-char", "abys", "-open", "day"], wait: 2)
+    }
 }

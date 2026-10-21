@@ -218,6 +218,6 @@ struct FlowChecks: View {
 enum Legal {
     static let terms = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
     static let privacy = URL(string: "https://moku143.github.io/purrcast/privacy.html")!
-    /// support address for 문의하기 (set before release; the row is hidden while nil)
-    static let support: URL? = nil
+    /// 문의하기 · FAQ (docs/support.html on GitHub Pages)
+    static let support: URL? = URL(string: "https://moku143.github.io/purrcast/support.html")
 }

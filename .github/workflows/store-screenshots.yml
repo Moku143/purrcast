@@ -1,0 +1,42 @@
+name: Store screenshots
+
+# Manual: Actions → Store screenshots → Run workflow.
+# Takes the App Store screenshots on the 6.9-inch simulator (1320 × 2868) and the watch (Series 10 46 mm)
+# and publishes them to the store-shots branch, ready to upload in App Store Connect.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  shots:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen && xcodegen generate
+      - name: iPhone 6.9"
+        run: |
+          set -o pipefail
+          DEV=$(xcrun simctl list devices available | grep -E "iPhone 1[6-9] Pro Max" | head -1 | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/')
+          echo "device $DEV"
+          xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast -destination "id=$DEV" \
+            -only-testing:PurrcastUITests/ScreenshotTests/test5StoreShots \
+            -resultBundlePath Store.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "error:|Test Case|TEST " || true
+          mkdir -p raw out
+          xcrun xcresulttool export attachments --path Store.xcresult --output-path raw
+          python3 - <<'PY'
+          import json, shutil, os
+          for t in json.load(open('raw/manifest.json')):
+              for a in t.get('attachments', []):
+                  n = (a.get('suggestedHumanReadableName') or a['exportedFileName']).split('_0_')[0]
+                  shutil.copy(os.path.join('raw', a['exportedFileName']), os.path.join('out', n if n.endswith('.png') else n + '.png'))
+          print(sorted(os.listdir('out')))
+          PY
+      - name: Publish
+        run: |
+          cd out && git init -q && git checkout -q -b store-shots
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "store screenshots ${{ github.run_id }}"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} store-shots

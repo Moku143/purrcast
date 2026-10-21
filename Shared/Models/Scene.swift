@@ -82,7 +82,8 @@ struct WeatherScene: Codable, Identifiable {
         }
         return out
     }
-    private struct Skip: Decodable {}
+    /// Decodes (and so steps over) any element.
+    private struct Skip: Decodable { init(from decoder: Decoder) throws {} }
 
     /// "13:46" → 826, nil when it is not a clock time
     static func clockMinutes(_ s: String) -> Int? {
