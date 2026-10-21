@@ -1,0 +1,103 @@
+{
+  "identifier" : "5C3B1F2A",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6700000000",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "ko_KR",
+    "_storefront" : "KOR",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21500001",
+      "localizations" : [
+        {
+          "description" : "광고 제거 · 가까운 비 · 애플워치 · 캐릭터",
+          "displayName" : "Purrcast Plus",
+          "locale" : "ko"
+        }
+      ],
+      "name" : "Purrcast Plus",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "14900",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6700000001",
+          "introductoryOffer" : {
+            "internalID" : "6700000011",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "1년 동안 Plus 기능을 모두 써요",
+              "displayName" : "Purrcast Plus 연간",
+              "locale" : "ko"
+            }
+          ],
+          "productID" : "app.purrcast.plus.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Plus Yearly",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "1900",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6700000002",
+          "introductoryOffer" : {
+            "internalID" : "6700000012",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "매달 Plus 기능을 모두 써요",
+              "displayName" : "Purrcast Plus 월간",
+              "locale" : "ko"
+            }
+          ],
+          "productID" : "app.purrcast.plus.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Plus Monthly",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

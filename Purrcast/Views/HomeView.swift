@@ -1,17 +1,14 @@
 import SwiftUI
 
-struct RootView: View {
-    @EnvironmentObject var store: AppStore
-    var body: some View { HomeView() }
-}
-
 /// The home screen: sky + character + temperature up top, then the cards (next hour · hourly · 10 days · details).
 struct HomeView: View {
-    @EnvironmentObject var store: AppStore
+    @EnvironmentObject var model: AppModel
+    @Binding var route: Route?
+    @Binding var day: Int?
     private let heroH: CGFloat = 372
 
     var body: some View {
-        let s = store.scene
+        let s = model.scene
         let ink = Ink(night: s.isNight)
         let lv = max(0, min(9, s.level))
         ZStack(alignment: .top) {
@@ -24,11 +21,12 @@ struct HomeView: View {
                     hourlyCard(s, ink: ink)
                     dailyCard(s, ink: ink)
                     tilesGrid(s, ink: ink)
-                    Text("기상청 단기예보 · Apple Weather").font(.ui(11)).foregroundStyle(ink.sub).padding(.top, 8)
+                    Text(model.provider.name == "예시 날씨" ? "예시 날씨 · 서버 연결 전" : "기상청 · MET Norway").font(.ui(11)).foregroundStyle(ink.sub).padding(.top, 8)
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 44)
             }
+            .refreshable { await model.refresh() }
         }
         .foregroundStyle(ink.ink)
     }
@@ -44,7 +42,7 @@ struct HomeView: View {
     }
 
     private func hero(_ s: WeatherScene, ink: Ink, level: Int) -> some View {
-        let char = store.shownCharacter
+        let char = model.shownCharacter
         let rain = RainState(rawValue: s.rain) ?? .none
         let catW: CGFloat = 176, catH = catW * Sprite.height / Sprite.width
         let feetY: CGFloat = 368
@@ -58,17 +56,19 @@ struct HomeView: View {
             // top row: place + buttons
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 7) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "mappin").font(.system(size: 13, weight: .bold))
-                        Text(s.place ?? "서울 마포구").font(.px(17))
-                    }
+                    Button { route = .places } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "mappin").font(.system(size: 13, weight: .bold))
+                            Text(s.place ?? model.currentPlace.name).font(.px(17))
+                        }
+                    }.buttonStyle(.plain).accessibilityIdentifier("place")
                     Text(s.isPlus ? "\(s.updated) 받음 · Plus" : "오늘 \(s.updated) 기준").font(.px(11)).opacity(0.8)
                 }
                 Spacer()
                 HStack(spacing: 8) {
-                    roundButton(ink) { Image(char.faceImage).resizable().scaledToFit().frame(width: 26, height: 26) }
-                    roundButton(ink) { Image(systemName: "plus").font(.system(size: 16, weight: .bold)) }
-                    roundButton(ink) { Image(systemName: "gearshape.fill").font(.system(size: 16)) }
+                    roundButton(ink, id: "character", label: "캐릭터") { route = .character } content: { Image(char.faceImage).resizable().scaledToFit().frame(width: 26, height: 26) }
+                    roundButton(ink, id: "places", label: "지역") { route = .places } content: { Image(systemName: "plus").font(.system(size: 16, weight: .bold)) }
+                    roundButton(ink, id: "settings", label: "설정") { route = .settings } content: { Image(systemName: "gearshape.fill").font(.system(size: 16)) }
                 }
             }
             .padding(.horizontal, 4).padding(.top, 8)
@@ -97,12 +97,13 @@ struct HomeView: View {
                     .alignmentGuide(.top) { d in d.height - tipY }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: heroH, maxHeight: heroH, alignment: .topLeading)
         .clipped()
     }
 
-    private func roundButton<C: View>(_ ink: Ink, @ViewBuilder _ c: () -> C) -> some View {
-        c().frame(width: 36, height: 36).background(ink.btn).clipShape(Circle())
+    private func roundButton<C: View>(_ ink: Ink, id: String, label: String, action: @escaping () -> Void, @ViewBuilder content c: () -> C) -> some View {
+        Button(action: action) { c().frame(width: 36, height: 36).background(ink.btn).clipShape(Circle()) }
+            .buttonStyle(.plain).accessibilityIdentifier(id).accessibilityLabel(label)
     }
 
     // MARK: cards
@@ -179,7 +180,7 @@ struct HomeView: View {
                 HStack(spacing: 0) {
                     ForEach(Array(s.hours.enumerated()), id: \.offset) { i, h in
                         VStack(spacing: 7) {
-                            Text(h.label).font(.px(12)).foregroundStyle(i == 0 ? ink.ink : ink.sub)
+                            Text(i == 0 ? h.label : model.hourLabel(h.label)).font(.px(i == 0 || !model.clock12 ? 12 : 10)).foregroundStyle(i == 0 ? ink.ink : ink.sub)
                             PixelIcon(name: h.icon, size: 28)
                             Text(deg(h.temp)).font(.px(15))
                             if s.anyChance { Text(h.chance >= 10 ? "\(h.chance)%" : "–").font(.px(11)).foregroundStyle(h.chance >= 10 ? ink.blue : ink.faint) }
@@ -198,7 +199,7 @@ struct HomeView: View {
             Text("10일").font(.px(13))
             VStack(spacing: 0) {
                 ForEach(Array(s.days.enumerated()), id: \.offset) { i, d in
-                    HStack(spacing: 9) {
+                    Button { day = i } label: { HStack(spacing: 9) {
                         Text(d.name).font(.px(13)).frame(width: 34, alignment: .leading)
                         PixelIcon(name: d.icon, size: 24)
                         Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(11)).foregroundStyle(ink.blue).frame(width: 34, alignment: .leading)
@@ -214,7 +215,8 @@ struct HomeView: View {
                         Text(deg(d.hi)).font(.px(13)).frame(width: 28, alignment: .trailing)
                         Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(ink.faint)
                     }
-                    .frame(height: 42)
+                    .frame(height: 42).contentShape(Rectangle()) }
+                    .buttonStyle(.plain).accessibilityIdentifier("day-\(i)")
                     if i < s.days.count - 1 { Rectangle().fill(ink.line).frame(height: 1) }
                 }
             }
@@ -241,16 +243,13 @@ struct HomeView: View {
 
     // MARK: formatting
 
-    private func deg(_ v: Int) -> String { "\(store.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)°" }
-    private func delta(_ v: Int) -> String {
-        let d = store.unitF ? Int((Double(abs(v)) * 1.8).rounded()) : abs(v)
-        return v > 0 ? "+\(d)°" : (v < 0 ? "−\(d)°" : "같음")
-    }
+    private func deg(_ v: Int) -> String { model.deg(v) }
+    private func delta(_ v: Int) -> String { model.delta(v) }
     private func mmText(_ mm: Double, snow: Bool) -> String {
         let n = mm == mm.rounded() ? String(Int(mm)) : String(format: "%.1f", mm)
         return n + (snow ? "cm" : "mm")
     }
-    private func wind(_ ms: Int) -> String { "\(ms)m/s" }
+    private func wind(_ ms: Int) -> String { model.windText(ms) }
     private func dir(_ deg: Int) -> String {
         let d = ["북", "북북동", "북동", "동북동", "동", "동남동", "남동", "남남동", "남", "남남서", "남서", "서남서", "서", "서북서", "북서", "북북서"]
         return d[Int((Double(deg) / 22.5).rounded()) % 16] + "풍"

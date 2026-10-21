@@ -18,6 +18,7 @@ targets:
     platform: iOS
     sources:
       - path: Purrcast
+      - path: Shared
     info:
       path: Purrcast/Info.plist
       properties:
@@ -29,6 +30,7 @@ targets:
         UIUserInterfaceStyle: Light
         ITSAppUsesNonExemptEncryption: false
         NSLocationWhenInUseUsageDescription: 지금 위치의 날씨를 보여 드리기 위해 필요해요.
+        PurrcastServerURL: ""
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.purrcast.ios
@@ -53,6 +55,7 @@ schemes:
         PurrcastUITests: [test]
     run:
       config: Debug
+      storeKitConfiguration: Config/Purrcast.storekit
     test:
       config: Debug
       targets: [PurrcastUITests]
