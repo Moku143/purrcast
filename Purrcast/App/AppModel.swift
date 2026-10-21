@@ -167,9 +167,11 @@ final class AppModel: ObservableObject {
         d.set(notifyAlerts, forKey: "notifyAlerts"); d.set(onboarded, forKey: "onboarded")
     }
 
-    /// Hand the current forecast to the widgets.
+    /// Hand the current forecast to the widgets and the watch.
     func publish() {
-        SharedStore.save(WeatherSnapshot(scene: scene, character: character, plus: plus, characterName: name(of: shownCharacter),
-                                         placeShort: currentPlace.short, saved: Date()))
+        let snap = WeatherSnapshot(scene: scene, character: character, plus: plus, characterName: name(of: shownCharacter),
+                                   placeShort: currentPlace.short, saved: Date())
+        SharedStore.save(snap)
+        WatchBridge.shared.send(snap)
     }
 }

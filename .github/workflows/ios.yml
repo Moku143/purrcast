@@ -37,17 +37,52 @@ jobs:
       - name: Export screenshots
         if: always()
         run: |
-          mkdir -p shots
+          mkdir -p raw shots
           if [ -d TestResults.xcresult ]; then
-            xcrun xcresulttool export attachments --path TestResults.xcresult --output-path shots 2>/dev/null || true
-            ls -la shots | head -50
+            xcrun xcresulttool export attachments --path TestResults.xcresult --output-path raw 2>/dev/null || true
+            # name the files after the test's attachment names (manifest.json maps them)
+            python3 - <<'PY'
+          import json, os, shutil
+          try:
+              m = json.load(open('raw/manifest.json'))
+          except Exception:
+              m = []
+          for t in m:
+              for a in t.get('attachments', []):
+                  name = a.get('suggestedHumanReadableName') or a['exportedFileName']
+                  name = name.split('_0_')[0].replace(' ', '-')
+                  if not name.endswith('.png'): name += '.png'
+                  shutil.copy(os.path.join('raw', a['exportedFileName']), os.path.join('shots', name))
+          print(len(os.listdir('shots')), 'screenshots')
+          PY
           fi
+      - name: Watch app build and screenshots
+        if: always()
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          xcodebuild build -project Purrcast.xcodeproj -scheme PurrcastWatch \
+            -destination 'generic/platform=watchOS Simulator' -derivedDataPath wdd \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee watch.log | grep -E "error:|BUILD " || true
+          grep -q "BUILD SUCCEEDED" watch.log
+          APP=$(find wdd/Build/Products -maxdepth 2 -name "PurrcastWatch.app" | head -1)
+          DEV=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for k,v in d.items() if 'watchOS' in k for x in v))")
+          echo "watch sim $DEV app $APP"
+          xcrun simctl boot "$DEV" || true
+          xcrun simctl bootstatus "$DEV" -b || sleep 30
+          xcrun simctl install "$DEV" "$APP"
+          for sc in maybe winter_cold summer_heat; do
+            xcrun simctl launch --terminate-running-process "$DEV" app.purrcast.ios.watchkitapp -scene $sc -char brit || true
+            sleep 8
+            xcrun simctl io "$DEV" screenshot "shots/watch-$sc.png" || true
+          done
       - name: Publish results to the ci-output branch
         if: always()
         run: |
           mkdir -p out && cp -r shots out/ 2>/dev/null || true
-          cp build.log test.log out/ 2>/dev/null || true
+          cp build.log test.log watch.log out/ 2>/dev/null || true
           grep -E "error:|warning: unre" build.log > out/errors.txt 2>/dev/null || true
+          grep -E "error:" watch.log | sed 's/^/[watch] /' >> out/errors.txt 2>/dev/null || true
           grep -E "error:|failed|Test Case" test.log >> out/errors.txt 2>/dev/null || true
           echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt
           cd out && git init -q && git checkout -q -b ci-output

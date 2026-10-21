@@ -3,6 +3,7 @@ options:
   bundleIdPrefix: app.purrcast
   deploymentTarget:
     iOS: "17.0"
+    watchOS: "10.0"
   createIntermediateGroups: true
   generateEmptyDirectories: true
 settings:
@@ -31,11 +32,91 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         NSLocationWhenInUseUsageDescription: 지금 위치의 날씨를 보여 드리기 위해 필요해요.
         PurrcastServerURL: ""
+    entitlements:
+      path: Config/Purrcast.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.purrcast]
+    dependencies:
+      - target: PurrcastWidgets
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.purrcast.ios
         TARGETED_DEVICE_FAMILY: "1"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+  PurrcastWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: PurrcastWidgets
+      - path: Shared
+    info:
+      path: PurrcastWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Purrcast
+        UIAppFonts: [Galmuri11.ttf, Galmuri11-Bold.ttf]
+        PurrcastServerURL: ""
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Config/PurrcastWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.purrcast]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.purrcast.ios.widgets
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
+  PurrcastWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - path: PurrcastWatch
+      - path: Shared
+    info:
+      path: PurrcastWatch/Info.plist
+      properties:
+        CFBundleDisplayName: Purrcast
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: app.purrcast.ios
+        WKRunsIndependentlyOfCompanionApp: false
+        UIAppFonts: [Galmuri11.ttf, Galmuri11-Bold.ttf]
+        PurrcastServerURL: ""
+    entitlements:
+      path: Config/PurrcastWatch.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.purrcast.watch]
+    dependencies:
+      - target: PurrcastWatchWidgets
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.purrcast.ios.watchkitapp
+        TARGETED_DEVICE_FAMILY: "4"
+        SKIP_INSTALL: YES
+  PurrcastWatchWidgets:
+    type: app-extension
+    platform: watchOS
+    sources:
+      - path: PurrcastWatchWidgets
+      - path: Shared
+    info:
+      path: PurrcastWatchWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Purrcast
+        UIAppFonts: [Galmuri11.ttf, Galmuri11-Bold.ttf]
+        PurrcastServerURL: ""
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Config/PurrcastWatchWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.purrcast.watch]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.purrcast.ios.watchkitapp.widgets
+        TARGETED_DEVICE_FAMILY: "4"
+        SKIP_INSTALL: YES
   PurrcastUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -59,3 +140,9 @@ schemes:
     test:
       config: Debug
       targets: [PurrcastUITests]
+  PurrcastWatch:
+    build:
+      targets:
+        PurrcastWatch: all
+    run:
+      config: Debug

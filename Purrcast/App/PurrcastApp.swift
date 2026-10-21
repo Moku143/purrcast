@@ -12,6 +12,7 @@ struct PurrcastApp: App {
                 .environmentObject(purchases)
                 .preferredColorScheme(.light)
                 .task {
+                    WatchBridge.shared.start()
                     await purchases.load()
                     model.plus = purchases.active || model.debugPlus
                     await model.refresh()

@@ -24,7 +24,11 @@ struct WeatherSnapshot: Codable {
 }
 
 enum SharedStore {
-    static let groupID = "group.app.purrcast"
+    #if os(watchOS)
+    static let groupID = "group.app.purrcast.watch"   // watch app + complications (the phone reaches the watch over WatchConnectivity)
+    #else
+    static let groupID = "group.app.purrcast"         // phone app + widgets
+    #endif
     static var defaults: UserDefaults { UserDefaults(suiteName: groupID) ?? .standard }
     private static let key = "snapshot.v1"
 
