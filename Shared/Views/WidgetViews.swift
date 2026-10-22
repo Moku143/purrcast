@@ -133,9 +133,9 @@ struct LockRectangularView: View {
         HStack(spacing: 6) {
             Image(snap.shownCharacter.lock(level: lv)).resizable().scaledToFit().frame(width: 40, height: 52)
             VStack(alignment: .leading, spacing: 1) {
-                HStack(spacing: 3) { PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 12).colorMultiply(.white); Text(snap.deg(s.temp)).font(.system(size: 15, weight: .bold)) }
+                Text(snap.deg(s.temp)).font(.system(size: 15, weight: .bold))
                 Text(LockText.line(s)).font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                Text("☂ \(chanceNow(s))% · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.system(size: 11)).opacity(0.8)
+                Text("강수 \(chanceNow(s))% · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.system(size: 11)).opacity(0.8)
             }
             Spacer(minLength: 0)
         }
@@ -183,10 +183,9 @@ struct AccessoryWidgetBackgroundCompat: View {
 enum LockText {
     /// One line for the lock screen: the bubble text when there is one, the condition otherwise.
     static func line(_ s: WeatherScene) -> String { s.bubble?.text ?? s.cond }
-    /// Inline lock widget (above the clock): "☂ 15~17시 비 · 18°"
+    /// Inline lock widget (above the clock): "15~17시 비! · 18°" (no emoji: the lock screen shows one colour)
     static func inline(_ snap: WeatherSnapshot) -> String {
         let s = snap.scene
-        let lead = (s.bubble?.icon.hasPrefix("umbrella") ?? false) ? "☂ " : ""
-        return lead + line(s) + " · " + snap.deg(s.temp)
+        return line(s) + " · " + snap.deg(s.temp)
     }
 }
