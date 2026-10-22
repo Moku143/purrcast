@@ -132,11 +132,11 @@ struct LockRectangularView: View {
         let s = snap.scene, lv = max(0, min(9, s.level))
         HStack(spacing: 6) {
             Image(snap.shownCharacter.lock(level: lv)).resizable().scaledToFit().frame(width: 40, height: 52)
-                .opacity(0.82)     // a little see-through, like the system's own lock-screen glyphs
+                .opacity(0.62)     // see-through, like the system's own lock-screen glyphs
             VStack(alignment: .leading, spacing: 1) {
-                Text(snap.deg(s.temp)).font(.system(size: 15, weight: .bold))
-                Text(LockText.line(s)).font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                Text("강수 \(chanceNow(s))% · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.system(size: 11)).opacity(0.8)
+                Text(snap.deg(s.temp)).font(.system(size: 15, weight: .semibold)).opacity(0.92)
+                Text(LockText.line(s)).font(.system(size: 12, weight: .medium)).lineLimit(1).opacity(0.85)
+                Text("강수 \(chanceNow(s))% · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.system(size: 11)).opacity(0.65)
             }
             Spacer(minLength: 0)
         }
@@ -154,14 +154,14 @@ struct LockCircularView: View {
         Gauge(value: Double(s.temp), in: Double(min(s.lo, s.temp))...Double(max(s.hi, s.temp, s.lo + 1))) {
             Text("°")
         } currentValueLabel: {
-            Text("\(u(s.temp))").font(.system(size: 18, weight: .bold)).foregroundStyle(.white)
+            Text("\(u(s.temp))").font(.system(size: 18, weight: .semibold)).foregroundStyle(.white.opacity(0.92))
         } minimumValueLabel: {
-            Text("\(u(s.lo))").font(.system(size: 9)).foregroundStyle(.white)
+            Text("\(u(s.lo))").font(.system(size: 9)).foregroundStyle(.white.opacity(0.65))
         } maximumValueLabel: {
-            Text("\(u(s.hi))").font(.system(size: 9)).foregroundStyle(.white)
+            Text("\(u(s.hi))").font(.system(size: 9)).foregroundStyle(.white.opacity(0.65))
         }
         .gaugeStyle(.accessoryCircular)
-        .tint(.white.opacity(0.85))   // iOS draws lock widgets as frosted glass over the wallpaper; this matches it
+        .tint(.white.opacity(0.6))   // iOS draws lock widgets as frosted glass over the wallpaper; this matches it
         }
     }
 }
@@ -174,15 +174,15 @@ struct LockRainCircularView: View {
         ZStack {
             AccessoryWidgetBackgroundCompat()
             VStack(spacing: 0) {
-                Image(systemName: c >= 30 ? "umbrella.fill" : "umbrella").font(.system(size: 14, weight: .semibold))
-                Text("\(c)%").font(.system(size: 14, weight: .bold))
+                Image(systemName: "umbrella").font(.system(size: 14, weight: .medium)).opacity(0.75)
+                Text("\(c)%").font(.system(size: 14, weight: .semibold)).opacity(0.92)
             }
         }
     }
 }
 
 struct AccessoryWidgetBackgroundCompat: View {
-    var body: some View { Circle().fill(Color.white.opacity(0.18)) }
+    var body: some View { Circle().fill(Color.white.opacity(0.12)) }
 }
 
 enum LockText {
