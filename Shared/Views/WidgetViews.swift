@@ -14,7 +14,12 @@ struct WidgetBackground: View {
             LinearGradient(colors: [Color(hex: bg), Color.mix(bg, "#8E9CC4", 0.28)], startPoint: .top, endPoint: .bottom)
             if let scene {
                 SkyTint(scene: scene)
-                GeometryReader { g in SkyParticles(scene: scene, width: g.size.width, tiles: 1, animate: animate) }
+                GeometryReader { g in
+                    // the sky picture is a wide strip: repeat its rain / snow / wind / fog down the whole surface
+                    // (a small widget or the watch is taller than one strip, and the character stands in the lower part)
+                    let stripH = Sky.tile.height * g.size.width / Sky.tile.width
+                    SkyParticles(scene: scene, width: g.size.width, tiles: max(1, Int((g.size.height / stripH).rounded(.up))), animate: animate)
+                }
             } else if night {
                 Color(red: 16 / 255, green: 20 / 255, blue: 48 / 255).opacity(0.64)
             }

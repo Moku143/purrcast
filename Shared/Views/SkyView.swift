@@ -65,6 +65,24 @@ enum Sky {
             s.items = s.items.map { var i = $0; i.w += 1; i.h += 1; return i }
             all["snow"] = s
         }
+        // wind: thicker, longer gusts over the whole height, spread in time so a still frame catches several
+        if let w = all["wind"] {
+            let leaves = w.items.filter { $0.a != "wind" }
+            let ys: [Double] = [8, 22, 36, 50, 64, 78, 92, 106, 120, 15, 43, 71, 99, 113]
+            var gusts: [SkyItem] = []
+            for (i, y) in ys.enumerated() {
+                let len = [40.0, 64, 52, 76, 46, 60][i % 6], d = 1.4 + Double(i % 4) * 0.12
+                let dl = -Double(i) / Double(ys.count) * d
+                gusts.append(SkyItem(t: nil, x: 0, y: y, w: len, h: 2, c: "rgba(255,255,255,0.9)", a: "wind", d: d, dl: dl))
+                gusts.append(SkyItem(t: nil, x: len * 0.45, y: y - 3, w: len * 0.3, h: 1.5, c: "rgba(255,255,255,0.9)", a: "wind", d: d, dl: dl))
+            }
+            all["wind"] = SkyLayerData(tint: "rgba(150,170,210,0.12)", items: gusts + leaves + leaves.map { var i = $0; i.y += 30; i.dl -= 0.9; return i })
+        }
+        // fog: patches all the way down (also behind the character) and a stronger white veil
+        if let f = all["fog"] {
+            let low = f.items.map { var i = $0; i.y += 60; i.x -= 30; i.dl -= 3; i.fdl = (i.fdl ?? 0) - 2.5; return i }
+            all["fog"] = SkyLayerData(tint: "rgba(238,241,247,0.40)", items: f.items + low)
+        }
         all["haze"] = SkyLayerData(tint: "rgba(196,192,176,0.40)", items: ev(dust).map { var i = $0; i.c = "rgba(140,138,128,0.45)"; return i })
         return all
     }()
@@ -109,12 +127,15 @@ enum Sky {
         if !night && (precip == "rain" || precip == "drizzle") && !(thunder && !sunny) {
             list = list.map { var i = $0; if i.a == "fall" { i.c = "rgba(58,92,168,0.55)" }; return i }
         }
+        if !night {
+            list = list.map { var i = $0; if i.a == "wind" && i.h <= 2 { i.c = "rgba(88,108,158,0.55)" }; return i }
+        }
         if !night && wet && cover == "overcast" {      // rain clouds are grey
             list = list.map { var i = $0; if i.t == "cloud" { i.c = "rgba(186,194,212,0.97)" }; return i }
         }
         if night {
             list = list.map { var i = $0
-                if i.t == "cloud" { i.c = "#525C86" } else if i.a == "wind" { i.c = "rgba(196,206,240,0.4)" }
+                if i.t == "cloud" { i.c = "#525C86" } else if i.a == "wind" { i.c = "rgba(196,206,240,0.6)" }
                 return i }
         }
         return (tints, list)
