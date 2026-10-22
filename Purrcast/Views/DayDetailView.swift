@@ -68,7 +68,7 @@ struct DayDetailView: View {
                             Text("\(model.deg(d.hi)) / \(model.deg(d.lo))").font(.px(20)).rolling(d.hi * 1000 + d.lo)
                             Text("일교차 \(d.hi - d.lo)°").font(.px(11)).padding(.horizontal, 6).padding(.vertical, 2).background(Color(hex: "#FFE8A3"))
                         }
-                        Text(summary(d, detail)).font(.ui(13)).foregroundStyle(UI.ink)
+                        Text(summary(d, detail)).font(.ui(15)).foregroundStyle(UI.ink)
                     }
                     .padding(12).frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color.white).overlay(Rectangle().stroke(UI.ink, lineWidth: 2))
@@ -136,12 +136,19 @@ struct DayDetailView: View {
     private func summary(_ d: WeatherScene.DayRow, _ detail: [WeatherScene.DayHour]?) -> String {
         var t: String
         if let detail, let cold = detail.min(by: { $0.temp < $1.temp }), let warm = detail.max(by: { $0.temp < $1.temp }) {
-            t = "\(model.hourLabel(cold.label)) \(model.deg(Int(cold.temp.rounded())))로 가장 쌀쌀하고, \(model.hourLabel(warm.label)) \(model.deg(Int(warm.temp.rounded())))로 가장 따뜻해요."
+            t = "\(partOfDay(cold.label))에 \(model.deg(Int(cold.temp.rounded())))로 가장 쌀쌀하고, \(partOfDay(warm.label))에 \(model.deg(Int(warm.temp.rounded())))로 가장 따뜻해요."
         } else {
             t = "최저 \(model.deg(d.lo)), 최고 \(model.deg(d.hi))예요."
         }
-        if d.chance >= 30 { t += " 비 올 확률 \(d.chance)%, 우산 챙겨요." }
+        if d.chance >= 60 { t += " 비 예보가 있어요. 우산 챙겨요." }
+        else if d.chance >= 30 { t += " 비 올 수도 있어요 (\(d.chance)%)." }
         return t
+    }
+
+    /// "9시" → 아침 (never a clock time in a sentence)
+    private func partOfDay(_ label: String) -> String {
+        let h = Int(label.replacingOccurrences(of: "시", with: "")) ?? 12
+        return h < 5 ? "밤" : h < 12 ? "아침" : h < 17 ? "낮" : h < 21 ? "저녁" : "밤"
     }
 
     private func values(_ detail: [WeatherScene.DayHour]) -> [Double] {
