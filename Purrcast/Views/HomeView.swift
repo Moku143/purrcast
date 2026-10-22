@@ -6,6 +6,10 @@ struct HomeView: View {
     @Binding var route: Route?
     @Binding var day: Int?
     private let heroH: CGFloat = 372
+    @Environment(\.accessibilityReduceMotion) private var reduce
+
+    /// What the sky is made of; when it changes the whole sky cross-fades
+    private func skyKey(_ s: WeatherScene) -> String { "\(s.time)|\(s.cover)|\(s.precip)|\(s.thunder)|\(s.aux)" }
 
     var body: some View {
         let s = model.scene
@@ -13,29 +17,36 @@ struct HomeView: View {
         let lv = max(0, min(9, s.level))
         ZStack(alignment: .top) {
             background(level: lv, night: s.isNight).ignoresSafeArea()
+                .animation(Motion.fade, value: lv).animation(Motion.fade, value: s.isNight)
             SkyTint(scene: s).ignoresSafeArea()
+                .id("tint" + skyKey(s)).transition(.opacity)
             if model.hasData {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 12) {
                         hero(s, ink: ink, level: lv)
                             .frame(height: heroH)
-                        if let e = model.lastError { notice(e, ink: ink) }
-                        if let head = nextHour(s) { nextHourCard(s, head: head, ink: ink) }
-                        hourlyCard(s, ink: ink)
-                        dailyCard(s, ink: ink)
-                        tilesGrid(s, ink: ink)
+                            .parallaxHero()
+                        if let e = model.lastError { notice(e, ink: ink).transition(.move(edge: .top).combined(with: .opacity)) }
+                        if let head = nextHour(s) { nextHourCard(s, head: head, ink: ink).reveal(1).settleInScroll() }
+                        hourlyCard(s, ink: ink).reveal(2).settleInScroll()
+                        dailyCard(s, ink: ink).reveal(3).settleInScroll()
+                        tilesGrid(s, ink: ink).reveal(4).settleInScroll()
                         Text(model.isSample ? "예시 날씨예요 · 실제 날씨는 서버 연결 후" : "기상청 · Data from MET Norway")
-                            .font(.ui(11)).foregroundStyle(ink.sub).padding(.top, 8)
+                            .font(.ui(11)).foregroundStyle(ink.sub).padding(.top, 8).reveal(5)
                     }
                     .padding(.horizontal, 16)
                     .padding(.bottom, 44)
                 }
                 .refreshable { await model.refresh(force: true) }
+                .transition(.opacity)
             } else {
-                waiting(ink: ink)
+                waiting(ink: ink).transition(.opacity)
             }
         }
         .foregroundStyle(ink.ink)
+        .animation(Motion.fade, value: skyKey(s))
+        .animation(Motion.gentle, value: model.hasData)
+        .animation(Motion.gentle, value: model.lastError)
     }
 
     /// First launch, before any forecast arrived (or it failed): the cat waits, no made-up numbers.
@@ -97,7 +108,7 @@ struct HomeView: View {
                             Image(systemName: model.hereIsLive && model.currentPlace.id == "here" ? "location.fill" : "mappin").font(.system(size: 13, weight: .bold))
                             Text(s.place ?? model.currentPlace.name).font(.px(17))
                         }
-                    }.buttonStyle(.plain).accessibilityIdentifier("place")
+                    }.buttonStyle(.press(0.97)).accessibilityIdentifier("place")
                     Text(s.isPlus ? "\(s.updated) 받음 · Plus" : "오늘 \(s.updated) 기준").font(.px(11)).opacity(0.8)
                 }
                 Spacer()
@@ -111,9 +122,9 @@ struct HomeView: View {
 
             // temperature block, right
             VStack(alignment: .trailing, spacing: 10) {
-                Text(deg(s.temp)).font(.px(88))
-                Text(s.cond).font(.px(17))
-                Text("최고 \(deg(s.hi)) · 최저 \(deg(s.lo))").font(.px(12))
+                Text(deg(s.temp)).font(.px(88)).rolling(s.temp)
+                Text(s.cond).font(.px(17)).id(s.cond).transition(.opacity.combined(with: .move(edge: .trailing)))
+                Text("최고 \(deg(s.hi)) · 최저 \(deg(s.lo))").font(.px(12)).rolling(s.hi * 1000 + s.lo)
                 HStack(spacing: 5) {
                     Text("체감 \(deg(s.feels))"); Text("·"); Text("전일 대비")
                     Text(delta(s.yday)).foregroundStyle(s.yday > 0 ? ink.hot : (s.yday < 0 ? ink.blue : ink.ink))
@@ -121,18 +132,25 @@ struct HomeView: View {
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.trailing, 6).padding(.top, 64)
+            .animation(Motion.gentle, value: s.cond)
+            .reveal(0, rise: 10)
 
-            // the character, feet on the first card
+            // the character, feet on the first card (slides up into place on first show)
             CharacterSprite(character: char, level: level, rain: rain, mood: Mood(rawValue: s.mood ?? "normal") ?? .normal, width: catW)
                 .offset(x: catLeft, y: catTop)
+                .reveal(0, rise: 28)
+                .animation(Motion.gentle, value: catLeft)
 
             if let b = s.bubble {
-                BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: b.text)
+                BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: b.text, live: true)
                     .fixedSize()
                     .alignmentGuide(.leading) { d in d.width / 2 - headX }
                     .alignmentGuide(.top) { d in d.height - tipY }
+                    .id(b.text + b.icon)
+                    .transition(.opacity)
             }
         }
+        .animation(Motion.bouncy, value: s.bubble?.text)
         .frame(maxWidth: .infinity, minHeight: heroH, maxHeight: heroH, alignment: .topLeading)
         .background(alignment: .topLeading) {
             // weather pixels (clouds, rain, snow, wind …), edge to edge, two tiles high, fading out above the first card
@@ -141,12 +159,13 @@ struct HomeView: View {
                 .clipped()
                 .mask(LinearGradient(stops: [.init(color: .black, location: 0.7), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
                 .offset(x: -16)
+                .id("sky" + skyKey(s)).transition(.opacity)
         }
     }
 
     private func roundButton<C: View>(_ ink: Ink, id: String, label: String, action: @escaping () -> Void, @ViewBuilder content c: () -> C) -> some View {
-        Button(action: action) { c().frame(width: 36, height: 36).background(ink.btn).clipShape(Circle()) }
-            .buttonStyle(.plain).accessibilityIdentifier(id).accessibilityLabel(label)
+        Button { Haptic.soft(); action() } label: { c().frame(width: 36, height: 36).background(ink.btn).clipShape(Circle()) }
+            .buttonStyle(.press(0.9)).accessibilityIdentifier(id).accessibilityLabel(label)
     }
 
     // MARK: cards
@@ -201,9 +220,8 @@ struct HomeView: View {
                     }.offset(y: y - 64)
                 }
                 HStack(alignment: .bottom, spacing: six ? 8 : 1) {
-                    ForEach(Array(head.bars.enumerated()), id: \.offset) { _, v in
-                        RoundedRectangle(cornerRadius: six ? 4 : 1).fill(v >= 0.1 ? ink.blue : ink.track)
-                            .frame(height: v >= 0.1 ? max(3, min(1, v / 6) * 64) : 2)
+                    ForEach(Array(head.bars.enumerated()), id: \.offset) { i, v in
+                        GrowBar(height: v >= 0.1 ? max(3, min(1, v / 6) * 64) : 2, color: v >= 0.1 ? ink.blue : ink.track, radius: six ? 4 : 1, delay: Double(i) * (six ? 0.05 : 0.004))
                     }
                 }.padding(.trailing, 26)
             }
@@ -251,16 +269,15 @@ struct HomeView: View {
                         GeometryReader { g in
                             ZStack(alignment: .leading) {
                                 Capsule().fill(ink.track).frame(height: 6)
-                                Capsule().fill(LinearGradient(colors: [Color(hex: "#6FA8FF"), Color(hex: "#FFA94D")], startPoint: .leading, endPoint: .trailing))
-                                    .frame(width: CGFloat(d.hi - d.lo) / span * g.size.width, height: 6)
-                                    .offset(x: CGFloat(d.lo - wmin) / span * g.size.width)
+                                RangeBar(width: CGFloat(d.hi - d.lo) / span * g.size.width, offset: CGFloat(d.lo - wmin) / span * g.size.width, delay: 0.03 * Double(i))
                             }.frame(height: g.size.height)
                         }.frame(height: 6)
                         Text(deg(d.hi)).font(.px(13)).frame(width: 28, alignment: .trailing)
                         Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(ink.faint)
                     }
                     .frame(height: 42).contentShape(Rectangle()) }
-                    .buttonStyle(.plain).accessibilityIdentifier("day-\(i)")
+                    .buttonStyle(.row).accessibilityIdentifier("day-\(i)")
+                    .simultaneousGesture(TapGesture().onEnded { Haptic.soft() })
                     if i < s.days.count - 1 { Rectangle().fill(ink.line).frame(height: 1) }
                 }
             }
@@ -298,5 +315,43 @@ struct HomeView: View {
         let d = ["북", "북북동", "북동", "동북동", "동", "동남동", "남동", "남남동", "남", "남남서", "남서", "서남서", "서", "서북서", "북서", "북북서"]
         let i = Int((Double(((deg % 360) + 360) % 360) / 22.5).rounded()) % 16
         return d[i] + "풍"
+    }
+}
+
+/// A bar that grows up from the baseline when it first appears.
+private struct GrowBar: View {
+    let height: CGFloat; let color: Color; let radius: CGFloat; var delay: Double = 0
+    @State private var grown = false
+    @Environment(\.accessibilityReduceMotion) private var reduce
+    var body: some View {
+        RoundedRectangle(cornerRadius: radius).fill(color)
+            .frame(height: grown || reduce ? height : 2)
+            .animation(Motion.gentle.delay(delay), value: height)
+            .onAppear { withAnimation(Motion.gentle.delay(0.2 + delay)) { grown = true } }
+    }
+}
+
+/// The 10-day temperature range: fills in from its low end.
+private struct RangeBar: View {
+    let width: CGFloat; let offset: CGFloat; var delay: Double = 0
+    @State private var grown = false
+    @Environment(\.accessibilityReduceMotion) private var reduce
+    var body: some View {
+        Capsule().fill(LinearGradient(colors: [Color(hex: "#6FA8FF"), Color(hex: "#FFA94D")], startPoint: .leading, endPoint: .trailing))
+            .frame(width: grown || reduce ? max(6, width) : 6, height: 6)
+            .offset(x: offset)
+            .animation(Motion.gentle, value: width)
+            .onAppear { withAnimation(Motion.gentle.delay(0.25 + delay)) { grown = true } }
+    }
+}
+
+private extension View {
+    /// The hero scrolls a touch slower than the cards and fades as it leaves (parallax).
+    @ViewBuilder func parallaxHero() -> some View {
+        if #available(iOS 17.0, *) {
+            self.scrollTransition(.interactive, axis: .vertical) { content, phase in
+                content.offset(y: phase.value < 0 ? -phase.value * 60 : 0).opacity(1 + Double(min(0, phase.value)) * 0.7)
+            }
+        } else { self }
     }
 }

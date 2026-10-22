@@ -20,6 +20,7 @@ struct CharacterSheet: View {
                     ForEach(PurrCharacter.allCases) { c in tile(c) }
                 }
                 .padding(.horizontal, 16)
+                .reveal(0)
 
                 if !model.plus {
                     Button { open(.paywall) } label: {
@@ -31,7 +32,7 @@ struct CharacterSheet: View {
                         }
                         .padding(14).background(UI.accentSoft).clipShape(RoundedRectangle(cornerRadius: 16))
                     }
-                    .buttonStyle(.plain).padding(.horizontal, 16).padding(.top, 14)
+                    .buttonStyle(.press(0.98)).padding(.horizontal, 16).padding(.top, 14).reveal(1)
                 }
                 Text("위젯 · 애플워치도 같이 바뀌어요").font(.system(size: 12)).foregroundStyle(UI.sub)
                     .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 24)
@@ -49,11 +50,13 @@ struct CharacterSheet: View {
         let selected = model.shownCharacter == c
         let locked = c.isPlus && !model.plus
         return Button {
-            if locked { open(.paywall) } else { model.character = c }
+            if locked { Haptic.soft(); open(.paywall) } else { Haptic.success(); withAnimation(Motion.bouncy) { model.character = c } }
         } label: {
             VStack(spacing: 8) {
                 CharacterSprite(character: c, level: 4, rain: .none, width: 104, animate: selected)
                     .frame(height: 112).clipped()
+                    .scaleEffect(selected ? 1 : 0.92, anchor: .bottom)
+                    .saturation(locked ? 0.6 : 1)
                 HStack(spacing: 6) {
                     Text(model.name(of: c)).font(.px(15)).foregroundStyle(UI.ink).lineLimit(1).minimumScaleFactor(0.7)
                     if selected {
@@ -69,13 +72,15 @@ struct CharacterSheet: View {
             .overlay(alignment: .topTrailing) {
                 if selected {
                     Image(systemName: "checkmark.circle.fill").font(.system(size: 22)).foregroundStyle(UI.accent).padding(8)
+                        .transition(.scale(scale: 0.3).combined(with: .opacity))
                 } else if c.isPlus {
-                    PlusTag().padding(10)
+                    PlusTag().padding(10).transition(.opacity)
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 18))
+            .animation(Motion.snappy, value: selected)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.press(0.97))
         .accessibilityIdentifier("pick-\(c.rawValue)")
     }
 

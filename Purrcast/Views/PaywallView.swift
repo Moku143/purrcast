@@ -37,7 +37,7 @@ struct PaywallView: View {
                 .padding(.top, 18)
 
                 HStack(spacing: 12) {
-                    Image(PurrCharacter.cat.faceImage).resizable().scaledToFit().frame(width: 46, height: 46)
+                    Image(PurrCharacter.cat.faceImage).resizable().scaledToFit().frame(width: 46, height: 46).reveal(0, rise: 8)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(Brand.plus).font(.px(26)).foregroundStyle(UI.ink)
                         Text("옆으로 넘겨 보세요").font(.system(size: 13)).foregroundStyle(UI.sub)
@@ -59,14 +59,16 @@ struct PaywallView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .frame(height: 270)
                 .padding(.top, 14)
+                .reveal(1)
+                .onChange(of: page) { _, _ in Haptic.soft() }
 
                 HStack(spacing: 6) {
                     ForEach(0..<features.count, id: \.self) { i in
                         Capsule().fill(i == page ? UI.accent : UI.faint.opacity(0.5)).frame(width: i == page ? 18 : 6, height: 6)
                     }
-                }.frame(maxWidth: .infinity)
+                }.frame(maxWidth: .infinity).animation(Motion.snappy, value: page)
 
-                FlowChecks(items: features.map { $0.check }).padding(.top, 16)
+                FlowChecks(items: features.map { $0.check }).padding(.top, 16).reveal(2)
 
                 HStack(spacing: 10) {
                     planCard(Purchases.yearly, title: "연간",
@@ -75,6 +77,7 @@ struct PaywallView: View {
                     planCard(Purchases.monthly, title: "월간", note: "매달 결제", badge: nil)
                 }
                 .padding(.top, 22)
+                .reveal(3)
 
                 PrimaryButton(title: buttonTitle, busy: purchases.busy) {
                     guard !model.plus else { dismiss(); return }
@@ -83,6 +86,7 @@ struct PaywallView: View {
                 .disabled(!model.plus && purchases.product(pick) == nil)
                 .opacity(!model.plus && purchases.product(pick) == nil ? 0.5 : 1)
                 .padding(.top, 14)
+                .reveal(4)
                 .accessibilityIdentifier("subscribe")
 
                 Text(disclosure)
@@ -121,21 +125,22 @@ struct PaywallView: View {
 
     private func planCard(_ id: String, title: String, note: String, badge: String?) -> some View {
         let on = pick == id
-        return Button { pick = id } label: {
+        return Button { Haptic.select(); withAnimation(Motion.snappy) { pick = id } } label: {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.system(size: 13, weight: .medium)).foregroundStyle(UI.sub)
                 Text(purchases.price(id) ?? "–").font(.px(20)).foregroundStyle(UI.ink)
                 Text(note).font(.system(size: 11)).foregroundStyle(UI.sub)
             }
             .frame(maxWidth: .infinity, alignment: .leading).padding(14).padding(.top, 6)
-            .background(Color.white)
+            .background(on ? UI.accentSoft.opacity(0.55) : Color.white)
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(on ? UI.accent : UI.line, lineWidth: on ? 2.5 : 1))
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .scaleEffect(on ? 1 : 0.97)
             .overlay(alignment: .top) {
                 if let badge { PlusTag(text: badge).offset(y: -10) }
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.press(0.96))
         .accessibilityIdentifier("plan-\(title)")
     }
 

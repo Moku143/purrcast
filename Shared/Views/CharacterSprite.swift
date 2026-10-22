@@ -9,20 +9,30 @@ struct CharacterSprite: View {
     var width: CGFloat = 176
     var animate: Bool = true
     @State private var up = false
+    @Environment(\.accessibilityReduceMotion) private var reduce
 
     var height: CGFloat { width * Sprite.height / Sprite.width }
+    private var name: String { character.stand(level: level, rain: rain) }
 
     var body: some View {
-        Image(character.stand(level: level, rain: rain))
-            .resizable()
-            .interpolation(.high)
-            .frame(width: width, height: height)
-            .offset(y: up ? -2 : 0)
-            .onAppear {
-                guard animate else { return }
-                withAnimation(.linear(duration: 0.8).repeatForever(autoreverses: true)) { up = true }
-            }
-            .accessibilityLabel(Text(character.defaultName))
+        ZStack {
+            // a new outfit (or umbrella) fades and springs in over the old one instead of snapping
+            Image(name)
+                .resizable()
+                .interpolation(.high)
+                .frame(width: width, height: height)
+                .id(name)
+                .transition(reduce ? .opacity : .scale(scale: 0.92, anchor: .bottom).combined(with: .opacity))
+        }
+        .animation(animate ? Motion.bouncy : nil, value: name)
+        // idle breathing: a slow, soft rise and settle (ease in/out, not a linear bounce)
+        .offset(y: up ? -2.5 : 0)
+        .scaleEffect(x: up ? 0.995 : 1, y: up ? 1.008 : 1, anchor: .bottom)
+        .onAppear {
+            guard animate, !reduce else { return }
+            withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true)) { up = true }
+        }
+        .accessibilityLabel(Text(character.defaultName))
     }
 }
 

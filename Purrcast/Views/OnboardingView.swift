@@ -84,7 +84,7 @@ struct OnboardingView: View {
         }
     }
 
-    private func next() { step = min(count - 1, step + 1) }
+    private func next() { Haptic.soft(); step = min(count - 1, step + 1) }
 
     private var demoScene: WeatherScene { SceneLibrary.scene(Self.demoKeys[demo % Self.demoKeys.count]) }
     private var demoSnap: WeatherSnapshot {
@@ -105,7 +105,7 @@ struct OnboardingView: View {
         Button(action: a) {
             Text(t).font(.px(16)).foregroundStyle(UI.ink).frame(maxWidth: .infinity).frame(height: 50)
                 .background(Color.white).overlay(RoundedRectangle(cornerRadius: 16).stroke(UI.line)).clipShape(RoundedRectangle(cornerRadius: 16))
-        }.buttonStyle(.plain)
+        }.buttonStyle(.press(0.97))
     }
 
     private var intro: some View {

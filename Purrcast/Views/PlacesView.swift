@@ -22,9 +22,10 @@ struct PlacesView: View {
             .padding(.horizontal, 12).frame(height: 42).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 12))
             .padding(.horizontal, 16).padding(.bottom, 10)
 
-            if searching { results } else { list }
+            if searching { results.transition(.opacity.combined(with: .move(edge: .bottom))) } else { list.transition(.opacity) }
         }
         .background(UI.bg)
+        .animation(Motion.gentle, value: searching)
         .task { await model.refreshPreviews() }
         .sheet(isPresented: $showPaywall) { PaywallView() }
     }
@@ -32,8 +33,9 @@ struct PlacesView: View {
     private var list: some View {
         List {
             ForEach(Array(model.places.enumerated()), id: \.element.id) { i, p in
-                Button { model.currentIndex = i; dismiss() } label: { card(p, current: i == model.currentIndex) }
-                    .buttonStyle(.plain)
+                Button { Haptic.tap(); model.currentIndex = i; dismiss() } label: { card(p, current: i == model.currentIndex) }
+                    .buttonStyle(.press(0.98))
+                    .reveal(i)
                     .listRowBackground(Color.clear).listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
                     .deleteDisabled(p.id == "here")
@@ -46,7 +48,7 @@ struct PlacesView: View {
                 } label: {
                     Text("+ 지역 추가").font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent)
                         .frame(maxWidth: .infinity).frame(height: 48).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 14))
-                }.buttonStyle(.plain).accessibilityIdentifier("add-place")
+                }.buttonStyle(.press(0.98)).accessibilityIdentifier("add-place")
                 if !model.plus {
                     HStack(spacing: 6) { Text("무료는 1곳 더").font(.system(size: 12)).foregroundStyle(UI.sub); PlusTag(text: "Plus는 제한 없이") }
                 }
@@ -110,6 +112,7 @@ private struct PlaceCard: View {
         .background(Color(hex: Rules.background[level]).opacity(0.75))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(current ? UI.accent : Color.clear, lineWidth: 2))
         .clipShape(RoundedRectangle(cornerRadius: 18))
+        .animation(Motion.snappy, value: current)
     }
 
     private var rain: RainState { RainState(rawValue: scene?.rain ?? "none") ?? .none }

@@ -22,8 +22,8 @@ struct SheetHeader: View {
         HStack(alignment: .firstTextBaseline) {
             Text(title).font(.px(24)).foregroundStyle(UI.ink)
             Spacer()
-            Button(trailing, action: action).font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent)
-                .accessibilityIdentifier("sheet-close")
+            Button(trailing) { Haptic.soft(); action() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent)
+                .buttonStyle(.press(0.94)).accessibilityIdentifier("sheet-close")
         }
         .padding(.horizontal, 20).padding(.top, 22).padding(.bottom, 10)
     }
@@ -91,16 +91,22 @@ struct SettingRow<Trailing: View>: View {
 struct Pills<T: Hashable>: View {
     let options: [(T, String)]
     @Binding var value: T
+    @Namespace private var ns
     var body: some View {
         HStack(spacing: 2) {
             ForEach(options, id: \.0) { o in
-                Button { value = o.0 } label: {
+                Button { Haptic.select(); withAnimation(Motion.snappy) { value = o.0 } } label: {
                     Text(o.1).font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(value == o.0 ? UI.ink : UI.sub)
                         .padding(.horizontal, 11).padding(.vertical, 6)
-                        .background(value == o.0 ? Color.white : Color.clear)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .shadow(color: .black.opacity(value == o.0 ? 0.08 : 0), radius: 2, y: 1)
+                        .background {
+                            // the white pill slides between options
+                            if value == o.0 {
+                                RoundedRectangle(cornerRadius: 8).fill(Color.white)
+                                    .shadow(color: .black.opacity(0.08), radius: 2, y: 1)
+                                    .matchedGeometryEffect(id: "pill", in: ns)
+                            }
+                        }
                 }.buttonStyle(.plain)
             }
         }
@@ -121,6 +127,9 @@ struct PrimaryButton: View {
             }
             .foregroundStyle(.white).frame(maxWidth: .infinity).frame(height: 54)
             .background(UI.accent).clipShape(RoundedRectangle(cornerRadius: 16))
-        }.buttonStyle(.plain)
+            .shadow(color: UI.accent.opacity(0.35), radius: 10, y: 6)
+            .animation(Motion.snappy, value: busy)
+        }.buttonStyle(.press(0.97))
+        .simultaneousGesture(TapGesture().onEnded { Haptic.tap() })
     }
 }

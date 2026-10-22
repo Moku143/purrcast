@@ -53,23 +53,24 @@ struct RootView: View {
     var body: some View {
         Group {
             if model.onboarded {
-                HomeView(route: $route, day: $day)
+                HomeView(route: $route, day: $day).transition(.opacity)
             } else {
-                OnboardingView()
+                OnboardingView().transition(.move(edge: .leading).combined(with: .opacity))
             }
         }
+        .animation(Motion.gentle, value: model.onboarded)
         .sheet(item: $route) { r in
             switch r {
-            case .character: CharacterSheet(route: $route).presentationDetents([.medium, .large])
-            case .paywall: PaywallView()
-            case .settings: SettingsView(route: $route)
-            case .places: PlacesView()
-            case .sources: NavigationStack { SourcesView() }
-            case .widgets: NavigationStack { WidgetGalleryView() }
+            case .character: CharacterSheet(route: $route).presentationDetents([.medium, .large]).presentationCornerRadius(28)
+            case .paywall: PaywallView().presentationCornerRadius(28)
+            case .settings: SettingsView(route: $route).presentationCornerRadius(28)
+            case .places: PlacesView().presentationCornerRadius(28)
+            case .sources: NavigationStack { SourcesView() }.presentationCornerRadius(28)
+            case .widgets: NavigationStack { WidgetGalleryView() }.presentationCornerRadius(28)
             }
         }
         .sheet(item: Binding(get: { day.map { DayIndex(value: $0) } }, set: { day = $0?.value })) { d in
-            DayDetailView(start: d.value).presentationDetents([.large])
+            DayDetailView(start: d.value).presentationDetents([.large]).presentationCornerRadius(28)
         }
         .onAppear(perform: openFromLaunchArguments)
     }

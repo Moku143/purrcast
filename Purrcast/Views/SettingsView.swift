@@ -16,12 +16,12 @@ struct SettingsView: View {
                     SectionLabel(text: "지역")
                     RowGroup {
                         SettingRow(icon: "star", title: "지금 위치 쓰기", subtitle: model.hereIsLive ? model.places.first { $0.id == "here" }?.name : (model.location.allowed || model.location.undecided ? "끄면 서울 마포구로 봐요" : "아이폰 설정에서 위치를 허용해 주세요")) {
-                            Toggle("", isOn: $model.useLocation).labelsHidden().tint(UI.accent)
+                            toggle($model.useLocation)
                         }
                         RowDivider()
                         Button { go(.places) } label: {
                             SettingRow(icon: "sun", title: "저장한 지역") { trailingText("\(max(0, model.places.count - 1))곳") }
-                        }.buttonStyle(.plain)
+                        }.buttonStyle(.row)
                     }
 
                     SectionLabel(text: "단위")
@@ -53,14 +53,14 @@ struct SettingsView: View {
                         RowDivider()
                         Button { go(.character) } label: {
                             SettingRow(icon: "fish", title: "캐릭터", plus: !model.plus) { trailingText(model.name(of: model.shownCharacter)) }
-                        }.buttonStyle(.plain)
+                        }.buttonStyle(.row)
                     }
 
                     SectionLabel(text: "위젯 · 워치")
                     RowGroup {
                         Button { go(.widgets) } label: {
                             SettingRow(icon: "sparkle", title: "위젯 미리보기 · 추가하는 법") { chevron }
-                        }.buttonStyle(.plain).accessibilityIdentifier("widgets")
+                        }.buttonStyle(.row).accessibilityIdentifier("widgets")
                         RowDivider()
                         SettingRow(icon: "star", title: "애플워치", subtitle: model.plus ? "워치에 \(Brand.name)를 설치하면 바로 보여요" : "Plus에서 워치 앱이 열려요", plus: !model.plus) { EmptyView() }
                     }
@@ -69,7 +69,7 @@ struct SettingsView: View {
                     RowGroup {
                         Button { go(.sources) } label: {
                             SettingRow(title: "데이터 출처", subtitle: model.isSample ? "지금은 예시 날씨" : "기상청 · MET Norway") { chevron }
-                        }.buttonStyle(.plain)
+                        }.buttonStyle(.row)
                         RowDivider()
                         Link(destination: Legal.privacy) { SettingRow(title: "개인정보 처리방침") { chevron } }.buttonStyle(.plain)
                         if let mail = Legal.support {
@@ -110,12 +110,14 @@ struct SettingsView: View {
                 }
                 .padding(16).background(UI.accentSoft).clipShape(RoundedRectangle(cornerRadius: 16))
             }
-            .buttonStyle(.plain).padding(.horizontal, 16).padding(.top, 6)
+            .buttonStyle(.press(0.98)).padding(.horizontal, 16).padding(.top, 6)
             .accessibilityIdentifier("go-plus")
         }
     }
 
-    private func toggle(_ b: Binding<Bool>) -> some View { Toggle("", isOn: b).labelsHidden().tint(UI.accent) }
+    private func toggle(_ b: Binding<Bool>) -> some View {
+        Toggle("", isOn: b).labelsHidden().tint(UI.accent).onChange(of: b.wrappedValue) { _, _ in Haptic.select() }
+    }
     private func trailingText(_ t: String) -> some View {
         HStack(spacing: 4) {
             Text(t).font(.system(size: 14)).foregroundStyle(UI.sub)
@@ -125,6 +127,7 @@ struct SettingsView: View {
     private var chevron: some View { Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(UI.faint) }
 
     private func go(_ r: Route) {
+        Haptic.soft()
         route = nil
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { route = r }
     }

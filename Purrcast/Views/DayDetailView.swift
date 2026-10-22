@@ -8,6 +8,7 @@ struct DayDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State var start: Int
     @State private var metric = 0
+    @Namespace private var ns
 
     private let metrics = [("thermo_hot", "기온"), ("umbrella_closed", "비"), ("wind", "바람"), ("sun_strong", "자외선"), ("raindrop", "습도")]
 
@@ -40,7 +41,7 @@ struct DayDetailView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
                         ForEach(Array(s.days.enumerated()), id: \.offset) { i, x in
-                            Button { start = i } label: {
+                            Button { Haptic.select(); withAnimation(Motion.snappy) { start = i } } label: {
                                 VStack(spacing: 4) {
                                     Text(x.name).font(.px(11)).foregroundStyle(i == index ? .white : UI.sub)
                                     PixelIcon(name: x.icon, size: 26)
@@ -49,15 +50,18 @@ struct DayDetailView: View {
                                 }
                                 .foregroundStyle(i == index ? .white : UI.ink)
                                 .frame(width: 50).padding(.vertical, 8)
-                                .background(i == index ? UI.ink : Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                            }.buttonStyle(.plain)
+                                .background {
+                                    if i == index { RoundedRectangle(cornerRadius: 12).fill(UI.ink).matchedGeometryEffect(id: "day", in: ns) }
+                                    else { RoundedRectangle(cornerRadius: 12).fill(Color.white) }
+                                }
+                            }.buttonStyle(.press(0.95))
                         }
                     }
                 }
 
                 HStack(alignment: .top, spacing: 8) {
                     CharacterSprite(character: model.shownCharacter, level: lv, rain: rain, width: 92)
+                        .reveal(0, rise: 12)
                         .frame(width: 92, height: 108).clipped()
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 8) {
@@ -73,19 +77,22 @@ struct DayDetailView: View {
                 if let detail {
                     HStack(spacing: 6) {
                         ForEach(Array(metrics.enumerated()), id: \.offset) { i, m in
-                            Button { metric = i } label: {
+                            Button { Haptic.select(); withAnimation(Motion.snappy) { metric = i } } label: {
                                 VStack(spacing: 3) { PixelIcon(name: m.0, size: 18); Text(m.1).font(.system(size: 11, weight: .medium)) }
                                     .foregroundStyle(i == metric ? .white : UI.ink)
                                     .frame(maxWidth: .infinity).padding(.vertical, 8)
-                                    .background(i == metric ? UI.ink : Color.white)
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }.buttonStyle(.plain)
+                                    .background {
+                                        if i == metric { RoundedRectangle(cornerRadius: 10).fill(UI.ink).matchedGeometryEffect(id: "metric", in: ns) }
+                                        else { RoundedRectangle(cornerRadius: 10).fill(Color.white) }
+                                    }
+                            }.buttonStyle(.press(0.95))
                         }
                     }
 
                     Card(ink: Ink(night: false)) {
-                        Text(metrics[metric].1).font(.px(13))
+                        Text(metrics[metric].1).font(.px(13)).id(metric).transition(.opacity)
                         curve(values(detail)).frame(height: 150)
+                            .animation(Motion.gentle, value: metric)
                         HStack {
                             ForEach(Array(detail.enumerated()), id: \.offset) { i, h in
                                 if i % 2 == 0 {
@@ -162,19 +169,43 @@ struct DayDetailView: View {
     private func curve(_ ys: [Double]) -> some View {
         let lo = ys.min() ?? 0, hi = max(ys.max() ?? 1, lo + 1)
         return GeometryReader { g in
+            CurveShape(ys: ys.map { ($0 - lo) / (hi - lo) }, fill: true)
+                .fill(LinearGradient(colors: [Color(hex: "#C9E3A0").opacity(0.7), .clear], startPoint: .top, endPoint: .bottom))
+            CurveShape(ys: ys.map { ($0 - lo) / (hi - lo) }, fill: false)
+                .stroke(Color(hex: "#7DBE4E"), style: StrokeStyle(lineWidth: 3, lineJoin: .round))
             let n = max(1, ys.count - 1)
-            let pt = { (i: Int) -> CGPoint in
-                CGPoint(x: g.size.width * CGFloat(i) / CGFloat(n), y: g.size.height * (1 - CGFloat((ys[i] - lo) / (hi - lo))) * 0.8 + g.size.height * 0.1)
-            }
-            ZStack {
-                Path { p in p.move(to: CGPoint(x: 0, y: g.size.height)); for i in 0..<ys.count { p.addLine(to: pt(i)) }; p.addLine(to: CGPoint(x: g.size.width, y: g.size.height)) }
-                    .fill(LinearGradient(colors: [Color(hex: "#C9E3A0").opacity(0.7), .clear], startPoint: .top, endPoint: .bottom))
-                Path { p in p.move(to: pt(0)); for i in 1..<ys.count { p.addLine(to: pt(i)) } }
-                    .stroke(Color(hex: "#7DBE4E"), style: StrokeStyle(lineWidth: 3, lineJoin: .round))
-                ForEach(0..<ys.count, id: \.self) { i in
-                    Circle().fill(Color(hex: "#7DBE4E")).frame(width: 6, height: 6).position(pt(i))
-                }
+            ForEach(0..<ys.count, id: \.self) { i in
+                Circle().fill(Color(hex: "#7DBE4E")).frame(width: 6, height: 6)
+                    .position(x: g.size.width * CGFloat(i) / CGFloat(n), y: g.size.height * (1 - CGFloat((ys[i] - lo) / (hi - lo))) * 0.8 + g.size.height * 0.1)
             }
         }
     }
+}
+
+/// The day curve as an animatable shape, so switching 기온 → 비 → 바람 morphs the line instead of swapping it.
+private struct CurveShape: Shape {
+    var ys: [Double]          // 0…1
+    var fill: Bool
+    var animatableData: AnimatableVector { get { AnimatableVector(ys) } set { ys = newValue.values } }
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        guard ys.count > 1 else { return p }
+        let n = CGFloat(ys.count - 1)
+        let pt = { (i: Int) -> CGPoint in CGPoint(x: r.width * CGFloat(i) / n, y: r.height * (1 - CGFloat(ys[i])) * 0.8 + r.height * 0.1) }
+        if fill { p.move(to: CGPoint(x: 0, y: r.height)); p.addLine(to: pt(0)) } else { p.move(to: pt(0)) }
+        for i in 1..<ys.count { p.addLine(to: pt(i)) }
+        if fill { p.addLine(to: CGPoint(x: r.width, y: r.height)); p.closeSubpath() }
+        return p
+    }
+}
+
+/// A fixed-length list of doubles SwiftUI can interpolate.
+struct AnimatableVector: VectorArithmetic {
+    var values: [Double]
+    init(_ v: [Double]) { values = v }
+    static var zero: AnimatableVector { AnimatableVector([]) }
+    static func + (a: AnimatableVector, b: AnimatableVector) -> AnimatableVector { AnimatableVector(zip(a.values, b.values).map(+)) }
+    static func - (a: AnimatableVector, b: AnimatableVector) -> AnimatableVector { AnimatableVector(zip(a.values, b.values).map(-)) }
+    mutating func scale(by rhs: Double) { values = values.map { $0 * rhs } }
+    var magnitudeSquared: Double { values.reduce(0) { $0 + $1 * $1 } }
 }

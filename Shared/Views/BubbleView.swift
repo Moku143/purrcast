@@ -7,6 +7,11 @@ struct BubbleView: View {
     let icon: String      // icon name or "none"
     let text: String
     var fontSize: CGFloat = 13
+    /// In the app the bubble pops in and floats a little; widgets and the watch draw it still.
+    var live = false
+    @State private var shown = false
+    @State private var bob = false
+    @Environment(\.accessibilityReduceMotion) private var reduce
 
     private var fill: Color {
         switch tone {
@@ -39,6 +44,15 @@ struct BubbleView: View {
         }
         .overlay(alignment: .top) {
             if kind == "shout" { BurstLines(color: outline).frame(width: 60, height: 20).offset(y: -22) }
+        }
+        .scaleEffect(live && !shown && !reduce ? 0.4 : 1, anchor: .bottom)
+        .opacity(live && !shown ? 0 : 1)
+        .offset(y: live && bob ? -2 : 0)
+        .onAppear {
+            guard live else { return }
+            withAnimation(reduce ? .easeOut(duration: 0.2) : Motion.bouncy.delay(0.25)) { shown = true }
+            guard !reduce else { return }
+            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true).delay(0.6)) { bob = true }
         }
     }
 }
