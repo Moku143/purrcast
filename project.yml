@@ -1,6 +1,7 @@
 name: Purrcast
 options:
   bundleIdPrefix: app.purrcast
+  developmentLanguage: en
   deploymentTarget:
     iOS: "17.0"
     watchOS: "10.0"
@@ -24,7 +25,7 @@ targets:
       path: Purrcast/Info.plist
       properties:
         CFBundleDisplayName: Purrcast
-        CFBundleDevelopmentRegion: ko
+        CFBundleDevelopmentRegion: en
         UILaunchScreen: {}
         UIAppFonts: [Galmuri11.ttf, Galmuri11-Bold.ttf]
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]

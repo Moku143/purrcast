@@ -60,7 +60,7 @@ struct PurrcastWidget: Widget {
                     WidgetBackground(level: entry.snap.scene.level, night: entry.snap.scene.isNight, scene: entry.snap.scene)
                 }
         }
-        .configurationDisplayName("Purrcast")
+        .configurationDisplayName(Brand.name)
         .description("옷차림으로 보는 지금 날씨")
         .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular, .accessoryInline])
     }

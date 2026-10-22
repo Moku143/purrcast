@@ -18,7 +18,7 @@ struct WidgetGalleryView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         step("1", "홈 화면 빈 곳을 길게 눌러요")
                         step("2", "왼쪽 위 ‘편집’ → ‘위젯 추가’")
-                        step("3", "Purrcast를 찾아 크기를 골라요")
+                        step("3", "\(Brand.name)를 찾아 크기를 골라요")
                     }
                 }
                 widgetBox(364, 170) { MediumWidgetView(snap: snap) }
@@ -38,7 +38,7 @@ struct WidgetGalleryView: View {
                     .foregroundStyle(.white).padding(.vertical, 18)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 26))
-                Text("잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 Purrcast를 골라요.").font(.system(size: 12)).foregroundStyle(UI.sub)
+                Text("잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 \(Brand.name)를 골라요.").font(.system(size: 12)).foregroundStyle(UI.sub)
             }
             .padding(16)
         }

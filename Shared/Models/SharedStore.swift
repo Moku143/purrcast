@@ -58,7 +58,7 @@ struct WeatherSnapshot: Codable {
         s.bubble = WeatherScene.Bubble(kind: "thought", tone: "white", icon: "question", text: "")
         s.cond = "앱을 열어 주세요"
         return WeatherSnapshot(scene: s, character: .cat, plus: false, characterName: PurrCharacter.cat.defaultName,
-                               placeShort: "Purrcast", saved: .distantPast, isSample: true)
+                               placeShort: Brand.name, saved: .distantPast, isSample: true)
     }
 
     /// Widget gallery previews.

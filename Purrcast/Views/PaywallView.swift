@@ -39,7 +39,7 @@ struct PaywallView: View {
                 HStack(spacing: 12) {
                     Image(PurrCharacter.cat.faceImage).resizable().scaledToFit().frame(width: 46, height: 46)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Purrcast Plus").font(.px(26)).foregroundStyle(UI.ink)
+                        Text(Brand.plus).font(.px(26)).foregroundStyle(UI.ink)
                         Text("옆으로 넘겨 보세요").font(.system(size: 13)).foregroundStyle(UI.sub)
                     }
                 }

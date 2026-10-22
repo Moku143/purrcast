@@ -79,7 +79,7 @@ struct OnboardingView: View {
 
     private var intro: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Purrcast").font(.px(30)).padding(.top, 30)
+            Text(Brand.name).font(.px(30)).padding(.top, 30)
             HStack(spacing: 6) { PixelIcon(name: "raincloud", size: 28); Text("26°").font(.px(30)) }
                 .frame(maxWidth: .infinity).padding(.top, 8)
             HStack(alignment: .bottom, spacing: -30) {

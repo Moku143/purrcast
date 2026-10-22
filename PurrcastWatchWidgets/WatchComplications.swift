@@ -43,7 +43,7 @@ struct PurrcastComplications: Widget {
         StaticConfiguration(kind: "PurrcastWatch", provider: WatchProvider()) { e in
             ComplicationView(entry: e).containerBackground(for: .widget) { Color.clear }
         }
-        .configurationDisplayName("Purrcast")
+        .configurationDisplayName(Brand.name)
         .description("옷차림으로 보는 지금 날씨")
         .supportedFamilies([.accessoryRectangular, .accessoryCircular, .accessoryCorner, .accessoryInline])
     }

@@ -62,7 +62,7 @@ struct SettingsView: View {
                             SettingRow(icon: "sparkle", title: "위젯 미리보기 · 추가하는 법") { chevron }
                         }.buttonStyle(.plain).accessibilityIdentifier("widgets")
                         RowDivider()
-                        SettingRow(icon: "star", title: "애플워치", subtitle: model.plus ? "워치에 Purrcast를 설치하면 바로 보여요" : "Plus에서 워치 앱이 열려요", plus: !model.plus) { EmptyView() }
+                        SettingRow(icon: "star", title: "애플워치", subtitle: model.plus ? "워치에 \(Brand.name)를 설치하면 바로 보여요" : "Plus에서 워치 앱이 열려요", plus: !model.plus) { EmptyView() }
                     }
 
                     SectionLabel(text: "정보")
@@ -102,7 +102,7 @@ struct SettingsView: View {
                 HStack(spacing: 12) {
                     PixelIcon(name: "sparkle", size: 26)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Purrcast Plus" + (purchases.trialText(Purchases.yearly).map { " · \($0)" } ?? "")).font(.px(16)).foregroundStyle(UI.ink)
+                        Text(Brand.plus + (purchases.trialText(Purchases.yearly).map { " · \($0)" } ?? "")).font(.px(16)).foregroundStyle(UI.ink)
                         Text(PaywallView.features.prefix(4).map { $0.check }.joined(separator: " · ")).font(.system(size: 12)).foregroundStyle(UI.sub)
                     }
                     Spacer()
@@ -138,7 +138,7 @@ struct SourcesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("날씨는 Purrcast 서버가 두 곳의 예보를 합쳐서 보내요.").font(.system(size: 15)).foregroundStyle(UI.ink)
+                Text("날씨는 \(Brand.name) 서버가 두 곳의 예보를 합쳐서 보내요.").font(.system(size: 15)).foregroundStyle(UI.ink)
                 source("기상청", "한국", "기본 예보 · 기상특보 · 다음 6시간(Plus) · 출처: 기상청", "공공누리 제1유형(출처표시)")
                 source("MET Norway", "전 세계", "해외 예보 · 4~10일 예보 · 자외선 · Data from MET Norway", "CC BY 4.0 · 앱에 맞게 그림과 문구로 바꿔 보여줘요")
                 Link("MET Norway 라이선스 (CC BY 4.0)", destination: URL(string: "https://creativecommons.org/licenses/by/4.0/")!)
