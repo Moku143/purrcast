@@ -47,16 +47,17 @@ enum Sky {
         all["partly"] = SkyLayerData(tint: nil, items: sunGlow + clouds(3, ks: [1.6, 1.2, 1.8], ys: [6, 40, 22], c: "rgba(255,255,255,0.96)", d: 26))
         all["overcast"] = SkyLayerData(tint: "rgba(96,106,132,0.34)",
                                        items: clouds(8, ks: [2.4, 1.8, 2.8, 2.0], ys: [-4, 30, 8, 46, 18, 60, 0, 36], c: "rgba(226,231,242,0.97)", d: 30))
-        func thick(_ a: [SkyItem], h: Double) -> [SkyItem] {
+        func thick(_ a: [SkyItem], h: Double, double: Bool) -> [SkyItem] {
             a.flatMap { i -> [SkyItem] in
                 var a = i; a.w = 2; a.h = h
+                guard double else { return [a] }
                 var b = a; b.x = (b.x + 13).truncatingRemainder(dividingBy: 268); b.dl -= b.d * 0.5
                 return [a, b]
             }
         }
         for k in ["rain", "heavy", "storm"] {
             guard var l = all[k] else { continue }
-            l.items = thick(l.items.filter { $0.a == "fall" }, h: k == "rain" ? 10 : 14) + l.items.filter { $0.a != "fall" }
+            l.items = thick(l.items.filter { $0.a == "fall" }, h: k == "rain" ? 9 : 12, double: k == "rain") + l.items.filter { $0.a != "fall" }
             all[k] = l
         }
         if var s = all["snow"] {
@@ -106,7 +107,7 @@ enum Sky {
             else { add(a, only: only) }
         }
         if !night && (precip == "rain" || precip == "drizzle") && !(thunder && !sunny) {
-            list = list.map { var i = $0; if i.a == "fall" { i.c = "rgba(58,92,168,0.72)" }; return i }
+            list = list.map { var i = $0; if i.a == "fall" { i.c = "rgba(58,92,168,0.55)" }; return i }
         }
         if !night && wet && cover == "overcast" {      // rain clouds are grey
             list = list.map { var i = $0; if i.t == "cloud" { i.c = "rgba(186,194,212,0.97)" }; return i }
@@ -216,12 +217,7 @@ struct SkyParticles: View {
                 g.translateBy(x: 0, y: CGFloat(tile) * Sky.tile.height * scale)
                 g.scaleBy(x: scale, y: scale)
                 g.clip(to: Path(CGRect(origin: .zero, size: Sky.tile)))
-                for it in (tile == 0 ? upper : lower) {
-                    draw(it, in: &g, t: t, fogs: resolved)
-                    // a still picture (widgets, complications) gets twice the rain and snow, half a fall apart,
-                    // so one frozen frame clearly reads as rain or snow
-                    if !animate, it.a == "fall" || it.a == "snow" { draw(it, in: &g, t: t + it.d * 0.5, fogs: resolved) }
-                }
+                for it in (tile == 0 ? upper : lower) { draw(it, in: &g, t: t, fogs: resolved) }
             }
         }
     }
