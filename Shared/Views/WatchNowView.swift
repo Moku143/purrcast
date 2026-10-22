@@ -16,6 +16,7 @@ struct WatchNow: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text(snap.placeShort).font(.px(12)).opacity(0.85)
                 Text(snap.deg(s.temp)).font(.px(46)).frame(maxWidth: .infinity, alignment: .trailing)
+                Spacer(minLength: 0)
                 HStack(alignment: .bottom, spacing: 2) {
                     ZStack(alignment: .bottom) {
                         CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 74, animate: !dimmed)
@@ -37,6 +38,7 @@ struct WatchNow: View {
             }
             .foregroundStyle(ink.ink)
             .padding(.horizontal, 6)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
     }
 }

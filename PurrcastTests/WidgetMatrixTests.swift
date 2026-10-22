@@ -55,7 +55,7 @@ private struct MatrixRow: View {
             .background(LinearGradient(colors: [Color(hex: "#5B5FA8"), Color(hex: "#2E2F66")], startPoint: .top, endPoint: .bottom))
             .clipShape(RoundedRectangle(cornerRadius: 22))
             // watch app (45 mm screen), still frame
-            WatchNow(snap: snap).frame(width: 198, height: 242).clipShape(RoundedRectangle(cornerRadius: 36))
+            WatchNow(snap: snap).safeAreaPadding(EdgeInsets(top: 22, leading: 10, bottom: 14, trailing: 10)).frame(width: 198, height: 242).clipShape(RoundedRectangle(cornerRadius: 36))
                 .padding(8).background(Color(hex: "#15161C")).clipShape(RoundedRectangle(cornerRadius: 44))
         }
         .padding(16).background(Color(hex: "#EEF1F6"))
