@@ -66,40 +66,6 @@ struct WatchRoot: View {
     }
 }
 
-struct WatchNow: View {
-    let snap: WeatherSnapshot
-    @Environment(\.isLuminanceReduced) private var dimmed     // always-on (wrist down): hold still to save battery
-    var body: some View {
-        let s = snap.scene, ink = Ink(night: s.isNight), lv = max(0, min(9, s.level))
-        let rain = RainState(rawValue: s.rain) ?? .none
-        ZStack(alignment: .topLeading) {
-            WidgetBackground(level: lv, night: s.isNight, scene: s, animate: !dimmed).ignoresSafeArea()
-            VStack(alignment: .leading, spacing: 0) {
-                Text(snap.placeShort).font(.px(12)).opacity(0.85)
-                Text(snap.deg(s.temp)).font(.px(46)).frame(maxWidth: .infinity, alignment: .trailing)
-                HStack(alignment: .bottom, spacing: 2) {
-                    ZStack(alignment: .top) {
-                        CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 74)
-                            .frame(width: 74, height: 86, alignment: .bottom)
-                        if let b = s.bubble {
-                            BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: b.text, fontSize: 9).fixedSize().scaleEffect(0.85).offset(x: 20, y: -26)
-                        }
-                    }
-                    .frame(width: 74, height: 86, alignment: .bottom)
-                    Spacer(minLength: 0)
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text(s.cond).font(.px(11))
-                        Text("체감 \(snap.deg(s.feels))").font(.px(10))
-                        Text("최고 \(snap.deg(s.hi)) 최저 \(snap.deg(s.lo))").font(.px(9))
-                    }
-                }
-            }
-            .foregroundStyle(ink.ink)
-            .padding(.horizontal, 6)
-        }
-    }
-}
-
 struct WatchHours: View {
     let snap: WeatherSnapshot
     var body: some View {

@@ -3,7 +3,7 @@ name: iOS build
 on:
   push:
     branches: [main]
-    paths-ignore: ['docs/**', 'server/**', '**/*.md', '.github/workflows/server.yml', '.github/workflows/testflight.yml', '.github/workflows/store-screenshots.yml']
+    paths-ignore: ['docs/**', 'server/**', '**/*.md', '.github/workflows/server.yml', '.github/workflows/testflight.yml', '.github/workflows/store-screenshots.yml', '.github/workflows/widget-matrix.yml']
   workflow_dispatch:
 
 permissions:

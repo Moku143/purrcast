@@ -1,0 +1,57 @@
+name: Widget matrix
+
+# Every weather the server can send, drawn by the app's own widget / lock-screen / watch views as one still
+# frame (like a real widget). Input: PurrcastTests/Fixtures/matrix.json (server/scripts/make-matrix.mjs).
+# Output: the widget-matrix branch (matrix/*.png + index.json).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Render
+        run: |
+          set -o pipefail
+          TEST_RUNNER_MATRIX=1 xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -only-testing:PurrcastTests/WidgetMatrixTests \
+            -resultBundlePath Matrix.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST |Executed" || true
+      - name: Export
+        if: always()
+        run: |
+          mkdir -p raw out/matrix
+          xcrun xcresulttool export attachments --path Matrix.xcresult --output-path raw 2>/dev/null || true
+          python3 - <<'PY'
+          import json, os, shutil
+          try:
+              m = json.load(open('raw/manifest.json'))
+          except Exception:
+              m = []
+          n = 0
+          for t in m:
+              for a in t.get('attachments', []):
+                  name = (a.get('suggestedHumanReadableName') or a['exportedFileName']).split('_0_')[0].replace(' ', '-')
+                  ext = os.path.splitext(a['exportedFileName'])[1] or '.png'
+                  name = os.path.splitext(name)[0] + ext
+                  dest = 'out/index.json' if name.startswith('matrix-index') else os.path.join('out/matrix', name)
+                  shutil.copy(os.path.join('raw', a['exportedFileName']), dest); n += 1
+          print(n, 'files')
+          PY
+          cp test.log out/ || true
+      - name: Publish to the widget-matrix branch
+        if: always()
+        run: |
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt
+          cd out && git init -q && git checkout -q -b widget-matrix
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "widget matrix ${{ github.run_id }}"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} widget-matrix

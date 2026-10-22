@@ -87,7 +87,7 @@ export function bubble(c) {
     const ic = snowNext ? 'snowflake' : 'umbrella_closed';
     return B('speech', 'sky', ic, plus ? `${startLabel} ${snowNext ? '눈' : '비'}!` : `${window2h} ${snowNext ? '눈' : '비'}!`);
   }
-  if (wind) return B('speech', 'sky', 'wind', nowWet ? '비바람!' : '바람 세요!');
+  if (wind) return B('speech', 'sky', 'wind', nowWet ? (nowPr === 'snow' ? '눈보라!' : '비바람!') : '바람 세요!');
   if (fog) return B('speech', 'white', 'cloud', '안개 짙어요!');
   if (!night && feels >= 33) return B('shout', 'coral', 'thermo_hot', '폭염!');
   if (night && feels >= 25) return B('speech', 'night', 'sweat', '열대야!');

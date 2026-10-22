@@ -25,6 +25,12 @@ struct WidgetBackground: View {
 private func sunsetTile(_ s: WeatherScene) -> String? {
     s.tiles.first { $0.icon == "sunset" || $0.icon == "sunrise" }?.value
 }
+/// Where a bubble's tail should sit: just above the character's head, or above the open umbrella
+/// (measured from the sprites: the head starts a quarter down the picture, the umbrella near the top).
+func bubbleBottom(_ c: PurrCharacter, _ rain: RainState, spriteHeight h: CGFloat) -> CGFloat {
+    let top: CGFloat = rain == .umbrella ? (c == .abys ? 0.10 : 0.04) : 0.25
+    return h * (1 - top) - 3
+}
 private func chanceNow(_ s: WeatherScene) -> Int { s.hours.prefix(6).map { $0.chance }.max() ?? 0 }
 
 /// Medium: place · sunset · issue time, character with its bubble on the left, temperature and five hours on the right.
@@ -42,14 +48,15 @@ struct MediumWidgetView: View {
                 PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16)
             }
             HStack(alignment: .bottom, spacing: 4) {
-                ZStack(alignment: .top) {
+                ZStack(alignment: .bottom) {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 92, animate: false)
-                        .frame(width: 92, height: 107, alignment: .bottom).offset(y: 6)
+                        .frame(width: 92, height: 107, alignment: .bottom)
                     if let b = s.bubble {
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: b.text, fontSize: 10).fixedSize().scaleEffect(0.9).offset(y: 2)
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: b.text, fontSize: 10).fixedSize().scaleEffect(0.9, anchor: .bottom)
+                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 107))
                     }
                 }
-                .frame(width: 110, height: 112, alignment: .bottom)
+                .frame(width: 110, height: 126, alignment: .bottom).offset(y: 6)
                 VStack(alignment: .trailing, spacing: 6) {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         VStack(alignment: .trailing, spacing: 2) {
@@ -89,14 +96,17 @@ struct SmallWidgetView: View {
                 PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16)
             }
             HStack(alignment: .bottom, spacing: 0) {
-                ZStack(alignment: .top) {
+                ZStack(alignment: .bottom) {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false)
-                        .frame(width: 72, height: 84, alignment: .bottom).offset(y: 10)
+                        .frame(width: 72, height: 84, alignment: .bottom)
                     if let b = s.bubble {
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: "", fontSize: 10).fixedSize().offset(x: 0, y: 12)
+                        // short words ("비!", "한파!") fit above the head; longer lines show just the icon here
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: b.text.count <= 4 ? b.text : "", fontSize: 9).fixedSize()
+                            .scaleEffect(0.85, anchor: .bottom)
+                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 84))
                     }
                 }
-                .frame(width: 72, height: 112, alignment: .bottom)
+                .frame(width: 80, height: 118, alignment: .bottom).offset(y: 8)
                 Spacer(minLength: 0)
                 VStack(alignment: .trailing, spacing: 3) {
                     Text(snap.deg(s.temp)).font(.px(30))
