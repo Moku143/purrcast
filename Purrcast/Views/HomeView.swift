@@ -126,8 +126,8 @@ struct HomeView: View {
                 Text(s.cond).font(.px(17)).id(s.cond).transition(.opacity.combined(with: .move(edge: .trailing)))
                 Text("최고 \(deg(s.hi)) · 최저 \(deg(s.lo))").font(.px(12)).rolling(s.hi * 1000 + s.lo)
                 HStack(spacing: 5) {
-                    Text("체감 \(deg(s.feels))"); Text("·"); Text("전일 대비")
-                    Text(delta(s.yday)).foregroundStyle(s.yday > 0 ? ink.hot : (s.yday < 0 ? ink.blue : ink.ink))
+                    Text("체감 \(deg(s.feels))").rolling(s.feels); Text("·"); Text("전일 대비")
+                    Text(delta(s.yday)).foregroundStyle(s.yday > 0 ? ink.hot : (s.yday < 0 ? ink.blue : ink.ink)).rolling(s.yday)
                 }.font(.px(12))
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
@@ -208,7 +208,7 @@ struct HomeView: View {
         let six = s.next6 != nil
         return Card(ink: ink) {
             HStack(alignment: .firstTextBaseline) { Text(head.title).font(.px(13)); Spacer(); Text(head.legend).font(.ui(11)).foregroundStyle(ink.sub) }
-            HStack(spacing: 8) { PixelIcon(name: head.icon, size: 20); Text(head.head).font(.px(15)) }
+            HStack(spacing: 8) { PixelIcon(name: head.icon, size: 20); Text(head.head).font(.px(15)).id(head.head).transition(.opacity) }
             if !head.sub.isEmpty { Text(head.sub).font(.ui(12)).foregroundStyle(ink.sub).padding(.leading, 28).padding(.top, -9) }
             ZStack(alignment: .bottomLeading) {
                 ForEach(0..<3, id: \.self) { gi in
@@ -244,8 +244,8 @@ struct HomeView: View {
                         VStack(spacing: 7) {
                             Text(i == 0 ? h.label : model.hourLabel(h.label)).font(.px(i == 0 || !model.clock12 ? 12 : 10)).foregroundStyle(i == 0 ? ink.ink : ink.sub)
                             PixelIcon(name: h.icon, size: 28)
-                            Text(deg(h.temp)).font(.px(15))
-                            if s.anyChance { Text(h.chance >= 10 ? "\(h.chance)%" : "–").font(.px(11)).foregroundStyle(h.chance >= 10 ? ink.blue : ink.faint) }
+                            Text(deg(h.temp)).font(.px(15)).rolling(h.temp)
+                            if s.anyChance { Text(h.chance >= 10 ? "\(h.chance)%" : "–").font(.px(11)).foregroundStyle(h.chance >= 10 ? ink.blue : ink.faint).rolling(h.chance) }
                             if s.anyMM { Text(h.mm > 0 ? mmText(h.mm, snow: s.isSnow) : " ").font(.px(11)).foregroundStyle(ink.blue) }
                         }.frame(width: 50)
                     }
@@ -265,14 +265,14 @@ struct HomeView: View {
                         Text(d.name).font(.px(13)).frame(width: 34, alignment: .leading)
                         PixelIcon(name: d.icon, size: 24)
                         Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(11)).foregroundStyle(ink.blue).frame(width: 34, alignment: .leading)
-                        Text(deg(d.lo)).font(.px(13)).foregroundStyle(ink.sub).frame(width: 28, alignment: .trailing)
+                        Text(deg(d.lo)).font(.px(13)).foregroundStyle(ink.sub).frame(width: 28, alignment: .trailing).rolling(d.lo)
                         GeometryReader { g in
                             ZStack(alignment: .leading) {
                                 Capsule().fill(ink.track).frame(height: 6)
                                 RangeBar(width: CGFloat(d.hi - d.lo) / span * g.size.width, offset: CGFloat(d.lo - wmin) / span * g.size.width, delay: 0.03 * Double(i))
                             }.frame(height: g.size.height)
                         }.frame(height: 6)
-                        Text(deg(d.hi)).font(.px(13)).frame(width: 28, alignment: .trailing)
+                        Text(deg(d.hi)).font(.px(13)).frame(width: 28, alignment: .trailing).rolling(d.hi)
                         Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(ink.faint)
                     }
                     .frame(height: 42).contentShape(Rectangle()) }
@@ -290,13 +290,13 @@ struct HomeView: View {
             ForEach(Array(s.tiles.enumerated()), id: \.offset) { _, t in
                 Card(ink: ink) {
                     HStack(spacing: 6) { PixelIcon(name: t.icon, size: 16); Text(t.label).font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
-                    Text(t.uv.map { String($0) } ?? (t.value ?? "")).font(.px(26))
+                    Text(t.uv.map { String($0) } ?? (t.value ?? "")).font(.px(26)).rolling(t.uv.map { String($0) } ?? (t.value ?? ""))
                     Text(t.note).font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2)
                 }
             }
             Card(ink: ink) {
                 HStack(spacing: 6) { PixelIcon(name: "wind", size: 16); Text("바람").font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
-                Text("\(wind(s.wind.speed))").font(.px(26))
+                Text("\(wind(s.wind.speed))").font(.px(26)).rolling(s.wind.speed)
                 Text("\(Rules.windWord(ms: s.wind.speed)) · 돌풍 \(wind(s.wind.gust)) · \(dir(s.wind.deg))").font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2)
             }
         }

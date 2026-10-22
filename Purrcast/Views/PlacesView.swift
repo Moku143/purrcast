@@ -145,7 +145,7 @@ private struct PlaceCard: View {
 
     private var temps: some View {
         VStack(alignment: .trailing, spacing: 4) {
-            Text(scene.map { model.deg($0.temp) } ?? "–").font(.px(30))
+            Text(scene.map { model.deg($0.temp) } ?? "–").font(.px(30)).rolling(scene?.temp ?? 0)
             if let s = scene {
                 Text("최고 \(model.deg(s.hi)) · 최저 \(model.deg(s.lo))").font(.system(size: 11)).foregroundStyle(UI.sub)
             }

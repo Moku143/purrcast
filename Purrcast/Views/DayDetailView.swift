@@ -65,7 +65,7 @@ struct DayDetailView: View {
                         .frame(width: 92, height: 108).clipped()
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 8) {
-                            Text("\(model.deg(d.hi)) / \(model.deg(d.lo))").font(.px(20))
+                            Text("\(model.deg(d.hi)) / \(model.deg(d.lo))").font(.px(20)).rolling(d.hi * 1000 + d.lo)
                             Text("일교차 \(d.hi - d.lo)°").font(.px(11)).padding(.horizontal, 6).padding(.vertical, 2).background(Color(hex: "#FFE8A3"))
                         }
                         Text(summary(d, detail)).font(.system(size: 13)).foregroundStyle(UI.ink)
@@ -107,7 +107,7 @@ struct DayDetailView: View {
                         Text("시간대별 \(metrics[metric].1)").font(.px(13))
                         HStack(spacing: 8) {
                             ForEach(Array(bands(detail).enumerated()), id: \.offset) { i, b in
-                                VStack(spacing: 4) { Text(b.0).font(.system(size: 11)); Text(value(b.1)).font(.px(16)) }
+                                VStack(spacing: 4) { Text(b.0).font(.system(size: 11)); Text(value(b.1)).font(.px(16)).rolling(value(b.1)) }
                                     .foregroundStyle(i == 2 ? .white : UI.ink)
                                     .frame(maxWidth: .infinity).padding(.vertical, 10)
                                     .background(i == 2 ? UI.ink : Color.white).overlay(Rectangle().stroke(UI.ink, lineWidth: 1.5))

@@ -15,7 +15,7 @@ struct WatchNow: View {
             WidgetBackground(level: lv, night: s.isNight, scene: s, animate: !dimmed).ignoresSafeArea()
             VStack(alignment: .leading, spacing: 0) {
                 Text(snap.placeShort).font(.px(12)).opacity(0.85)
-                Text(snap.deg(s.temp)).font(.px(46)).frame(maxWidth: .infinity, alignment: .trailing)
+                Text(snap.deg(s.temp)).font(.px(46)).frame(maxWidth: .infinity, alignment: .trailing).rolling(s.temp)
                 Spacer(minLength: 0)
                 HStack(alignment: .bottom, spacing: 2) {
                     ZStack(alignment: .bottom) {

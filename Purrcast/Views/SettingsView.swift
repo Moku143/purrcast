@@ -40,6 +40,7 @@ struct SettingsView: View {
                         SettingRow(icon: "sun", title: "아침 요약") {
                             HStack(spacing: 8) {
                                 DatePicker("", selection: $model.morningTime, displayedComponents: .hourAndMinute).labelsHidden()
+                                    .onChange(of: model.morningTime) { _, _ in Haptic.select() }
                                 toggle($model.notifyMorning)
                             }
                         }
