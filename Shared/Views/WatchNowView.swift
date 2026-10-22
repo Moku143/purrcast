@@ -34,6 +34,8 @@ struct WatchNow: View {
                         Text("체감 \(snap.deg(s.feels))").font(.px(10))
                         Text("최고 \(snap.deg(s.hi)) 최저 \(snap.deg(s.lo))").font(.px(9))
                     }
+                    .lineLimit(1).minimumScaleFactor(0.6)      // each on one line, even "최고 -13° 최저 -14°"
+                    .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .foregroundStyle(ink.ink)

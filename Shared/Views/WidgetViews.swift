@@ -158,6 +158,7 @@ struct LockCircularView: View {
             Text("\(u(s.hi))").font(.system(size: 9))
         }
         .gaugeStyle(.accessoryCircular)
+        .tint(.white)          // white like the rest of the lock screen (iOS tints it in its own colour anyway)
     }
 }
 
@@ -182,7 +183,10 @@ struct AccessoryWidgetBackgroundCompat: View {
 
 enum LockText {
     /// One line for the lock screen: the bubble text when there is one, the condition otherwise.
-    static func line(_ s: WeatherScene) -> String { s.bubble?.text ?? s.cond }
+    /// (without "!": the lock screen and complications stay calm and plain)
+    static func line(_ s: WeatherScene) -> String {
+        (s.bubble?.text ?? s.cond).replacingOccurrences(of: "!", with: "").trimmingCharacters(in: .whitespaces)
+    }
     /// Inline lock widget (above the clock): "15~17시 비! · 18°" (no emoji: the lock screen shows one colour)
     static func inline(_ snap: WeatherSnapshot) -> String {
         let s = snap.scene
