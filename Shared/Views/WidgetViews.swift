@@ -161,7 +161,7 @@ struct LockCircularView: View {
             Text("\(u(s.hi))").font(.system(size: 9)).foregroundStyle(.white.opacity(0.65))
         }
         .gaugeStyle(.accessoryCircular)
-        .tint(.white.opacity(0.6))   // iOS draws lock widgets as frosted glass over the wallpaper; this matches it
+        .tint(Gradient(colors: [.white.opacity(0.18), .white.opacity(0.95)]))   // from today's low (faint) to high (solid white)   // iOS draws lock widgets as frosted glass over the wallpaper; this matches it
         }
     }
 }
