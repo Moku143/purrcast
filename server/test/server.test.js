@@ -64,10 +64,10 @@ test('feels-like: KMA wind chill when cold, KMA summer formula (humidity counts)
 test('how it feels: humidity, wind, UV in everyday words', () => {
   assert.equal(humidityWord({ temp: 8, rh: 92, dew: 7, wet: true }), '눅눅해요', 'cold rain is damp even with a low dew point');
   assert.equal(humidityWord({ temp: 19, rh: 46, dew: 7 }), '보송해요');
-  assert.equal(humidityWord({ temp: 30, rh: 70, dew: 24 }), '숨 막히게 끈적해요');
+  assert.equal(humidityWord({ temp: 30, rh: 70, dew: 24 }), '매우 끈적해요');
   assert.equal(humidityWord({ temp: 27, rh: 60, dew: 19 }), '꿉꿉해요');
   assert.equal(humidityWord({ temp: 20, rh: 25, dew: 0 }), '건조해요');
-  assert.equal(windWord(2), '산들바람'); assert.equal(windWord(7), '우산 뒤집힐 수 있어요'); assert.equal(windWord(9), '걷기 힘든 바람'); assert.equal(windWord(15), '위험한 강풍');
+  assert.equal(windWord(2), '산들바람'); assert.equal(windWord(7), '바람 꽤 강해요'); assert.equal(windWord(9), '바람 강해요'); assert.equal(windWord(15), '강풍 · 외출 주의');
   assert.equal(uvNote(1), '약해요'); assert.ok(uvNote(6).startsWith('강해요')); assert.ok(uvNote(11).startsWith('위험'));
 });
 

@@ -120,5 +120,5 @@ export function partOfDay(h, tomorrow) {
 /** WHO / KMA UV index scale: 0–2 낮음 · 3–5 보통 · 6–7 높음 · 8–10 매우 높음 · 11+ 위험 */
 export function uvNote(uv) {
   if (uv == null) return '정보 없음';
-  return uv <= 2 ? '약해요' : uv <= 5 ? '보통 · 모자나 선크림' : uv <= 7 ? '강해요 · 선크림 꼭' : uv <= 10 ? '매우 강해요 · 그늘로' : '위험 · 한낮엔 실내로';
+  return uv <= 2 ? '약해요' : uv <= 5 ? '보통 · 선크림' : uv <= 7 ? '강해요 · 선크림, 모자' : uv <= 10 ? '매우 강해요 · 한낮 외출 줄여요' : '위험 · 한낮 외출 피해요';
 }

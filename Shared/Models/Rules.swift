@@ -22,13 +22,13 @@ enum Rules {
     static func windWord(ms: Int) -> String {
         switch ms {
         case ..<1: return "바람 없어요"
-        case 1: return "거의 안 불어요"
+        case 1: return "바람 약해요"
         case 2...3: return "산들바람"
-        case 4...5: return "머리카락 날리는 바람"
-        case 6...7: return "우산 뒤집힐 수 있어요"
-        case 8...10: return "걷기 힘든 바람"
+        case 4...5: return "바람 조금"
+        case 6...7: return "바람 꽤 강해요"
+        case 8...10: return "바람 강해요"
         case 11...13: return "매우 강한 바람"
-        default: return "위험한 강풍"
+        default: return "강풍 · 외출 주의"
         }
     }
 

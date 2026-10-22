@@ -201,7 +201,7 @@
     "icon": "sun_strong",
     "label": "자외선",
     "uv": 3,
-    "note": "보통 · 모자나 선크림"
+    "note": "보통 · 선크림"
    },
    {
     "icon": "sunset",
@@ -1089,7 +1089,7 @@
     "icon": "sun_strong",
     "label": "자외선",
     "uv": 3,
-    "note": "보통 · 모자나 선크림"
+    "note": "보통 · 선크림"
    },
    {
     "icon": "sunset",

@@ -37,7 +37,7 @@ export function humidityWord({ temp, rh, dew, wet }) {
   if (rh == null) return '';
   if (rh < 20) return '매우 건조해요';
   if (rh < 30) return '건조해요';
-  if (dew != null && dew >= 24) return '숨 막히게 끈적해요';
+  if (dew != null && dew >= 24) return '매우 끈적해요';
   if (dew != null && dew >= 21) return '끈적해요';
   if (dew != null && dew >= 18) return '꿉꿉해요';
   if (wet || rh >= 85) return temp != null && temp < 15 ? '눅눅해요' : '습해요';
@@ -53,13 +53,13 @@ export function humidityWord({ temp, rh, dew, wet }) {
 export function windWord(ms) {
   if (ms == null) return '';
   if (ms < 0.5) return '바람 없어요';
-  if (ms < 1.6) return '거의 안 불어요';
+  if (ms < 1.6) return '바람 약해요';
   if (ms < 3.4) return '산들바람';
-  if (ms < 5.5) return '머리카락 날리는 바람';
-  if (ms < 8) return '우산 뒤집힐 수 있어요';
-  if (ms < 10.8) return '걷기 힘든 바람';
+  if (ms < 5.5) return '바람 조금';
+  if (ms < 8) return '바람 꽤 강해요';
+  if (ms < 10.8) return '바람 강해요';
   if (ms < 13.9) return '매우 강한 바람';
-  return '위험한 강풍';
+  return '강풍 · 외출 주의';
 }
 
 /** Dew point °C (Magnus). */
