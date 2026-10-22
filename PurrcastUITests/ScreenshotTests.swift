@@ -7,7 +7,7 @@ final class ScreenshotTests: XCTestCase {
 
     private func shot(_ name: String, _ args: [String], wait: UInt32 = 1, then: ((XCUIApplication) -> Void)? = nil) {
         let app = XCUIApplication()
-        app.launchArguments = args
+        app.launchArguments = args + ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]   // Korean phone: 그르릉날씨
         app.launch()
         sleep(wait)
         then?(app)
