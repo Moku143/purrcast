@@ -132,6 +132,7 @@ struct LockRectangularView: View {
         let s = snap.scene, lv = max(0, min(9, s.level))
         HStack(spacing: 6) {
             Image(snap.shownCharacter.lock(level: lv)).resizable().scaledToFit().frame(width: 40, height: 52)
+                .opacity(0.82)     // a little see-through, like the system's own lock-screen glyphs
             VStack(alignment: .leading, spacing: 1) {
                 Text(snap.deg(s.temp)).font(.system(size: 15, weight: .bold))
                 Text(LockText.line(s)).font(.system(size: 12, weight: .semibold)).lineLimit(1)
@@ -148,6 +149,8 @@ struct LockCircularView: View {
     var body: some View {
         let s = snap.scene
         let u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
+        ZStack {
+        AccessoryWidgetBackgroundCompat()      // the soft glass disc behind it, like the rain-chance circle
         Gauge(value: Double(s.temp), in: Double(min(s.lo, s.temp))...Double(max(s.hi, s.temp, s.lo + 1))) {
             Text("°")
         } currentValueLabel: {
@@ -158,7 +161,8 @@ struct LockCircularView: View {
             Text("\(u(s.hi))").font(.system(size: 9)).foregroundStyle(.white)
         }
         .gaugeStyle(.accessoryCircular)
-        .tint(.white)          // white like the rest of the lock screen (iOS tints it in its own colour anyway)
+        .tint(.white.opacity(0.85))   // iOS draws lock widgets as frosted glass over the wallpaper; this matches it
+        }
     }
 }
 
