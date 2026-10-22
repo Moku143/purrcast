@@ -94,6 +94,7 @@ struct OnboardingView: View {
     /// A piece of sky for the pictures: the weather's colour wash with its moving rain, snow or wind.
     private func sky(_ s: WeatherScene, _ w: CGFloat, _ h: CGFloat) -> some View {
         ZStack(alignment: .top) {
+            WidgetBackground(level: s.level, night: s.time == "night", scene: nil)      // the outfit colour underneath
             SkyTint(scene: s)
             SkyParticles(scene: s, width: w, tiles: max(1, Int((h / (Sky.tile.height * w / Sky.tile.width)).rounded(.up))), animate: !reduceMotion)
         }

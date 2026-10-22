@@ -183,7 +183,12 @@ struct SkyParticles: View {
                 g.translateBy(x: 0, y: CGFloat(tile) * Sky.tile.height * scale)
                 g.scaleBy(x: scale, y: scale)
                 g.clip(to: Path(CGRect(origin: .zero, size: Sky.tile)))
-                for it in (tile == 0 ? upper : lower) { draw(it, in: &g, t: t, fogs: resolved) }
+                for it in (tile == 0 ? upper : lower) {
+                    draw(it, in: &g, t: t, fogs: resolved)
+                    // a still picture (widgets, complications) gets twice the rain and snow, half a fall apart,
+                    // so one frozen frame clearly reads as rain or snow
+                    if !animate, it.a == "fall" || it.a == "snow" { draw(it, in: &g, t: t + it.d * 0.5, fogs: resolved) }
+                }
             }
         }
     }
