@@ -68,11 +68,12 @@ struct WatchRoot: View {
 
 struct WatchNow: View {
     let snap: WeatherSnapshot
+    @Environment(\.isLuminanceReduced) private var dimmed     // always-on (wrist down): hold still to save battery
     var body: some View {
         let s = snap.scene, ink = Ink(night: s.isNight), lv = max(0, min(9, s.level))
         let rain = RainState(rawValue: s.rain) ?? .none
         ZStack(alignment: .topLeading) {
-            WidgetBackground(level: lv, night: s.isNight, scene: s).ignoresSafeArea()
+            WidgetBackground(level: lv, night: s.isNight, scene: s, animate: !dimmed).ignoresSafeArea()
             VStack(alignment: .leading, spacing: 0) {
                 Text(snap.placeShort).font(.px(12)).opacity(0.85)
                 Text(snap.deg(s.temp)).font(.px(46)).frame(maxWidth: .infinity, alignment: .trailing)
