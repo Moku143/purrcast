@@ -7,13 +7,14 @@ struct WidgetBackground: View {
     let level: Int
     let night: Bool
     var scene: WeatherScene? = nil
+    var animate = false        // widgets draw one still frame; the app's previews can move
     var body: some View {
         let bg = Rules.background[max(0, min(9, level))]
         ZStack {
             LinearGradient(colors: [Color(hex: bg), Color.mix(bg, "#8E9CC4", 0.28)], startPoint: .top, endPoint: .bottom)
             if let scene {
                 SkyTint(scene: scene)
-                GeometryReader { g in SkyParticles(scene: scene, width: g.size.width, tiles: 1, animate: false) }
+                GeometryReader { g in SkyParticles(scene: scene, width: g.size.width, tiles: 1, animate: animate) }
             } else if night {
                 Color(red: 16 / 255, green: 20 / 255, blue: 48 / 255).opacity(0.64)
             }

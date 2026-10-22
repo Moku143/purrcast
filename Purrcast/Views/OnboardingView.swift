@@ -9,6 +9,10 @@ struct OnboardingView: View {
     @State private var step = 0
     @State private var showPlus = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// The pictures on the first pages cycle through the weather (rain → clear → snow → wind) to show
+    /// the character, widgets and watch changing with it.
+    @State private var demo = 0
+    private static let demoKeys = ["spring_rain", "clear", "winter_snow", "spring_chill"]
 
     private let count = 6
 
@@ -39,11 +43,17 @@ struct OnboardingView: View {
         .background(
             ZStack {
                 LinearGradient(colors: [Color(hex: step == 5 ? "#FFF3D6" : "#E4F3D9"), Color(hex: "#F4F6FA")], startPoint: .top, endPoint: .bottom)
-                if !reduceMotion { weatherLayer.id(step).transition(.opacity) }
             }
             .ignoresSafeArea()
         )
         .animation(.easeInOut(duration: reduceMotion ? 0.2 : 0.4), value: step)
+        .task {
+            guard !reduceMotion else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(2.8))
+                withAnimation(.easeInOut(duration: 0.6)) { demo += 1 }
+            }
+        }
         .sheet(isPresented: $showPlus, onDismiss: { model.onboarded = true }) { PaywallView() }
     }
 
@@ -76,30 +86,20 @@ struct OnboardingView: View {
 
     private func next() { step = min(count - 1, step + 1) }
 
-    /// Each page brings its own weather in: rain, wind, snow… drifting behind the content (tinted so the
-    /// white sky pixels show on the light background).
-    private var weatherLayer: some View {
-        GeometryReader { g in
-            let tileH = Sky.tile.height * g.size.width / Sky.tile.width
-            SkyParticles(scene: Self.weather(step), width: g.size.width, tiles: max(1, Int((g.size.height / tileH).rounded(.up))))
-                .colorMultiply(Color(hex: "#7E8FB5"))
-                .opacity(0.55)
+    private var demoScene: WeatherScene { SceneLibrary.scene(Self.demoKeys[demo % Self.demoKeys.count]) }
+    private var demoSnap: WeatherSnapshot {
+        WeatherSnapshot(scene: demoScene, character: .cat, plus: false, characterName: "", placeShort: "서울", saved: Date())
+    }
+    private func rainState(_ s: WeatherScene) -> RainState { RainState(rawValue: s.rain) ?? .none }
+    /// A piece of sky for the pictures: the weather's colour wash with its moving rain, snow or wind.
+    private func sky(_ s: WeatherScene, _ w: CGFloat, _ h: CGFloat) -> some View {
+        ZStack(alignment: .top) {
+            SkyTint(scene: s)
+            SkyParticles(scene: s, width: w, tiles: max(1, Int((h / (Sky.tile.height * w / Sky.tile.width)).rounded(.up))), animate: !reduceMotion)
         }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
+        .frame(width: w, height: h, alignment: .top).clipped()
     }
 
-    static func weather(_ step: Int) -> WeatherScene {
-        var s = WeatherScene()
-        s.time = "day"; s.cover = "clear"
-        switch step {
-        case 0, 4: s.precip = "rain"
-        case 1, 3: s.aux = "wind"
-        case 2: s.precip = "snow"
-        default: s.precip = "flurries"
-        }
-        return s
-    }
     private func secondary(_ t: String, _ a: @escaping () -> Void) -> some View {
         Button(action: a) {
             Text(t).font(.px(16)).foregroundStyle(UI.ink).frame(maxWidth: .infinity).frame(height: 50)
@@ -107,18 +107,23 @@ struct OnboardingView: View {
         }.buttonStyle(.plain)
     }
 
-    private var sample: WeatherSnapshot {
-        WeatherSnapshot(scene: SceneLibrary.scene("maybe"), character: .cat, plus: false, characterName: "", placeShort: "서울", saved: Date())
-    }
-
     private var intro: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 6) { PixelIcon(name: "raincloud", size: 28); Text("26°").font(.px(30)) }
-                .frame(maxWidth: .infinity).padding(.top, 40)
-            HStack(alignment: .bottom, spacing: -30) {
-                CharacterSprite(character: .cat, level: 2, rain: .umbrella, width: 190)
-                Spacer()
-            }.padding(.top, 30)
+            let s = demoScene
+            ZStack(alignment: .top) {
+                sky(s, 349, 360).id("sky\(demo)").transition(.opacity)
+                VStack(spacing: 0) {
+                    HStack(spacing: 6) { PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 28); Text("\(s.temp)°").font(.px(30)) }
+                        .foregroundStyle(s.time == "night" ? .white : UI.ink)
+                        .padding(.top, 22)
+                    Spacer()
+                    CharacterSprite(character: .cat, level: s.level, rain: rainState(s), mood: Mood(rawValue: s.mood ?? "normal") ?? .normal, width: 190)
+                        .padding(.bottom, 14)
+                }
+                .id("cat\(demo)").transition(.opacity)
+            }
+            .frame(width: 349, height: 360).clipShape(RoundedRectangle(cornerRadius: 28))
+            .frame(maxWidth: .infinity).padding(.top, 24)
             Text("옷차림으로 보는 날씨").font(.px(22)).padding(.top, 20)
             Text("체감온도에 맞춰 옷을 입고, 비가 오면 우산을 펴요.").font(.system(size: 14)).foregroundStyle(UI.sub).padding(.top, 8)
         }
@@ -128,15 +133,17 @@ struct OnboardingView: View {
     private var widgets: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(spacing: 12) {
-                MediumWidgetView(snap: sample).padding(14).frame(width: 330, height: 160)
-                    .background(WidgetBackground(level: 4, night: false, scene: sample.scene)).clipShape(RoundedRectangle(cornerRadius: 22))
+                MediumWidgetView(snap: demoSnap).padding(14).frame(width: 330, height: 160)
+                    .background(WidgetBackground(level: demoScene.level, night: demoScene.time == "night", scene: demoScene, animate: !reduceMotion))
+                    .clipShape(RoundedRectangle(cornerRadius: 22))
+                    .id("w\(demo)").transition(.opacity)
                 ZStack {
                     LinearGradient(colors: [Color(hex: "#5B5FA8"), Color(hex: "#2E2F66")], startPoint: .top, endPoint: .bottom)
                     VStack(spacing: 6) {
                         Text("9:41").font(.system(size: 54, weight: .semibold, design: .rounded))
                         HStack(spacing: 10) {
-                            LockRectangularView(snap: sample).frame(width: 150, height: 60)
-                            LockCircularView(snap: sample).frame(width: 56, height: 56)
+                            LockRectangularView(snap: demoSnap).frame(width: 150, height: 60)
+                            LockCircularView(snap: demoSnap).frame(width: 56, height: 56)
                         }
                     }.foregroundStyle(.white)
                 }
@@ -156,16 +163,18 @@ struct OnboardingView: View {
             HStack { Text("애플워치").font(.px(22)); Spacer(); PlusTag() }.padding(.top, 30)
             ZStack {
                 RoundedRectangle(cornerRadius: 40).fill(Color(hex: "#15161C")).frame(width: 170, height: 204)
-                RoundedRectangle(cornerRadius: 30).fill(LinearGradient(colors: [Color(hex: "#D9EFCF"), Color(hex: "#B9D7C2")], startPoint: .top, endPoint: .bottom)).frame(width: 150, height: 184)
+                let s = demoScene
+                sky(s, 150, 184).clipShape(RoundedRectangle(cornerRadius: 30)).id("ws\(demo)").transition(.opacity)
                 VStack(alignment: .leading, spacing: 0) {
                     HStack { Text("서울").font(.px(10)); Spacer(); Text("13:46").font(.px(10)) }
-                    Text("18°").font(.px(36)).frame(maxWidth: .infinity, alignment: .trailing)
+                    Text("\(s.temp)°").font(.px(36)).frame(maxWidth: .infinity, alignment: .trailing)
                     HStack(alignment: .bottom) {
-                        CharacterSprite(character: .cat, level: 4, rain: .bag, width: 60, animate: false).frame(width: 60, height: 70)
-                        VStack(alignment: .trailing, spacing: 2) { Text("흐림").font(.px(10)); Text("체감 17°").font(.px(9)) }
+                        CharacterSprite(character: .cat, level: s.level, rain: rainState(s), width: 60, animate: false).frame(width: 60, height: 70)
+                        VStack(alignment: .trailing, spacing: 2) { Text(s.cond).font(.px(10)); Text("체감 \(s.feels)°").font(.px(9)) }
                     }
                 }
-                .foregroundStyle(UI.ink).frame(width: 128, height: 164)
+                .foregroundStyle(s.time == "night" ? .white : UI.ink).frame(width: 128, height: 164)
+                .id("wc\(demo)").transition(.opacity)
             }
             Text("워치 앱 · 워치 페이스 · 컴플리케이션").font(.system(size: 14)).foregroundStyle(UI.sub)
             Text("Plus에서 쓸 수 있어요.").font(.system(size: 14)).foregroundStyle(UI.sub)
