@@ -133,15 +133,25 @@ struct DayDetailView: View {
         String(Calendar.current.component(.day, from: Calendar.current.date(byAdding: .day, value: i, to: Date()) ?? Date()))
     }
 
+    /// One friendly line about the day, broad rather than itemised, never a clock time, never a promise.
     private func summary(_ d: WeatherScene.DayRow, _ detail: [WeatherScene.DayHour]?) -> String {
         var t: String
+        let lo = d.lo, hi = d.hi
+        var loPart = "아침", hiPart = "낮"
         if let detail, let cold = detail.min(by: { $0.temp < $1.temp }), let warm = detail.max(by: { $0.temp < $1.temp }) {
-            t = "\(partOfDay(cold.label))에 \(model.deg(Int(cold.temp.rounded())))로 가장 쌀쌀하고, \(partOfDay(warm.label))에 \(model.deg(Int(warm.temp.rounded())))로 가장 따뜻해요."
-        } else {
-            t = "최저 \(model.deg(d.lo)), 최고 \(model.deg(d.hi))예요."
+            loPart = partOfDay(cold.label); hiPart = partOfDay(warm.label)
         }
-        if d.chance >= 60 { t += " 비 예보가 있어요. 우산 챙겨요." }
-        else if d.chance >= 30 { t += " 비 올 수도 있어요 (\(d.chance)%)." }
+        if hi >= 30 {
+            t = "\(hiPart)엔 \(model.deg(hi))까지 올라요. 시원하게 입고 물 챙겨요." + (lo >= 25 ? " 밤에도 후끈해요." : "")
+        } else if hi <= 0 || lo <= -5 {
+            t = "\(loPart)엔 \(model.deg(lo)), \(hiPart)에도 \(model.deg(hi))예요. 꽁꽁 싸매고 나가요."
+        } else if hi - lo >= 6 {
+            t = "\(loPart)엔 \(model.deg(lo))로 쌀쌀, \(hiPart)엔 \(model.deg(hi))까지 올라요. 겉옷 하나 챙기면 딱이에요."
+        } else {
+            t = "하루 종일 \(model.deg(lo))~\(model.deg(hi))로 비슷해요. 편하게 입어요."
+        }
+        if d.chance >= 60 { t += d.icon == "snowflake" ? " 눈 예보예요. 미끄럼 조심!" : " 비 예보예요. 우산 챙겨요." }
+        else if d.chance >= 30 { t += " 비 올 수도 있어요. 작은 우산 하나면 든든해요." }
         return t
     }
 
