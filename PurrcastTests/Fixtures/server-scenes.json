@@ -201,7 +201,7 @@
     "icon": "sun_strong",
     "label": "자외선",
     "uv": 3,
-    "note": "보통이에요"
+    "note": "보통 · 모자나 선크림"
    },
    {
     "icon": "sunset",
@@ -215,7 +215,7 @@
     "label": "습도",
     "value": "70%",
     "unit": "",
-    "note": "이슬점 9°"
+    "note": "조금 습해요 · 이슬점 9°"
    }
   ],
   "wind": {
@@ -1089,7 +1089,7 @@
     "icon": "sun_strong",
     "label": "자외선",
     "uv": 3,
-    "note": "보통이에요"
+    "note": "보통 · 모자나 선크림"
    },
    {
     "icon": "sunset",
@@ -1103,7 +1103,7 @@
     "label": "습도",
     "value": "70%",
     "unit": "",
-    "note": "이슬점 9°"
+    "note": "조금 습해요 · 이슬점 9°"
    }
   ],
   "wind": {

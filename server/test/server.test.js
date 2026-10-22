@@ -4,9 +4,9 @@ import { readFileSync } from 'node:fs';
 import { toGrid, amount, num, parseForecast, parseNow, parseWarnings, splitAreas, vilageBase, ultraBase, kmaXmlError, kmaOK } from '../src/providers/kma.js';
 import { parseMet, metUrl } from '../src/providers/met.js';
 import { buildScene, validateScene } from '../src/scene.js';
-import { level, bubble } from '../src/rules.js';
+import { level, bubble, uvNote } from '../src/rules.js';
 import { sunDay, local, instant } from '../src/time.js';
-import { feelsLike } from '../src/physics.js';
+import { feelsLike, humidityWord, windWord } from '../src/physics.js';
 import worker, { forecast, readQuery, resetCache } from '../src/index.js';
 import { beforeEach } from 'node:test';
 beforeEach(() => resetCache());
@@ -53,10 +53,22 @@ test('outfit level boundaries and ±1° hysteresis', () => {
   assert.equal(level(20.6, 4), 3, 'a full degree past the edge changes');
 });
 
-test('feels-like: wind chill when cold, heat index when hot', () => {
+test('feels-like: KMA wind chill when cold, KMA summer formula (humidity counts) when warm', () => {
   assert.ok(feelsLike(0, 60, 8) < -4);
-  assert.ok(feelsLike(33, 70, 1) > 38);
+  assert.ok(feelsLike(33, 70, 1) > 33.5 && feelsLike(33, 70, 1) < 37, 'humid 33° feels hotter, KMA-style (not the US heat index)');
+  assert.ok(feelsLike(33, 30, 1) < feelsLike(33, 70, 1), 'drier air feels cooler');
   assert.equal(feelsLike(18, 60, 3), 18);
+  assert.equal(feelsLike(5, 60, 0.5), 5, 'no wind chill below 1.3 m/s');
+});
+
+test('how it feels: humidity, wind, UV in everyday words', () => {
+  assert.equal(humidityWord({ temp: 8, rh: 92, dew: 7, wet: true }), '눅눅해요', 'cold rain is damp even with a low dew point');
+  assert.equal(humidityWord({ temp: 19, rh: 46, dew: 7 }), '보송해요');
+  assert.equal(humidityWord({ temp: 30, rh: 70, dew: 24 }), '숨 막히게 끈적해요');
+  assert.equal(humidityWord({ temp: 27, rh: 60, dew: 19 }), '꿉꿉해요');
+  assert.equal(humidityWord({ temp: 20, rh: 25, dew: 0 }), '건조해요');
+  assert.equal(windWord(2), '산들바람'); assert.equal(windWord(7), '우산 뒤집힐 수 있어요'); assert.equal(windWord(9), '걷기 힘든 바람'); assert.equal(windWord(15), '위험한 강풍');
+  assert.equal(uvNote(1), '약해요'); assert.ok(uvNote(6).startsWith('강해요')); assert.ok(uvNote(11).startsWith('위험'));
 });
 
 test('KMA amounts and parsing', () => {

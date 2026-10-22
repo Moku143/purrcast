@@ -1,7 +1,7 @@
 // Normalized forecast → the app's WeatherScene JSON (docs/server-api.md).
 
 import { local, hhmm, hhmm0, dayKey, sunDay, isNight, pad2, offsetMinutes } from './time.js';
-import { feelsLike, dewPoint, uvUnderCloud } from './physics.js';
+import { feelsLike, dewPoint, uvUnderCloud, humidityWord } from './physics.js';
 import * as R from './rules.js';
 
 const r1 = (v) => Math.round(v * 10) / 10;
@@ -121,7 +121,7 @@ export function buildScene(f, o) {
     { icon: 'raindrop', label: '강수확률', value: `${ri(maxPop)}%`, unit: '', note: rainNote },
     { kind: 'uv', icon: 'sun_strong', label: '자외선', uv: uv ?? 0, note: R.uvNote(uv) },
     sunTile,
-    { icon: 'raindrop', label: '습도', value: cur.rh == null ? '–' : `${ri(cur.rh)}%`, unit: '', note: dew == null ? '' : `이슬점 ${ri(dew)}°` },
+    { icon: 'raindrop', label: '습도', value: cur.rh == null ? '–' : `${ri(cur.rh)}%`, unit: '', note: [humidityWord({ temp: cur.temp, rh: cur.rh, dew, wet: nowWet }), dew == null ? '' : `이슬점 ${ri(dew)}°`].filter(Boolean).join(' · ') },
   ];
 
   const bub = R.bubble({

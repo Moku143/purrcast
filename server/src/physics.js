@@ -1,19 +1,65 @@
 // Feels-like temperature and dew point.
 
-/** Feels-like °C the way KMA describes it: wind chill when cold and windy, heat index when hot, else the air temperature. */
+/**
+ * Feels-like °C the way KMA computes it (data.kma.go.kr → 체감온도):
+ *  - winter (air ≤ 10 °C and wind ≥ 1.3 m/s): the JAG/TI wind-chill formula
+ *  - summer (air ≥ 20 °C): the 2022 formula on the Stull wet-bulb temperature, so humidity counts
+ *  - otherwise the air temperature itself
+ */
 export function feelsLike(t, rh, windMs) {
   if (t == null) return null;
-  const v = (windMs ?? 0) * 3.6; // km/h
-  if (t <= 10 && v >= 4.8) {
+  const w = windMs ?? 0;
+  if (t <= 10 && w >= 1.3) {
+    const v = w * 3.6; // km/h
     return 13.12 + 0.6215 * t - 11.37 * Math.pow(v, 0.16) + 0.3965 * t * Math.pow(v, 0.16);
   }
-  if (t >= 27 && rh != null && rh >= 40) {
-    const f = t * 9 / 5 + 32;
-    const hi = -42.379 + 2.04901523 * f + 10.14333127 * rh - 0.22475541 * f * rh - 0.00683783 * f * f
-      - 0.05481717 * rh * rh + 0.00122874 * f * f * rh + 0.00085282 * f * rh * rh - 0.00000199 * f * f * rh * rh;
-    return Math.max(t, (hi - 32) * 5 / 9);
+  if (t >= 20 && rh != null) {
+    const r = Math.max(5, Math.min(100, rh));
+    const tw = t * Math.atan(0.151977 * Math.sqrt(r + 8.313659)) + Math.atan(t + r) - Math.atan(r - 1.67633)
+      + 0.00391838 * Math.pow(r, 1.5) * Math.atan(0.023101 * r) - 4.686035;
+    return -0.2442 + 0.55399 * tw + 0.45535 * t - 0.0022 * tw * tw + 0.00278 * tw * t + 3.0;
   }
   return t;
+}
+
+/** 불쾌지수 (KMA temperature-humidity index): < 68 낮음 · 68–75 보통 · 75–80 높음 · 80+ 매우 높음 */
+export function discomfortIndex(t, rh) {
+  if (t == null || rh == null) return null;
+  return 1.8 * t - 0.55 * (1 - rh / 100) * (1.8 * t - 26) + 32;
+}
+
+/**
+ * How the air feels on the skin, in everyday Korean. Dew point says how much water is in the air
+ * (NWS: ≤ 10 °C comfortable, 16–18 sticky, 18+ muggy, 21+ oppressive), but on a cold wet day a low
+ * dew point still feels damp, so relative humidity and rain weigh in too.
+ */
+export function humidityWord({ temp, rh, dew, wet }) {
+  if (rh == null) return '';
+  if (rh < 20) return '매우 건조해요';
+  if (rh < 30) return '건조해요';
+  if (dew != null && dew >= 24) return '숨 막히게 끈적해요';
+  if (dew != null && dew >= 21) return '끈적해요';
+  if (dew != null && dew >= 18) return '꿉꿉해요';
+  if (wet || rh >= 85) return temp != null && temp < 15 ? '눅눅해요' : '습해요';
+  if (rh >= 70) return '조금 습해요';
+  if (dew != null && dew < 10 && rh < 60) return '보송해요';
+  return '적당해요';
+}
+
+/**
+ * Wind as people feel it (Beaufort, with KMA's everyday guidance: umbrellas turn around 7 m/s,
+ * walking gets hard around 9–10 m/s, 강풍주의보 at 14 m/s).
+ */
+export function windWord(ms) {
+  if (ms == null) return '';
+  if (ms < 0.5) return '바람 없어요';
+  if (ms < 1.6) return '거의 안 불어요';
+  if (ms < 3.4) return '산들바람';
+  if (ms < 5.5) return '머리카락 날리는 바람';
+  if (ms < 8) return '우산 뒤집힐 수 있어요';
+  if (ms < 10.8) return '걷기 힘든 바람';
+  if (ms < 13.9) return '매우 강한 바람';
+  return '위험한 강풍';
 }
 
 /** Dew point °C (Magnus). */

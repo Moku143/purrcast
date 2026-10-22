@@ -97,7 +97,7 @@ export function bubble(c) {
   if (startIn != null && startIn <= 12) return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${evening} ${snowNext ? '눈' : '비'}!`);
   if (swing >= 10) return B('speech', 'night', 'daynight', '일교차 커요!');
   if (rain === 'think') return B('thought', 'sky', 'umbrella', '');
-  if (rain === 'bag' && maxPop >= 30) return B('speech', 'sky', 'umbrella_closed', '우산 챙겼어');
+  if (rain === 'bag' && maxPop >= 30) return B('speech', 'sky', 'umbrella_closed', '우산 챙겨요');
   return null;
 }
 
@@ -110,7 +110,8 @@ export function partOfDay(h, tomorrow) {
   return '밤';
 }
 
+/** WHO / KMA UV index scale: 0–2 낮음 · 3–5 보통 · 6–7 높음 · 8–10 매우 높음 · 11+ 위험 */
 export function uvNote(uv) {
   if (uv == null) return '정보 없음';
-  return uv <= 2 ? '약해요' : uv <= 5 ? '보통이에요' : uv <= 7 ? '강해요' : '매우 강해요';
+  return uv <= 2 ? '약해요' : uv <= 5 ? '보통 · 모자나 선크림' : uv <= 7 ? '강해요 · 선크림 꼭' : uv <= 10 ? '매우 강해요 · 그늘로' : '위험 · 한낮엔 실내로';
 }

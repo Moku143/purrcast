@@ -18,6 +18,20 @@ enum Rules {
         return lv
     }
 
+    /// Wind as people feel it (same words as the server: Beaufort + KMA everyday guidance).
+    static func windWord(ms: Int) -> String {
+        switch ms {
+        case ..<1: return "바람 없어요"
+        case 1: return "거의 안 불어요"
+        case 2...3: return "산들바람"
+        case 4...5: return "머리카락 날리는 바람"
+        case 6...7: return "우산 뒤집힐 수 있어요"
+        case 8...10: return "걷기 힘든 바람"
+        case 11...13: return "매우 강한 바람"
+        default: return "위험한 강풍"
+        }
+    }
+
     /// Background colour per outfit level (the hero gradient starts from it).
     static let background = ["#FFC2A8", "#FFD3B5", "#FFE8A3", "#F3F0B5", "#D9EFCF", "#D3E6F4", "#CDDCEF", "#C8D4F0", "#B7C6EA", "#A9B6E2"]
 

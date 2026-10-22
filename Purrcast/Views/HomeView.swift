@@ -297,7 +297,7 @@ struct HomeView: View {
             Card(ink: ink) {
                 HStack(spacing: 6) { PixelIcon(name: "wind", size: 16); Text("바람").font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
                 Text("\(wind(s.wind.speed))").font(.px(26))
-                Text("돌풍 \(wind(s.wind.gust)) · \(dir(s.wind.deg))").font(.ui(12)).foregroundStyle(ink.sub)
+                Text("\(Rules.windWord(ms: s.wind.speed)) · 돌풍 \(wind(s.wind.gust)) · \(dir(s.wind.deg))").font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2)
             }
         }
     }
