@@ -12,6 +12,8 @@ enum Motion {
     static let gentle = Animation.spring(response: 0.55, dampingFraction: 0.86)
     /// Characters and bubbles popping in
     static let bouncy = Animation.spring(response: 0.48, dampingFraction: 0.62)
+    /// Numbers rolling to a new value: slow and soft, no overshoot
+    static let roll = Animation.spring(response: 0.8, dampingFraction: 0.92)
     /// Button press-down / release
     static let press = Animation.spring(response: 0.22, dampingFraction: 0.7)
     /// Long cross-fades (background colour, sky)
@@ -87,7 +89,7 @@ extension View {
 
     /// Animated number: digits roll instead of snapping (e.g. the big temperature when the forecast changes).
     func rolling<V: Equatable>(_ value: V) -> some View {
-        self.contentTransition(.numericText()).animation(Motion.gentle, value: value)
+        self.contentTransition(.numericText()).animation(Motion.roll, value: value)
     }
 }
 
