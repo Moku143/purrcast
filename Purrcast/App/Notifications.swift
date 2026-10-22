@@ -15,13 +15,13 @@ enum Notifications {
 
             // 비 오기 전: 30 minutes before the first rainy hour (quiet hours 22:00–07:00 skipped)
             if rain, let first = firstRain(s, tz: TimeZone(identifier: place.timeZone) ?? .current) {
-                let (fire, hour) = first
+                let (fire, _) = first
                 let at = fire.addingTimeInterval(-30 * 60)
                 let localHour = Calendar.current.component(.hour, from: at)
                 if at.timeIntervalSinceNow > 60, localHour >= 7, localHour < 22 {
                     let n = UNMutableNotificationContent()
-                    n.title = "\(hour)시쯤 비 와요"
-                    n.body = "\(place.short) · 우산 챙기세요"
+                    n.title = "곧 비 예보 · 우산 챙기세요"
+                    n.body = "\(place.short) · 30분 안에 비가 올 수 있어요"
                     n.sound = .default
                     c.add(UNNotificationRequest(identifier: "rain", content: n,
                                                 trigger: UNTimeIntervalNotificationTrigger(timeInterval: at.timeIntervalSinceNow, repeats: false)))

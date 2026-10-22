@@ -74,8 +74,9 @@ dust moon umbrella umbrella_closed raindrop thermo_hot thermo_cold sunrise sunse
 chance 10–29 % → `think`; otherwise `none`.
 
 **Bubble**: one at a time, priority: rain coming / now › warnings (특보) › big temperature drop › heat / cold › nothing.
-Rain timing is a clock time, never a countdown: start rounded **down** to 10 minutes, said conservatively
-(“15:50쯤 비!”); free plan says the hour window (“15~17시 비!”).
+Rain ahead is said in forecast tone, never as a clock time or a promise: `곧 비 예보` (≤ 1 h), `N시간 뒤 비 예보` (2–6 h),
+`오늘 저녁 비 예보` / `내일 아침 비 예보` (later). The free plan (the stored morning forecast) always says `오늘 비 예보`.
+Wording is `…예보` because a forecast can change; the app never states rain as certain.
 
 ## Implementation
 

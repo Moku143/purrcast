@@ -21,7 +21,8 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(plus.next6?.count, 6)
         XCTAssertEqual(plus.nextSource, "met")
         XCTAssertEqual(plus.dayDetail?.first?.count, 8)
-        XCTAssertEqual(plus.bubble?.text, "16~18시 비!")
+        XCTAssertEqual(plus.bubble?.text, "2시간 뒤 비 예보")
+        XCTAssertEqual(AppModel.planView(plus, plus: false).bubble?.text, "오늘 비 예보", "free plan says it loosely")
         XCTAssertNil(free.next6)
         XCTAssertEqual(free.updated, "06:00")
     }
@@ -76,12 +77,6 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Rules.level(feels: -12), 9)
         XCTAssertEqual(Rules.level(feels: 19.8, previous: 4), 4)
         XCTAssertEqual(Rules.level(feels: 20.6, previous: 4), 3)
-    }
-
-    func testHourWindow() {
-        let s = SceneLibrary.scene("maybe")
-        XCTAssertEqual(AppModel.hourWindow(s.hours), "16~20시")
-        XCTAssertEqual(AppModel.hourWindow([]), "")
     }
 
     func testFreePlanHidesPlusData() {

@@ -51,9 +51,8 @@ export function buildScene(f, o) {
   let endP = startP;
   if (startIdx >= 0) for (let i = startIdx + 1; i < ahead.length && (wet(ahead[i]) || (ahead[i].pop ?? 0) >= 60); i++) endP = ahead[i];
   const H = (p) => local(p.t, tz).h;
-  const window2h = startP ? (endP === startP ? `${H(startP)}시쯤` : `${H(startP)}~${H(endP)}시`) : '';
   const tomorrow = startP ? dayKey(startP.t, tz) !== dayKey(nowT, tz) : false;
-  const evening = startP ? R.partOfDay(H(startP), tomorrow) : '';
+  const when = startP ? R.whenWord(startIn, H(startP), tomorrow) : '';   // 곧 · 3시간 뒤 · 오늘 저녁 · 내일 아침
   const maxPop = Math.max(0, ...next12.map((p) => p.pop ?? (wet(p) ? 70 : 0)));
   const rain = R.rainState({ nowWet, startIn, maxPop });
   const snowNext = startP ? startP.type === 'snow' || startP.type === 'sleet' : false;
@@ -101,7 +100,7 @@ export function buildScene(f, o) {
   // tiles
   const total = r1(next12.reduce((s, p) => s + (p.mm || 0), 0));
   const rainNote = nowWet ? `지금 ${pr === 'snow' ? '눈' : '비'} · 12시간 ${total}${pr === 'snow' ? 'cm' : 'mm'}`
-    : startP ? `${window2h} 비 시작 · ${total}mm` : '12시간 동안 비 소식 없음';
+    : startP ? `${when} 비 예보 · ${total}mm쯤` : '12시간 동안 비 소식 없어요';
   const todayPts = pts.filter((p) => dayKey(p.t, tz) === dayKey(nowT, tz));
   const uvs = (todayPts.length ? todayPts : next12).map((p) => uvUnderCloud(p.uvClear, p.cloud)).filter((v) => v != null);
   const uv = uvs.length ? Math.round(Math.max(...uvs)) : null;
@@ -125,7 +124,7 @@ export function buildScene(f, o) {
   ];
 
   const bub = R.bubble({
-    warnings: f.warnings, nowWet, nowPr: pr, nowMm: cur.mm, thunder, startIn, startLabel: window2h, window2h, evening,
+    warnings: f.warnings, nowWet, nowPr: pr, nowMm: cur.mm, thunder, startIn, when,
     wind: auxKind === 'wind', fog: auxKind === 'fog', feels, night, swing: hi - lo, maxPop, plus, rain, snowNext,
   });
 

@@ -151,19 +151,10 @@ final class AppModel: ObservableObject {
         var s = raw
         if !plus && (s.minutes != nil || s.next6 != nil) {
             s.minutes = nil; s.next6 = nil; s.plus = false; s.updated = "06:00"
-            let w = hourWindow(s.hours)
-            if var b = s.bubble, b.icon.hasPrefix("umbrella"), !w.isEmpty { b.text = w + " 비!"; s.bubble = b }
+            // free: the stored morning forecast, so rain later is said loosely ("오늘 비 예보"), never as an exact window
+            if var b = s.bubble, b.icon == "umbrella_closed", b.text.contains("예보") { b.text = "오늘 비 예보"; s.bubble = b }
         } else if plus { s.plus = true }
         return s
-    }
-
-    /// "16~18시" from the hourly rows with rain (rows labelled "N시" only)
-    static func hourWindow(_ hours: [WeatherScene.HourRow]) -> String {
-        let r = hours.enumerated()
-            .filter { i, h in i > 0 && (h.mm > 0 || h.icon == "raincloud") && h.label.hasSuffix("시") && Int(h.label.dropLast()) != nil }
-            .map { String($0.element.label.dropLast()) }
-        guard let f = r.first, let l = r.last else { return "" }
-        return r.count == 1 ? f + "시쯤" : f + "~" + l + "시"
     }
 
     // MARK: places

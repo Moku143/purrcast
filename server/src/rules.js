@@ -73,7 +73,7 @@ const B = (kind, tone, icon, text) => ({ kind, tone, icon, text });
  * Rain timing is a clock time, never a countdown.
  */
 export function bubble(c) {
-  const { warnings, nowWet, nowPr, thunder, startIn, startLabel, window2h, evening, wind, fog, feels, night, swing, maxPop, plus, rain, snowNext } = c;
+  const { warnings, nowWet, nowPr, thunder, startIn, wind, fog, feels, night, swing, maxPop, rain, snowNext } = c;
   if (warnings?.length) {
     const w = warnings[0].name;
     const ic = /호우|태풍/.test(w) ? (/태풍/.test(w) ? 'wind' : 'raincloud') : /대설/.test(w) ? 'snowflake' : /강풍|풍랑/.test(w) ? 'wind'
@@ -83,9 +83,9 @@ export function bubble(c) {
   if (thunder) return B('shout', 'coral', 'lightning', '천둥번개!');
   if (nowPr === 'heavy') return B('shout', 'sky', 'umbrella', '폭우!');
   if (nowPr === 'snow' && c.nowMm >= 3) return B('speech', 'sky', 'snowflake', '폭설!');
+  const what = snowNext ? '눈' : '비';
   if (!nowWet && startIn != null && startIn <= 2) {
-    const ic = snowNext ? 'snowflake' : 'umbrella_closed';
-    return B('speech', 'sky', ic, plus ? `${startLabel} ${snowNext ? '눈' : '비'}!` : `${window2h} ${snowNext ? '눈' : '비'}!`);
+    return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${c.when} ${what} 예보`);
   }
   if (wind) return B('speech', 'sky', 'wind', nowWet ? (nowPr === 'snow' ? '눈보라!' : '비바람!') : '바람 세요!');
   if (fog) return B('speech', 'white', 'cloud', '안개 짙어요!');
@@ -93,21 +93,28 @@ export function bubble(c) {
   if (night && feels >= 25) return B('speech', 'night', 'sweat', '열대야!');
   if (feels <= -10) return B('shout', 'sky', 'thermo_cold', '한파!');
   if (nowWet) return nowPr === 'snow' ? B('speech', night ? 'night' : 'sky', 'snowman', '눈!') : B('speech', 'sky', 'umbrella', '비!');
-  if (startIn != null && startIn <= 6) return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${window2h} ${snowNext ? '눈' : '비'}!`);
-  if (startIn != null && startIn <= 12) return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${evening} ${snowNext ? '눈' : '비'}!`);
+  if (startIn != null && startIn <= 12) return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${c.when} ${what} 예보`);
   if (swing >= 10) return B('speech', 'night', 'daynight', '일교차 커요!');
   if (rain === 'think') return B('thought', 'sky', 'umbrella', '');
   if (rain === 'bag' && maxPop >= 30) return B('speech', 'sky', 'umbrella_closed', '우산 챙겨요');
   return null;
 }
 
+/**
+ * When rain (or snow) is expected, the way people say it — never a clock time, never a promise:
+ * ≤ 1 h 곧 · 2–6 h N시간 뒤 · later today 오늘 저녁/밤 · tomorrow 내일 아침
+ */
+export function whenWord(startIn, hour, tomorrow) {
+  if (startIn == null) return '';
+  if (startIn <= 1) return '곧';
+  if (startIn <= 6) return `${startIn}시간 뒤`;
+  return tomorrow ? partOfDay(hour, true) : `오늘 ${partOfDay(hour, false)}`;
+}
+
 /** "저녁 비!" style words for rain 6–12 h away. */
 export function partOfDay(h, tomorrow) {
-  if (tomorrow && h < 12) return '내일 아침';
-  if (h >= 5 && h < 12) return '아침';
-  if (h >= 12 && h < 17) return '오후';
-  if (h >= 17 && h < 21) return '저녁';
-  return '밤';
+  const part = h >= 5 && h < 12 ? '아침' : h >= 12 && h < 17 ? '오후' : h >= 17 && h < 21 ? '저녁' : '밤';
+  return tomorrow ? `내일 ${part}` : part;
 }
 
 /** WHO / KMA UV index scale: 0–2 낮음 · 3–5 보통 · 6–7 높음 · 8–10 매우 높음 · 11+ 위험 */
