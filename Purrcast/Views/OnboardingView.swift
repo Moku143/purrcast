@@ -8,6 +8,7 @@ struct OnboardingView: View {
     @EnvironmentObject var purchases: Purchases
     @State private var step = 0
     @State private var showPlus = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let count = 6
 
@@ -24,7 +25,9 @@ struct OnboardingView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .transition(.opacity)
+            .id(step)
+            .transition(reduceMotion ? .opacity : .asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
+                                                              removal: .move(edge: .leading).combined(with: .opacity)))
 
             HStack(spacing: 6) {
                 ForEach(0..<count, id: \.self) { i in
@@ -33,8 +36,14 @@ struct OnboardingView: View {
             }.padding(.bottom, 16)
             buttons.padding(.horizontal, 20).padding(.bottom, 12)
         }
-        .background(LinearGradient(colors: [Color(hex: step == 5 ? "#FFF3D6" : "#E4F3D9"), Color(hex: "#F4F6FA")], startPoint: .top, endPoint: .bottom).ignoresSafeArea())
-        .animation(.easeInOut(duration: 0.2), value: step)
+        .background(
+            ZStack {
+                LinearGradient(colors: [Color(hex: step == 5 ? "#FFF3D6" : "#E4F3D9"), Color(hex: "#F4F6FA")], startPoint: .top, endPoint: .bottom)
+                if !reduceMotion { weatherLayer.id(step).transition(.opacity) }
+            }
+            .ignoresSafeArea()
+        )
+        .animation(.easeInOut(duration: reduceMotion ? 0.2 : 0.4), value: step)
         .sheet(isPresented: $showPlus, onDismiss: { model.onboarded = true }) { PaywallView() }
     }
 
@@ -66,6 +75,31 @@ struct OnboardingView: View {
     }
 
     private func next() { step = min(count - 1, step + 1) }
+
+    /// Each page brings its own weather in: rain, wind, snow… drifting behind the content (tinted so the
+    /// white sky pixels show on the light background).
+    private var weatherLayer: some View {
+        GeometryReader { g in
+            let tileH = Sky.tile.height * g.size.width / Sky.tile.width
+            SkyParticles(scene: Self.weather(step), width: g.size.width, tiles: max(1, Int((g.size.height / tileH).rounded(.up))))
+                .colorMultiply(Color(hex: "#7E8FB5"))
+                .opacity(0.55)
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    static func weather(_ step: Int) -> WeatherScene {
+        var s = WeatherScene()
+        s.time = "day"; s.cover = "clear"
+        switch step {
+        case 0, 4: s.precip = "rain"
+        case 1, 3: s.aux = "wind"
+        case 2: s.precip = "snow"
+        default: s.precip = "flurries"
+        }
+        return s
+    }
     private func secondary(_ t: String, _ a: @escaping () -> Void) -> some View {
         Button(action: a) {
             Text(t).font(.px(16)).foregroundStyle(UI.ink).frame(maxWidth: .infinity).frame(height: 50)
