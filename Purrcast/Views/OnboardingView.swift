@@ -79,9 +79,8 @@ struct OnboardingView: View {
 
     private var intro: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(Brand.name).font(.px(30)).padding(.top, 30)
             HStack(spacing: 6) { PixelIcon(name: "raincloud", size: 28); Text("26°").font(.px(30)) }
-                .frame(maxWidth: .infinity).padding(.top, 8)
+                .frame(maxWidth: .infinity).padding(.top, 40)
             HStack(alignment: .bottom, spacing: -30) {
                 CharacterSprite(character: .cat, level: 2, rain: .umbrella, width: 190)
                 Spacer()
