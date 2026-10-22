@@ -37,6 +37,33 @@ enum Sky {
         all["flurries"] = SkyLayerData(tint: "rgba(225,235,255,0.10)", items: ev(snow))
         all["heavysnow"] = SkyLayerData(tint: "rgba(232,240,255,0.32)", items: snow + snow.map { var i = $0; i.x = (i.x + 17).truncatingRemainder(dividingBy: 268); i.w = 3; i.h = 3; i.d *= 0.85; i.dl -= 1.3; return i })
         all["hail"] = SkyLayerData(tint: "rgba(96,112,150,0.30)", items: ev(rain).map { var i = $0; i.w = 3; i.h = 3; i.c = "rgba(245,250,255,0.98)"; i.d *= 0.9; return i })
+        // clearer weather (review of the widget matrix): clouds spread evenly over the width so a still frame always
+        // shows them, more and bigger clouds when overcast, thicker and more rain, bigger snow
+        func clouds(_ n: Int, ks: [Double], ys: [Double], c: String, d: Double) -> [SkyItem] {
+            (0..<n).map { i in SkyItem(t: "cloud", x: -40, y: ys[i % ys.count], w: 36, h: 13, c: c, a: "cloud", d: d,
+                                        dl: -Double(i) / Double(n) * d - 0.37 * d, k: ks[i % ks.count]) }
+        }
+        let sunGlow = (all["partly"]?.items ?? []).filter { $0.t == "static" }
+        all["partly"] = SkyLayerData(tint: nil, items: sunGlow + clouds(3, ks: [1.6, 1.2, 1.8], ys: [6, 40, 22], c: "rgba(255,255,255,0.96)", d: 26))
+        all["overcast"] = SkyLayerData(tint: "rgba(96,106,132,0.34)",
+                                       items: clouds(8, ks: [2.4, 1.8, 2.8, 2.0], ys: [-4, 30, 8, 46, 18, 60, 0, 36], c: "rgba(226,231,242,0.97)", d: 30))
+        func thick(_ a: [SkyItem], h: Double) -> [SkyItem] {
+            a.flatMap { i -> [SkyItem] in
+                var a = i; a.w = 2; a.h = h
+                var b = a; b.x = (b.x + 13).truncatingRemainder(dividingBy: 268); b.dl -= b.d * 0.5
+                return [a, b]
+            }
+        }
+        for k in ["rain", "heavy", "storm"] {
+            guard var l = all[k] else { continue }
+            l.items = thick(l.items.filter { $0.a == "fall" }, h: k == "rain" ? 10 : 14) + l.items.filter { $0.a != "fall" }
+            all[k] = l
+        }
+        if var s = all["snow"] {
+            s.items = s.items + s.items.map { var i = $0; i.x = (i.x + 21).truncatingRemainder(dividingBy: 268); i.dl -= i.d * 0.5; return i }
+            s.items = s.items.map { var i = $0; i.w += 1; i.h += 1; return i }
+            all["snow"] = s
+        }
         all["haze"] = SkyLayerData(tint: "rgba(196,192,176,0.40)", items: ev(dust).map { var i = $0; i.c = "rgba(140,138,128,0.45)"; return i })
         return all
     }()
@@ -77,6 +104,12 @@ enum Sky {
             if wet { add(a, tint: false, only: only, keep: k > 0 ? 4 : 2) }
             else if k > 0 { add(a, tint: false, only: only, keep: 2) }
             else { add(a, only: only) }
+        }
+        if !night && (precip == "rain" || precip == "drizzle") && !(thunder && !sunny) {
+            list = list.map { var i = $0; if i.a == "fall" { i.c = "rgba(58,92,168,0.72)" }; return i }
+        }
+        if !night && wet && cover == "overcast" {      // rain clouds are grey
+            list = list.map { var i = $0; if i.t == "cloud" { i.c = "rgba(186,194,212,0.97)" }; return i }
         }
         if night {
             list = list.map { var i = $0
@@ -205,6 +238,9 @@ struct SkyParticles: View {
             for r in [[0.0, 6, 36, 7], [7, 1, 17, 6], [20, 4, 10, 3]] {
                 g.fill(Path(CGRect(x: (it.x + r[0] * k) * U + m.dx, y: (it.y + r[1] * k) * U + m.dy, width: r[2] * k * U, height: r[3] * k * U)), with: .color(col))
             }
+            // a darker base line so a white cloud reads on a pale sky
+            g.fill(Path(CGRect(x: (it.x + 2 * k) * U + m.dx, y: (it.y + 13 * k) * U + m.dy, width: 32 * k * U, height: max(1.5, 1.2 * k) * U)),
+                   with: .color(Color(red: 0.45, green: 0.5, blue: 0.62).opacity(0.28)))
         } else {
             g.fill(Path(CGRect(x: it.x * U + m.dx, y: it.y * U + m.dy, width: it.w * U, height: it.h * U)), with: .color(Sky.color(it.c)))
         }
