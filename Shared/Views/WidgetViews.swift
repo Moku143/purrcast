@@ -151,11 +151,11 @@ struct LockCircularView: View {
         Gauge(value: Double(s.temp), in: Double(min(s.lo, s.temp))...Double(max(s.hi, s.temp, s.lo + 1))) {
             Text("°")
         } currentValueLabel: {
-            Text("\(u(s.temp))").font(.system(size: 18, weight: .bold))
+            Text("\(u(s.temp))").font(.system(size: 18, weight: .bold)).foregroundStyle(.white)
         } minimumValueLabel: {
-            Text("\(u(s.lo))").font(.system(size: 9))
+            Text("\(u(s.lo))").font(.system(size: 9)).foregroundStyle(.white)
         } maximumValueLabel: {
-            Text("\(u(s.hi))").font(.system(size: 9))
+            Text("\(u(s.hi))").font(.system(size: 9)).foregroundStyle(.white)
         }
         .gaugeStyle(.accessoryCircular)
         .tint(.white)          // white like the rest of the lock screen (iOS tints it in its own colour anyway)
