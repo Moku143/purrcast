@@ -22,8 +22,11 @@ jobs:
       - name: Render
         run: |
           set -o pipefail
+          # any available iPhone simulator (runner images differ in which ones they carry)
+          ID=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; ids=[x['udid'] for k,v in sorted(d.items(), reverse=True) if 'iOS' in k for x in v if x['name'].startswith('iPhone')]; print(ids[0])")
+          echo "simulator $ID"
           TEST_RUNNER_MATRIX=1 xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination "id=$ID" \
             -only-testing:PurrcastTests/WidgetMatrixTests \
             -resultBundlePath Matrix.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST |Executed" || true
       - name: Export
