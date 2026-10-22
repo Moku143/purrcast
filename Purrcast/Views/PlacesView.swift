@@ -50,7 +50,7 @@ struct PlacesView: View {
                         .frame(maxWidth: .infinity).frame(height: 48).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 14))
                 }.buttonStyle(.press(0.98)).accessibilityIdentifier("add-place")
                 if !model.plus {
-                    HStack(spacing: 6) { Text("무료는 1곳 더").font(.system(size: 12)).foregroundStyle(UI.sub); PlusTag(text: "Plus는 제한 없이") }
+                    HStack(spacing: 6) { Text("무료는 1곳 더").font(.ui(12)).foregroundStyle(UI.sub); PlusTag(text: "Plus는 제한 없이") }
                 }
             }
             .listRowBackground(Color.clear).listRowSeparator(.hidden)
@@ -77,7 +77,7 @@ struct PlacesView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(p.name).font(.system(size: 16, weight: .medium)).foregroundStyle(UI.ink)
-                        Text(p.region == "kr" ? "한국 · 다음 6시간 비" : (p.region == "jp" ? "분 단위 비" : "시간별 예보")).font(.system(size: 12)).foregroundStyle(UI.sub)
+                        Text(p.region == "kr" ? "한국 · 다음 6시간 비" : (p.region == "jp" ? "분 단위 비" : "시간별 예보")).font(.ui(12)).foregroundStyle(UI.sub)
                     }
                     Spacer()
                     if added { Image(systemName: "checkmark").foregroundStyle(UI.accent) } else { Image(systemName: "plus.circle.fill").foregroundStyle(UI.accent) }
@@ -131,10 +131,10 @@ private struct PlaceCard: View {
     private var info: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 4) {
-                if place.id == "here" && model.hereIsLive { Image(systemName: "location.fill").font(.system(size: 11)) }
+                if place.id == "here" && model.hereIsLive { Image(systemName: "location.fill").font(.ui(11)) }
                 Text(place.name).font(.px(16))
             }
-            Text(subtitle).font(.system(size: 12)).foregroundStyle(UI.sub)
+            Text(subtitle).font(.ui(12)).foregroundStyle(UI.sub)
             if let b = scene?.bubble {
                 Text(b.text).font(.px(11))
                     .padding(.horizontal, 8).padding(.vertical, 3)
@@ -147,7 +147,7 @@ private struct PlaceCard: View {
         VStack(alignment: .trailing, spacing: 4) {
             Text(scene.map { model.deg($0.temp) } ?? "–").font(.px(30)).rolling(scene?.temp ?? 0)
             if let s = scene {
-                Text("최고 \(model.deg(s.hi)) · 최저 \(model.deg(s.lo))").font(.system(size: 11)).foregroundStyle(UI.sub)
+                Text("최고 \(model.deg(s.hi)) · 최저 \(model.deg(s.lo))").font(.ui(11)).foregroundStyle(UI.sub)
             }
         }
     }

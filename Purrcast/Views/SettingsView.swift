@@ -81,7 +81,7 @@ struct SettingsView: View {
                         SettingRow(title: "버전") { trailingText(Self.version) }
                     }
                     Text(model.isSample ? "지금은 예시 날씨로 보여요 (서버 연결 전)" : "")
-                        .font(.system(size: 11)).foregroundStyle(UI.faint).padding(.top, 14).padding(.bottom, 30)
+                        .font(.ui(11)).foregroundStyle(UI.faint).padding(.top, 14).padding(.bottom, 30)
                 }
             }
         }
@@ -93,7 +93,7 @@ struct SettingsView: View {
             RowGroup {
                 SettingRow(icon: "sparkle", title: "Plus 구독 중", subtitle: purchases.statusLine) {
                     Link(destination: URL(string: "https://apps.apple.com/account/subscriptions")!) {
-                        HStack(spacing: 4) { Text("관리"); Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)) }
+                        HStack(spacing: 4) { Text("관리"); Image(systemName: "chevron.right").font(.ui(11, .bold)) }
                             .font(.system(size: 14)).foregroundStyle(UI.sub)
                     }
                 }
@@ -104,10 +104,10 @@ struct SettingsView: View {
                     PixelIcon(name: "sparkle", size: 26)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(Brand.plus + (purchases.trialText(Purchases.yearly).map { " · \($0)" } ?? "")).font(.px(16)).foregroundStyle(UI.ink)
-                        Text(PaywallView.features.prefix(4).map { $0.check }.joined(separator: " · ")).font(.system(size: 12)).foregroundStyle(UI.sub)
+                        Text(PaywallView.features.prefix(4).map { $0.check }.joined(separator: " · ")).font(.ui(12)).foregroundStyle(UI.sub)
                     }
                     Spacer()
-                    Image(systemName: "chevron.right").font(.system(size: 13, weight: .bold)).foregroundStyle(UI.accent)
+                    Image(systemName: "chevron.right").font(.ui(13, .bold)).foregroundStyle(UI.accent)
                 }
                 .padding(16).background(UI.accentSoft).clipShape(RoundedRectangle(cornerRadius: 16))
             }
@@ -122,10 +122,10 @@ struct SettingsView: View {
     private func trailingText(_ t: String) -> some View {
         HStack(spacing: 4) {
             Text(t).font(.system(size: 14)).foregroundStyle(UI.sub)
-            Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(UI.faint)
+            Image(systemName: "chevron.right").font(.ui(11, .bold)).foregroundStyle(UI.faint)
         }
     }
-    private var chevron: some View { Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(UI.faint) }
+    private var chevron: some View { Image(systemName: "chevron.right").font(.ui(11, .bold)).foregroundStyle(UI.faint) }
 
     private func go(_ r: Route) {
         Haptic.soft()
@@ -146,11 +146,11 @@ struct SourcesView: View {
                 source("기상청", "한국", "기본 예보 · 기상특보 · 다음 6시간(Plus) · 출처: 기상청", "공공누리 제1유형(출처표시)")
                 source("MET Norway", "전 세계", "해외 예보 · 4~10일 예보 · 자외선 · Data from MET Norway", "CC BY 4.0 · 앱에 맞게 그림과 문구로 바꿔 보여줘요")
                 Link("MET Norway 라이선스 (CC BY 4.0)", destination: URL(string: "https://creativecommons.org/licenses/by/4.0/")!)
-                    .font(.system(size: 12)).tint(UI.accent)
+                    .font(.ui(12)).tint(UI.accent)
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("그 밖에").font(.system(size: 13, weight: .semibold)).foregroundStyle(UI.sub)
-                    Text("일출 · 일몰: 위치로 폰에서 계산").font(.system(size: 13)).foregroundStyle(UI.ink)
-                    Text("글꼴: Galmuri11 (SIL OFL 1.1)").font(.system(size: 13)).foregroundStyle(UI.ink)
+                    Text("그 밖에").font(.ui(13, .semibold)).foregroundStyle(UI.sub)
+                    Text("일출 · 일몰: 위치로 폰에서 계산").font(.ui(13)).foregroundStyle(UI.ink)
+                    Text("글꼴: Galmuri11 (SIL OFL 1.1)").font(.ui(13)).foregroundStyle(UI.ink)
                 }
             }
             .padding(20)
@@ -161,9 +161,9 @@ struct SourcesView: View {
     }
     private func source(_ name: String, _ area: String, _ use: String, _ license: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack { Text(name).font(.px(17)); Spacer(); Text(area).font(.system(size: 12)).foregroundStyle(UI.sub) }
-            Text(use).font(.system(size: 13)).foregroundStyle(UI.ink)
-            Text(license).font(.system(size: 12)).foregroundStyle(UI.sub)
+            HStack { Text(name).font(.px(17)); Spacer(); Text(area).font(.ui(12)).foregroundStyle(UI.sub) }
+            Text(use).font(.ui(13)).foregroundStyle(UI.ink)
+            Text(license).font(.ui(12)).foregroundStyle(UI.sub)
         }
         .foregroundStyle(UI.ink).padding(16).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 16))
     }

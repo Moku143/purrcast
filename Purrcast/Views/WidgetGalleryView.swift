@@ -27,7 +27,7 @@ struct WidgetGalleryView: View {
                 ZStack {
                     LinearGradient(colors: [Color(hex: "#5B5FA8"), Color(hex: "#2E2F66")], startPoint: .top, endPoint: .bottom)
                     VStack(spacing: 10) {
-                        Text(LockText.inline(snap)).font(.system(size: 13, weight: .semibold))
+                        Text(LockText.inline(snap)).font(.ui(13, .semibold))
                         Text("9:41").font(.system(size: 64, weight: .semibold, design: .rounded))
                         HStack(spacing: 12) {
                             LockRectangularView(snap: snap).frame(width: 160, height: 66)
@@ -38,7 +38,7 @@ struct WidgetGalleryView: View {
                     .foregroundStyle(.white).padding(.vertical, 18)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 26))
-                Text("잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 \(Brand.name)를 골라요.").font(.system(size: 12)).foregroundStyle(UI.sub)
+                Text("잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 \(Brand.name)를 골라요.").font(.ui(12)).foregroundStyle(UI.sub)
             }
             .padding(16)
         }
@@ -51,7 +51,7 @@ struct WidgetGalleryView: View {
     private func step(_ n: String, _ t: String) -> some View {
         HStack(alignment: .top, spacing: 6) {
             Text(n).font(.px(12)).foregroundStyle(.white).frame(width: 18, height: 18).background(UI.accent).clipShape(Circle())
-            Text(t).font(.system(size: 13)).foregroundStyle(UI.ink)
+            Text(t).font(.ui(13)).foregroundStyle(UI.ink)
         }
     }
     private func widgetBox<C: View>(_ w: CGFloat, _ h: CGFloat, @ViewBuilder _ c: () -> C) -> some View {

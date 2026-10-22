@@ -40,10 +40,13 @@ enum FontPref { static var pixel = true }
 
 extension Font {
     /// Galmuri11 Bold, the pixel face used for numbers and headings (system rounded when the user picks plain text)
+    /// Small text (≤ 13 pt) reads a notch bigger across the app; big numbers stay as designed.
+    private static func bump(_ size: CGFloat) -> CGFloat { size >= 9 && size <= 13 ? size + 1 : size }
     static func px(_ size: CGFloat) -> Font {
-        FontPref.pixel ? .custom("Galmuri11-Bold", size: size) : .system(size: size * 1.04, weight: .bold, design: .rounded)
+        let s = bump(size)
+        return FontPref.pixel ? .custom("Galmuri11-Bold", size: s) : .system(size: s * 1.04, weight: .bold, design: .rounded)
     }
-    static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font { .system(size: size, weight: weight) }
+    static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font { .system(size: bump(size), weight: weight) }
 }
 
 /// Pixel icons from the kit (icon-<name>), drawn with nearest-neighbour scaling.

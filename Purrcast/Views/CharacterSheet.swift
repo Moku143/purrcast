@@ -34,7 +34,7 @@ struct CharacterSheet: View {
                     }
                     .buttonStyle(.press(0.98)).padding(.horizontal, 16).padding(.top, 14).reveal(1)
                 }
-                Text("위젯 · 애플워치도 같이 바뀌어요").font(.system(size: 12)).foregroundStyle(UI.sub)
+                Text("위젯 · 애플워치도 같이 바뀌어요").font(.ui(12)).foregroundStyle(UI.sub)
                     .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 24)
             }
         }
@@ -61,7 +61,7 @@ struct CharacterSheet: View {
                     Text(model.name(of: c)).font(.px(15)).foregroundStyle(UI.ink).lineLimit(1).minimumScaleFactor(0.7)
                     if selected {
                         Button { draft = model.name(of: c); renaming = c } label: {
-                            Image(systemName: "pencil").font(.system(size: 13, weight: .bold)).foregroundStyle(UI.sub)
+                            Image(systemName: "pencil").font(.ui(13, .bold)).foregroundStyle(UI.sub)
                         }.buttonStyle(.plain).accessibilityIdentifier("rename").accessibilityLabel("이름 바꾸기")
                     }
                 }

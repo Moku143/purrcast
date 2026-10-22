@@ -135,8 +135,8 @@ struct LockRectangularView: View {
                 .opacity(0.62)     // see-through, like the system's own lock-screen glyphs
             VStack(alignment: .leading, spacing: 1) {
                 Text(snap.deg(s.temp)).font(.system(size: 15, weight: .semibold)).opacity(0.92)
-                Text(LockText.line(s)).font(.system(size: 12, weight: .medium)).lineLimit(1).opacity(0.85)
-                Text("강수 \(chanceNow(s))% · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.system(size: 11)).opacity(0.65)
+                Text(LockText.line(s)).font(.ui(12, .medium)).lineLimit(1).opacity(0.85)
+                Text("강수 \(chanceNow(s))% · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.ui(11)).opacity(0.65)
             }
             Spacer(minLength: 0)
         }
@@ -156,9 +156,9 @@ struct LockCircularView: View {
         } currentValueLabel: {
             Text("\(u(s.temp))").font(.system(size: 18, weight: .semibold)).foregroundStyle(.white.opacity(0.92))
         } minimumValueLabel: {
-            Text("\(u(s.lo))").font(.system(size: 9)).foregroundStyle(.white.opacity(0.65))
+            Text("\(u(s.lo))").font(.ui(9)).foregroundStyle(.white.opacity(0.65))
         } maximumValueLabel: {
-            Text("\(u(s.hi))").font(.system(size: 9)).foregroundStyle(.white.opacity(0.65))
+            Text("\(u(s.hi))").font(.ui(9)).foregroundStyle(.white.opacity(0.65))
         }
         .gaugeStyle(.accessoryCircular)
         .tint(Gradient(colors: [.white.opacity(0.18), .white.opacity(0.95)]))   // from today's low (faint) to high (solid white)   // iOS draws lock widgets as frosted glass over the wallpaper; this matches it

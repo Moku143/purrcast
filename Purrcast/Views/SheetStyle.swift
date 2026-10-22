@@ -33,7 +33,7 @@ struct SheetHeader: View {
 struct PlusTag: View {
     var text = "Plus"
     var body: some View {
-        Text(text).font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+        Text(text).font(.ui(11, .bold)).foregroundStyle(.white)
             .padding(.horizontal, 7).padding(.vertical, 3)
             .background(UI.plus).clipShape(Capsule())
     }
@@ -43,7 +43,7 @@ struct PlusTag: View {
 struct SectionLabel: View {
     let text: String
     var body: some View {
-        Text(text).font(.system(size: 13, weight: .medium)).foregroundStyle(UI.sub)
+        Text(text).font(.ui(13, .medium)).foregroundStyle(UI.sub)
             .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 22).padding(.top, 18).padding(.bottom, 6)
     }
 }
@@ -78,7 +78,7 @@ struct SettingRow<Trailing: View>: View {
                     Text(title).font(.system(size: 16, weight: .medium)).foregroundStyle(UI.ink)
                     if plus { PlusTag() }
                 }
-                if let subtitle { Text(subtitle).font(.system(size: 12)).foregroundStyle(UI.sub) }
+                if let subtitle { Text(subtitle).font(.ui(12)).foregroundStyle(UI.sub) }
             }
             Spacer(minLength: 8)
             trailing
@@ -96,7 +96,7 @@ struct Pills<T: Hashable>: View {
         HStack(spacing: 2) {
             ForEach(options, id: \.0) { o in
                 Button { Haptic.select(); withAnimation(Motion.snappy) { value = o.0 } } label: {
-                    Text(o.1).font(.system(size: 13, weight: .semibold))
+                    Text(o.1).font(.ui(13, .semibold))
                         .foregroundStyle(value == o.0 ? UI.ink : UI.sub)
                         .padding(.horizontal, 11).padding(.vertical, 6)
                         .background {

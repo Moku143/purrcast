@@ -40,7 +40,7 @@ struct PaywallView: View {
                     Image(PurrCharacter.cat.faceImage).resizable().scaledToFit().frame(width: 46, height: 46).reveal(0, rise: 8)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(Brand.plus).font(.px(26)).foregroundStyle(UI.ink)
-                        Text("옆으로 넘겨 보세요").font(.system(size: 13)).foregroundStyle(UI.sub)
+                        Text("옆으로 넘겨 보세요").font(.ui(13)).foregroundStyle(UI.sub)
                     }
                 }
                 .padding(.top, 14)
@@ -90,14 +90,14 @@ struct PaywallView: View {
                 .accessibilityIdentifier("subscribe")
 
                 Text(disclosure)
-                    .font(.system(size: 11)).foregroundStyle(UI.sub).multilineTextAlignment(.center)
+                    .font(.ui(11)).foregroundStyle(UI.sub).multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity).padding(.top, 10)
                 HStack(spacing: 6) {
                     Link("이용약관(EULA)", destination: Legal.terms)
                     Text("·")
                     Link("개인정보 처리방침", destination: Legal.privacy)
                 }
-                .font(.system(size: 12)).foregroundStyle(UI.sub).frame(maxWidth: .infinity).padding(.top, 6).padding(.bottom, 30)
+                .font(.ui(12)).foregroundStyle(UI.sub).frame(maxWidth: .infinity).padding(.top, 6).padding(.bottom, 30)
             }
             .padding(.horizontal, 20)
         }
@@ -127,9 +127,9 @@ struct PaywallView: View {
         let on = pick == id
         return Button { Haptic.select(); withAnimation(Motion.snappy) { pick = id } } label: {
             VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.system(size: 13, weight: .medium)).foregroundStyle(UI.sub)
+                Text(title).font(.ui(13, .medium)).foregroundStyle(UI.sub)
                 Text(purchases.price(id) ?? "–").font(.px(20)).foregroundStyle(UI.ink)
-                Text(note).font(.system(size: 11)).foregroundStyle(UI.sub)
+                Text(note).font(.ui(11)).foregroundStyle(UI.sub)
             }
             .frame(maxWidth: .infinity, alignment: .leading).padding(14).padding(.top, 6)
             .background(on ? UI.accentSoft.opacity(0.55) : Color.white)
@@ -193,7 +193,7 @@ struct PaywallView: View {
             ForEach(0..<3, id: \.self) { k in
                 RoundedRectangle(cornerRadius: 4)
                     .fill(ad && k == 1 ? UI.accentSoft : Color.white)
-                    .overlay(ad && k == 1 ? Text("Ad").font(.system(size: 9, weight: .bold)).foregroundStyle(UI.accent) : nil)
+                    .overlay(ad && k == 1 ? Text("Ad").font(.ui(9, .bold)).foregroundStyle(UI.accent) : nil)
                     .frame(height: 18)
             }
         }
@@ -210,7 +210,7 @@ struct FlowChecks: View {
             ForEach(rows, id: \.self) { r in
                 HStack(spacing: 8) {
                     ForEach(r, id: \.self) { t in
-                        Text("✓ " + t).font(.system(size: 12, weight: .medium)).foregroundStyle(UI.ink)
+                        Text("✓ " + t).font(.ui(12, .medium)).foregroundStyle(UI.ink)
                             .padding(.horizontal, 10).padding(.vertical, 6).background(Color.white.opacity(0.8)).clipShape(Capsule())
                     }
                 }

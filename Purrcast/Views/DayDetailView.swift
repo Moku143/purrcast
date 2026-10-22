@@ -46,7 +46,7 @@ struct DayDetailView: View {
                                     Text(x.name).font(.px(11)).foregroundStyle(i == index ? .white : UI.sub)
                                     PixelIcon(name: x.icon, size: 26)
                                     Text(dayNumber(i)).font(.px(14))
-                                    Text("\(model.deg(x.hi))/\(model.deg(x.lo))").font(.system(size: 9)).foregroundStyle(i == index ? .white.opacity(0.8) : UI.sub)
+                                    Text("\(model.deg(x.hi))/\(model.deg(x.lo))").font(.ui(9)).foregroundStyle(i == index ? .white.opacity(0.8) : UI.sub)
                                 }
                                 .foregroundStyle(i == index ? .white : UI.ink)
                                 .frame(width: 50).padding(.vertical, 8)
@@ -68,7 +68,7 @@ struct DayDetailView: View {
                             Text("\(model.deg(d.hi)) / \(model.deg(d.lo))").font(.px(20)).rolling(d.hi * 1000 + d.lo)
                             Text("일교차 \(d.hi - d.lo)°").font(.px(11)).padding(.horizontal, 6).padding(.vertical, 2).background(Color(hex: "#FFE8A3"))
                         }
-                        Text(summary(d, detail)).font(.system(size: 13)).foregroundStyle(UI.ink)
+                        Text(summary(d, detail)).font(.ui(13)).foregroundStyle(UI.ink)
                     }
                     .padding(12).frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color.white).overlay(Rectangle().stroke(UI.ink, lineWidth: 2))
@@ -78,7 +78,7 @@ struct DayDetailView: View {
                     HStack(spacing: 6) {
                         ForEach(Array(metrics.enumerated()), id: \.offset) { i, m in
                             Button { Haptic.select(); withAnimation(Motion.snappy) { metric = i } } label: {
-                                VStack(spacing: 3) { PixelIcon(name: m.0, size: 18); Text(m.1).font(.system(size: 11, weight: .medium)) }
+                                VStack(spacing: 3) { PixelIcon(name: m.0, size: 18); Text(m.1).font(.ui(11, .medium)) }
                                     .foregroundStyle(i == metric ? .white : UI.ink)
                                     .frame(maxWidth: .infinity).padding(.vertical, 8)
                                     .background {
@@ -96,7 +96,7 @@ struct DayDetailView: View {
                         HStack {
                             ForEach(Array(detail.enumerated()), id: \.offset) { i, h in
                                 if i % 2 == 0 {
-                                    Text(model.hourLabel(h.label)).font(.system(size: 10)).foregroundStyle(UI.sub)
+                                    Text(model.hourLabel(h.label)).font(.ui(10)).foregroundStyle(UI.sub)
                                     if i < detail.count - 2 { Spacer() }
                                 }
                             }
@@ -107,7 +107,7 @@ struct DayDetailView: View {
                         Text("시간대별 \(metrics[metric].1)").font(.px(13))
                         HStack(spacing: 8) {
                             ForEach(Array(bands(detail).enumerated()), id: \.offset) { i, b in
-                                VStack(spacing: 4) { Text(b.0).font(.system(size: 11)); Text(value(b.1)).font(.px(16)).rolling(value(b.1)) }
+                                VStack(spacing: 4) { Text(b.0).font(.ui(11)); Text(value(b.1)).font(.px(16)).rolling(value(b.1)) }
                                     .foregroundStyle(i == 2 ? .white : UI.ink)
                                     .frame(maxWidth: .infinity).padding(.vertical, 10)
                                     .background(i == 2 ? UI.ink : Color.white).overlay(Rectangle().stroke(UI.ink, lineWidth: 1.5))

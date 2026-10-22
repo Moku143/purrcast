@@ -70,7 +70,7 @@ struct HomeView: View {
 
     private func notice(_ text: String, ink: Ink) -> some View {
         HStack(spacing: 8) {
-            Image(systemName: "wifi.exclamationmark").font(.system(size: 13, weight: .bold))
+            Image(systemName: "wifi.exclamationmark").font(.ui(13, .bold))
             Text(text).font(.ui(12, .medium))
             Spacer()
         }
@@ -105,7 +105,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 7) {
                     Button { route = .places } label: {
                         HStack(spacing: 6) {
-                            Image(systemName: model.hereIsLive && model.currentPlace.id == "here" ? "location.fill" : "mappin").font(.system(size: 13, weight: .bold))
+                            Image(systemName: model.hereIsLive && model.currentPlace.id == "here" ? "location.fill" : "mappin").font(.ui(13, .bold))
                             Text(s.place ?? model.currentPlace.name).font(.px(17))
                         }
                     }.buttonStyle(.press(0.97)).accessibilityIdentifier("place")
@@ -273,7 +273,7 @@ struct HomeView: View {
                             }.frame(height: g.size.height)
                         }.frame(height: 6)
                         Text(deg(d.hi)).font(.px(13)).frame(width: 28, alignment: .trailing).rolling(d.hi)
-                        Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(ink.faint)
+                        Image(systemName: "chevron.right").font(.ui(10, .bold)).foregroundStyle(ink.faint)
                     }
                     .frame(height: 42).contentShape(Rectangle()) }
                     .buttonStyle(.row).accessibilityIdentifier("day-\(i)")
