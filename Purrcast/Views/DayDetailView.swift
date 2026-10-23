@@ -142,16 +142,16 @@ struct DayDetailView: View {
             loPart = partOfDay(cold.label); hiPart = partOfDay(warm.label)
         }
         if hi >= 30 {
-            t = "\(hiPart) 최고 \(model.deg(hi)). 더워요, 물 챙겨요." + (lo >= 25 ? " 밤에도 \(model.deg(lo)) 이상이에요." : "")
+            t = "\(hiPart)에 최고 \(model.deg(hi))예요. 더우니 물을 챙겨 주세요." + (lo >= 25 ? " 밤에도 \(model.deg(lo)) 이상이에요." : "")
         } else if hi <= 0 || lo <= -5 {
-            t = "\(loPart) \(model.deg(lo)), \(hiPart) \(model.deg(hi)). 많이 추워요."
+            t = "\(loPart) \(model.deg(lo)), \(hiPart) \(model.deg(hi))예요. 많이 추워요."
         } else if hi - lo >= 6 {
-            t = "\(loPart) \(model.deg(lo)), \(hiPart) \(model.deg(hi)). 일교차 커서 겉옷 챙겨요."
+            t = "\(loPart) \(model.deg(lo)), \(hiPart) \(model.deg(hi))예요. 일교차가 커서 겉옷이 필요해요."
         } else {
-            t = "하루 종일 \(model.deg(lo))~\(model.deg(hi))."
+            t = "하루 종일 \(model.deg(lo))~\(model.deg(hi))예요."
         }
-        if d.chance >= 60 { t += d.icon == "snowflake" ? " 눈 예보. 길이 미끄러울 수 있어요." : " 비 예보. 우산 챙겨요." }
-        else if d.chance >= 30 { t += " 비 올 가능성 \(d.chance)%. 우산 있으면 좋아요." }
+        if d.chance >= 60 { t += d.icon == "snowflake" ? " 눈 예보예요. 길이 미끄러울 수 있어요." : " 비 예보예요. 우산을 챙겨 주세요." }
+        else if d.chance >= 30 { t += " 비 올 가능성이 \(d.chance)%예요. 우산이 있으면 좋아요." }
         return t
     }
 
