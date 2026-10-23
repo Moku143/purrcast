@@ -143,6 +143,7 @@ struct WeatherScene: Codable, Identifiable {
     /// ["수", "raincloud", 60, 12, 16] → name, icon, chance %, lo, hi
     struct DayRow: Codable {
         var name: String; var icon: String; var chance: Int; var lo: Int; var hi: Int
+        init(name: String, icon: String, chance: Int, lo: Int, hi: Int) { self.name = name; self.icon = icon; self.chance = chance; self.lo = lo; self.hi = hi }
         init(from decoder: Decoder) throws {
             var c = try decoder.unkeyedContainer()
             name = try c.decode(String.self); icon = try c.decode(String.self)

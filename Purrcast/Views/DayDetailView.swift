@@ -146,14 +146,24 @@ struct DayDetailView: View {
         } else if hi <= 0 || lo <= -5 {
             t = "\(loPart) \(model.deg(lo)), \(hiPart) \(model.deg(hi))예요. 많이 추워요."
         } else if hi - lo >= 6 {
-            t = "\(loPart) \(model.deg(lo)), \(hiPart) \(model.deg(hi))예요. 일교차가 커서 겉옷이 필요해요."
+            t = "\(loPart) \(model.deg(lo)), \(hiPart) \(model.deg(hi))예요. 일교차가 커요."
         } else {
             t = "하루 종일 \(model.deg(lo))~\(model.deg(hi))예요."
+        }
+        // vs the day before (the 10-day list has yesterday only as "today" when looking at tomorrow+)
+        let s = model.scene
+        if let i = s.days.firstIndex(where: { $0.name == d.name && $0.hi == d.hi && $0.lo == d.lo }), i > 0 {
+            let diff = d.hi - s.days[i - 1].hi
+            if abs(diff) >= 3 { t += " 전날보다 \(abs(diff))° \(diff > 0 ? "높아요" : "낮아요")." }
+        } else if i0(d), abs(s.yday) >= 3 {
+            t += " 어제 이맘때보다 \(abs(s.yday))° \(s.yday > 0 ? "높아요" : "낮아요")."
         }
         if d.chance >= 60 { t += d.icon == "snowflake" ? " 눈 예보예요. 길이 미끄러울 수 있어요." : " 비 예보예요. 우산을 챙겨 주세요." }
         else if d.chance >= 30 { t += " 비 올 가능성이 \(d.chance)%예요. 우산이 있으면 좋아요." }
         return t
     }
+
+    private func i0(_ d: WeatherScene.DayRow) -> Bool { model.scene.days.first.map { $0.name == d.name && $0.hi == d.hi } ?? false }
 
     /// "9시" → 아침 (never a clock time in a sentence)
     private func partOfDay(_ label: String) -> String {

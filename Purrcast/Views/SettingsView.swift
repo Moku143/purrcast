@@ -45,6 +45,8 @@ struct SettingsView: View {
                             }
                         }
                         RowDivider()
+                        SettingRow(icon: "daynight", title: "기온 변화", subtitle: "아침에 어제와 비교해 알려 드려요") { toggle($model.notifyChange) }
+                        RowDivider()
                         SettingRow(icon: "zzz", title: "조용한 시간") { trailingText("22:00~07:00") }
                     }
 

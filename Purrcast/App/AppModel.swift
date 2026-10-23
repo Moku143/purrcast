@@ -35,6 +35,7 @@ final class AppModel: ObservableObject {
     @Published var useLocation: Bool { didSet { persist(); if useLocation { location.ask() }; Task { await refresh(force: true) } } }
     @Published var notifyRain: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyRain && !oldValue) } }
     @Published var notifyMorning: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyMorning && !oldValue) } }
+    @Published var notifyChange: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyChange && !oldValue) } }   // 어제와 기온 비교, 아침에
     @Published var morningTime: Date { didSet { persist(); planNotifications() } }
     @Published var onboarded: Bool { didSet { persist() } }
 
@@ -92,6 +93,7 @@ final class AppModel: ObservableObject {
         useLocation = testing ? false : (d.object(forKey: "useLocation") as? Bool ?? true)
         notifyRain = d.object(forKey: "notifyRain") as? Bool ?? true
         notifyMorning = d.object(forKey: "notifyMorning") as? Bool ?? true
+        notifyChange = d.object(forKey: "notifyChange") as? Bool ?? true
         morningTime = d.object(forKey: "morningTime") as? Date ?? Calendar.current.date(from: DateComponents(hour: 7, minute: 0)) ?? Date()
         onboarded = testing ? !args.contains("-onboarding") : d.bool(forKey: "onboarded")
         FontPref.pixel = pixelFont
@@ -210,7 +212,7 @@ final class AppModel: ObservableObject {
         d.set(character.rawValue, forKey: "character"); d.set(names, forKey: "names")
         d.set(unitF, forKey: "unitF"); d.set(clock12, forKey: "clock12"); d.set(wind.rawValue, forKey: "wind")
         d.set(pixelFont, forKey: "pixelFont"); d.set(useLocation, forKey: "useLocation")
-        d.set(notifyRain, forKey: "notifyRain"); d.set(notifyMorning, forKey: "notifyMorning"); d.set(morningTime, forKey: "morningTime")
+        d.set(notifyRain, forKey: "notifyRain"); d.set(notifyMorning, forKey: "notifyMorning"); d.set(notifyChange, forKey: "notifyChange"); d.set(morningTime, forKey: "morningTime")
         d.set(onboarded, forKey: "onboarded")
     }
 
@@ -233,7 +235,7 @@ final class AppModel: ObservableObject {
         guard pinnedScene == nil, hasData else { return }
         // example weather must never turn into a real-looking alert
         Notifications.plan(scene: scene, place: currentPlace, rain: notifyRain && !isSample, morning: notifyMorning && !isSample,
-                           morningTime: morningTime, unitF: unitF)
+                           change: notifyChange && !isSample, morningTime: morningTime, unitF: unitF)
     }
 
     /// A toggle went on: ask for permission if nobody asked yet, then plan.

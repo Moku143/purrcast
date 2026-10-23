@@ -6,11 +6,11 @@ import UserNotifications
 /// computed in that time zone and scheduled as an interval (correct wherever the phone is).
 /// (기상특보 push needs the server to send it; until then warnings show in the bubble only.)
 enum Notifications {
-    static func plan(scene s: WeatherScene, place: Place, rain: Bool, morning: Bool, morningTime: Date, unitF: Bool) {
+    static func plan(scene s: WeatherScene, place: Place, rain: Bool, morning: Bool, change: Bool, morningTime: Date, unitF: Bool) {
         let deg = { (v: Int) -> String in "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)°" }
         let c = UNUserNotificationCenter.current()
         c.getNotificationSettings { settings in
-            c.removePendingNotificationRequests(withIdentifiers: ["rain", "morning"])
+            c.removePendingNotificationRequests(withIdentifiers: ["rain", "morning", "change"])
             guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else { return }
 
             // 비 오기 전: 30 minutes before the first rainy hour (quiet hours 22:00–07:00 skipped)
@@ -28,18 +28,51 @@ enum Notifications {
                 }
             }
 
-            // 아침 요약: tomorrow at the chosen time (the user's own clock), with tomorrow's numbers
-            if morning, s.days.count > 1 {
-                let d = s.days[1]
+            // tomorrow morning at the chosen time (the user's own clock), with tomorrow's numbers
+            let t = Calendar.current.dateComponents([.hour, .minute], from: morningTime)
+            var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date().addingTimeInterval(86400))
+            comps.hour = t.hour ?? 7; comps.minute = t.minute ?? 0
+            let today = s.days.first, tomorrow = s.days.count > 1 ? s.days[1] : nil
+
+            // 아침 요약
+            if morning, let d = tomorrow {
                 let n = UNMutableNotificationContent()
                 n.title = "\(place.short) · 오늘 \(deg(d.lo)) ~ \(deg(d.hi))"
-                n.body = d.chance >= 30 ? "비 올 확률 \(d.chance)% · 우산 챙기세요" : "옷차림은 앱에서 확인해 보세요"
-                let t = Calendar.current.dateComponents([.hour, .minute], from: morningTime)
-                var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date().addingTimeInterval(86400))
-                comps.hour = t.hour ?? 7; comps.minute = t.minute ?? 0
+                n.body = morningBody(d)
                 c.add(UNNotificationRequest(identifier: "morning", content: n, trigger: UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)))
             }
+
+            // 기온 변화: how tomorrow compares with today (said the next morning as "어제보다")
+            if change, let d = tomorrow, let y = today {
+                let n = UNMutableNotificationContent()
+                n.title = changeTitle(place: place.short, todayHi: d.hi, yesterdayHi: y.hi, unitF: unitF)
+                n.body = changeBody(d, deg: deg)
+                // a minute after the summary so the two never collapse into one line
+                var cc = comps; cc.minute = (cc.minute ?? 0) + 1
+                if cc.minute == 60 { cc.minute = 0; cc.hour = ((cc.hour ?? 7) + 1) % 24 }
+                c.add(UNNotificationRequest(identifier: "change", content: n, trigger: UNCalendarNotificationTrigger(dateMatching: cc, repeats: false)))
+            }
         }
+    }
+
+    static func morningBody(_ d: WeatherScene.DayRow) -> String {
+        if d.chance >= 60 { return d.icon == "snowflake" ? "눈 예보예요 · 길이 미끄러울 수 있어요" : "비 예보예요 · 우산을 챙겨 주세요" }
+        if d.chance >= 30 { return "비 올 가능성 \(d.chance)% · 우산이 있으면 좋아요" }
+        return d.hi - d.lo >= 8 ? "일교차가 커요" : "옷차림은 앱에서 확인해 보세요"
+    }
+
+    /// "어제보다 4° 낮아요" / "어제와 비슷해요" (the day's high, °F-aware)
+    static func changeTitle(place: String, todayHi: Int, yesterdayHi: Int, unitF: Bool) -> String {
+        let diff = todayHi - yesterdayHi
+        let shown = unitF ? Int((Double(abs(diff)) * 1.8).rounded()) : abs(diff)
+        if abs(diff) < 2 { return "\(place) · 어제와 비슷해요" }
+        return "\(place) · 어제보다 \(shown)° \(diff > 0 ? "높아요" : "낮아요")"
+    }
+    static func changeBody(_ d: WeatherScene.DayRow, deg: (Int) -> String) -> String {
+        var t = "오늘 \(deg(d.lo)) ~ \(deg(d.hi))"
+        if d.hi - d.lo >= 8 { t += " · 일교차가 커요" }
+        if d.chance >= 60 { t += " · 비 예보" } else if d.chance >= 30 { t += " · 비 올 수도" }
+        return t
     }
 
     /// Start of the first rainy hour in the hourly rows ("16시", in the place's time zone) and that hour.

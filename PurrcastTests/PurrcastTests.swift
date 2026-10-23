@@ -152,4 +152,13 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(LocationService.shortCity("경기도"), "경기")
         XCTAssertEqual(LocationService.shortCity("제주특별자치도"), "제주")
     }
+
+    func testChangeNotificationWords() {
+        XCTAssertEqual(Notifications.changeTitle(place: "마포구", todayHi: 15, yesterdayHi: 19, unitF: false), "마포구 · 어제보다 4° 낮아요")
+        XCTAssertEqual(Notifications.changeTitle(place: "마포구", todayHi: 20, yesterdayHi: 19, unitF: false), "마포구 · 어제와 비슷해요")
+        XCTAssertEqual(Notifications.changeTitle(place: "NYC", todayHi: 25, yesterdayHi: 20, unitF: true), "NYC · 어제보다 9° 높아요")
+        let d = WeatherScene.DayRow(name: "금", icon: "raincloud", chance: 70, lo: 9, hi: 19)
+        XCTAssertEqual(Notifications.changeBody(d, deg: { "\($0)°" }), "오늘 9° ~ 19° · 일교차가 커요 · 비 예보")
+        XCTAssertEqual(Notifications.morningBody(d), "비 예보예요 · 우산을 챙겨 주세요")
+    }
 }
