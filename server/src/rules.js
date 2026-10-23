@@ -13,7 +13,13 @@ export function level(feels, prev = null) {
   return lv;
 }
 
-export const rainKind = (mm) => (mm >= 6 ? '강한 비' : mm >= 2.5 ? '보통 비' : '약한 비');
+/** Rain per hour in everyday terms, and what it means for an umbrella */
+export const rainKind = (mm) => (mm >= 30 ? '매우 강한 비' : mm >= 15 ? '강한 비' : mm >= 3 ? '보통 비' : mm >= 1 ? '약한 비' : '이슬비');
+export const rainKindNote = (mm) => (mm >= 30 ? '우산으로 막기 어려워요' : mm >= 15 ? '바닥에 물이 고여요' : mm >= 3 ? '우산이 꼭 필요해요' : mm >= 1 ? '우산이 필요해요' : '우산 없이도 괜찮아요');
+/** A day's or 12 h total: 조금 · 보통 · 많음 · 매우 많음 */
+export const rainAmountWord = (mm) => (mm >= 50 ? '매우 많음' : mm >= 20 ? '많음' : mm >= 5 ? '보통' : '조금');
+/** Feels-like in eight steps */
+export const feelsWord = (c) => (c <= -10 ? '매우 추움' : c <= 0 ? '추움' : c <= 8 ? '쌀쌀' : c <= 16 ? '선선' : c <= 22 ? '쾌적' : c <= 27 ? '따뜻' : c <= 32 ? '더움' : '매우 더움');
 
 /** Pixel icon for one hour. */
 export function icon(p, night) {

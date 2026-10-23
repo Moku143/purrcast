@@ -99,8 +99,9 @@ export function buildScene(f, o) {
 
   // tiles
   const total = r1(next12.reduce((s, p) => s + (p.mm || 0), 0));
-  const rainNote = nowWet ? `지금 ${pr === 'snow' ? '눈' : '비'} · 12시간 ${total}${pr === 'snow' ? 'cm' : 'mm'}`
-    : startP ? `${when} 비 예보 · ${total}mm쯤` : '12시간 동안 비 소식 없어요';
+  const amt = pr === 'snow' ? `${total}cm` : `${total}mm (${R.rainAmountWord(total)})`;
+  const rainNote = nowWet ? `지금 ${pr === 'snow' ? '눈' : '비'} · 12시간 ${amt}`
+    : startP ? `${when} 비 예보 · ${amt}` : '12시간 동안 비 소식 없어요';
   const todayPts = pts.filter((p) => dayKey(p.t, tz) === dayKey(nowT, tz));
   const uvs = (todayPts.length ? todayPts : next12).map((p) => uvUnderCloud(p.uvClear, p.cloud)).filter((v) => v != null);
   const uv = uvs.length ? Math.round(Math.max(...uvs)) : null;

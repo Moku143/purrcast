@@ -126,7 +126,7 @@ struct HomeView: View {
                 Text(s.cond).font(.px(17)).id(s.cond).transition(.opacity.combined(with: .move(edge: .trailing)))
                 Text("최고 \(deg(s.hi)) · 최저 \(deg(s.lo))").font(.px(12)).rolling(s.hi * 1000 + s.lo)
                 HStack(spacing: 5) {
-                    Text("체감 \(deg(s.feels))").rolling(s.feels); Text("·"); Text("전일 대비")
+                    Text("체감 \(deg(s.feels)) \(Rules.feelsWord(s.feels))").rolling(s.feels); Text("·"); Text("전일 대비")
                     Text(delta(s.yday)).foregroundStyle(s.yday > 0 ? ink.hot : (s.yday < 0 ? ink.blue : ink.ink)).rolling(s.yday)
                 }.font(.px(12))
             }
@@ -183,8 +183,9 @@ struct HomeView: View {
                 // forecast tone, no clock times: 곧 / N시간 뒤, and how long it may last
                 head = st == 0 ? "지금 비" : (st <= 1 ? "곧 비 예보" : "\(st)시간 뒤 비 예보")
                 let hours = last - st + 1
-                let stop = en == nil ? "6시간 넘게 이어질 수 있어요" : (hours <= 1 ? "한 시간쯤 올 듯" : "\(hours)시간쯤 이어질 듯")
-                sub = "\(Rules.rainKind(R.max() ?? 0)) · \(stop) · 가능성 \(chance)%"
+                let stop = en == nil ? "6시간 넘게 이어질 예보" : (hours <= 1 ? "한 시간쯤 예보" : "\(hours)시간쯤 이어질 예보")
+                let peak = R.max() ?? 0
+                sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop) · 가능성 \(chance)%"
                 icon = st == 0 ? "umbrella" : "umbrella_closed"
             }
             return ("다음 6시간", s.nextSource == "met" ? "MET Norway · Plus" : "기상청 초단기 · Plus", head, sub, icon, R, six.map { model.hourLabel($0.label) })
@@ -195,8 +196,9 @@ struct HomeView: View {
                 let en = mm[st...].firstIndex(where: { $0 < 0.1 }).map { $0 - st }
                 let soon = (st + 9) / 10 * 10
                 head = st == 0 ? "지금 비" : (soon <= 10 ? "곧 비 예보" : "\(soon)분 안에 비 예보")
-                let stop = en == nil ? "한동안 이어질 수 있어요" : "\(max(10, (en! + 9) / 10 * 10))분쯤 올 듯"
-                sub = "\(Rules.rainKind(mm.max() ?? 0)) · \(stop) · 가능성 \(chance)%"
+                let stop = en == nil ? "한동안 이어질 예보" : "\(max(10, (en! + 9) / 10 * 10))분쯤 예보"
+                let peak = mm.max() ?? 0
+                sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop) · 가능성 \(chance)%"
                 icon = st == 0 ? "umbrella" : "umbrella_closed"
             }
             _ = nowMin
