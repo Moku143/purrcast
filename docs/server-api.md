@@ -74,9 +74,8 @@ dust moon umbrella umbrella_closed raindrop thermo_hot thermo_cold sunrise sunse
 chance 10–29 % → `think`; otherwise `none`.
 
 **Bubble**: one at a time, priority: rain coming / now › warnings (특보) › big temperature drop › heat / cold › nothing.
-Rain ahead is said in forecast tone, never as a clock time or a promise: `곧 비 예보` (≤ 1 h), `N시간 뒤 비 예보` (2–6 h),
-`오늘 저녁 비 예보` / `내일 아침 비 예보` (later). The free plan (the stored morning forecast) always says `오늘 비 예보`.
-Wording is `…예보` because a forecast can change; the app never states rain as certain.
+Rain ahead is said as the hours people plan around, never as a promise: `15~17시 비 예정` (first to last wet hour),
+`15시쯤 비 예정` (one hour), `내일 7~9시 비 예정`. The next-6-hours card says when it may stop (`18시쯤 그칠 예보`).
 
 ## Implementation
 
@@ -108,10 +107,10 @@ Cache per (rounded lat/lon to 0.01°, plan) until the source's next issue time; 
 
 ## 문구 규칙
 
-- **예보는 예보처럼**: "곧 비 예보", "3시간 뒤 비 예보", "오늘 저녁 비 예보". 시각(16~18시)이나 단정("올 듯")은 쓰지 않아요.
+- **비 시각은 시간대로**: "15~17시 비 예정", "15시쯤 비 예정", "내일 7~9시 비 예정". "2시간 뒤" 같은 남은 시간이나 단정("올 듯")은 쓰지 않아요. 그치는 때는 "18시쯤 그칠 예보".
 - **고유명사 알림은 그대로**: 기상청 특보 이름(호우주의보 · 태풍경보 · 대설주의보 …)과 기준 이상일 때만 나오는 이름(폭염 33° · 열대야 밤 25° · 한파 -10° · 폭우 · 폭설 · 천둥번개)은 다른 말로 바꾸지 않아요. 위젯 · 워치에서도 이 이름이 그대로 보여요.
 - **위젯 · 잠금 화면 · 워치는 문장이 아니라 단어**: `머리말 · 기온 · 꼬리말` (`Shared/Models/Compact.swift`)
-  - 머리말: 특보 · 알림 이름, 없으면 날씨 한 단어 (비 · 눈 · 맑음 · 흐림 · 곧 비 · 3시간 뒤 비 · 강한 바람 · 짙은 안개)
+  - 머리말: 특보 · 알림 이름, 없으면 날씨 한 단어 (비 · 눈 · 맑음 · 흐림 · 15~17시 비 · 강한 바람 · 짙은 안개)
   - 꼬리말: 다음으로 알아야 할 것 하나 — 우산(지금 비 · 비 예보) → 체감 N°(3° 이상 차이) → 큰 일교차(10° 이상) → 바람 · 안개 · 황사 → 최고/최저
-  - 예: `비 · 16° · 우산` · `한파 · -13° · 체감 -16°` · `호우주의보 · 18° · 우산` · `맑음 · 19° · 큰 일교차`
-  - 2x2 · 워치의 말풍선에는 5글자까지만 (비 · 한파 · 곧 비); 더 길면 아이콘만
+  - 예: `비 · 16° · 우산` · `15~17시 비 · 18° · 우산` · `한파 · -13° · 체감 -16°` · `호우주의보 · 18° · 우산` · `맑음 · 19° · 큰 일교차`
+  - 2x2 · 워치의 말풍선에는 5글자까지만 (비 · 한파 · 폭염), 4x2는 9글자까지 (15~17시 비 · 호우주의보); 더 길면 아이콘만

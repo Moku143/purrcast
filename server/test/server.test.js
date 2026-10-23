@@ -136,22 +136,21 @@ test('scene: clear dry day — no umbrella, no bubble, sun tile, valid for the a
   assert.equal(s.dayDetail.length, s.days.length); assert.equal(s.dayDetail[1].length, 8); assert.equal(s.dayDetail[1][4][0], '12시');
 });
 
-test('scene: rain in a few hours → bag + "N시간 뒤 비 예보" (forecast tone, no clock time)', () => {
+test('scene: rain in a few hours → bag + "16~17시 비 예정" (the hours people plan around)', () => {
   const hrs = flat(40, { cloud: 90, sym: 'cloudy' });
   hrs[3] = { cloud: 95, mm: 1.2, pop: 70, sym: 'rain' }; hrs[4] = { cloud: 95, mm: 2.0, pop: 70, sym: 'rain' };
   const m = parseMet(met(at(13), hrs));
   const s = buildScene({ points: m.points }, { ...SEOUL, plan: 'plus', now: at(13, 40) });
   validateScene(s);
   assert.equal(s.rain, 'bag');
-  assert.equal(s.bubble.text, '2시간 뒤 비 예보');
-  assert.doesNotMatch(s.bubble.text + s.tiles[0].note, /\d+시[쯤~ ]|\d+~\d+시/, 'no clock times in the words');
-  assert.match(s.tiles[0].note, /비 예보/);
+  assert.equal(s.bubble.text, '16~17시 비 예정');
+  assert.match(s.tiles[0].note, /^16~17시 비 예정 · /);
   assert.equal(s.tiles[0].value, '70%');
 });
 
-test('when words: 곧 · N시간 뒤 · 오늘 저녁 · 내일 아침', () => {
-  assert.equal(whenWord(1, 14, false), '곧'); assert.equal(whenWord(4, 17, false), '4시간 뒤');
-  assert.equal(whenWord(8, 19, false), '오늘 저녁'); assert.equal(whenWord(11, 7, true), '내일 아침');
+test('when words: 15~17시 · 15시쯤 · 내일 7~9시', () => {
+  assert.equal(whenWord(15, 17, false), '15~17시'); assert.equal(whenWord(15, 15, false), '15시쯤');
+  assert.equal(whenWord(7, 9, true), '내일 7~9시');
 });
 
 test('scene: heavy rain now → umbrella + 폭우, thunder → 천둥번개', () => {

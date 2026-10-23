@@ -153,8 +153,6 @@ final class AppModel: ObservableObject {
         var s = raw
         if !plus && (s.minutes != nil || s.next6 != nil) {
             s.minutes = nil; s.next6 = nil; s.plus = false; s.updated = "06:00"
-            // free: the stored morning forecast, so rain later is said loosely ("오늘 비 예보"), never as an exact window
-            if var b = s.bubble, b.icon == "umbrella_closed", b.text.contains("예보") { b.text = "오늘 비 예보"; s.bubble = b }
         } else if plus { s.plus = true }
         return s
     }

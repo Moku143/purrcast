@@ -39,7 +39,7 @@ App Store Connect → 앱 → 각 칸에 그대로 넣으면 돼요. 글자 수�
 
 • 옷 10단계: 민소매부터 롱패딩까지, 체감온도에 맞춰 갈아입어요
 • 우산 3단계: 지금 비가 오면 우산을 펴고, 곧 올 비는 가방에 챙기고, 애매하면 고민해요
-• 비 예보는 미리: "곧 비 예보", "3시간 뒤 비 예보"처럼 알려 주고 우산을 챙겨요
+• 비 오는 시간을 미리: "15~17시 비 예정"처럼 알려 주고 우산을 챙겨요
 • 날씨 그림: 구름, 비, 눈, 바람, 안개, 별, 번개가 화면에서 움직여요
 • 시간별 · 10일 예보, 자외선 · 일출 · 일몰 · 습도 · 바람
 • 홈 화면 · 잠금 화면 위젯
@@ -74,7 +74,7 @@ Purrcast shows the weather through a pixel pet: it changes clothes with the feel
 
 • 10 outfits, from tank top to long puffer
 • Umbrella states: raining now, rain later (packed in the bag), maybe
-• Rain ahead: "Rain soon", "Rain in 3 hours" — and the umbrella goes in the bag
+• Rain ahead: "Rain 3–5PM" — and the umbrella goes in the bag
 • Living sky: clouds, rain, snow, wind, fog, stars and lightning move on screen
 • Hourly and 10-day forecast, UV, sunrise and sunset, humidity, wind
 • Home Screen and Lock Screen widgets

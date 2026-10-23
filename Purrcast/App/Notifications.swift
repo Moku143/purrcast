@@ -20,7 +20,9 @@ enum Notifications {
                 let localHour = Calendar.current.component(.hour, from: at)
                 if at.timeIntervalSinceNow > 60, localHour >= 7, localHour < 22 {
                     let n = UNMutableNotificationContent()
-                    n.title = "곧 비 예보 · 우산 챙기세요"
+                    var cal = Calendar.current; cal.timeZone = TimeZone(identifier: place.timeZone) ?? .current
+                    let h = cal.component(.hour, from: fire)
+                    n.title = "\(h)시쯤 비 예정 · 우산 챙기세요"
                     n.body = "\(place.short) · 30분 안에 비가 올 수 있어요"
                     n.sound = .default
                     c.add(UNNotificationRequest(identifier: "rain", content: n,

@@ -57,7 +57,7 @@ struct MediumWidgetView: View {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 92, animate: false)
                         .frame(width: 92, height: 107, alignment: .bottom)
                     if let b = s.bubble {
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 7), fontSize: 10).fixedSize().scaleEffect(0.9, anchor: .bottom)
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 9), fontSize: 10).fixedSize().scaleEffect(0.9, anchor: .bottom)
                             .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 107))
                     }
                 }
@@ -105,7 +105,7 @@ struct SmallWidgetView: View {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false)
                         .frame(width: 72, height: 84, alignment: .bottom)
                     if let b = s.bubble {
-                        // a word ("비", "한파", "곧 비") fits above the head; longer names show just the icon here
+                        // a word ("비", "한파", "폭염") fits above the head; longer names show just the icon here
                         BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize()
                             .scaleEffect(0.85, anchor: .bottom)
                             .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 84))

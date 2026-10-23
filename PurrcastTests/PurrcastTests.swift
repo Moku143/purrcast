@@ -21,8 +21,8 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(plus.next6?.count, 6)
         XCTAssertEqual(plus.nextSource, "met")
         XCTAssertEqual(plus.dayDetail?.first?.count, 8)
-        XCTAssertEqual(plus.bubble?.text, "2시간 뒤 비 예보")
-        XCTAssertEqual(AppModel.planView(plus, plus: false).bubble?.text, "오늘 비 예보", "free plan says it loosely")
+        XCTAssertEqual(plus.bubble?.text, "16~18시 비 예정")
+        XCTAssertEqual(AppModel.planView(plus, plus: false).bubble?.text, "16~18시 비 예정", "the free plan keeps the window from the morning run")
         XCTAssertNil(free.next6)
         XCTAssertEqual(free.updated, "06:00")
     }
@@ -169,8 +169,8 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "비 · 16° · 우산")
         s.bubble?.text = "호우주의보"
         XCTAssertEqual(Compact.head(s), "호우주의보")
-        s.bubble?.text = "3시간 뒤 비 예보"; s.rain = "bag"
-        XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "3시간 뒤 비 · 16° · 우산")
+        s.bubble?.text = "15~17시 비 예정"; s.rain = "bag"
+        XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "15~17시 비 · 16° · 우산")
         s.bubble?.text = "한파!"; s.rain = "none"; s.temp = -13; s.feels = -16; s.cond = "맑음 · 한파"
         XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "한파 · -13° · 체감 -16°")
         s.bubble = nil; s.temp = 19; s.feels = 18; s.hi = 20; s.lo = 9; s.cond = "맑음"

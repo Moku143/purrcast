@@ -76,7 +76,7 @@ const B = (kind, tone, icon, text) => ({ kind, tone, icon, text });
  * One bubble at a time, by the design's priority:
  * 1 official warning · 2 own call: thunder / heavy rain / heavy snow · 3 rain starting within 2 h ·
  * 4 strong wind / thick fog · 5 extreme feels-like · 6 temperature swing / umbrella dilemma / umbrella packed.
- * Rain timing is a clock time, never a countdown.
+ * Rain timing is the clock window (15~17시 비 예정), never a countdown.
  */
 export function bubble(c) {
   const { warnings, nowWet, nowPr, thunder, startIn, wind, fog, feels, night, swing, maxPop, rain, snowNext } = c;
@@ -91,7 +91,7 @@ export function bubble(c) {
   if (nowPr === 'snow' && c.nowMm >= 3) return B('speech', 'sky', 'snowflake', '폭설!');
   const what = snowNext ? '눈' : '비';
   if (!nowWet && startIn != null && startIn <= 2) {
-    return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${c.when} ${what} 예보`);
+    return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${c.when} ${what} 예정`);
   }
   if (wind) return B('speech', 'sky', 'wind', nowWet ? (nowPr === 'snow' ? '눈보라!' : '비바람!') : '바람 세요!');
   if (fog) return B('speech', 'white', 'cloud', '안개 짙어요!');
@@ -99,7 +99,7 @@ export function bubble(c) {
   if (night && feels >= 25) return B('speech', 'night', 'sweat', '열대야!');
   if (feels <= -10) return B('shout', 'sky', 'thermo_cold', '한파!');
   if (nowWet) return nowPr === 'snow' ? B('speech', night ? 'night' : 'sky', 'snowman', '눈!') : B('speech', 'sky', 'umbrella', '비!');
-  if (startIn != null && startIn <= 12) return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${c.when} ${what} 예보`);
+  if (startIn != null && startIn <= 12) return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${c.when} ${what} 예정`);
   if (swing >= 10) return B('speech', 'night', 'daynight', '일교차 커요!');
   if (rain === 'think') return B('thought', 'sky', 'umbrella', '');
   if (rain === 'bag' && maxPop >= 30) return B('speech', 'sky', 'umbrella_closed', '우산 챙겨요');
@@ -107,14 +107,13 @@ export function bubble(c) {
 }
 
 /**
- * When rain (or snow) is expected, the way people say it — never a clock time, never a promise:
- * ≤ 1 h 곧 · 2–6 h N시간 뒤 · later today 오늘 저녁/밤 · tomorrow 내일 아침
+ * When rain (or snow) is expected, as the hours people plan around: "15~17시" (first to last wet hour),
+ * "15시쯤" when it is one hour, "내일 7~9시" when it starts tomorrow. Always "… 비 예정", never a promise.
  */
-export function whenWord(startIn, hour, tomorrow) {
-  if (startIn == null) return '';
-  if (startIn <= 1) return '곧';
-  if (startIn <= 6) return `${startIn}시간 뒤`;
-  return tomorrow ? partOfDay(hour, true) : `오늘 ${partOfDay(hour, false)}`;
+export function whenWord(startH, endH, tomorrow) {
+  if (startH == null) return '';
+  const w = startH === endH || endH == null ? `${startH}시쯤` : `${startH}~${endH}시`;
+  return tomorrow ? `내일 ${w}` : w;
 }
 
 /** "저녁 비!" style words for rain 6–12 h away. */

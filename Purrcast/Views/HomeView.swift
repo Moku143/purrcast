@@ -180,10 +180,10 @@ struct HomeView: View {
             if let st = R.firstIndex(where: { $0 >= 0.1 }) {
                 let en = R[st...].firstIndex(where: { $0 < 0.1 })
                 let last = en == nil ? R.count - 1 : en! - 1
-                // forecast tone, no clock times: 곧 / N시간 뒤, and how long it may last
-                head = st == 0 ? "지금 비" : (st <= 1 ? "곧 비 예보" : "\(st)시간 뒤 비 예보")
-                let hours = last - st + 1
-                let stop = en == nil ? "6시간 넘게 이어질 예보" : (hours <= 1 ? "한 시간쯤 예보" : "\(hours)시간쯤 이어질 예보")
+                // the hours people plan around: "15~17시 비 예정", and when it may stop
+                let hr = { (i: Int) -> String in six[i].label.replacingOccurrences(of: "시", with: "") }
+                head = st == 0 ? "지금 비" : (st == last ? "\(hr(st))시쯤 비 예정" : "\(hr(st))~\(hr(last))시 비 예정")
+                let stop = en == nil ? "6시간 넘게 이어질 예보" : "\(((Int(hr(last)) ?? 0) + 1) % 24)시쯤 그칠 예보"
                 let peak = R.max() ?? 0
                 sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop) · 가능성 \(chance)%"
                 icon = st == 0 ? "umbrella" : "umbrella_closed"
@@ -194,14 +194,15 @@ struct HomeView: View {
             var head = "1시간 동안 비 소식 없어요", sub = "", icon = "cloud"
             if let st = mm.firstIndex(where: { $0 >= 0.1 }) {
                 let en = mm[st...].firstIndex(where: { $0 < 0.1 }).map { $0 - st }
-                let soon = (st + 9) / 10 * 10
-                head = st == 0 ? "지금 비" : (soon <= 10 ? "곧 비 예보" : "\(soon)분 안에 비 예보")
-                let stop = en == nil ? "한동안 이어질 예보" : "\(max(10, (en! + 9) / 10 * 10))분쯤 예보"
+                // clock times, pulled earlier to the 10 minutes for the start (15:57 → 15:50쯤) and later for the end
+                let hhmm = { (t: Int) -> String in let m = ((t % 1440) + 1440) % 1440; return "\(m / 60):" + String(format: "%02d", m % 60) }
+                let s10 = (nowMin + st) / 10 * 10
+                head = st == 0 ? "지금 비" : (s10 > nowMin ? "\(hhmm(s10))쯤 비 예정" : "\(hhmm((nowMin + st + 9) / 10 * 10)) 전 비 예정")
+                let stop = en == nil ? "한동안 이어질 예보" : "\(hhmm((nowMin + st + en! + 9) / 10 * 10))쯤 그칠 예보"
                 let peak = mm.max() ?? 0
                 sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop) · 가능성 \(chance)%"
                 icon = st == 0 ? "umbrella" : "umbrella_closed"
             }
-            _ = nowMin
             let span = mm.count
             return ("다음 1시간", "분 단위 · Plus", head, sub, icon, mm, ["지금"] + [1, 2, 3, 4].map { "\(span * $0 / 4)분" })
         }

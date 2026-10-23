@@ -19,7 +19,7 @@
    "kind": "speech",
    "tone": "sky",
    "icon": "umbrella_closed",
-   "text": "2시간 뒤 비 예보"
+   "text": "16~18시 비 예정"
   },
   "mood": "normal",
   "snow": false,
@@ -194,7 +194,7 @@
     "label": "강수확률",
     "value": "80%",
     "unit": "",
-    "note": "2시간 뒤 비 예보 · 4.2mm (조금)"
+    "note": "16~18시 비 예정 · 4.2mm (조금)"
    },
    {
     "kind": "uv",
@@ -907,7 +907,7 @@
    "kind": "speech",
    "tone": "sky",
    "icon": "umbrella_closed",
-   "text": "2시간 뒤 비 예보"
+   "text": "16~18시 비 예정"
   },
   "mood": "normal",
   "snow": false,
@@ -1082,7 +1082,7 @@
     "label": "강수확률",
     "value": "80%",
     "unit": "",
-    "note": "2시간 뒤 비 예보 · 4.2mm (조금)"
+    "note": "16~18시 비 예정 · 4.2mm (조금)"
    },
    {
     "kind": "uv",
