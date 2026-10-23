@@ -57,7 +57,7 @@ struct MediumWidgetView: View {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 92, animate: false)
                         .frame(width: 92, height: 107, alignment: .bottom)
                     if let b = s.bubble {
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: b.text, fontSize: 10).fixedSize().scaleEffect(0.9, anchor: .bottom)
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 7), fontSize: 10).fixedSize().scaleEffect(0.9, anchor: .bottom)
                             .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 107))
                     }
                 }
@@ -105,8 +105,8 @@ struct SmallWidgetView: View {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false)
                         .frame(width: 72, height: 84, alignment: .bottom)
                     if let b = s.bubble {
-                        // short words ("비!", "한파!") fit above the head; longer lines show just the icon here
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: b.text.count <= 4 ? b.text : "", fontSize: 9).fixedSize()
+                        // a word ("비", "한파", "곧 비") fits above the head; longer names show just the icon here
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize()
                             .scaleEffect(0.85, anchor: .bottom)
                             .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 84))
                     }
@@ -136,7 +136,7 @@ struct LockRectangularView: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(snap.deg(s.temp)).font(.system(size: 15, weight: .semibold)).opacity(0.92)
                 Text(LockText.line(s)).font(.ui(12, .medium)).lineLimit(1).opacity(0.85)
-                Text("강수 \(chanceNow(s))% · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.ui(11)).opacity(0.65)
+                Text("\(Compact.tail(s, deg: snap.deg)) · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.ui(11)).opacity(0.65)
             }
             Spacer(minLength: 0)
         }
@@ -186,14 +186,9 @@ struct AccessoryWidgetBackgroundCompat: View {
 }
 
 enum LockText {
-    /// One line for the lock screen: the bubble text when there is one, the condition otherwise.
-    /// (without "!": the lock screen and complications stay calm and plain)
-    static func line(_ s: WeatherScene) -> String {
-        (s.bubble?.text ?? s.cond).replacingOccurrences(of: "!", with: "").trimmingCharacters(in: .whitespaces)
-    }
-    /// Inline lock widget (above the clock): "15~17시 비! · 18°" (no emoji: the lock screen shows one colour)
-    static func inline(_ snap: WeatherSnapshot) -> String {
-        let s = snap.scene
-        return line(s) + " · " + snap.deg(s.temp)
-    }
+    /// One word for the lock screen: the alert name when there is one (호우주의보, 한파 …), the weather otherwise.
+    /// (no "!" and no emoji: the lock screen shows one colour and stays calm)
+    static func line(_ s: WeatherScene) -> String { Compact.head(s) }
+    /// Inline lock widget and watch inline complication: "비 · 16° · 우산" — words with the temperature between them.
+    static func inline(_ snap: WeatherSnapshot) -> String { Compact.line(snap.scene, deg: snap.deg) }
 }

@@ -255,3 +255,16 @@ test('HTTP: /health, bad input 400, unknown path 404', async () => {
   assert.equal((await worker.fetch(new Request('https://x/v1/forecast?lat=999&lon=1'), {}, null)).status, 400);
   assert.equal((await worker.fetch(new Request('https://x/nope'), {}, null)).status, 404);
 });
+
+test('official names stay as they are above their thresholds: warnings, 폭염 · 열대야 · 한파 · 폭우 · 폭설 · 천둥번개', () => {
+  const base = { warnings: [], nowWet: false, nowPr: 'none', thunder: false, startIn: null, wind: false, fog: false, feels: 20, night: false, swing: 0, maxPop: 0, rain: 'none', when: '' };
+  assert.equal(bubble({ ...base, warnings: [{ name: '호우주의보' }] }).text, '호우주의보');
+  assert.equal(bubble({ ...base, warnings: [{ name: '태풍경보' }], feels: 35 }).text, '태풍경보');
+  assert.equal(bubble({ ...base, thunder: true, nowWet: true, nowPr: 'heavy' }).text, '천둥번개!');
+  assert.equal(bubble({ ...base, nowWet: true, nowPr: 'heavy' }).text, '폭우!');
+  assert.equal(bubble({ ...base, nowWet: true, nowPr: 'snow', nowMm: 3 }).text, '폭설!');
+  assert.equal(bubble({ ...base, feels: 33 }).text, '폭염!');
+  assert.equal(bubble({ ...base, feels: 25, night: true }).text, '열대야!');
+  assert.equal(bubble({ ...base, feels: -10 }).text, '한파!');
+  assert.equal(bubble({ ...base, feels: 32 }), null);        // under the threshold: no alert word
+});

@@ -22,7 +22,7 @@ struct WatchNow: View {
                         CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 74, animate: !dimmed)
                             .frame(width: 74, height: 86, alignment: .bottom)
                         if let b = s.bubble {
-                            BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: b.text.count <= 5 ? b.text : "", fontSize: 9).fixedSize()
+                            BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize()
                                 .scaleEffect(0.85, anchor: .bottom)
                                 .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 86))
                         }
@@ -30,7 +30,7 @@ struct WatchNow: View {
                     .frame(width: 80, height: 86, alignment: .bottom)
                     Spacer(minLength: 0)
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(s.cond).font(.px(11))
+                        Text(Compact.head(s)).font(.px(11))
                         Text("체감 \(snap.deg(s.feels))").font(.px(10))
                         Text("최고 \(snap.deg(s.hi)) 최저 \(snap.deg(s.lo))").font(.px(9))
                     }

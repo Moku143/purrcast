@@ -161,4 +161,22 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Notifications.changeBody(d, deg: { "\($0)°" }), "오늘 9° ~ 19° · 일교차가 커요 · 비 예보")
         XCTAssertEqual(Notifications.morningBody(d), "비 예보예요 · 우산을 챙겨 주세요")
     }
+
+    /// Widgets and the watch show words with the temperature between them; official names stay as they are.
+    func testCompactWords() {
+        var s = WeatherScene(); s.temp = 16; s.feels = 15; s.hi = 18; s.lo = 11; s.cond = "비"; s.rain = "umbrella"
+        s.bubble = WeatherScene.Bubble(kind: "speech", tone: "sky", icon: "umbrella", text: "비!")
+        XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "비 · 16° · 우산")
+        s.bubble?.text = "호우주의보"
+        XCTAssertEqual(Compact.head(s), "호우주의보")
+        s.bubble?.text = "3시간 뒤 비 예보"; s.rain = "bag"
+        XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "3시간 뒤 비 · 16° · 우산")
+        s.bubble?.text = "한파!"; s.rain = "none"; s.temp = -13; s.feels = -16; s.cond = "맑음 · 한파"
+        XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "한파 · -13° · 체감 -16°")
+        s.bubble = nil; s.temp = 19; s.feels = 18; s.hi = 20; s.lo = 9; s.cond = "맑음"
+        XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "맑음 · 19° · 큰 일교차")
+        s.bubble = WeatherScene.Bubble(kind: "speech", tone: "sky", icon: "umbrella_closed", text: "우산 챙겨요"); s.rain = "bag"; s.hi = 21
+        XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "맑음 · 19° · 우산")
+        XCTAssertEqual(Compact.bubbleWord(s, max: 5), "맑음")
+    }
 }
