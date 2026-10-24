@@ -18,7 +18,7 @@ struct PaywallView: View {
             Feature(art: "rain", title: "가까운 비", note: "앞으로 6시간, 언제 얼마나 오는지.", check: "가까운 비"),
             Feature(art: "watch", title: "애플워치", note: "워치 앱 · 컴플리케이션", check: "애플워치"),
             Feature(art: "places", title: "지역 여러 곳", note: "무료는 1곳 더, Plus는 제한 없이.", check: "지역 여러 곳"),
-            Feature(art: "chars", title: "캐릭터 바꾸기", note: "아비시니안 · 브리티시숏헤어", check: "캐릭터"),
+            Feature(art: "chars", title: "캐릭터 바꾸기", note: "아비시니안 · 브리티시숏헤어 · 추후 업데이트로 추가 예정", check: "캐릭터"),
         ]
         return f
     }
