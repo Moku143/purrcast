@@ -98,9 +98,41 @@ enum Sky {
         return all
     }()
 
-    /// Stack the layers for one forecast (the design's "layered mode").
-    static func compose(time: String, cover: String, precip p: String, thunder: Bool, aux: [String]) -> (tints: [String], items: [SkyItem]) {
+    /// How much falls, from the amount: the drawn layers are "보통 비" (3–15 mm/h) and "눈" (1–3 cm/h) at 1.0;
+    /// a drizzle shows a third of the streaks, a downpour twice as many. Breakpoints follow Rules.rainKind.
+    static func density(precip p: String, mm: Double) -> Double {
+        let snowy = p.contains("snow") || p == "flurries"
+        let t: [(Double, Double)] = snowy ? [(0, 0.35), (0.5, 0.6), (1, 1.0), (3, 1.6), (6, 2.0)] : [(0, 0.3), (1, 0.6), (3, 1.0), (15, 1.6), (30, 2.0)]
+        if mm <= 0 { return 1 }                       // no amount known: the layer as drawn
+        var prev = t[0]
+        for q in t.dropFirst() {
+            if mm <= q.0 { return prev.1 + (q.1 - prev.1) * (mm - prev.0) / (q.0 - prev.0) }
+            prev = q
+        }
+        return t.last!.1
+    }
+
+    /// Thin or thicken the falling things of one layer to `f` (1.0 = as drawn): fewer streaks for a drizzle,
+    /// duplicated and shifted ones for a downpour; rain streaks also get shorter or longer.
+    static func scaled(_ items: [SkyItem], by f: Double) -> [SkyItem] {
+        guard abs(f - 1) > 0.05 else { return items }
+        let falling = items.filter { $0.a == "fall" || $0.a == "snow" }, rest = items.filter { !($0.a == "fall" || $0.a == "snow") }
+        var out: [SkyItem]
+        if f < 1 {
+            let keep = max(1, Int((Double(falling.count) * f).rounded()))
+            out = falling.enumerated().filter { ($0.offset * keep) / falling.count != (($0.offset + 1) * keep) / falling.count }.map { $0.element }
+        } else {
+            let extra = Int((Double(falling.count) * (f - 1)).rounded())
+            out = falling + (0..<extra).map { i in var it = falling[i % falling.count]; it.x = (it.x + 7 + Double(i / falling.count) * 11).truncatingRemainder(dividingBy: 268); it.dl -= it.d * 0.37; return it }
+        }
+        out = out.map { var it = $0; if it.a == "fall" { it.h = max(5, min(14, it.h * (0.75 + 0.3 * f))) }; return it }
+        return out + rest
+    }
+
+    /// Stack the layers for one forecast (the design's "layered mode"). `mm`: this hour's amount (mm/h, cm/h for snow).
+    static func compose(time: String, cover: String, precip p: String, thunder: Bool, aux: [String], mm: Double = 0) -> (tints: [String], items: [SkyItem]) {
         var tints: [String] = [], list: [SkyItem] = []
+        let f = density(precip: p, mm: mm)
         func add(_ key: String, tint: Bool = true, only: ((SkyItem) -> Bool)? = nil, half: Bool = false, keep: Int = 0) {
             guard let d = data[key] else { return }
             if let t = d.tint, tint { tints.append(t) }
@@ -118,11 +150,13 @@ enum Sky {
         if cover == "clear" && !night { add("clear") }
         if cover == "partly" { if night { add("partly", only: { $0.t == "cloud" }) } else { add("partly") } }
         if cover == "overcast" { add("overcast", tint: !wet) }
+        let before = list.count
         if thunder && (precip == "rain" || precip == "heavy") && !sunny { add("storm") }
         else {
             if wet { if sunny { add(precip, tint: false, half: true) } else { add(precip) } }
             if thunder { add("storm", tint: false, only: { $0.a == "flash" }) }
         }
+        if wet { list = Array(list[..<before]) + scaled(Array(list[before...]), by: f) }
         let pri = ["fog", "dust", "wind", "haze", "heat", "frost"]
         var ax: [String] = []
         for a in aux where pri.contains(a) && !ax.contains(a) { ax.append(a) }
@@ -208,7 +242,7 @@ enum Sky {
 struct SkyTint: View {
     let scene: WeatherScene
     var body: some View {
-        let c = Sky.compose(time: scene.time, cover: scene.cover, precip: scene.precip, thunder: scene.thunder == "on", aux: [scene.aux])
+        let c = Sky.compose(time: scene.time, cover: scene.cover, precip: scene.precip, thunder: scene.thunder == "on", aux: [scene.aux], mm: scene.hours.first?.mm ?? 0)
         ZStack { ForEach(Array(c.tints.enumerated()), id: \.offset) { _, t in Sky.color(t) } }
     }
 }
@@ -222,7 +256,7 @@ struct SkyParticles: View {
     var animate = true
 
     var body: some View {
-        let c = Sky.compose(time: scene.time, cover: scene.cover, precip: scene.precip, thunder: scene.thunder == "on", aux: [scene.aux])
+        let c = Sky.compose(time: scene.time, cover: scene.cover, precip: scene.precip, thunder: scene.thunder == "on", aux: [scene.aux], mm: scene.hours.first?.mm ?? 0)
         let scale = width / Sky.tile.width
         let upper = c.items
         let lower = c.items.filter { $0.t != "cloud" && $0.t != "static" }

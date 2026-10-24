@@ -179,4 +179,17 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "맑음 · 19° · 우산")
         XCTAssertEqual(Compact.bubbleWord(s, max: 5), "맑음")
     }
+
+    /// The sky draws as much as falls: a drizzle thins the streaks, a downpour doubles them.
+    func testSkyDensityFollowsAmount() {
+        XCTAssertEqual(Sky.density(precip: "rain", mm: 0.5), 0.45, accuracy: 0.01)
+        XCTAssertEqual(Sky.density(precip: "rain", mm: 3), 1.0, accuracy: 0.01)
+        XCTAssertEqual(Sky.density(precip: "heavy", mm: 30), 2.0, accuracy: 0.01)
+        XCTAssertEqual(Sky.density(precip: "snow", mm: 0.2), 0.45, accuracy: 0.01)
+        XCTAssertEqual(Sky.density(precip: "heavysnow", mm: 6), 2.0, accuracy: 0.01)
+        let light = Sky.compose(time: "day", cover: "overcast", precip: "rain", thunder: false, aux: [], mm: 0.5).items.filter { $0.a == "fall" }.count
+        let normal = Sky.compose(time: "day", cover: "overcast", precip: "rain", thunder: false, aux: [], mm: 5).items.filter { $0.a == "fall" }.count
+        let pour = Sky.compose(time: "day", cover: "overcast", precip: "heavy", thunder: false, aux: [], mm: 30).items.filter { $0.a == "fall" }.count
+        XCTAssertLessThan(light, normal); XCTAssertLessThan(normal, pour)
+    }
 }
