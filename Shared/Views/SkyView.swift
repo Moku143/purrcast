@@ -187,19 +187,23 @@ enum Sky {
     }
 
     /// Offset (pt) and opacity of a moving item at time `t`, from the design's keyframes (stepped like CSS steps()).
-    static func motion(_ it: SkyItem, at t: Double) -> (dx: Double, dy: Double, alpha: Double) {
+    /// `span`: how many tiles tall the fall is (rain and snow cross the whole stacked sky in one go, top to bottom,
+    /// at the same speed — the period grows with the distance).
+    static func motion(_ it: SkyItem, at t: Double, span: Double = 1) -> (dx: Double, dy: Double, alpha: Double) {
         let steps: [String: Double] = ["fall": 165, "snow": 72, "wind": 375, "leaf": 322, "fog": 44, "fogpatch": 32, "drift": 8, "cloud": 315, "rise": 60]
         guard it.d > 0 else { return (0, 0, 1) }
-        var p = ((t - it.dl) / it.d).truncatingRemainder(dividingBy: 1); if p < 0 { p += 1 }
+        let falling = it.a == "fall" || it.a == "snow"
+        let d = falling ? it.d * span : it.d
+        var p = ((t - it.dl) / d).truncatingRemainder(dividingBy: 1); if p < 0 { p += 1 }
         let raw = p
-        if let n = steps[it.a] { p = (p * n).rounded(.down) / n }
+        if let n = steps[it.a] { let n2 = falling ? n * span : n; p = (p * n2).rounded(.down) / n2 }
         func lerp(_ a: Double, _ b: Double, _ f: Double) -> Double { a + (b - a) * f }
         func there(_ a: (Double, Double), _ m: (Double, Double), _ b: (Double, Double)) -> (Double, Double) {
             p < 0.5 ? (lerp(a.0, m.0, p * 2), lerp(a.1, m.1, p * 2)) : (lerp(m.0, b.0, (p - 0.5) * 2), lerp(m.1, b.1, (p - 0.5) * 2))
         }
         switch it.a {
-        case "fall": return (lerp(0, -29.33, p), lerp(-20, 200, p), 1)
-        case "snow": let v = there((0, -10.67), (8, 85.33), (0, 181.33)); return (v.0, v.1, 1)
+        case "fall": return (lerp(0, -29.33 * span, p), lerp(-20, 220 * span - 20, p), 1)
+        case "snow": let v = there((0, -10.67), (8, 96 * span - 10.67), (0, 192 * span - 10.67)); return (v.0, v.1, 1)
         case "wind": return (lerp(-80, 420, p), 0, 1)
         case "leaf": return (lerp(-29.33, 400, p), lerp(0, 40, p), 1)
         case "cloud": return (lerp(0, 420, p), 0, 1)
@@ -278,19 +282,26 @@ struct SkyParticles: View {
     private func canvas(upper: [SkyItem], lower: [SkyItem], fogs: [Image], scale: CGFloat, t: Double) -> some View {
         Canvas { ctx, _ in
             let resolved = fogs.map { ctx.resolve($0) }
+            let falling = { (it: SkyItem) in it.a == "fall" || it.a == "snow" }
             for tile in 0..<tiles {
                 var g = ctx
                 g.translateBy(x: 0, y: CGFloat(tile) * Sky.tile.height * scale)
                 g.scaleBy(x: scale, y: scale)
                 g.clip(to: Path(CGRect(origin: .zero, size: Sky.tile)))
-                for it in (tile == 0 ? upper : lower) { draw(it, in: &g, t: t, fogs: resolved) }
+                for it in (tile == 0 ? upper : lower) where !falling(it) { draw(it, in: &g, t: t, fogs: resolved) }
             }
+            // rain and snow fall the whole height in one go, from the top edge to the bottom edge
+            var g = ctx
+            g.scaleBy(x: scale, y: scale)
+            g.clip(to: Path(CGRect(x: 0, y: 0, width: Sky.tile.width, height: Sky.tile.height * CGFloat(tiles))))
+            // (each streak is drawn `tiles` times, spread over its longer period, so the density per screen stays)
+            for it in upper where falling(it) { for k in 0..<tiles { draw(it, in: &g, t: t + Double(k) * it.d, fogs: resolved, span: Double(tiles)) } }
         }
     }
 
-    private func draw(_ it: SkyItem, in g: inout GraphicsContext, t: Double, fogs: [GraphicsContext.ResolvedImage]) {
+    private func draw(_ it: SkyItem, in g: inout GraphicsContext, t: Double, fogs: [GraphicsContext.ResolvedImage], span: Double = 1) {
         let U = Sky.unit
-        let m = Sky.motion(it, at: t)
+        let m = Sky.motion(it, at: t, span: span)
         guard m.alpha > 0.01 else { return }
         g.opacity = m.alpha
         if it.t == "img", let src = it.src, let i = Int(src.dropFirst(3)), i < fogs.count {
