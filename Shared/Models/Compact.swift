@@ -8,7 +8,7 @@ import Foundation
 /// Everything else is shortened to a word ("15~17시 비 예정" → "15~17시 비", "우산 챙겨요" → "우산").
 enum Compact {
     /// Alert and weather names that are kept as they are (after the "!" is removed).
-    static let keep: Set<String> = ["폭염", "한파", "폭우", "폭설", "열대야", "천둥번개", "황사", "태풍", "꽃샘추위", "비바람", "눈보라", "비", "눈"]
+    static let keep: Set<String> = ["폭염", "한파", "폭우", "폭설", "열대야", "천둥번개", "황사", "태풍", "꽃샘추위", "비바람", "눈보라", "비", "눈", "진눈깨비"]
 
     /// The first word: the alert name when there is one, the weather otherwise.
     static func head(_ s: WeatherScene) -> String {

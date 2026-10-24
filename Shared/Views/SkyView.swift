@@ -60,10 +60,21 @@ enum Sky {
             l.items = thick(l.items.filter { $0.a == "fall" }, h: k == "rain" ? 9 : 12, double: k == "rain") + l.items.filter { $0.a != "fall" }
             all[k] = l
         }
+        // snow: twice the flakes in three sizes (3 · 4 · 5 px, the big ones drawn as a cross), a stronger grey-blue
+        // wash so a snow day looks like one; heavy snow, flurries and sleet are built from this bigger snow
         if var s = all["snow"] {
-            s.items = s.items + s.items.map { var i = $0; i.x = (i.x + 21).truncatingRemainder(dividingBy: 268); i.dl -= i.d * 0.5; return i }
-            s.items = s.items.map { var i = $0; i.w += 1; i.h += 1; return i }
+            let base = s.items
+            s.items = base + base.map { var i = $0; i.x = (i.x + 21).truncatingRemainder(dividingBy: 268); i.dl -= i.d * 0.5; return i }
+            s.items = s.items.enumerated().map { n, it in var i = it; let sz = [3.0, 4, 3, 5, 4, 3][n % 6]; i.w = sz; i.h = sz; i.c = "rgba(255,255,255,0.98)"; i.d *= [1.0, 1.15, 0.95, 1.3, 1.1, 1.0][n % 6]; return i }
+            s.tint = "rgba(196,208,232,0.40)"
             all["snow"] = s
+            let big = s.items
+            all["flurries"] = SkyLayerData(tint: "rgba(210,220,240,0.22)", items: ev(big))
+            all["heavysnow"] = SkyLayerData(tint: "rgba(176,190,218,0.52)",
+                                            items: big + ev(big).map { var i = $0; i.x = (i.x + 9).truncatingRemainder(dividingBy: 268); i.w = max(4, i.w); i.h = i.w; i.d *= 0.8; i.dl -= 1.7; return i })
+            // sleet: thick rain streaks and big wet flakes together, a darker wash than snow
+            let streaks = (all["rain"]?.items ?? []).filter { $0.a == "fall" }
+            all["sleet"] = SkyLayerData(tint: "rgba(126,142,180,0.40)", items: ev(streaks) + od(big).map { var i = $0; i.w = max(4, i.w); i.h = i.w; i.c = "rgba(236,243,255,0.96)"; return i })
         }
         // wind: thicker, longer gusts over the whole height, spread in time so a still frame catches several
         if let w = all["wind"] {
@@ -258,6 +269,17 @@ struct SkyParticles: View {
             // a darker base line so a white cloud reads on a pale sky
             g.fill(Path(CGRect(x: (it.x + 2 * k) * U + m.dx, y: (it.y + 13 * k) * U + m.dy, width: 32 * k * U, height: max(1.5, 1.2 * k) * U)),
                    with: .color(Color(red: 0.45, green: 0.5, blue: 0.62).opacity(0.28)))
+        } else if it.a == "snow" {
+            // a cool halo under each flake, so white snow reads on a pale winter sky too; big flakes get a cross shape
+            let r = CGRect(x: it.x * U + m.dx, y: it.y * U + m.dy, width: it.w * U, height: it.h * U)
+            g.fill(Path(r.insetBy(dx: -U * 0.75, dy: -U * 0.75)), with: .color(Color(red: 0.52, green: 0.6, blue: 0.78).opacity(0.32)))
+            if it.w >= 5 {
+                let a = U
+                g.fill(Path(CGRect(x: r.minX + a, y: r.minY, width: r.width - 2 * a, height: r.height)), with: .color(Sky.color(it.c)))
+                g.fill(Path(CGRect(x: r.minX, y: r.minY + a, width: r.width, height: r.height - 2 * a)), with: .color(Sky.color(it.c)))
+            } else {
+                g.fill(Path(r), with: .color(Sky.color(it.c)))
+            }
         } else {
             g.fill(Path(CGRect(x: it.x * U + m.dx, y: it.y * U + m.dy, width: it.w * U, height: it.h * U)), with: .color(Sky.color(it.c)))
         }

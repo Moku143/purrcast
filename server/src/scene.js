@@ -13,6 +13,8 @@ const ri = (v) => (v == null || Number.isNaN(v) ? 0 : Math.round(v));
  *   now      optional observation { temp, rh, wind, dir, mm, type }
  *   daily    optional { 'YYYYMMDD': { lo, hi } } (KMA TMN / TMX)
  *   warnings optional [{ name, severity }]
+ *   precip none | rain | heavy | snow | heavysnow (3 cm/h+) | sleet (진눈깨비: rain and snow together)
+ *   → scene.alert { name, note } when one is in force (the line under the character on the home screen)
  *   next6    optional [{ t, mm }] (KMA 초단기예보, Plus)
  *   nextSource 'kma' | 'met'
  *   updated  Date of the forecast run used
@@ -99,8 +101,8 @@ export function buildScene(f, o) {
 
   // tiles
   const total = r1(next12.reduce((s, p) => s + (p.mm || 0), 0));
-  const amt = pr === 'snow' ? `${total}cm` : `${total}mm (${R.rainAmountWord(total)})`;
-  const rainNote = nowWet ? `지금 ${pr === 'snow' ? '눈' : '비'} · 12시간 ${amt}`
+  const amt = pr === 'snow' || pr === 'heavysnow' ? `${total}cm` : `${total}mm (${R.rainAmountWord(total)})`;   // sleet is measured as water, like rain
+  const rainNote = nowWet ? `지금 ${pr === 'snow' || pr === 'heavysnow' ? '눈' : pr === 'sleet' ? '진눈깨비' : '비'} · 12시간 ${amt}`
     : startP ? `${when} ${snowNext ? '눈' : '비'} 예정 · ${amt}` : '12시간 동안 비 소식 없어요';
   const todayPts = pts.filter((p) => dayKey(p.t, tz) === dayKey(nowT, tz));
   const uvs = (todayPts.length ? todayPts : next12).map((p) => uvUnderCloud(p.uvClear, p.cloud)).filter((v) => v != null);
@@ -146,13 +148,17 @@ export function buildScene(f, o) {
     updated: plus ? hhmm0(f.updated ?? nowT, tz) : '06:00',
     bubble: bub,
     mood: feels <= -10 ? 'cold' : 'normal',
-    snow: pr === 'snow',
+    snow: pr === 'snow' || pr === 'heavysnow',               // amounts in cm (sleet counts as water, mm)
     hours,
     days: days.length ? days : [today],
     tiles,
     wind: { speed: ri(cur.wind), gust: ri(cur.gust ?? (cur.wind ?? 0) * 1.5), deg: ri(cur.dir) },
     plus,
   };
+  if (f.warnings?.length) {
+    const w = f.warnings[0].name;
+    scene.alert = { name: w, note: R.alertNote(w, { total, pr, nowWet, when, endH: nowWet && endP ? (H(endP) + 1) % 24 : null, hi, lo, gust: ri(cur.gust ?? 0), rh: cur.rh == null ? null : ri(cur.rh) }) };
+  }
   // day sheet: 8 three-hourly values per day (0, 3, … 21 h) — temp, rain chance, wind, UV, humidity
   scene.dayDetail = [...byDay.entries()].slice(0, days.length).map(([, list]) => {
     const [y, m, d] = [list[0].t, list[0].t, list[0].t].map((t, i) => [local(t, tz).y, local(t, tz).m, local(t, tz).d][i]);
@@ -176,7 +182,7 @@ export function validateScene(s) {
   const bad = [];
   const str = (k, opts) => { if (typeof s[k] !== 'string') bad.push(`${k} not a string`); else if (opts && !opts.includes(s[k])) bad.push(`${k}=${s[k]}`); };
   const int = (k) => { if (!Number.isInteger(s[k])) bad.push(`${k} not an integer`); };
-  str('time', ['day', 'night']); str('cover', ['clear', 'partly', 'overcast']); str('precip', ['none', 'rain', 'heavy', 'snow']);
+  str('time', ['day', 'night']); str('cover', ['clear', 'partly', 'overcast']); str('precip', ['none', 'rain', 'heavy', 'snow', 'heavysnow', 'sleet']);
   str('thunder', ['on', 'off']); str('aux', ['none', 'wind', 'fog', 'heat', 'frost', 'dust']); str('rain', ['none', 'think', 'bag', 'umbrella']);
   for (const k of ['level', 'temp', 'feels', 'hi', 'lo', 'yday']) int(k);
   if (!(s.level >= 0 && s.level <= 9)) bad.push('level out of 0…9');

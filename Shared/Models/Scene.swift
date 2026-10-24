@@ -36,9 +36,10 @@ struct WeatherScene: Codable, Identifiable {
     var next6: [NextHour]?              // next six hourly slots (Plus)
     var nextSource: String?             // kma | met — which forecast the six hours come from
     var dayDetail: [[DayHour]]?         // per day, 8 three-hourly values for the day sheet
+    var alert: Alert?                   // official warning in force: name + what it means today (home banner)
 
     enum CodingKeys: String, CodingKey {
-        case time, cover, precip, thunder, aux, level, rain, temp, feels, hi, lo, yday, cond, clock, updated, bubble, hours, tiles, wind, days, place, plus, snow, mood, minutes, next6, nextSource, dayDetail
+        case time, cover, precip, thunder, aux, level, rain, temp, feels, hi, lo, yday, cond, clock, updated, bubble, hours, tiles, wind, days, place, plus, snow, mood, minutes, next6, nextSource, dayDetail, alert
     }
 
     init() {}
@@ -71,6 +72,7 @@ struct WeatherScene: Codable, Identifiable {
         next6 = n6.isEmpty ? nil : n6
         nextSource = (try? c.decodeIfPresent(String.self, forKey: .nextSource)) ?? nil
         dayDetail = (try? c.decodeIfPresent([[DayHour]].self, forKey: .dayDetail)) ?? nil
+        alert = (try? c.decodeIfPresent(Alert.self, forKey: .alert)) ?? nil
     }
 
     /// Decode an array, skipping elements that do not parse instead of failing the whole forecast.
@@ -90,6 +92,11 @@ struct WeatherScene: Codable, Identifiable {
         let a = s.split(separator: ":")
         guard a.count == 2, let h = Int(a[0]), let m = Int(a[1]), (0..<24).contains(h), (0..<60).contains(m) else { return nil }
         return h * 60 + m
+    }
+
+    struct Alert: Codable, Equatable {
+        var name: String; var note: String
+        init(name: String, note: String) { self.name = name; self.note = note }
     }
 
     struct Bubble: Codable {

@@ -16,11 +16,11 @@ function series(start, now, later) {
   for (let i = 0; i < 240; i++) {
     const inLater = later && i >= later.from && i < later.from + 3;
     const cur = i < 3 ? now : (inLater ? { ...now, precip: later.type, mm: 1.5, cloud: 92 } : { ...now, precip: i < 6 ? now.precip : 'none', thunder: false, fog: false });
-    const t = cur.temp + (cur.precip === 'snow' ? 0 : -((i % 24) / 8));
+    const t = cur.temp + (/snow|sleet/.test(cur.precip) ? 0 : -((i % 24) / 8));
     const sym = cur.thunder ? 'rainandthunder'
-      : cur.precip === 'snow' ? 'snow' : cur.precip === 'heavy' ? 'heavyrain' : cur.precip === 'rain' ? 'rain'
+      : cur.precip === 'snow' ? 'snow' : cur.precip === 'heavysnow' ? 'heavysnow' : cur.precip === 'sleet' ? 'sleet' : cur.precip === 'heavy' ? 'heavyrain' : cur.precip === 'rain' ? 'rain'
       : cur.fog ? 'fog' : cur.cloud >= 70 ? 'cloudy' : cur.cloud >= 30 ? 'partlycloudy_day' : 'clearsky_day';
-    const mm = cur.precip === 'heavy' ? 8 : cur.precip === 'none' ? 0 : (cur.mm ?? 1.5);
+    const mm = cur.precip === 'heavy' ? 8 : cur.precip === 'heavysnow' ? 4 : cur.precip === 'none' ? 0 : (cur.mm ?? 1.5);
     ts.push({
       time: new Date(start.getTime() + i * 3600000).toISOString(),
       data: {
@@ -38,7 +38,7 @@ const out = [];
 function add({ time, cover, precip = 'none', thunder = false, aux = 'none', later = null, char = 'cat', label }) {
   const day = time === 'day';
   const start = instant(2026, 10, 21, day ? 14 : 22, 0, TZ);
-  const temp = aux === 'heat' ? (day ? 35 : 29) : aux === 'frost' ? -13 : precip === 'snow' || later?.type === 'snow' ? -1 : 15;
+  const temp = aux === 'heat' ? (day ? 35 : 29) : aux === 'frost' ? -13 : /snow/.test(precip) || later?.type === 'snow' ? -1 : precip === 'sleet' ? 1 : 15;
   const now = { temp, cloud: COVER[cover], precip, thunder, fog: aux === 'fog', wind: aux === 'wind' ? 11 : 2 };
   const m = parseMet({ properties: { meta: { updated_at: start.toISOString() }, timeseries: series(start, now, later) } });
   const s = buildScene({ points: m.points, updated: start, next6: m.points.slice(1, 7), nextSource: 'met' },
@@ -52,7 +52,7 @@ function add({ time, cover, precip = 'none', thunder = false, aux = 'none', late
   out.push({ key, group: label ? '캐릭터별 말풍선' : (time === 'day' ? '낮' : '밤') + ' · ' + COVER_KO[cover], label: label || describe({ precip, thunder, aux, later }), scene: s, char });
 }
 function describe({ precip, thunder, aux, later }) {
-  const p = { none: '', rain: '비', heavy: '강한 비', snow: '눈' }[precip];
+  const p = { none: '', rain: '비', heavy: '강한 비', snow: '눈', heavysnow: '많은 눈', sleet: '진눈깨비' }[precip];
   const a = { none: '', wind: '바람', fog: '안개', heat: '폭염', frost: '한파', dust: '황사(서버 미지원)' }[aux];
   const l = later ? (later.from <= 3 ? '곧 ' : '저녁에 ') + (later.type === 'snow' ? '눈' : '비') : '';
   return [p, thunder ? '천둥' : '', a, l].filter(Boolean).join(' + ') || '기본';
@@ -62,6 +62,8 @@ for (const time of ['day', 'night']) for (const cover of ['clear', 'partly', 'ov
   for (const aux of ['none', 'wind', 'fog', 'heat', 'frost', 'dust']) add({ time, cover, aux });
   for (const precip of ['rain', 'heavy']) for (const thunder of [false, true]) for (const aux of ['none', 'wind', 'fog', 'heat']) add({ time, cover, precip, thunder, aux });
   for (const aux of ['none', 'wind', 'fog', 'frost']) add({ time, cover, precip: 'snow', aux });
+  add({ time, cover, precip: 'heavysnow' }); add({ time, cover, precip: 'heavysnow', aux: 'wind' });
+  add({ time, cover, precip: 'sleet' });
   add({ time, cover, later: { type: 'rain', from: 2 } });
   add({ time, cover, later: { type: 'rain', from: 5 } });
   add({ time, cover, later: { type: 'snow', from: 2 } });

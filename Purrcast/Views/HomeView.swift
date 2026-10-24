@@ -27,6 +27,7 @@ struct HomeView: View {
                             .frame(height: heroH)
                             .parallaxHero()
                         if let e = model.lastError { notice(e, ink: ink).transition(.move(edge: .top).combined(with: .opacity)) }
+                        if let a = s.alert { alertBanner(a, ink: ink).reveal(0).settleInScroll() }
                         if let head = nextHour(s) { nextHourCard(s, head: head, ink: ink).reveal(1).settleInScroll() }
                         hourlyCard(s, ink: ink).reveal(2).settleInScroll()
                         dailyCard(s, ink: ink).reveal(3).settleInScroll()
@@ -76,6 +77,26 @@ struct HomeView: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
         .background(ink.card).clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    /// Official warning in force (호우주의보 …): its name and what it means today, under the character, above the hours.
+    private func alertBanner(_ a: WeatherScene.Alert, ink: Ink) -> some View {
+        HStack(spacing: 10) {
+            PixelIcon(name: alertIcon(a.name), size: 18)
+            (Text(a.name).font(.px(13)) + Text(" · ").font(.px(13)) + Text(a.note).font(.px(13)))
+                .lineLimit(2).minimumScaleFactor(0.85)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 11)
+        .background(ink.night ? Color(hex: "#FF9A6A").opacity(0.18) : Color(hex: "#FFF1E6"))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(ink.night ? Color(hex: "#FFB08A").opacity(0.5) : Color(hex: "#F0A070").opacity(0.7), lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .foregroundStyle(ink.night ? Color(hex: "#FFD2BC") : Color(hex: "#8A3A1C"))
+    }
+    private func alertIcon(_ name: String) -> String {
+        name.contains("대설") ? "snowflake" : name.contains("태풍") || name.contains("강풍") || name.contains("풍랑") ? "wind"
+        : name.contains("호우") ? "raincloud" : name.contains("폭염") ? "thermo_hot" : name.contains("한파") ? "thermo_cold"
+        : name.contains("건조") ? "sun_strong" : "exclaim"
     }
 
     // MARK: hero

@@ -30,7 +30,7 @@ Accept: application/json
 {
   "time": "day",            // day | night (sun below the horizon)
   "cover": "overcast",      // clear | partly | overcast       ─┐ sky layers the app draws
-  "precip": "none",         // none | rain | heavy | snow       │
+  "precip": "none",         // none | rain | heavy | snow | heavysnow | sleet│
   "thunder": "off",         // on | off                         │
   "aux": "none",            // none | wind | fog | heat | frost | dust ─┘
   "level": 4,               // outfit 0…9 from the feels-like temperature (rules below)
@@ -114,3 +114,8 @@ Cache per (rounded lat/lon to 0.01°, plan) until the source's next issue time; 
   - 꼬리말: 다음으로 알아야 할 것 하나 — 우산(지금 비 · 비 예보) → 체감 N°(3° 이상 차이) → 큰 일교차(10° 이상) → 바람 · 안개 · 황사 → 최고/최저
   - 예: `비 · 16° · 우산` · `15~17시 비 · 18° · 우산` · `한파 · -13° · 체감 -16°` · `호우주의보 · 18° · 우산` · `맑음 · 19° · 큰 일교차`
   - 2x2 · 워치의 말풍선에는 5글자까지만 (비 · 한파 · 폭염), 4x2는 9글자까지 (15~17시 비 · 호우주의보); 더 길면 아이콘만
+
+## 특보 띠 · 눈의 종류
+
+- `alert { name, note }`: 기상청 특보가 있을 때만. 홈 화면 캐릭터 아래, 시간별 위에 띠로 보여요 — "대설주의보 · 오늘 6cm, 18시쯤 그칠 예보", "폭염경보 · 낮 최고 36°, 한낮 외출 줄여요". 위젯·워치에는 자리가 없어 이름만 (호우주의보 · 18° · 우산).
+- `precip`: `snow` (눈) · `heavysnow` (시간당 3cm 이상, 말풍선 폭설!) · `sleet` (진눈깨비: 비와 눈이 함께, 양은 mm). 하늘 그림도 따로 — 눈은 큰 눈송이(3·4·5px, 테두리 할로), 많은 눈은 더 촘촘하게, 진눈깨비는 빗줄기와 젖은 눈송이가 함께.

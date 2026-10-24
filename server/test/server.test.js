@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { toGrid, amount, num, parseForecast, parseNow, parseWarnings, splitAreas, vilageBase, ultraBase, kmaXmlError, kmaOK } from '../src/providers/kma.js';
 import { parseMet, metUrl } from '../src/providers/met.js';
 import { buildScene, validateScene } from '../src/scene.js';
-import { level, bubble, uvNote, whenWord } from '../src/rules.js';
+import { level, bubble, uvNote, whenWord, alertNote } from '../src/rules.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike, humidityWord, windWord } from '../src/physics.js';
 import worker, { forecast, readQuery, resetCache } from '../src/index.js';
@@ -175,6 +175,20 @@ test('bubble priority: official warning first', () => {
   assert.deepEqual(b, { kind: 'shout', tone: 'coral', icon: 'raincloud', text: '호우경보' });
 });
 
+test('alert line under the character: the warning name + what it means today', () => {
+  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }), '오늘 6cm, 18시쯤 그칠 예보');
+  assert.equal(alertNote('호우주의보', { total: 42, pr: 'rain', nowWet: false, when: '15~19시', endH: null, hi: 25, lo: 22 }), '오늘 42mm (많음), 15~19시 비 예정');
+  assert.equal(alertNote('폭염경보', { total: 0, pr: 'none', hi: 36, lo: 27 }), '낮 최고 36°, 한낮 외출 줄여요');
+  assert.equal(alertNote('한파주의보', { total: 0, pr: 'none', hi: -6, lo: -14 }), '아침 -14°, 많이 추워요');
+  assert.equal(alertNote('강풍주의보', { gust: 18 }), '돌풍 18 m/s, 외출 주의');
+  const hrs = flat(40, { cloud: 95, mm: 3, pop: 90, sym: 'rain' });
+  const m = parseMet(met(at(13), hrs));
+  const s = buildScene({ points: m.points, warnings: [{ name: '호우주의보', severity: 1 }] }, { ...SEOUL, plan: 'plus', now: at(13, 40) });
+  validateScene(s);
+  assert.equal(s.alert.name, '호우주의보'); assert.match(s.alert.note, /^오늘 \d+(\.\d)?mm/);
+  assert.equal(s.bubble.text, '호우주의보');
+});
+
 test('every example scene the app ships with passes the contract check', () => {
   const scenes = JSON.parse(readFileSync(new URL('../../Shared/Data/scenes.json', import.meta.url)));
   for (const [k, s] of Object.entries(scenes)) assert.doesNotThrow(() => validateScene(s), k);
@@ -261,9 +275,21 @@ test('official names stay as they are above their thresholds: warnings, 폭염 �
   assert.equal(bubble({ ...base, warnings: [{ name: '태풍경보' }], feels: 35 }).text, '태풍경보');
   assert.equal(bubble({ ...base, thunder: true, nowWet: true, nowPr: 'heavy' }).text, '천둥번개!');
   assert.equal(bubble({ ...base, nowWet: true, nowPr: 'heavy' }).text, '폭우!');
-  assert.equal(bubble({ ...base, nowWet: true, nowPr: 'snow', nowMm: 3 }).text, '폭설!');
+  assert.equal(bubble({ ...base, nowWet: true, nowPr: 'heavysnow', nowMm: 3 }).text, '폭설!');
   assert.equal(bubble({ ...base, feels: 33 }).text, '폭염!');
   assert.equal(bubble({ ...base, feels: 25, night: true }).text, '열대야!');
   assert.equal(bubble({ ...base, feels: -10 }).text, '한파!');
   assert.equal(bubble({ ...base, feels: 32 }), null);        // under the threshold: no alert word
+});
+
+test('snow kinds: 눈 · 많은 눈 (3 cm/h+) · 진눈깨비', () => {
+  const hrs = flat(40, { cloud: 95, mm: 1, pop: 90, sym: 'snow' });
+  const s = buildScene({ points: parseMet(met(at(13), hrs)).points }, { ...SEOUL, plan: 'plus', now: at(13, 40) });
+  validateScene(s); assert.equal(s.precip, 'snow'); assert.equal(s.cond, '눈'); assert.equal(s.snow, true);
+  const h2 = flat(40, { cloud: 95, mm: 4, pop: 90, sym: 'heavysnow' });
+  const s2 = buildScene({ points: parseMet(met(at(13), h2)).points }, { ...SEOUL, plan: 'plus', now: at(13, 40) });
+  validateScene(s2); assert.equal(s2.precip, 'heavysnow'); assert.equal(s2.bubble.text, '폭설!'); assert.match(s2.tiles[0].note, /cm/);
+  const h3 = flat(40, { cloud: 95, mm: 2, pop: 90, sym: 'sleet' });
+  const s3 = buildScene({ points: parseMet(met(at(13), h3)).points }, { ...SEOUL, plan: 'plus', now: at(13, 40) });
+  validateScene(s3); assert.equal(s3.precip, 'sleet'); assert.equal(s3.cond, '진눈깨비'); assert.equal(s3.bubble.text, '진눈깨비!'); assert.match(s3.tiles[0].note, /mm/);
 });

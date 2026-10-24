@@ -38,7 +38,8 @@ export const cover = (cloud) => (cloud == null ? 'partly' : cloud >= 70 ? 'overc
 
 export function precip(p) {
   if (!(p.mm > 0) && p.type === 'none') return 'none';
-  if (p.type === 'snow' || p.type === 'sleet') return 'snow';
+  if (p.type === 'snow') return p.mm >= 3 ? 'heavysnow' : 'snow';
+  if (p.type === 'sleet') return 'sleet';
   return p.mm >= 6 ? 'heavy' : 'rain';
 }
 
@@ -52,7 +53,7 @@ export function aux({ now, feels, night }) {
 }
 
 export function condition({ pr, cov, thunder, auxKind, night, feels }) {
-  let base = thunder ? '뇌우' : pr === 'heavy' ? '강한 비' : pr === 'rain' ? '비' : pr === 'snow' ? '눈'
+  let base = thunder ? '뇌우' : pr === 'heavy' ? '강한 비' : pr === 'rain' ? '비' : pr === 'snow' ? '눈' : pr === 'heavysnow' ? '많은 눈' : pr === 'sleet' ? '진눈깨비'
     : cov === 'clear' ? '맑음' : cov === 'partly' ? '구름 조금' : '흐림';
   const extra = auxKind === 'wind' ? (pr === 'none' ? '바람' : '바람 강함')
     : auxKind === 'fog' ? '안개'
@@ -88,17 +89,17 @@ export function bubble(c) {
   }
   if (thunder) return B('shout', 'coral', 'lightning', '천둥번개!');
   if (nowPr === 'heavy') return B('shout', 'sky', 'umbrella', '폭우!');
-  if (nowPr === 'snow' && c.nowMm >= 3) return B('speech', 'sky', 'snowflake', '폭설!');
+  if (nowPr === 'heavysnow') return B('speech', 'sky', 'snowflake', '폭설!');
   const what = snowNext ? '눈' : '비';
   if (!nowWet && startIn != null && startIn <= 2) {
     return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${c.when} ${what} 예정`);
   }
-  if (wind) return B('speech', 'sky', 'wind', nowWet ? (nowPr === 'snow' ? '눈보라!' : '비바람!') : '바람 세요!');
+  if (wind) return B('speech', 'sky', 'wind', nowWet ? (nowPr === 'snow' || nowPr === 'heavysnow' ? '눈보라!' : '비바람!') : '바람 세요!');
   if (fog) return B('speech', 'white', 'cloud', '안개 짙어요!');
   if (!night && feels >= 33) return B('shout', 'coral', 'thermo_hot', '폭염!');
   if (night && feels >= 25) return B('speech', 'night', 'sweat', '열대야!');
   if (feels <= -10) return B('shout', 'sky', 'thermo_cold', '한파!');
-  if (nowWet) return nowPr === 'snow' ? B('speech', night ? 'night' : 'sky', 'snowman', '눈!') : B('speech', 'sky', 'umbrella', '비!');
+  if (nowWet) return nowPr === 'snow' || nowPr === 'heavysnow' ? B('speech', night ? 'night' : 'sky', 'snowman', '눈!') : nowPr === 'sleet' ? B('speech', 'sky', 'umbrella', '진눈깨비!') : B('speech', 'sky', 'umbrella', '비!');
   if (startIn != null && startIn <= 12) return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${c.when} ${what} 예정`);
   if (swing >= 10) return B('speech', 'night', 'daynight', '일교차 커요!');
   if (rain === 'think') return B('thought', 'sky', 'umbrella', '');
@@ -126,4 +127,22 @@ export function partOfDay(h, tomorrow) {
 export function uvNote(uv) {
   if (uv == null) return '정보 없음';
   return uv <= 2 ? '약해요' : uv <= 5 ? '보통 · 선크림' : uv <= 7 ? '강해요 · 선크림, 모자' : uv <= 10 ? '매우 강해요 · 한낮 외출 줄여요' : '위험 · 한낮 외출 피해요';
+}
+
+/**
+ * The line under the character when an official warning is in force: the warning's name and what it means
+ * today, in one short clause from the forecast. "대설주의보 · 오늘 6cm, 18시쯤 그칠 예보".
+ */
+export function alertNote(name, c) {
+  const { total, pr, nowWet, when, endH, hi, lo, gust, rh } = c;
+  const end = endH == null ? '' : `${endH}시쯤 그칠 예보`;
+  if (/대설/.test(name)) return [total ? `오늘 ${total}cm` : '', nowWet ? end : (when ? `${when} 눈 예정` : '')].filter(Boolean).join(', ') || '눈길 조심';
+  if (/호우/.test(name)) return [total ? `오늘 ${total}mm (${rainAmountWord(total)})` : '', nowWet ? end : (when ? `${when} 비 예정` : '')].filter(Boolean).join(', ') || '강한 비 주의';
+  if (/태풍/.test(name)) return [`강한 비바람`, gust ? `돌풍 ${gust} m/s` : '', '외출 주의'].filter(Boolean).join(', ');
+  if (/강풍|풍랑/.test(name)) return [gust ? `돌풍 ${gust} m/s` : '바람 매우 강함', '외출 주의'].join(', ');
+  if (/폭염/.test(name)) return `낮 최고 ${hi}°, 한낮 외출 줄여요`;
+  if (/한파/.test(name)) return `아침 ${lo}°, 많이 추워요`;
+  if (/건조/.test(name)) return [rh == null ? '' : `습도 ${rh}%`, '불조심'].filter(Boolean).join(', ');
+  if (/황사|미세먼지/.test(name)) return '마스크 챙겨요';
+  return /snow|sleet/.test(pr) ? '눈길 조심' : '외출 주의';
 }
