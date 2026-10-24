@@ -1,0 +1,7 @@
+ok   lat=37.5663 lon=126.9019 region=kr tz=Asia/Seoul → 19° (체감 19°) lv4 think · 흐림 · (생각) · days 10
+ok   lat=37.5663 lon=126.9019 region=kr tz=Asia/Seoul → 19° (체감 19°) lv4 think · 흐림 · (생각) · days 10 · next6 met
+ok   lat=33.4996 lon=126.5312 region=kr tz=Asia/Seoul → 20° (체감 23°) lv2 umbrella · 비 · 바람 강함 · 비바람! · days 10 · next6 met
+ok   lat=35.6938 lon=139.7034 region=jp tz=Asia/Tokyo → 17° (체감 17°) lv4 umbrella · 비 · 비! · days 10 · next6 met
+ok   lat=40.7128 lon=-74.006 region=other tz=America/New_York → 8° (체감 7°) lv7 think · 구름 조금 · 일교차 커요! · days 10
+ok   lat=64.1466 lon=-21.9426 region=other tz=Atlantic/Reykjavik → 0° (체감 -4°) lv8 think · 흐림 · 안개 · 안개 짙어요! · days 10 · next6 met
+no KMA key: Korea fell back to MET Norway
