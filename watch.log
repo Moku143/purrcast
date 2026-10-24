@@ -1,0 +1,1011 @@
+Command line invocation:
+    /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/xcodebuild build -project Purrcast.xcodeproj -scheme PurrcastWatch -destination "generic/platform=watchOS Simulator" -derivedDataPath wdd CODE_SIGNING_ALLOWED=NO
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (2 targets)
+    Target 'PurrcastWatch' in project 'Purrcast'
+        ➜ Explicit dependency on target 'PurrcastWatchWidgets' in project 'Purrcast'
+    Target 'PurrcastWatchWidgets' in project 'Purrcast' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/runner/work/purrcast/purrcast/PurrcastWatch/Assets.xcassets /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: b56d2e253b32849afe591c0b6e4da6e8
+Build description path: /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/XCBuildData/b56d2e253b32849afe591c0b6e4da6e8.xcbuilddata
+ClangStatCache /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache
+    cd /Users/runner/work/purrcast/purrcast/Purrcast.xcodeproj
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -o /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache
+
+CreateBuildDirectory /Users/runner/work/purrcast/purrcast/wdd/Build/Products
+    cd /Users/runner/work/purrcast/purrcast/Purrcast.xcodeproj
+    builtin-create-build-directory /Users/runner/work/purrcast/purrcast/wdd/Build/Products
+
+CreateBuildDirectory /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex
+    cd /Users/runner/work/purrcast/purrcast/Purrcast.xcodeproj
+    builtin-create-build-directory /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/Purrcast-24c196cc644de91f0024f59f5d9b48eb-VFS-watchsimulator/all-product-headers.yaml
+    cd /Users/runner/work/purrcast/purrcast/Purrcast.xcodeproj
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/Purrcast-24c196cc644de91f0024f59f5d9b48eb-VFS-watchsimulator/all-product-headers.yaml
+
+CreateBuildDirectory /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator
+    cd /Users/runner/work/purrcast/purrcast/Purrcast.xcodeproj
+    builtin-create-build-directory /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator
+
+CreateBuildDirectory /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-watchsimulator
+    cd /Users/runner/work/purrcast/purrcast/Purrcast.xcodeproj
+    builtin-create-build-directory /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-watchsimulator
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets.hmap (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets.hmap
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets.DependencyStaticMetadataFileList (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets.DependencyMetadataFileList (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-project-headers.hmap (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-project-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-own-target-headers.hmap (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-generated-files.hmap (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-generated-files.hmap
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-all-target-headers.hmap (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugEntryPoint-normal-x86_64.txt (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugEntryPoint-normal-x86_64.txt
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-all-non-framework-target-headers.hmap (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugEntryPoint-normal-arm64.txt (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugEntryPoint-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugDylibPath-normal-x86_64.txt (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugDylibPath-normal-x86_64.txt
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugDylibPath-normal-arm64.txt (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugDylibPath-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugDylibInstallName-normal-x86_64.txt (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugDylibInstallName-normal-x86_64.txt
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugDylibInstallName-normal-arm64.txt (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugDylibInstallName-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets_const_extract_protocols.json (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.SwiftFileList (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.SwiftFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.SwiftConstValuesFileList (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.LinkFileList (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.LinkFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets-OutputFileMap.json (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets-OutputFileMap.json
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets_const_extract_protocols.json (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.SwiftFileList (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.SwiftFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.SwiftConstValuesFileList (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.LinkFileList (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.LinkFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets-OutputFileMap.json (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets-OutputFileMap.json
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch.hmap (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch.hmap
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch.DependencyStaticMetadataFileList (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch.DependencyMetadataFileList (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-project-headers.hmap (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-project-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-own-target-headers.hmap (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-generated-files.hmap (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-generated-files.hmap
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-all-target-headers.hmap (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-all-non-framework-target-headers.hmap (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-DebugDylibPath-normal-x86_64.txt (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-DebugDylibPath-normal-x86_64.txt
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-DebugDylibPath-normal-arm64.txt (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-DebugDylibPath-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-DebugDylibInstallName-normal-x86_64.txt (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-DebugDylibInstallName-normal-x86_64.txt
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-DebugDylibInstallName-normal-arm64.txt (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-DebugDylibInstallName-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch_const_extract_protocols.json (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.SwiftFileList (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.SwiftFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.SwiftConstValuesFileList (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.LinkFileList (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.LinkFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch-OutputFileMap.json (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch-OutputFileMap.json
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.SwiftFileList (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.SwiftFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch_const_extract_protocols.json (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.SwiftConstValuesFileList (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.LinkFileList (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.LinkFileList
+
+WriteAuxiliaryFile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch-OutputFileMap.json (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch-OutputFileMap.json
+
+MkDir /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /bin/mkdir -p /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex
+
+MkDir /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /bin/mkdir -p /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns
+
+MkDir /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /bin/mkdir -p /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app
+
+Ld /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/Binary/__preview.dylib normal x86_64 (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target x86_64-apple-watchos10.0-simulator -dynamiclib -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -O0 -L/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -install_name @rpath/PurrcastWatchWidgets.debug.dylib -dead_strip -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets_dependency_info.dat -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/Binary/__preview.dylib
+
+Ld /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/Binary/__preview.dylib normal arm64 (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-watchos10.0-simulator -dynamiclib -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -O0 -L/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -install_name @rpath/PurrcastWatchWidgets.debug.dylib -dead_strip -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets_dependency_info.dat -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/Binary/__preview.dylib
+
+MkDir /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_output/unthinned (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /bin/mkdir -p /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_output/unthinned
+
+MkDir /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_output/thinned (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /bin/mkdir -p /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_output/thinned
+
+GenerateAssetSymbols /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets --compile /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_dependencies --output-partial-info-plist /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_generated_info.plist --compress-pngs --enable-on-demand-resources NO --standalone-icon-behavior all --development-region en --target-device watch --minimum-deployment-target 10.0 --platform watchsimulator --bundle-identifier app.purrcast.ios.watchkitapp.widgets --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+CreateUniversalBinary /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/__preview.dylib normal arm64\ x86_64 (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/Binary/__preview.dylib /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/Binary/__preview.dylib -output /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/__preview.dylib
+
+CpResource /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/sky.json /Users/runner/work/purrcast/purrcast/Shared/Data/sky.json (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/Shared/Data/sky.json /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex
+
+CpResource /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/scenes.json /Users/runner/work/purrcast/purrcast/Shared/Data/scenes.json (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/Shared/Data/scenes.json /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex
+
+CpResource /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/anchors.json /Users/runner/work/purrcast/purrcast/Shared/Data/anchors.json (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/Shared/Data/anchors.json /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex
+
+CpResource /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/PrivacyInfo.xcprivacy /Users/runner/work/purrcast/purrcast/Shared/PrivacyInfo.xcprivacy (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/Shared/PrivacyInfo.xcprivacy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex
+
+CpResource /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/Galmuri11.ttf /Users/runner/work/purrcast/purrcast/Shared/Fonts/Galmuri11.ttf (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/Shared/Fonts/Galmuri11.ttf /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex
+
+CpResource /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/Galmuri11-Bold.ttf /Users/runner/work/purrcast/purrcast/Shared/Fonts/Galmuri11-Bold.ttf (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/Shared/Fonts/Galmuri11-Bold.ttf /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex
+
+CopyStringsFile /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/ko.lproj/InfoPlist.strings /Users/runner/work/purrcast/purrcast/Shared/Localization/ko.lproj/InfoPlist.strings (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copyStrings --validate --outputencoding binary --outfilename InfoPlist.strings --outdir /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/ko.lproj -- /Users/runner/work/purrcast/purrcast/Shared/Localization/ko.lproj/InfoPlist.strings
+/Users/runner/work/purrcast/purrcast/Shared/Localization/ko.lproj/InfoPlist.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+CopyStringsFile /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/en.lproj/InfoPlist.strings /Users/runner/work/purrcast/purrcast/Shared/Localization/en.lproj/InfoPlist.strings (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copyStrings --validate --outputencoding binary --outfilename InfoPlist.strings --outdir /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/en.lproj -- /Users/runner/work/purrcast/purrcast/Shared/Localization/en.lproj/InfoPlist.strings
+/Users/runner/work/purrcast/purrcast/Shared/Localization/en.lproj/InfoPlist.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+CompileAssetCatalogVariant thinned /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets --compile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_generated_info.plist_thinned --compress-pngs --enable-on-demand-resources NO --standalone-icon-behavior all --development-region en --target-device watch --minimum-deployment-target 10.0 --platform watchsimulator
+/* com.apple.actool.compilation-results */
+/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_generated_info.plist_thinned
+/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_output/thinned/Assets.car
+
+
+SwiftDriver PurrcastWatchWidgets normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-SwiftDriver -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastWatchWidgets -Onone -enforce-exclusivity\=checked @/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -target x86_64-apple-watchos10.0-simulator -g -module-cache-path /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -application-extension -enable-testing -index-store-path /Users/runner/work/purrcast/purrcast/wdd/Index.noindex/DataStore -swift-version 5 -I /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache -output-file-map /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-generated-files.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-own-target-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-project-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/include -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources-normal/x86_64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/x86_64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver PurrcastWatchWidgets normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-SwiftDriver -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastWatchWidgets -Onone -enforce-exclusivity\=checked @/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -target arm64-apple-watchos10.0-simulator -g -module-cache-path /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -application-extension -enable-testing -index-store-path /Users/runner/work/purrcast/purrcast/wdd/Index.noindex/DataStore -swift-version 5 -I /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache -output-file-map /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-generated-files.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-own-target-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-project-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/include -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ PurrcastWatchWidgets (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+EmitSwiftModule normal arm64 (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftEmitModule normal x86_64 Emitting\ module\ for\ PurrcastWatchWidgets (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+EmitSwiftModule normal x86_64 (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 Compiling\ Theme.swift,\ WatchComplications.swift,\ WatchNowView.swift,\ WeatherProvider.swift,\ WidgetViews.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/purrcast/purrcast/Shared/Views/Theme.swift /Users/runner/work/purrcast/purrcast/PurrcastWatchWidgets/WatchComplications.swift /Users/runner/work/purrcast/purrcast/Shared/Views/WatchNowView.swift /Users/runner/work/purrcast/purrcast/Shared/Models/WeatherProvider.swift /Users/runner/work/purrcast/purrcast/Shared/Views/WidgetViews.swift /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/Theme.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/PurrcastWatchWidgets/WatchComplications.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/WatchNowView.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/WeatherProvider.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/WidgetViews.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 Compiling\ Motion.swift,\ Place.swift,\ Rules.swift,\ Scene.swift,\ SharedStore.swift,\ SkyView.swift /Users/runner/work/purrcast/purrcast/Shared/Views/Motion.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Place.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Rules.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Scene.swift /Users/runner/work/purrcast/purrcast/Shared/Models/SharedStore.swift /Users/runner/work/purrcast/purrcast/Shared/Views/SkyView.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/Motion.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Place.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Rules.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Scene.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/SharedStore.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/SkyView.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+LinkAssetCatalog /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-linkAssetCatalog --thinned /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_output/thinned --thinned-dependencies /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_generated_info.plist_unthinned --output /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex --plist-output /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/Assets.car (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for PurrcastWatchWidgets (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+SwiftDriverJobDiscovery normal x86_64 Emitting module for PurrcastWatchWidgets (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+SwiftDriver\ Compilation\ Requirements PurrcastWatchWidgets normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastWatchWidgets -Onone -enforce-exclusivity\=checked @/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -target x86_64-apple-watchos10.0-simulator -g -module-cache-path /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -application-extension -enable-testing -index-store-path /Users/runner/work/purrcast/purrcast/wdd/Index.noindex/DataStore -swift-version 5 -I /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache -output-file-map /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-generated-files.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-own-target-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-project-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/include -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources-normal/x86_64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/x86_64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver\ Compilation\ Requirements PurrcastWatchWidgets normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastWatchWidgets -Onone -enforce-exclusivity\=checked @/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -target arm64-apple-watchos10.0-simulator -g -module-cache-path /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -application-extension -enable-testing -index-store-path /Users/runner/work/purrcast/purrcast/wdd/Index.noindex/DataStore -swift-version 5 -I /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache -output-file-map /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-generated-files.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-own-target-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-project-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/include -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+ProcessInfoPlistFile /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/Info.plist /Users/runner/work/purrcast/purrcast/PurrcastWatchWidgets/Info.plist (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-infoPlistUtility /Users/runner/work/purrcast/purrcast/PurrcastWatchWidgets/Info.plist -producttype com.apple.product-type.app-extension -expandbuildsettings -format binary -platform watchsimulator -additionalcontentfile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_generated_info.plist -o /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/Info.plist
+
+SwiftMergeGeneratedHeaders /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/PurrcastWatchWidgets-Swift.h /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets-Swift.h /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets-Swift.h (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-swiftHeaderTool -arch arm64 /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets-Swift.h -arch x86_64 /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets-Swift.h -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/PurrcastWatchWidgets-Swift.h
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/x86_64-apple-watchos-simulator.swiftmodule /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.swiftmodule (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.swiftmodule /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/x86_64-apple-watchos-simulator.swiftmodule
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/x86_64-apple-watchos-simulator.swiftdoc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.swiftdoc (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.swiftdoc /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/x86_64-apple-watchos-simulator.swiftdoc
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/x86_64-apple-watchos-simulator.abi.json /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.abi.json (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.abi.json /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/x86_64-apple-watchos-simulator.abi.json
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/arm64-apple-watchos-simulator.swiftmodule /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.swiftmodule (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.swiftmodule /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/arm64-apple-watchos-simulator.swiftmodule
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/arm64-apple-watchos-simulator.swiftdoc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.swiftdoc (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.swiftdoc /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/arm64-apple-watchos-simulator.swiftdoc
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/arm64-apple-watchos-simulator.abi.json /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.abi.json (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.abi.json /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/arm64-apple-watchos-simulator.abi.json
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/Project/x86_64-apple-watchos-simulator.swiftsourceinfo /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.swiftsourceinfo (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.swiftsourceinfo /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/Project/x86_64-apple-watchos-simulator.swiftsourceinfo
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/Project/arm64-apple-watchos-simulator.swiftsourceinfo /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.swiftsourceinfo (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.swiftsourceinfo /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.swiftmodule/Project/arm64-apple-watchos-simulator.swiftsourceinfo
+
+SwiftCompile normal arm64 Compiling\ Brand.swift,\ BubbleView.swift,\ Character.swift,\ CharacterSprite.swift,\ Compact.swift,\ Features.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Brand.swift /Users/runner/work/purrcast/purrcast/Shared/Views/BubbleView.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Character.swift /Users/runner/work/purrcast/purrcast/Shared/Views/CharacterSprite.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Compact.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Features.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Brand.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/BubbleView.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Character.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/CharacterSprite.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Compact.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Features.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 Compiling\ Motion.swift,\ Place.swift,\ Rules.swift,\ Scene.swift,\ SharedStore.swift,\ SkyView.swift /Users/runner/work/purrcast/purrcast/Shared/Views/Motion.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Place.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Rules.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Scene.swift /Users/runner/work/purrcast/purrcast/Shared/Models/SharedStore.swift /Users/runner/work/purrcast/purrcast/Shared/Views/SkyView.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/Motion.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Place.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Rules.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Scene.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/SharedStore.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/SkyView.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling Brand.swift, BubbleView.swift, Character.swift, CharacterSprite.swift, Compact.swift, Features.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+SwiftCompile normal x86_64 Compiling\ Brand.swift,\ BubbleView.swift,\ Character.swift,\ CharacterSprite.swift,\ Compact.swift,\ Features.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Brand.swift /Users/runner/work/purrcast/purrcast/Shared/Views/BubbleView.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Character.swift /Users/runner/work/purrcast/purrcast/Shared/Views/CharacterSprite.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Compact.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Features.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Brand.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/BubbleView.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Character.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/CharacterSprite.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Compact.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Features.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling Motion.swift, Place.swift, Rules.swift, Scene.swift, SharedStore.swift, SkyView.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+SwiftCompile normal arm64 Compiling\ Theme.swift,\ WatchComplications.swift,\ WatchNowView.swift,\ WeatherProvider.swift,\ WidgetViews.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/purrcast/purrcast/Shared/Views/Theme.swift /Users/runner/work/purrcast/purrcast/PurrcastWatchWidgets/WatchComplications.swift /Users/runner/work/purrcast/purrcast/Shared/Views/WatchNowView.swift /Users/runner/work/purrcast/purrcast/Shared/Models/WeatherProvider.swift /Users/runner/work/purrcast/purrcast/Shared/Views/WidgetViews.swift /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/Theme.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/PurrcastWatchWidgets/WatchComplications.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/WatchNowView.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/WeatherProvider.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/WidgetViews.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftDriverJobDiscovery normal x86_64 Compiling Theme.swift, WatchComplications.swift, WatchNowView.swift, WeatherProvider.swift, WidgetViews.swift, GeneratedAssetSymbols.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+SwiftDriverJobDiscovery normal x86_64 Compiling Brand.swift, BubbleView.swift, Character.swift, CharacterSprite.swift, Compact.swift, Features.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+MkDir /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_output/unthinned (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /bin/mkdir -p /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_output/unthinned
+
+MkDir /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_output/thinned (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /bin/mkdir -p /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_output/thinned
+
+GenerateAssetSymbols /Users/runner/work/purrcast/purrcast/PurrcastWatch/Assets.xcassets /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool /Users/runner/work/purrcast/purrcast/PurrcastWatch/Assets.xcassets /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets --compile /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_dependencies --output-partial-info-plist /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_generated_info.plist --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --development-region en --target-device watch --minimum-deployment-target 10.0 --platform watchsimulator --bundle-identifier app.purrcast.ios.watchkitapp --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+CompileAssetCatalogVariant thinned /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app /Users/runner/work/purrcast/purrcast/PurrcastWatch/Assets.xcassets /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool /Users/runner/work/purrcast/purrcast/PurrcastWatch/Assets.xcassets /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets --compile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --development-region en --target-device watch --minimum-deployment-target 10.0 --platform watchsimulator
+/* com.apple.actool.compilation-results */
+/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_generated_info.plist_thinned
+/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_output/thinned/Assets.car
+
+
+SwiftDriverJobDiscovery normal x86_64 Compiling Motion.swift, Place.swift, Rules.swift, Scene.swift, SharedStore.swift, SkyView.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+SwiftDriver\ Compilation PurrcastWatchWidgets normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-Swift-Compilation -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastWatchWidgets -Onone -enforce-exclusivity\=checked @/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -target x86_64-apple-watchos10.0-simulator -g -module-cache-path /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -application-extension -enable-testing -index-store-path /Users/runner/work/purrcast/purrcast/wdd/Index.noindex/DataStore -swift-version 5 -I /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache -output-file-map /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-generated-files.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-own-target-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-project-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/include -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources-normal/x86_64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/x86_64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver PurrcastWatch normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-SwiftDriver -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastWatch -Onone -enforce-exclusivity\=checked @/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -target arm64-apple-watchos10.0-simulator -g -module-cache-path /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/purrcast/purrcast/wdd/Index.noindex/DataStore -swift-version 5 -I /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache -output-file-map /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-generated-files.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-own-target-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-project-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/include -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/Binary/PurrcastWatchWidgets.debug.dylib normal x86_64 (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target x86_64-apple-watchos10.0-simulator -dynamiclib -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -O0 -L/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-watchsimulator -L/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -filelist /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.LinkFileList -install_name @rpath/PurrcastWatchWidgets.debug.dylib -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/../../Frameworks -dead_strip -Xlinker -object_path_lto -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets_dependency_info.dat -fapplication-extension -fobjc-link-runtime -L/Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/watchsimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.swiftmodule -Xlinker -alias -Xlinker _NSExtensionMain -Xlinker ___debug_main_executable_dylib_entry_point -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/Binary/PurrcastWatchWidgets.debug.dylib
+
+SwiftDriver PurrcastWatch normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-SwiftDriver -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastWatch -Onone -enforce-exclusivity\=checked @/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -target x86_64-apple-watchos10.0-simulator -g -module-cache-path /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/purrcast/purrcast/wdd/Index.noindex/DataStore -swift-version 5 -I /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache -output-file-map /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-generated-files.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-own-target-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-project-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/include -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources-normal/x86_64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/x86_64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+ConstructStubExecutorLinkFileList /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-ExecutorLinkFileList-normal-x86_64.txt (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    construct-stub-executor-link-file-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/Binary/PurrcastWatchWidgets.debug.dylib /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-ExecutorLinkFileList-normal-x86_64.txt
+note: Using stub executor library with Swift entry point. (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+SwiftEmitModule normal x86_64 Emitting\ module\ for\ PurrcastWatch (in target 'PurrcastWatch' from project 'Purrcast')
+EmitSwiftModule normal x86_64 (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+Ld /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/Binary/PurrcastWatchWidgets normal x86_64 (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target x86_64-apple-watchos10.0-simulator -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -O0 -L/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/../../Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugDylibPath-normal-x86_64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_entry -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugEntryPoint-normal-x86_64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugDylibInstallName-normal-x86_64.txt -Xlinker -filelist -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-ExecutorLinkFileList-normal-x86_64.txt /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/Binary/PurrcastWatchWidgets.debug.dylib -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/Binary/PurrcastWatchWidgets
+
+SwiftDriverJobDiscovery normal arm64 Compiling Theme.swift, WatchComplications.swift, WatchNowView.swift, WeatherProvider.swift, WidgetViews.swift, GeneratedAssetSymbols.swift (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ PurrcastWatch (in target 'PurrcastWatch' from project 'Purrcast')
+EmitSwiftModule normal arm64 (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftDriver\ Compilation PurrcastWatchWidgets normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-Swift-Compilation -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastWatchWidgets -Onone -enforce-exclusivity\=checked @/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -target arm64-apple-watchos10.0-simulator -g -module-cache-path /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -application-extension -enable-testing -index-store-path /Users/runner/work/purrcast/purrcast/wdd/Index.noindex/DataStore -swift-version 5 -I /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache -output-file-map /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-generated-files.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-own-target-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-project-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/include -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal arm64 Compiling\ Brand.swift,\ BubbleView.swift,\ Character.swift,\ CharacterSprite.swift,\ Compact.swift,\ Features.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Brand.swift /Users/runner/work/purrcast/purrcast/Shared/Views/BubbleView.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Character.swift /Users/runner/work/purrcast/purrcast/Shared/Views/CharacterSprite.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Compact.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Features.swift (in target 'PurrcastWatch' from project 'Purrcast')
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Brand.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/BubbleView.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Character.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/CharacterSprite.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Compact.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Features.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+Ld /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/Binary/PurrcastWatchWidgets.debug.dylib normal arm64 (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-watchos10.0-simulator -dynamiclib -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -O0 -L/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-watchsimulator -L/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -filelist /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.LinkFileList -install_name @rpath/PurrcastWatchWidgets.debug.dylib -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/../../Frameworks -dead_strip -Xlinker -object_path_lto -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets_dependency_info.dat -fapplication-extension -fobjc-link-runtime -L/Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/watchsimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.swiftmodule -Xlinker -alias -Xlinker _NSExtensionMain -Xlinker ___debug_main_executable_dylib_entry_point -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/Binary/PurrcastWatchWidgets.debug.dylib
+
+SwiftDriverJobDiscovery normal x86_64 Emitting module for PurrcastWatch (in target 'PurrcastWatch' from project 'Purrcast')
+
+SwiftDriver\ Compilation\ Requirements PurrcastWatch normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastWatch -Onone -enforce-exclusivity\=checked @/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -target x86_64-apple-watchos10.0-simulator -g -module-cache-path /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/purrcast/purrcast/wdd/Index.noindex/DataStore -swift-version 5 -I /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache -output-file-map /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-generated-files.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-own-target-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-project-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/include -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources-normal/x86_64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/x86_64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+CreateUniversalBinary /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/PurrcastWatchWidgets.debug.dylib normal arm64\ x86_64 (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/Binary/PurrcastWatchWidgets.debug.dylib /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/Binary/PurrcastWatchWidgets.debug.dylib -output /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/PurrcastWatchWidgets.debug.dylib
+
+ConstructStubExecutorLinkFileList /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-ExecutorLinkFileList-normal-arm64.txt (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    construct-stub-executor-link-file-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/Binary/PurrcastWatchWidgets.debug.dylib /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/x86_64-apple-watchos-simulator.swiftmodule /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.swiftmodule (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.swiftmodule /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/x86_64-apple-watchos-simulator.swiftmodule
+
+Ld /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/Binary/PurrcastWatchWidgets normal arm64 (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-watchos10.0-simulator -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -O0 -L/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/../../Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_entry -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugEntryPoint-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets-ExecutorLinkFileList-normal-arm64.txt /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/Binary/PurrcastWatchWidgets.debug.dylib -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/Binary/PurrcastWatchWidgets
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/x86_64-apple-watchos-simulator.swiftdoc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.swiftdoc (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.swiftdoc /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/x86_64-apple-watchos-simulator.swiftdoc
+
+CreateUniversalBinary /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/PurrcastWatchWidgets normal arm64\ x86_64 (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/Binary/PurrcastWatchWidgets /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/Binary/PurrcastWatchWidgets -output /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/PurrcastWatchWidgets
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/x86_64-apple-watchos-simulator.abi.json /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.abi.json (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.abi.json /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/x86_64-apple-watchos-simulator.abi.json
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/Project/x86_64-apple-watchos-simulator.swiftsourceinfo /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.swiftsourceinfo (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.swiftsourceinfo /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/Project/x86_64-apple-watchos-simulator.swiftsourceinfo
+
+SwiftCompile normal x86_64 Compiling\ Theme.swift,\ WatchApp.swift,\ WatchNowView.swift,\ WeatherProvider.swift,\ WidgetViews.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/purrcast/purrcast/Shared/Views/Theme.swift /Users/runner/work/purrcast/purrcast/PurrcastWatch/WatchApp.swift /Users/runner/work/purrcast/purrcast/Shared/Views/WatchNowView.swift /Users/runner/work/purrcast/purrcast/Shared/Models/WeatherProvider.swift /Users/runner/work/purrcast/purrcast/Shared/Views/WidgetViews.swift /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PurrcastWatch' from project 'Purrcast')
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/Theme.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/PurrcastWatch/WatchApp.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/WatchNowView.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/WeatherProvider.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/WidgetViews.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+LinkAssetCatalog /Users/runner/work/purrcast/purrcast/PurrcastWatch/Assets.xcassets /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-linkAssetCatalog --thinned /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_output/thinned --thinned-dependencies /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_generated_info.plist_unthinned --output /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app --plist-output /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Assets.car (in target 'PurrcastWatch' from project 'Purrcast')
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for PurrcastWatch (in target 'PurrcastWatch' from project 'Purrcast')
+
+SwiftDriver\ Compilation\ Requirements PurrcastWatch normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastWatch -Onone -enforce-exclusivity\=checked @/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -target arm64-apple-watchos10.0-simulator -g -module-cache-path /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/purrcast/purrcast/wdd/Index.noindex/DataStore -swift-version 5 -I /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache -output-file-map /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-generated-files.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-own-target-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-project-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/include -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal x86_64 Compiling\ Brand.swift,\ BubbleView.swift,\ Character.swift,\ CharacterSprite.swift,\ Compact.swift,\ Features.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Brand.swift /Users/runner/work/purrcast/purrcast/Shared/Views/BubbleView.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Character.swift /Users/runner/work/purrcast/purrcast/Shared/Views/CharacterSprite.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Compact.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Features.swift (in target 'PurrcastWatch' from project 'Purrcast')
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Brand.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/BubbleView.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Character.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/CharacterSprite.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Compact.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Features.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftMergeGeneratedHeaders /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/PurrcastWatch-Swift.h /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch-Swift.h /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch-Swift.h (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-swiftHeaderTool -arch arm64 /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch-Swift.h -arch x86_64 /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch-Swift.h -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/PurrcastWatch-Swift.h
+
+SwiftDriverJobDiscovery normal arm64 Compiling Brand.swift, BubbleView.swift, Character.swift, CharacterSprite.swift, Compact.swift, Features.swift (in target 'PurrcastWatch' from project 'Purrcast')
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/arm64-apple-watchos-simulator.swiftmodule /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.swiftmodule (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.swiftmodule /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/arm64-apple-watchos-simulator.swiftmodule
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/arm64-apple-watchos-simulator.swiftdoc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.swiftdoc (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.swiftdoc /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/arm64-apple-watchos-simulator.swiftdoc
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/arm64-apple-watchos-simulator.abi.json /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.abi.json (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.abi.json /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/arm64-apple-watchos-simulator.abi.json
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/Project/arm64-apple-watchos-simulator.swiftsourceinfo /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.swiftsourceinfo (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.swiftsourceinfo /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.swiftmodule/Project/arm64-apple-watchos-simulator.swiftsourceinfo
+
+SwiftCompile normal arm64 Compiling\ Theme.swift,\ WatchApp.swift,\ WatchNowView.swift,\ WeatherProvider.swift,\ WidgetViews.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/purrcast/purrcast/Shared/Views/Theme.swift /Users/runner/work/purrcast/purrcast/PurrcastWatch/WatchApp.swift /Users/runner/work/purrcast/purrcast/Shared/Views/WatchNowView.swift /Users/runner/work/purrcast/purrcast/Shared/Models/WeatherProvider.swift /Users/runner/work/purrcast/purrcast/Shared/Views/WidgetViews.swift /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PurrcastWatch' from project 'Purrcast')
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/Theme.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/PurrcastWatch/WatchApp.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/WatchNowView.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/WeatherProvider.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/WidgetViews.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 Compiling\ Motion.swift,\ Place.swift,\ Rules.swift,\ Scene.swift,\ SharedStore.swift,\ SkyView.swift /Users/runner/work/purrcast/purrcast/Shared/Views/Motion.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Place.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Rules.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Scene.swift /Users/runner/work/purrcast/purrcast/Shared/Models/SharedStore.swift /Users/runner/work/purrcast/purrcast/Shared/Views/SkyView.swift (in target 'PurrcastWatch' from project 'Purrcast')
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/Motion.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Place.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Rules.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/Scene.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Models/SharedStore.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/Shared/Views/SkyView.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftDriverJobDiscovery normal x86_64 Compiling Brand.swift, BubbleView.swift, Character.swift, CharacterSprite.swift, Compact.swift, Features.swift (in target 'PurrcastWatch' from project 'Purrcast')
+
+SwiftCompile normal x86_64 Compiling\ Motion.swift,\ Place.swift,\ Rules.swift,\ Scene.swift,\ SharedStore.swift,\ SkyView.swift /Users/runner/work/purrcast/purrcast/Shared/Views/Motion.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Place.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Rules.swift /Users/runner/work/purrcast/purrcast/Shared/Models/Scene.swift /Users/runner/work/purrcast/purrcast/Shared/Models/SharedStore.swift /Users/runner/work/purrcast/purrcast/Shared/Views/SkyView.swift (in target 'PurrcastWatch' from project 'Purrcast')
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/Motion.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Place.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Rules.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/Scene.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Models/SharedStore.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/purrcast/purrcast/Shared/Views/SkyView.swift (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftDriverJobDiscovery normal x86_64 Compiling Theme.swift, WatchApp.swift, WatchNowView.swift, WeatherProvider.swift, WidgetViews.swift, GeneratedAssetSymbols.swift (in target 'PurrcastWatch' from project 'Purrcast')
+
+SwiftDriverJobDiscovery normal arm64 Compiling Motion.swift, Place.swift, Rules.swift, Scene.swift, SharedStore.swift, SkyView.swift (in target 'PurrcastWatch' from project 'Purrcast')
+
+ExtractAppIntentsMetadata (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name PurrcastWatchWidgets --sdk-root /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk --xcode-version 16F6 --platform-family watchOS --deployment-target 10.0 --bundle-identifier app.purrcast.ios.watchkitapp.widgets --output /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex --target-triple arm64-apple-watchos10.0-simulator --target-triple x86_64-apple-watchos10.0-simulator --binary-file /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/PurrcastWatchWidgets --dependency-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets_dependency_info.dat --dependency-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets_dependency_info.dat --stringsdata-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --stringsdata-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.SwiftFileList --source-file-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.SwiftFileList --metadata-file-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/PurrcastWatchWidgets.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/arm64/PurrcastWatchWidgets.SwiftConstValuesFileList --swift-const-vals-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/Objects-normal/x86_64/PurrcastWatchWidgets.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-24 05:27:28.598 appintentsmetadataprocessor[21480:68512] Starting appintentsmetadataprocessor export
+2026-10-24 05:27:28.738 appintentsmetadataprocessor[21480:68512] Extracted no relevant App Intents symbols, skipping writing output
+
+SwiftDriverJobDiscovery normal arm64 Compiling Theme.swift, WatchApp.swift, WatchNowView.swift, WeatherProvider.swift, WidgetViews.swift, GeneratedAssetSymbols.swift (in target 'PurrcastWatch' from project 'Purrcast')
+
+SwiftDriver\ Compilation PurrcastWatch normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-Swift-Compilation -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastWatch -Onone -enforce-exclusivity\=checked @/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -target arm64-apple-watchos10.0-simulator -g -module-cache-path /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/purrcast/purrcast/wdd/Index.noindex/DataStore -swift-version 5 -I /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache -output-file-map /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-generated-files.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-own-target-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-project-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/include -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+RegisterExecutionPolicyException /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-RegisterExecutionPolicyException /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex
+
+Touch /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /usr/bin/touch -c /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex
+
+Ld /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/Binary/__preview.dylib normal x86_64 (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target x86_64-apple-watchos10.0-simulator -dynamiclib -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -O0 -L/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -install_name @rpath/PurrcastWatch.debug.dylib -dead_strip -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch_dependency_info.dat -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/Binary/__preview.dylib
+
+Ld /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/Binary/__preview.dylib normal arm64 (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-watchos10.0-simulator -dynamiclib -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -O0 -L/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -install_name @rpath/PurrcastWatch.debug.dylib -dead_strip -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch_dependency_info.dat -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/Binary/__preview.dylib
+
+Ld /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/Binary/PurrcastWatch.debug.dylib normal arm64 (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-watchos10.0-simulator -dynamiclib -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -O0 -L/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-watchsimulator -L/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -filelist /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.LinkFileList -install_name @rpath/PurrcastWatch.debug.dylib -dead_strip -Xlinker -object_path_lto -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/watchsimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.swiftmodule -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/Binary/PurrcastWatch.debug.dylib
+
+CpResource /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/sky.json /Users/runner/work/purrcast/purrcast/Shared/Data/sky.json (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/Shared/Data/sky.json /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app
+
+CreateUniversalBinary /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/__preview.dylib normal arm64\ x86_64 (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/Binary/__preview.dylib /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/Binary/__preview.dylib -output /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/__preview.dylib
+
+CpResource /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/scenes.json /Users/runner/work/purrcast/purrcast/Shared/Data/scenes.json (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/Shared/Data/scenes.json /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app
+
+CpResource /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/anchors.json /Users/runner/work/purrcast/purrcast/Shared/Data/anchors.json (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/Shared/Data/anchors.json /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app
+
+CpResource /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PrivacyInfo.xcprivacy /Users/runner/work/purrcast/purrcast/Shared/PrivacyInfo.xcprivacy (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/Shared/PrivacyInfo.xcprivacy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app
+
+CpResource /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Galmuri11.ttf /Users/runner/work/purrcast/purrcast/Shared/Fonts/Galmuri11.ttf (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/Shared/Fonts/Galmuri11.ttf /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app
+
+CpResource /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Galmuri11-Bold.ttf /Users/runner/work/purrcast/purrcast/Shared/Fonts/Galmuri11-Bold.ttf (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/Shared/Fonts/Galmuri11-Bold.ttf /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app
+
+CopyStringsFile /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/ko.lproj/InfoPlist.strings /Users/runner/work/purrcast/purrcast/Shared/Localization/ko.lproj/InfoPlist.strings (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copyStrings --validate --outputencoding binary --outfilename InfoPlist.strings --outdir /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/ko.lproj -- /Users/runner/work/purrcast/purrcast/Shared/Localization/ko.lproj/InfoPlist.strings
+/Users/runner/work/purrcast/purrcast/Shared/Localization/ko.lproj/InfoPlist.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'PurrcastWatch' from project 'Purrcast')
+
+CopyStringsFile /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/en.lproj/InfoPlist.strings /Users/runner/work/purrcast/purrcast/Shared/Localization/en.lproj/InfoPlist.strings (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copyStrings --validate --outputencoding binary --outfilename InfoPlist.strings --outdir /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/en.lproj -- /Users/runner/work/purrcast/purrcast/Shared/Localization/en.lproj/InfoPlist.strings
+/Users/runner/work/purrcast/purrcast/Shared/Localization/en.lproj/InfoPlist.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'PurrcastWatch' from project 'Purrcast')
+
+ConstructStubExecutorLinkFileList /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-ExecutorLinkFileList-normal-arm64.txt (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    construct-stub-executor-link-file-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/Binary/PurrcastWatch.debug.dylib /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'PurrcastWatch' from project 'Purrcast')
+
+Ld /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/Binary/PurrcastWatch normal arm64 (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-watchos10.0-simulator -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -O0 -L/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -Xlinker -rpath -Xlinker @executable_path -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-ExecutorLinkFileList-normal-arm64.txt /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/Binary/PurrcastWatch.debug.dylib -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/Binary/PurrcastWatch
+
+SwiftDriverJobDiscovery normal x86_64 Compiling Motion.swift, Place.swift, Rules.swift, Scene.swift, SharedStore.swift, SkyView.swift (in target 'PurrcastWatch' from project 'Purrcast')
+
+SwiftDriver\ Compilation PurrcastWatch normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-Swift-Compilation -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastWatch -Onone -enforce-exclusivity\=checked @/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -target x86_64-apple-watchos10.0-simulator -g -module-cache-path /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/purrcast/purrcast/wdd/Index.noindex/DataStore -swift-version 5 -I /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/purrcast/purrcast/wdd/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache -output-file-map /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/purrcast/purrcast/wdd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-generated-files.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-own-target-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-project-headers.hmap -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/include -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources-normal/x86_64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources/x86_64 -Xcc -I/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/Binary/PurrcastWatch.debug.dylib normal x86_64 (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target x86_64-apple-watchos10.0-simulator -dynamiclib -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -O0 -L/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-watchsimulator -L/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -filelist /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.LinkFileList -install_name @rpath/PurrcastWatch.debug.dylib -dead_strip -Xlinker -object_path_lto -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/watchsimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.swiftmodule -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/Binary/PurrcastWatch.debug.dylib
+
+CreateUniversalBinary /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PurrcastWatch.debug.dylib normal arm64\ x86_64 (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/Binary/PurrcastWatch.debug.dylib /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/Binary/PurrcastWatch.debug.dylib -output /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PurrcastWatch.debug.dylib
+
+ConstructStubExecutorLinkFileList /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-ExecutorLinkFileList-normal-x86_64.txt (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    construct-stub-executor-link-file-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/Binary/PurrcastWatch.debug.dylib /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-ExecutorLinkFileList-normal-x86_64.txt
+note: Using stub executor library with Swift entry point. (in target 'PurrcastWatch' from project 'Purrcast')
+
+Ld /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/Binary/PurrcastWatch normal x86_64 (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target x86_64-apple-watchos10.0-simulator -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -O0 -L/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -F/Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator -Xlinker -rpath -Xlinker @executable_path -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-DebugDylibPath-normal-x86_64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-DebugDylibInstallName-normal-x86_64.txt -Xlinker -filelist -Xlinker /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch-ExecutorLinkFileList-normal-x86_64.txt /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/Binary/PurrcastWatch.debug.dylib -o /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/Binary/PurrcastWatch
+
+CreateUniversalBinary /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PurrcastWatch normal arm64\ x86_64 (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/Binary/PurrcastWatch /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/Binary/PurrcastWatch -output /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PurrcastWatch
+
+Copy /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns/PurrcastWatchWidgets.appex /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks -remove-static-executable /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns
+
+ProcessInfoPlistFile /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Info.plist /Users/runner/work/purrcast/purrcast/PurrcastWatch/Info.plist (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-infoPlistUtility /Users/runner/work/purrcast/purrcast/PurrcastWatch/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PkgInfo -expandbuildsettings -format binary -platform watchsimulator -additionalcontentfile /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_generated_info.plist -scanforprivacyfile /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns/PurrcastWatchWidgets.appex -o /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Info.plist
+
+ExtractAppIntentsMetadata (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name PurrcastWatch --sdk-root /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk --xcode-version 16F6 --platform-family watchOS --deployment-target 10.0 --bundle-identifier app.purrcast.ios.watchkitapp --output /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app --target-triple arm64-apple-watchos10.0-simulator --target-triple x86_64-apple-watchos10.0-simulator --binary-file /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PurrcastWatch --dependency-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch_dependency_info.dat --dependency-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch_dependency_info.dat --stringsdata-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --stringsdata-file /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.SwiftFileList --source-file-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.SwiftFileList --metadata-file-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/PurrcastWatch.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/arm64/PurrcastWatch.SwiftConstValuesFileList --swift-const-vals-list /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/Objects-normal/x86_64/PurrcastWatch.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-24 05:27:30.870 appintentsmetadataprocessor[21617:68869] Starting appintentsmetadataprocessor export
+2026-10-24 05:27:30.929 appintentsmetadataprocessor[21617:68869] Extracted no relevant App Intents symbols, skipping writing output
+
+CopySwiftLibs /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PurrcastWatch.debug.dylib --scan-folder /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Frameworks --scan-folder /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns --scan-folder /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/SystemExtensions --scan-folder /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Extensions --platform watchsimulator --toolchain /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/work/purrcast/purrcast/wdd/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+ValidateEmbeddedBinary /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns/PurrcastWatchWidgets.appex (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/embeddedBinaryValidationUtility /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns/PurrcastWatchWidgets.appex -info-plist-path /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Info.plist
+
+RegisterExecutionPolicyException /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-RegisterExecutionPolicyException /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app
+
+Validate /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-validationUtility /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app -infoplist-subpath Info.plist
+
+Touch /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /usr/bin/touch -c /Users/runner/work/purrcast/purrcast/wdd/Build/Products/Debug-watchsimulator/PurrcastWatch.app
+
+** BUILD SUCCEEDED **
+

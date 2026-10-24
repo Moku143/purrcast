@@ -1,0 +1,829 @@
+Command line invocation:
+    /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast -destination "platform=iOS Simulator,name=iPhone 16,OS=latest" -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+Writing result bundle at path:
+	/Users/runner/work/purrcast/purrcast/TestResults.xcresult
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, arch:arm64, id:2911FD29-A09E-4A81-BEA7-99A616FB7FC8, OS:26.2, name:iPhone 16 }
+{ platform:iOS Simulator, arch:x86_64, id:2911FD29-A09E-4A81-BEA7-99A616FB7FC8, OS:26.2, name:iPhone 16 }
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (6 targets)
+    Target 'PurrcastUITests' in project 'Purrcast'
+        ➜ Explicit dependency on target 'Purrcast' in project 'Purrcast'
+    Target 'PurrcastTests' in project 'Purrcast'
+        ➜ Explicit dependency on target 'Purrcast' in project 'Purrcast'
+    Target 'Purrcast' in project 'Purrcast'
+        ➜ Explicit dependency on target 'PurrcastWidgets' in project 'Purrcast'
+        ➜ Explicit dependency on target 'PurrcastWatch' in project 'Purrcast'
+    Target 'PurrcastWatch' in project 'Purrcast'
+        ➜ Explicit dependency on target 'PurrcastWatchWidgets' in project 'Purrcast'
+    Target 'PurrcastWatchWidgets' in project 'Purrcast' (no dependencies)
+    Target 'PurrcastWidgets' in project 'Purrcast' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/runner/work/purrcast/purrcast/PurrcastWatch/Assets.xcassets /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/runner/work/purrcast/purrcast/Purrcast/Resources/Assets.xcassets /Users/runner/work/purrcast/purrcast/Shared/SharedAssets.xcassets
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 735af8f5fece131b2410c1e87c7dade6
+Build description path: /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/XCBuildData/735af8f5fece131b2410c1e87c7dade6.xcbuilddata
+ClangStatCache /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator18.5-22F76-96ae0914227b19deccb34b33ba7b5dea.sdkstatcache
+    cd /Users/runner/work/purrcast/purrcast/Purrcast.xcodeproj
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -o /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator18.5-22F76-96ae0914227b19deccb34b33ba7b5dea.sdkstatcache
+
+ClangStatCache /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache
+    cd /Users/runner/work/purrcast/purrcast/Purrcast.xcodeproj
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_16.4.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator11.5.sdk -o /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/watchsimulator11.5-22T572-ae21ae1383ff78dbc973d98c97ab25a0.sdkstatcache
+
+MkDir /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /bin/mkdir -p /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests.hmap (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests.hmap
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests.DependencyStaticMetadataFileList (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests.DependencyMetadataFileList (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-project-headers.hmap (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-project-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-own-target-headers.hmap (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-generated-files.hmap (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-generated-files.hmap
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-all-target-headers.hmap (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-all-non-framework-target-headers.hmap (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.SwiftFileList (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.SwiftFileList
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests_const_extract_protocols.json (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.SwiftConstValuesFileList (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.LinkFileList (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.LinkFileList
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests-OutputFileMap.json (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests-OutputFileMap.json
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/empty-PurrcastTests.plist (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/empty-PurrcastTests.plist
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests.hmap (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests.hmap
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests.DependencyStaticMetadataFileList (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests.DependencyMetadataFileList (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-project-headers.hmap (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-project-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-own-target-headers.hmap (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-generated-files.hmap (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-generated-files.hmap
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-all-target-headers.hmap (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-all-non-framework-target-headers.hmap (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests_const_extract_protocols.json (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.SwiftFileList (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.SwiftFileList
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.SwiftConstValuesFileList (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.LinkFileList (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.LinkFileList
+
+WriteAuxiliaryFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests-OutputFileMap.json (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    write-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests-OutputFileMap.json
+
+MkDir /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /bin/mkdir -p /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest
+
+MkDir /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /bin/mkdir -p /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest
+
+ProcessInfoPlistFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastWidgets.appex/Info.plist /Users/runner/work/purrcast/purrcast/PurrcastWidgets/Info.plist (in target 'PurrcastWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-infoPlistUtility /Users/runner/work/purrcast/purrcast/PurrcastWidgets/Info.plist -producttype com.apple.product-type.app-extension -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastWidgets.build/assetcatalog_generated_info.plist -o /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastWidgets.appex/Info.plist
+
+ProcessInfoPlistFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/Info.plist /Users/runner/work/purrcast/purrcast/PurrcastWatchWidgets/Info.plist (in target 'PurrcastWatchWidgets' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-infoPlistUtility /Users/runner/work/purrcast/purrcast/PurrcastWatchWidgets/Info.plist -producttype com.apple.product-type.app-extension -expandbuildsettings -format binary -platform watchsimulator -additionalcontentfile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatchWidgets.build/assetcatalog_generated_info.plist -o /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex/Info.plist
+
+SwiftDriver PurrcastUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-SwiftDriver -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastUITests -Onone -enforce-exclusivity\=checked @/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Index.noindex/DataStore -swift-version 5 -I /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -I /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -F /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Developer/Library/Frameworks -parse-as-library -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator18.5-22F76-96ae0914227b19deccb34b33ba7b5dea.sdkstatcache -output-file-map /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-generated-files.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-own-target-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-project-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/DerivedSources/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver PurrcastTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-SwiftDriver -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastTests -Onone -enforce-exclusivity\=checked @/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Index.noindex/DataStore -swift-version 5 -I /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -I /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -F /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Developer/Library/Frameworks -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator18.5-22F76-96ae0914227b19deccb34b33ba7b5dea.sdkstatcache -output-file-map /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-generated-files.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-own-target-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-project-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/DerivedSources/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns/PurrcastWatchWidgets.appex /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks -remove-static-executable /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatchWidgets.appex /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ PurrcastUITests (in target 'PurrcastUITests' from project 'Purrcast')
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/PurrcastUITests/ScreenshotTests.swift (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftCompile normal arm64 Compiling\ ScreenshotTests.swift /Users/runner/work/purrcast/purrcast/PurrcastUITests/ScreenshotTests.swift (in target 'PurrcastUITests' from project 'Purrcast')
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/PurrcastUITests/ScreenshotTests.swift (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ PurrcastTests (in target 'PurrcastTests' from project 'Purrcast')
+
+EmitSwiftModule normal arm64 (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+ProcessInfoPlistFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Info.plist /Users/runner/work/purrcast/purrcast/PurrcastWatch/Info.plist (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-infoPlistUtility /Users/runner/work/purrcast/purrcast/PurrcastWatch/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PkgInfo -expandbuildsettings -format binary -platform watchsimulator -additionalcontentfile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/assetcatalog_generated_info.plist -scanforprivacyfile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns/PurrcastWatchWidgets.appex -o /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Info.plist
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for PurrcastUITests (in target 'PurrcastUITests' from project 'Purrcast')
+
+SwiftDriver\ Compilation\ Requirements PurrcastUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastUITests -Onone -enforce-exclusivity\=checked @/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Index.noindex/DataStore -swift-version 5 -I /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -I /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -F /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Developer/Library/Frameworks -parse-as-library -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator18.5-22F76-96ae0914227b19deccb34b33ba7b5dea.sdkstatcache -output-file-map /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-generated-files.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-own-target-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-project-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/DerivedSources/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+CopySwiftLibs /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PurrcastWatch.debug.dylib --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Frameworks --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/SystemExtensions --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Extensions --platform watchsimulator --toolchain /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-watchsimulator/PurrcastWatch.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+SwiftMergeGeneratedHeaders /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/DerivedSources/PurrcastUITests-Swift.h /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests-Swift.h (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-swiftHeaderTool -arch arm64 /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests-Swift.h -o /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/DerivedSources/PurrcastUITests-Swift.h
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.swiftmodule (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.swiftmodule /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests.swiftmodule/arm64-apple-ios-simulator.swiftdoc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.swiftdoc (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.swiftdoc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.abi.json (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.abi.json /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.swiftsourceinfo (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.swiftsourceinfo /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+ValidateEmbeddedBinary /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns/PurrcastWatchWidgets.appex (in target 'PurrcastWatch' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/embeddedBinaryValidationUtility /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/PlugIns/PurrcastWatchWidgets.appex -info-plist-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app/Info.plist
+
+SwiftCompile normal arm64 Compiling\ WidgetMatrixTests.swift /Users/runner/work/purrcast/purrcast/PurrcastTests/WidgetMatrixTests.swift (in target 'PurrcastTests' from project 'Purrcast')
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/PurrcastTests/WidgetMatrixTests.swift (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for PurrcastTests (in target 'PurrcastTests' from project 'Purrcast')
+
+SwiftDriver\ Compilation\ Requirements PurrcastTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastTests -Onone -enforce-exclusivity\=checked @/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Index.noindex/DataStore -swift-version 5 -I /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -I /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -F /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Developer/Library/Frameworks -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator18.5-22F76-96ae0914227b19deccb34b33ba7b5dea.sdkstatcache -output-file-map /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-generated-files.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-own-target-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-project-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/DerivedSources/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling ScreenshotTests.swift (in target 'PurrcastUITests' from project 'Purrcast')
+
+SwiftCompile normal arm64 Compiling\ PurrcastTests.swift /Users/runner/work/purrcast/purrcast/PurrcastTests/PurrcastTests.swift (in target 'PurrcastTests' from project 'Purrcast')
+
+SwiftCompile normal arm64 /Users/runner/work/purrcast/purrcast/PurrcastTests/PurrcastTests.swift (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    
+
+SwiftMergeGeneratedHeaders /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/DerivedSources/PurrcastTests-Swift.h /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests-Swift.h (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-swiftHeaderTool -arch arm64 /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests-Swift.h -o /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/DerivedSources/PurrcastTests-Swift.h
+
+SwiftDriverJobDiscovery normal arm64 Compiling PurrcastTests.swift (in target 'PurrcastTests' from project 'Purrcast')
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastTests.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.swiftmodule (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.swiftmodule /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastTests.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastTests.swiftmodule/arm64-apple-ios-simulator.swiftdoc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.swiftdoc (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.swiftdoc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastTests.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastTests.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.abi.json (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.abi.json /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastTests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.swiftsourceinfo (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.swiftsourceinfo /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+SwiftDriver\ Compilation PurrcastUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-Swift-Compilation -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastUITests -Onone -enforce-exclusivity\=checked @/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Index.noindex/DataStore -swift-version 5 -I /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -I /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -F /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Developer/Library/Frameworks -parse-as-library -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator18.5-22F76-96ae0914227b19deccb34b33ba7b5dea.sdkstatcache -output-file-map /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-generated-files.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-own-target-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests-project-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/DerivedSources/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling WidgetMatrixTests.swift (in target 'PurrcastTests' from project 'Purrcast')
+
+SwiftDriver\ Compilation PurrcastTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-Swift-Compilation -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PurrcastTests -Onone -enforce-exclusivity\=checked @/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Index.noindex/DataStore -swift-version 5 -I /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -I /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -F /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Developer/Library/Frameworks -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator18.5-22F76-96ae0914227b19deccb34b33ba7b5dea.sdkstatcache -output-file-map /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-generated-files.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-own-target-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests-project-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/DerivedSources/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests-Swift.h -working-directory /Users/runner/work/purrcast/purrcast -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastWidgets.appex /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastWidgets.appex (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks -remove-static-executable /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastWidgets.appex /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks/libXCTestSwiftSupport.dylib /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks/libXCTestBundleInject.dylib /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestBundleInject.dylib (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestBundleInject.dylib /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks/XCUnit.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCUnit.framework (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCUnit.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks/XCUIAutomation.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks/XCTestSupport.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTestSupport.framework (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTestSupport.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks/XCTestCore.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTestCore.framework (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTestCore.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks/XCTest.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCTest.framework (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCTest.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Watch/PurrcastWatch.app /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks -remove-static-executable /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-watchsimulator/PurrcastWatch.app /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Watch
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks/XCTAutomationSupport.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTAutomationSupport.framework (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTAutomationSupport.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks/Testing.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/Testing.framework (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/Testing.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks
+
+ProcessInfoPlistFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Info.plist /Users/runner/work/purrcast/purrcast/Purrcast/Info.plist (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-infoPlistUtility /Users/runner/work/purrcast/purrcast/Purrcast/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/Purrcast.build/assetcatalog_generated_info.plist -scanforprivacyfile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastWidgets.appex -scanforprivacyfile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Watch/PurrcastWatch.app -o /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Info.plist
+
+CopySwiftLibs /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Purrcast.debug.dylib --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/SystemExtensions --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/Purrcast.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+ValidateEmbeddedBinary /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Watch/PurrcastWatch.app (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/embeddedBinaryValidationUtility /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Watch/PurrcastWatch.app -info-plist-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Info.plist
+
+ValidateEmbeddedBinary /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastWidgets.appex (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/embeddedBinaryValidationUtility /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastWidgets.appex -info-plist-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Info.plist
+
+Ld /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/PurrcastTests normal (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -bundle -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -O0 -L/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -L/Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Developer/Library/Frameworks -filelist /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -dead_strip -bundle_loader /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Purrcast -Xlinker -object_path_lto -Xlinker /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.swiftmodule -framework XCTest -lXCTestSwiftSupport /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/Purrcast.debug.dylib -o /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/PurrcastTests
+
+ProcessInfoPlistFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/Info.plist /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/empty-PurrcastTests.plist (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-infoPlistUtility /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/empty-PurrcastTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/Info.plist
+
+CpResource /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/server-scenes.json /Users/runner/work/purrcast/purrcast/PurrcastTests/Fixtures/server-scenes.json (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/PurrcastTests/Fixtures/server-scenes.json /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest
+
+CpResource /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/matrix.json /Users/runner/work/purrcast/purrcast/PurrcastTests/Fixtures/matrix.json (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/purrcast/purrcast/PurrcastTests/Fixtures/matrix.json /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest
+
+ExtractAppIntentsMetadata (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name PurrcastTests --sdk-root /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk --xcode-version 16F6 --platform-family iOS --deployment-target 17.0 --bundle-identifier app.purrcast.ios.tests --output /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest --target-triple arm64-apple-ios17.0-simulator --binary-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/PurrcastTests --dependency-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests_dependency_info.dat --stringsdata-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.SwiftFileList --metadata-file-list /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests.DependencyMetadataFileList --static-metadata-file-list /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/Objects-normal/arm64/PurrcastTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-24 05:16:15.514 appintentsmetadataprocessor[6072:21971] Starting appintentsmetadataprocessor export
+2026-10-24 05:16:15.600 appintentsmetadataprocessor[6072:21971] Extracted no relevant App Intents symbols, skipping writing output
+
+CopySwiftLibs /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/PurrcastTests --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/Frameworks --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/PlugIns --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/SystemExtensions --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+AppIntentsSSUTraining (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/Info.plist --temp-dir-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/ssu --bundle-id app.purrcast.ios.tests --product-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest --extracted-metadata-path /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest/Metadata.appintents --metadata-file-list /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastTests.build/PurrcastTests.DependencyMetadataFileList --archive-ssu-assets
+2026-10-24 05:16:15.716 appintentsnltrainingprocessor[6083:22003] Parsing options for appintentsnltrainingprocessor
+2026-10-24 05:16:15.717 appintentsnltrainingprocessor[6083:22003] No AppShortcuts found - Skipping.
+
+RegisterExecutionPolicyException /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-RegisterExecutionPolicyException /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest
+
+Touch /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest (in target 'PurrcastTests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /usr/bin/touch -c /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app/PlugIns/PurrcastTests.xctest
+
+Validate /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app (in target 'Purrcast' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-validationUtility /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app -infoplist-subpath Info.plist
+
+Ld /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest/PurrcastUITests normal (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -bundle -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -O0 -L/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -L/Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Developer/Library/Frameworks -filelist /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -dead_strip -Xlinker -object_path_lto -Xlinker /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.swiftmodule -framework XCTest -lXCTestSwiftSupport -o /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest/PurrcastUITests
+
+ExtractAppIntentsMetadata (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name PurrcastUITests --sdk-root /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk --xcode-version 16F6 --platform-family iOS --deployment-target 17.0 --bundle-identifier app.purrcast.ios.uitests --output /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest --target-triple arm64-apple-ios17.0-simulator --binary-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest/PurrcastUITests --dependency-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests_dependency_info.dat --stringsdata-file /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.SwiftFileList --metadata-file-list /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests.DependencyMetadataFileList --static-metadata-file-list /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/PurrcastUITests.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/Objects-normal/arm64/PurrcastUITests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-24 05:16:16.373 appintentsmetadataprocessor[6122:22108] Starting appintentsmetadataprocessor export
+2026-10-24 05:16:16.374 appintentsmetadataprocessor[6122:22108] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+CopySwiftLibs /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest/PurrcastUITests --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest/Frameworks --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest/PlugIns --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest/SystemExtensions --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Intermediates.noindex/Purrcast.build/Debug-iphonesimulator/PurrcastUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+MkDir /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /bin/mkdir -p /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app
+
+CopyAndPreserveArchs /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PurrcastUITests-Runner (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/XCTRunner.app/XCTRunner -output /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PurrcastUITests-Runner -extract arm64
+
+CopyPlistFile /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Info.plist /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/XCTRunner.app/Info.plist (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copyPlist --validate --convert xml1 --macro-expansion WRAPPEDPRODUCTNAME PurrcastUITests-Runner --macro-expansion WRAPPEDPRODUCTBUNDLEIDENTIFIER app.purrcast.ios.uitests.xctrunner --macro-expansion TESTPRODUCTNAME PurrcastUITests --macro-expansion TESTPRODUCTBUNDLEIDENTIFIER app.purrcast.ios.uitests --outdir /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app -- /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/XCTRunner.app/Info.plist
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PkgInfo /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/XCTRunner.app/PkgInfo (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/XCTRunner.app/PkgInfo /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks/libXCTestSwiftSupport.dylib /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks/XCUnit.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCUnit.framework (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCUnit.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks/XCUIAutomation.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks/XCTestSupport.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTestSupport.framework (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTestSupport.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks/XCTestCore.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTestCore.framework (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTestCore.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks/XCTest.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCTest.framework (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCTest.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks/XCTAutomationSupport.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTAutomationSupport.framework (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/PrivateFrameworks/XCTAutomationSupport.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks/Testing.framework /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/Testing.framework (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/Testing.framework /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/Frameworks
+
+RegisterExecutionPolicyException /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    builtin-RegisterExecutionPolicyException /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest
+
+Touch /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest (in target 'PurrcastUITests' from project 'Purrcast')
+    cd /Users/runner/work/purrcast/purrcast
+    /usr/bin/touch -c /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/PurrcastUITests-Runner.app/PlugIns/PurrcastUITests.xctest
+
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+2026-10-24 05:19:11.584846+0000 Purrcast[8266:29700] fopen failed for data file: errno = 2 (No such file or directory)
+2026-10-24 05:19:11.585093+0000 Purrcast[8266:29700] Errors found! Invalidating cache...
+2026-10-24 05:19:12.010272+0000 Purrcast[8266:29700] fopen failed for data file: errno = 2 (No such file or directory)
+2026-10-24 05:19:12.010565+0000 Purrcast[8266:29700] Errors found! Invalidating cache...
+Test Suite 'All tests' started at 2026-10-24 05:19:24.059.
+Test Suite 'PurrcastTests.xctest' started at 2026-10-24 05:19:24.061.
+Test Suite 'PurrcastTests' started at 2026-10-24 05:19:24.061.
+Test Case '-[PurrcastTests.PurrcastTests testChangeNotificationWords]' started.
+Test Case '-[PurrcastTests.PurrcastTests testChangeNotificationWords]' passed (0.007 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testClockParsing]' started.
+Test Case '-[PurrcastTests.PurrcastTests testClockParsing]' passed (0.002 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testCompactWords]' started.
+Test Case '-[PurrcastTests.PurrcastTests testCompactWords]' passed (0.004 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testEveryExampleSceneDecodes]' started.
+Test Case '-[PurrcastTests.PurrcastTests testEveryExampleSceneDecodes]' passed (0.001 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testFirstRainUsesThePlacesTimeZone]' started.
+Test Case '-[PurrcastTests.PurrcastTests testFirstRainUsesThePlacesTimeZone]' passed (0.003 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testFreePlanHidesPlusData]' started.
+Test Case '-[PurrcastTests.PurrcastTests testFreePlanHidesPlusData]' passed (0.009 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testLenientDecodingRepairsBadValues]' started.
+Test Case '-[PurrcastTests.PurrcastTests testLenientDecodingRepairsBadValues]' passed (0.003 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testOutfitLevels]' started.
+Test Case '-[PurrcastTests.PurrcastTests testOutfitLevels]' passed (0.002 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testPlaceCatalogIDsAreUnique]' started.
+Test Case '-[PurrcastTests.PurrcastTests testPlaceCatalogIDsAreUnique]' passed (0.003 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testServerScenesDecode]' started.
+Test Case '-[PurrcastTests.PurrcastTests testServerScenesDecode]' passed (0.005 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testShortCityNames]' started.
+Test Case '-[PurrcastTests.PurrcastTests testShortCityNames]' passed (0.001 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testSkyComposition]' started.
+Test Case '-[PurrcastTests.PurrcastTests testSkyComposition]' passed (0.001 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testSkyDensityFollowsAmount]' started.
+Test Case '-[PurrcastTests.PurrcastTests testSkyDensityFollowsAmount]' passed (0.003 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testSnapshotDropsPlusAfterItEnds]' started.
+Test Case '-[PurrcastTests.PurrcastTests testSnapshotDropsPlusAfterItEnds]' passed (0.002 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testSnapshotUnitsAndRoundTrip]' started.
+Test Case '-[PurrcastTests.PurrcastTests testSnapshotUnitsAndRoundTrip]' passed (0.011 seconds).
+Test Suite 'PurrcastTests' passed at 2026-10-24 05:19:27.125.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.057 (3.064) seconds
+Test Suite 'WidgetMatrixTests' started at 2026-10-24 05:19:27.126.
+Test Case '-[PurrcastTests.WidgetMatrixTests testRenderMatrix]' started.
+/Users/runner/work/purrcast/purrcast/PurrcastTests/WidgetMatrixTests.swift:14: -[PurrcastTests.WidgetMatrixTests testRenderMatrix] : Test skipped - run by the Widget matrix workflow
+Test Case '-[PurrcastTests.WidgetMatrixTests testRenderMatrix]' skipped (0.022 seconds).
+Test Suite 'WidgetMatrixTests' passed at 2026-10-24 05:19:27.148.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.022 (0.023) seconds
+Test Suite 'PurrcastTests.xctest' passed at 2026-10-24 05:19:27.278.
+	 Executed 16 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.079 (3.217) seconds
+Test Suite 'All tests' passed at 2026-10-24 05:19:27.279.
+	 Executed 16 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.079 (3.219) seconds
+2026-10-24 05:19:57.725821+0000 Purrcast[8266:30994] [Default] Xcode took 30.29 seconds to acknowledge that testing finished.
+2026-10-24 05:20:11.077087+0000 PurrcastUITests-Runner[8895:32468] [UIKit App Config] `UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+2026-10-24 05:20:11.097355+0000 PurrcastUITests-Runner[8895:32468] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'All tests' started at 2026-10-24 05:20:51.574.
+Test Suite 'PurrcastUITests.xctest' started at 2026-10-24 05:20:51.575.
+Test Suite 'ScreenshotTests' started at 2026-10-24 05:20:51.575.
+Test Case '-[PurrcastUITests.ScreenshotTests test1HomeScreens]' started.
+    t =     0.00s Start Test at 2026-10-24 05:20:51.576
+    t =     1.43s Set Up
+    t =     2.16s Open app.purrcast.ios
+    t =     2.16s     Launch app.purrcast.ios
+    t =     9.42s         Setting up automation session
+    t =    12.48s         Wait for app.purrcast.ios to idle
+    t =    16.90s Find the Target Application 'app.purrcast.ios'
+    t =    17.61s Added attachment named 'home-clear-free-cat'
+    t =    17.61s Terminate app.purrcast.ios:9067
+    t =    18.63s Open app.purrcast.ios
+    t =    18.63s     Launch app.purrcast.ios
+    t =    20.77s         Setting up automation session
+    t =    21.39s         Wait for app.purrcast.ios to idle
+    t =    24.33s Find the Target Application 'app.purrcast.ios'
+    t =    24.76s Added attachment named 'home-maybe-plus-abys'
+    t =    24.76s Terminate app.purrcast.ios:9368
+    t =    26.78s Open app.purrcast.ios
+    t =    26.78s     Launch app.purrcast.ios
+    t =    28.50s         Setting up automation session
+    t =    29.05s         Wait for app.purrcast.ios to idle
+    t =    32.90s Find the Target Application 'app.purrcast.ios'
+    t =    33.39s Added attachment named 'home-combo-plus-brit'
+    t =    33.39s Terminate app.purrcast.ios:9581
+    t =    34.46s Open app.purrcast.ios
+    t =    34.46s     Launch app.purrcast.ios
+    t =    39.11s         Setting up automation session
+    t =    39.34s         Wait for app.purrcast.ios to idle
+    t =    41.36s Find the Target Application 'app.purrcast.ios'
+    t =    41.64s Added attachment named 'home-tokyo_soon-free-cat'
+    t =    41.64s Terminate app.purrcast.ios:9651
+    t =    42.64s Open app.purrcast.ios
+    t =    42.64s     Launch app.purrcast.ios
+    t =    43.87s         Setting up automation session
+    t =    44.72s         Wait for app.purrcast.ios to idle
+    t =    47.49s Find the Target Application 'app.purrcast.ios'
+    t =    47.77s Added attachment named 'home-spring_rain-plus-abys'
+    t =    47.77s Terminate app.purrcast.ios:9727
+    t =    48.79s Open app.purrcast.ios
+    t =    48.79s     Launch app.purrcast.ios
+    t =    79.05s         Setting up automation session
+    t =    79.56s         Wait for app.purrcast.ios to idle
+    t =    82.48s Find the Target Application 'app.purrcast.ios'
+    t =    82.79s Added attachment named 'home-summer_heat-plus-brit'
+    t =    82.79s Terminate app.purrcast.ios:10061
+    t =    83.85s Open app.purrcast.ios
+    t =    83.85s     Launch app.purrcast.ios
+    t =    84.72s         Setting up automation session
+    t =    85.88s         Wait for app.purrcast.ios to idle
+    t =    88.54s Find the Target Application 'app.purrcast.ios'
+    t =    88.88s Added attachment named 'home-summer_night-free-cat'
+    t =    88.88s Terminate app.purrcast.ios:11799
+    t =    89.89s Open app.purrcast.ios
+    t =    89.89s     Launch app.purrcast.ios
+    t =    90.88s         Setting up automation session
+    t =    92.21s         Wait for app.purrcast.ios to idle
+    t =    95.00s Find the Target Application 'app.purrcast.ios'
+    t =    95.41s Added attachment named 'home-winter_cold-plus-abys'
+    t =    95.41s Terminate app.purrcast.ios:12031
+    t =    96.42s Open app.purrcast.ios
+    t =    96.42s     Launch app.purrcast.ios
+    t =    97.35s         Setting up automation session
+    t =    98.56s         Wait for app.purrcast.ios to idle
+    t =   101.51s Find the Target Application 'app.purrcast.ios'
+    t =   102.00s Added attachment named 'home-winter_snow-plus-brit'
+    t =   102.00s Terminate app.purrcast.ios:12121
+    t =   103.03s Open app.purrcast.ios
+    t =   103.03s     Launch app.purrcast.ios
+    t =   103.90s         Setting up automation session
+    t =   105.66s         Wait for app.purrcast.ios to idle
+    t =   108.63s Find the Target Application 'app.purrcast.ios'
+    t =   108.97s Added attachment named 'home-summer_typhoon-free-cat'
+    t =   108.97s Terminate app.purrcast.ios:12181
+    t =   110.01s Tear Down
+Test Case '-[PurrcastUITests.ScreenshotTests test1HomeScreens]' passed (110.430 seconds).
+Test Case '-[PurrcastUITests.ScreenshotTests test2Pages]' started.
+    t =     0.00s Start Test at 2026-10-24 05:22:42.007
+    t =     0.09s Set Up
+    t =     0.09s Open app.purrcast.ios
+    t =     0.09s     Launch app.purrcast.ios
+    t =     1.61s         Setting up automation session
+    t =     2.94s         Wait for app.purrcast.ios to idle
+    t =     6.93s Find the Target Application 'app.purrcast.ios'
+    t =     7.76s Added attachment named 'page-character-free'
+    t =     7.76s Terminate app.purrcast.ios:12589
+    t =     8.77s Open app.purrcast.ios
+    t =     8.77s     Launch app.purrcast.ios
+    t =     9.67s         Setting up automation session
+    t =    10.97s         Wait for app.purrcast.ios to idle
+    t =    15.14s Find the Target Application 'app.purrcast.ios'
+    t =    15.42s Added attachment named 'page-paywall-free'
+    t =    15.42s Terminate app.purrcast.ios:12788
+    t =    16.42s Open app.purrcast.ios
+    t =    16.42s     Launch app.purrcast.ios
+    t =    17.21s         Setting up automation session
+    t =    18.47s         Wait for app.purrcast.ios to idle
+    t =    22.34s Find the Target Application 'app.purrcast.ios'
+    t =    22.72s Added attachment named 'page-settings-free'
+    t =    22.72s Terminate app.purrcast.ios:13134
+    t =    23.79s Open app.purrcast.ios
+    t =    23.80s     Launch app.purrcast.ios
+    t =    24.17s         Setting up automation session
+    t =    25.24s         Wait for app.purrcast.ios to idle
+    t =    29.44s Find the Target Application 'app.purrcast.ios'
+    t =    29.74s Added attachment named 'page-places-free'
+    t =    29.74s Terminate app.purrcast.ios:13713
+    t =    30.83s Open app.purrcast.ios
+    t =    30.83s     Launch app.purrcast.ios
+    t =    31.84s         Setting up automation session
+    t =    32.92s         Wait for app.purrcast.ios to idle
+    t =    37.25s Find the Target Application 'app.purrcast.ios'
+    t =    37.96s Added attachment named 'page-widgets-free'
+    t =    37.96s Terminate app.purrcast.ios:13877
+    t =    39.03s Open app.purrcast.ios
+    t =    39.03s     Launch app.purrcast.ios
+    t =    40.21s         Setting up automation session
+    t =    41.28s         Wait for app.purrcast.ios to idle
+    t =    45.61s Find the Target Application 'app.purrcast.ios'
+    t =    46.12s Added attachment named 'page-day-free'
+    t =    46.12s Terminate app.purrcast.ios:14304
+    t =    47.13s Open app.purrcast.ios
+    t =    47.13s     Launch app.purrcast.ios
+    t =    49.48s         Setting up automation session
+    t =    49.87s         Wait for app.purrcast.ios to idle
+    t =    54.31s Find the Target Application 'app.purrcast.ios'
+    t =    54.88s Added attachment named 'page-sources-free'
+    t =    54.88s Terminate app.purrcast.ios:14673
+    t =    55.90s Open app.purrcast.ios
+    t =    55.91s     Launch app.purrcast.ios
+    t =    57.00s         Setting up automation session
+    t =    58.95s         Wait for app.purrcast.ios to idle
+    t =    63.43s Find the Target Application 'app.purrcast.ios'
+    t =    63.97s Added attachment named 'page-character-plus-brit'
+    t =    63.97s Terminate app.purrcast.ios:14835
+    t =    65.01s Open app.purrcast.ios
+    t =    65.01s     Launch app.purrcast.ios
+    t =    65.71s         Setting up automation session
+    t =    67.47s         Wait for app.purrcast.ios to idle
+    t =    72.04s Find the Target Application 'app.purrcast.ios'
+    t =    72.51s Added attachment named 'page-settings-plus-brit'
+    t =    72.51s Terminate app.purrcast.ios:15015
+    t =    73.53s Open app.purrcast.ios
+    t =    73.53s     Launch app.purrcast.ios
+    t =    74.47s         Setting up automation session
+    t =    76.28s         Wait for app.purrcast.ios to idle
+    t =    80.96s Find the Target Application 'app.purrcast.ios'
+    t =    81.85s Added attachment named 'page-widgets-plus-brit'
+    t =    81.85s Terminate app.purrcast.ios:15417
+    t =    82.87s Open app.purrcast.ios
+    t =    82.87s     Launch app.purrcast.ios
+    t =    83.92s         Setting up automation session
+    t =    85.37s         Wait for app.purrcast.ios to idle
+    t =    89.64s Find the Target Application 'app.purrcast.ios'
+    t =    90.15s Added attachment named 'page-day-plus-brit'
+    t =    90.16s Terminate app.purrcast.ios:15522
+    t =    91.19s Tear Down
+Test Case '-[PurrcastUITests.ScreenshotTests test2Pages]' passed (91.564 seconds).
+Test Case '-[PurrcastUITests.ScreenshotTests test3Scroll]' started.
+    t =     0.00s Start Test at 2026-10-24 05:24:13.574
+    t =     0.05s Set Up
+    t =     0.06s Open app.purrcast.ios
+    t =     0.06s     Launch app.purrcast.ios
+    t =     0.75s         Setting up automation session
+    t =     2.82s         Wait for app.purrcast.ios to idle
+    t =     5.89s Swipe up Target Application 'app.purrcast.ios'
+    t =     5.89s     Wait for app.purrcast.ios to idle
+    t =     5.93s     Find the Target Application 'app.purrcast.ios'
+    t =     6.32s     Check for interrupting elements affecting "그르릉날씨" Application
+    t =     6.60s     Synthesize event
+    t =     7.25s     Wait for app.purrcast.ios to idle
+    t =     8.26s Find the Target Application 'app.purrcast.ios'
+    t =     8.81s Added attachment named 'home-scrolled'
+    t =     8.81s Terminate app.purrcast.ios:15758
+    t =     9.87s Tear Down
+Test Case '-[PurrcastUITests.ScreenshotTests test3Scroll]' passed (9.945 seconds).
+Test Case '-[PurrcastUITests.ScreenshotTests test4Onboarding]' started.
+    t =     0.00s Start Test at 2026-10-24 05:24:23.518
+    t =     0.07s Set Up
+    t =     0.07s Open app.purrcast.ios
+    t =     0.07s     Launch app.purrcast.ios
+    t =     0.76s         Setting up automation session
+    t =     2.45s         Wait for app.purrcast.ios to idle
+    t =     5.10s Find the Target Application 'app.purrcast.ios'
+    t =     5.43s Added attachment named 'onboarding-1'
+    t =     5.43s Terminate app.purrcast.ios:16101
+    t =     6.45s Open app.purrcast.ios
+    t =     6.45s     Launch app.purrcast.ios
+    t =     7.54s         Setting up automation session
+    t =     9.00s         Wait for app.purrcast.ios to idle
+    t =    11.80s Tap "next" Button
+    t =    11.80s     Wait for app.purrcast.ios to idle
+    t =    11.82s     Find the "next" Button
+    t =    11.94s     Check for interrupting elements affecting "next" Button
+    t =    12.02s     Synthesize event
+    t =    12.38s     Wait for app.purrcast.ios to idle
+    t =    13.42s Find the Target Application 'app.purrcast.ios'
+    t =    13.83s Added attachment named 'onboarding-2'
+    t =    13.84s Terminate app.purrcast.ios:16200
+    t =    14.92s Open app.purrcast.ios
+    t =    14.92s     Launch app.purrcast.ios
+    t =    16.28s         Setting up automation session
+    t =    17.23s         Wait for app.purrcast.ios to idle
+    t =    19.87s Tap "next" Button
+    t =    19.87s     Wait for app.purrcast.ios to idle
+    t =    19.88s     Find the "next" Button
+    t =    19.93s     Check for interrupting elements affecting "next" Button
+    t =    19.99s     Synthesize event
+    t =    20.34s     Wait for app.purrcast.ios to idle
+    t =    21.35s Tap "next" Button
+    t =    21.35s     Wait for app.purrcast.ios to idle
+    t =    21.36s     Find the "next" Button
+    t =    21.56s     Check for interrupting elements affecting "next" Button
+    t =    21.63s     Synthesize event
+    t =    21.93s     Wait for app.purrcast.ios to idle
+    t =    22.95s Find the Target Application 'app.purrcast.ios'
+    t =    23.14s Added attachment named 'onboarding-3'
+    t =    23.14s Terminate app.purrcast.ios:16366
+    t =    24.22s Tear Down
+Test Case '-[PurrcastUITests.ScreenshotTests test4Onboarding]' passed (27.125 seconds).
+Test Case '-[PurrcastUITests.ScreenshotTests test5StoreShots]' started.
+    t =     0.00s Start Test at 2026-10-24 05:24:50.643
+    t =     0.05s Set Up
+    t =     0.05s Open app.purrcast.ios
+    t =     0.05s     Launch app.purrcast.ios
+    t =     0.85s         Setting up automation session
+    t =     1.73s         Wait for app.purrcast.ios to idle
+    t =     4.43s Find the Target Application 'app.purrcast.ios'
+    t =     4.73s Added attachment named 'store-1-home'
+    t =     4.73s Terminate app.purrcast.ios:17236
+    t =     5.74s Open app.purrcast.ios
+    t =     5.74s     Launch app.purrcast.ios
+    t =     6.92s         Setting up automation session
+    t =     7.40s         Wait for app.purrcast.ios to idle
+    t =    10.18s Find the Target Application 'app.purrcast.ios'
+    t =    10.54s Added attachment named 'store-2-rain'
+    t =    10.54s Terminate app.purrcast.ios:17402
+    t =    11.56s Open app.purrcast.ios
+    t =    11.56s     Launch app.purrcast.ios
+    t =    12.76s         Setting up automation session
+    t =    13.56s         Wait for app.purrcast.ios to idle
+    t =    16.24s Find the Target Application 'app.purrcast.ios'
+    t =    16.56s Added attachment named 'store-3-snow'
+    t =    16.56s Terminate app.purrcast.ios:17685
+    t =    17.59s Open app.purrcast.ios
+    t =    17.59s     Launch app.purrcast.ios
+    t =    18.52s         Setting up automation session
+    t =    19.59s         Wait for app.purrcast.ios to idle
+    t =    23.58s Find the Target Application 'app.purrcast.ios'
+    t =    24.47s Added attachment named 'store-4-characters'
+    t =    24.47s Terminate app.purrcast.ios:18134
+    t =    26.56s Open app.purrcast.ios
+    t =    26.57s     Launch app.purrcast.ios
+    t =    28.19s         Setting up automation session
+    t =    29.15s         Wait for app.purrcast.ios to idle
+    t =    33.66s Find the Target Application 'app.purrcast.ios'
+    t =    34.30s Added attachment named 'store-5-widgets'
+    t =    34.32s Terminate app.purrcast.ios:18249
+    t =    35.41s Open app.purrcast.ios
+    t =    35.41s     Launch app.purrcast.ios
+    t =    36.47s         Setting up automation session
+    t =    37.55s         Wait for app.purrcast.ios to idle
+    t =    41.40s Find the Target Application 'app.purrcast.ios'
+    t =    41.79s Added attachment named 'store-6-day'
+    t =    41.80s Terminate app.purrcast.ios:18328
+    t =    42.89s Tear Down
+Test Case '-[PurrcastUITests.ScreenshotTests test5StoreShots]' passed (46.405 seconds).
+Test Suite 'ScreenshotTests' passed at 2026-10-24 05:25:37.053.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 285.469 (285.478) seconds
+Test Suite 'PurrcastUITests.xctest' passed at 2026-10-24 05:25:37.055.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 285.469 (285.480) seconds
+Test Suite 'All tests' passed at 2026-10-24 05:25:37.057.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 285.469 (285.483) seconds
+2026-10-24 05:25:39.283 xcodebuild[5228:19659] [MT] IDETestOperationsObserverDebug: 562.805 elapsed -- Testing started completed.
+2026-10-24 05:25:39.320 xcodebuild[5228:19659] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-24 05:25:39.320 xcodebuild[5228:19659] [MT] IDETestOperationsObserverDebug: 562.805 sec, +562.805 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/runner/work/purrcast/purrcast/TestResults.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

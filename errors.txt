@@ -1,0 +1,45 @@
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+2026-10-24 05:19:11.584846+0000 Purrcast[8266:29700] fopen failed for data file: errno = 2 (No such file or directory)
+2026-10-24 05:19:12.010272+0000 Purrcast[8266:29700] fopen failed for data file: errno = 2 (No such file or directory)
+Test Case '-[PurrcastTests.PurrcastTests testChangeNotificationWords]' started.
+Test Case '-[PurrcastTests.PurrcastTests testChangeNotificationWords]' passed (0.007 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testClockParsing]' started.
+Test Case '-[PurrcastTests.PurrcastTests testClockParsing]' passed (0.002 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testCompactWords]' started.
+Test Case '-[PurrcastTests.PurrcastTests testCompactWords]' passed (0.004 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testEveryExampleSceneDecodes]' started.
+Test Case '-[PurrcastTests.PurrcastTests testEveryExampleSceneDecodes]' passed (0.001 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testFirstRainUsesThePlacesTimeZone]' started.
+Test Case '-[PurrcastTests.PurrcastTests testFirstRainUsesThePlacesTimeZone]' passed (0.003 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testFreePlanHidesPlusData]' started.
+Test Case '-[PurrcastTests.PurrcastTests testFreePlanHidesPlusData]' passed (0.009 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testLenientDecodingRepairsBadValues]' started.
+Test Case '-[PurrcastTests.PurrcastTests testLenientDecodingRepairsBadValues]' passed (0.003 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testOutfitLevels]' started.
+Test Case '-[PurrcastTests.PurrcastTests testOutfitLevels]' passed (0.002 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testPlaceCatalogIDsAreUnique]' started.
+Test Case '-[PurrcastTests.PurrcastTests testPlaceCatalogIDsAreUnique]' passed (0.003 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testServerScenesDecode]' started.
+Test Case '-[PurrcastTests.PurrcastTests testServerScenesDecode]' passed (0.005 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testShortCityNames]' started.
+Test Case '-[PurrcastTests.PurrcastTests testShortCityNames]' passed (0.001 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testSkyComposition]' started.
+Test Case '-[PurrcastTests.PurrcastTests testSkyComposition]' passed (0.001 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testSkyDensityFollowsAmount]' started.
+Test Case '-[PurrcastTests.PurrcastTests testSkyDensityFollowsAmount]' passed (0.003 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testSnapshotDropsPlusAfterItEnds]' started.
+Test Case '-[PurrcastTests.PurrcastTests testSnapshotDropsPlusAfterItEnds]' passed (0.002 seconds).
+Test Case '-[PurrcastTests.PurrcastTests testSnapshotUnitsAndRoundTrip]' started.
+Test Case '-[PurrcastTests.PurrcastTests testSnapshotUnitsAndRoundTrip]' passed (0.011 seconds).
+Test Case '-[PurrcastTests.WidgetMatrixTests testRenderMatrix]' started.
+Test Case '-[PurrcastTests.WidgetMatrixTests testRenderMatrix]' skipped (0.022 seconds).
+Test Case '-[PurrcastUITests.ScreenshotTests test1HomeScreens]' started.
+Test Case '-[PurrcastUITests.ScreenshotTests test1HomeScreens]' passed (110.430 seconds).
+Test Case '-[PurrcastUITests.ScreenshotTests test2Pages]' started.
+Test Case '-[PurrcastUITests.ScreenshotTests test2Pages]' passed (91.564 seconds).
+Test Case '-[PurrcastUITests.ScreenshotTests test3Scroll]' started.
+Test Case '-[PurrcastUITests.ScreenshotTests test3Scroll]' passed (9.945 seconds).
+Test Case '-[PurrcastUITests.ScreenshotTests test4Onboarding]' started.
+Test Case '-[PurrcastUITests.ScreenshotTests test4Onboarding]' passed (27.125 seconds).
+Test Case '-[PurrcastUITests.ScreenshotTests test5StoreShots]' started.
+Test Case '-[PurrcastUITests.ScreenshotTests test5StoreShots]' passed (46.405 seconds).
