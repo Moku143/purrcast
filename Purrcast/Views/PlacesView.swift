@@ -10,13 +10,13 @@ struct PlacesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            SheetHeader(title: "지역") { dismiss() }
+            SheetHeader(title: L("지역")) { dismiss() }
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass").foregroundStyle(UI.faint)
-                TextField("도시 · 동네 찾기", text: $query, onEditingChanged: { searching = $0 || !query.isEmpty })
+                TextField(L("도시 · 동네 찾기"), text: $query, onEditingChanged: { searching = $0 || !query.isEmpty })
                     .font(.system(size: 15)).accessibilityIdentifier("search")
                 if searching {
-                    Button("취소") { query = ""; searching = false; hideKeyboard() }.font(.system(size: 14)).foregroundStyle(UI.accent)
+                    Button(L("취소")) { query = ""; searching = false; hideKeyboard() }.font(.system(size: 14)).foregroundStyle(UI.accent)
                 }
             }
             .padding(.horizontal, 12).frame(height: 42).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 12))
@@ -46,11 +46,11 @@ struct PlacesView: View {
                 Button {
                     if model.canAddPlace { searching = true } else { showPaywall = true }
                 } label: {
-                    Text("+ 지역 추가").font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent)
+                    Text(L("+ 지역 추가")).font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent)
                         .frame(maxWidth: .infinity).frame(height: 48).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 14))
                 }.buttonStyle(.press(0.98)).accessibilityIdentifier("add-place")
                 if !model.plus {
-                    HStack(spacing: 6) { Text("무료는 1곳 더").font(.ui(12)).foregroundStyle(UI.sub); PlusTag(text: "Plus는 제한 없이") }
+                    HStack(spacing: 6) { Text(L("무료는 1곳 더")).font(.ui(12)).foregroundStyle(UI.sub); PlusTag(text: L("Plus는 제한 없이")) }
                 }
             }
             .listRowBackground(Color.clear).listRowSeparator(.hidden)
@@ -77,7 +77,7 @@ struct PlacesView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(p.name).font(.system(size: 16, weight: .medium)).foregroundStyle(UI.ink)
-                        Text(p.region == "kr" ? "한국 · 다음 6시간 비" : (p.region == "jp" ? "분 단위 비" : "시간별 예보")).font(.ui(12)).foregroundStyle(UI.sub)
+                        Text(p.region == "kr" ? L("한국 · 다음 6시간 비") : (p.region == "jp" ? L("분 단위 비") : L("시간별 예보"))).font(.ui(12)).foregroundStyle(UI.sub)
                     }
                     Spacer()
                     if added { Image(systemName: "checkmark").foregroundStyle(UI.accent) } else { Image(systemName: "plus.circle.fill").foregroundStyle(UI.accent) }
@@ -123,7 +123,7 @@ private struct PlaceCard: View {
     }
 
     private var subtitle: String {
-        var t = place.id == "here" && model.hereIsLive ? "지금 위치 · " : ""
+        var t = place.id == "here" && model.hereIsLive ? L("지금 위치") + " · " : ""
         if let s = scene { t += s.clock + " · " + s.cond }
         return t
     }
@@ -147,7 +147,7 @@ private struct PlaceCard: View {
         VStack(alignment: .trailing, spacing: 4) {
             Text(scene.map { model.deg($0.temp) } ?? "–").font(.px(30)).rolling(scene?.temp ?? 0)
             if let s = scene {
-                Text("최고 \(model.deg(s.hi)) · 최저 \(model.deg(s.lo))").font(.ui(11)).foregroundStyle(UI.sub)
+                Text(L("최고 %@ · 최저 %@", model.deg(s.hi), model.deg(s.lo))).font(.ui(11)).foregroundStyle(UI.sub)
             }
         }
     }

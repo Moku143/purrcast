@@ -21,14 +21,14 @@ enum Rules {
     /// Wind as people feel it (same words as the server: Beaufort + KMA everyday guidance).
     static func windWord(ms: Int) -> String {
         switch ms {
-        case ..<1: return "바람 없어요"
-        case 1: return "바람 약해요"
-        case 2...3: return "산들바람"
-        case 4...5: return "바람 조금"
-        case 6...7: return "바람 꽤 강해요"
-        case 8...10: return "바람 강해요"
-        case 11...13: return "매우 강한 바람"
-        default: return "강풍 · 외출 주의"
+        case ..<1: return L("바람 없어요")
+        case 1: return L("바람 약해요")
+        case 2...3: return L("산들바람")
+        case 4...5: return L("바람 조금")
+        case 6...7: return L("바람 꽤 강해요")
+        case 8...10: return L("바람 강해요")
+        case 11...13: return L("매우 강한 바람")
+        default: return L("강풍 · 외출 주의")
         }
     }
 
@@ -52,25 +52,25 @@ enum Rules {
     }
     /// Rain per hour in everyday terms (what it means for an umbrella)
     static func rainKind(_ mm: Double) -> String {
-        mm >= 30 ? "매우 강한 비" : mm >= 15 ? "강한 비" : mm >= 3 ? "보통 비" : mm >= 1 ? "약한 비" : "이슬비"
+        mm >= 30 ? L("매우 강한 비") : mm >= 15 ? L("강한 비") : mm >= 3 ? L("보통 비") : mm >= 1 ? L("약한 비") : L("이슬비")
     }
     static func rainKindNote(_ mm: Double) -> String {
-        mm >= 30 ? "우산으로 막기 어려워요" : mm >= 15 ? "바닥에 물이 고여요" : mm >= 3 ? "우산이 꼭 필요해요" : mm >= 1 ? "우산이 필요해요" : "우산 없이도 괜찮아요"
+        mm >= 30 ? L("우산으로 막기 어려워요") : mm >= 15 ? L("바닥에 물이 고여요") : mm >= 3 ? L("우산이 꼭 필요해요") : mm >= 1 ? L("우산이 필요해요") : L("우산 없이도 괜찮아요")
     }
     /// A day's (or 12 h) total: 조금 · 보통 · 많음 · 매우 많음
-    static func rainAmountWord(_ mm: Double) -> String { mm >= 50 ? "매우 많음" : mm >= 20 ? "많음" : mm >= 5 ? "보통" : "조금" }
+    static func rainAmountWord(_ mm: Double) -> String { mm >= 50 ? L("매우 많음") : mm >= 20 ? L("많음") : mm >= 5 ? L("보통") : L("조금") }
 
     /// Feels-like in eight steps, the same words everywhere
     static func feelsWord(_ c: Int) -> String {
         switch c {
-        case ...(-10): return "매우 추움"
-        case -9...0: return "추움"
-        case 1...8: return "쌀쌀"
-        case 9...16: return "선선"
-        case 17...22: return "쾌적"
-        case 23...27: return "따뜻"
-        case 28...32: return "더움"
-        default: return "매우 더움"
+        case ...(-10): return L("매우 추움")
+        case -9...0: return L("추움")
+        case 1...8: return L("쌀쌀")
+        case 9...16: return L("선선")
+        case 17...22: return L("쾌적")
+        case 23...27: return L("따뜻")
+        case 28...32: return L("더움")
+        default: return L("매우 더움")
         }
     }
 }

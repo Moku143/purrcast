@@ -6,6 +6,16 @@ import XCTest
 @MainActor
 final class PurrcastTests: XCTestCase {
 
+    /// The assertions below are the Korean wording; the test host may run on an English simulator.
+    override func setUp() {
+        super.setUp()
+        Lang.current = .ko
+    }
+    override func tearDown() {
+        Lang.current = .ko
+        super.tearDown()
+    }
+
     private func fixture(_ name: String) throws -> Data {
         let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: name, withExtension: "json"))
         return try Data(contentsOf: url)
@@ -208,5 +218,68 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(f.say("호우주의보"), "호우주의보"); XCTAssertEqual(c.say("15~17시 비 예정"), "15~17시 비 예정")
         XCTAssertEqual(Voice.polite.say("많이 추워요."), "많이 추워요.")
         XCTAssertEqual(PurrCharacter.brit.defaultVoice, .formal); XCTAssertEqual(PurrCharacter.abys.defaultVoice, .casual)
+    }
+
+    // MARK: languages
+
+    /// The same code in English and Japanese: words from the glossary, hour labels in each language's style.
+    func testEnglishWords() {
+        Lang.current = .en
+        defer { Lang.current = .ko }
+        XCTAssertEqual(Brand.name, "Purrcast")
+        XCTAssertEqual(Rules.feelsWord(20), "Pleasant")
+        XCTAssertEqual(Rules.windWord(ms: 2), "Gentle breeze")
+        XCTAssertEqual(Rules.rainKind(5), "Moderate rain")
+        XCTAssertEqual(L("설정"), "Settings")
+        XCTAssertEqual(L("%@ · 어제보다 %d° 낮아요", "NYC", 4), "NYC · 4° cooler than yesterday")
+        XCTAssertEqual(Notifications.changeTitle(place: "NYC", todayHi: 15, yesterdayHi: 19, unitF: false), "NYC · 4° cooler than yesterday")
+        XCTAssertEqual(Notifications.morningBody(WeatherScene.DayRow(name: "Fri", icon: "raincloud", chance: 70, lo: 9, hi: 19)), "Rain expected · Take an umbrella")
+        // a server-English scene on the lock screen / watch
+        var s = WeatherScene(); s.temp = 16; s.feels = 15; s.hi = 18; s.lo = 11; s.cond = "Rain"; s.rain = "umbrella"
+        s.bubble = WeatherScene.Bubble(kind: "speech", tone: "sky", icon: "umbrella", text: "Rain!")
+        XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "Rain · 16° · Umbrella")
+        s.bubble?.text = "Heavy Rain Advisory"
+        XCTAssertEqual(Compact.head(s), "Heavy Rain Advisory")
+        // hour labels: "3PM" in 12-hour mode, "15:00" otherwise; windows as "3–5PM"
+        XCTAssertEqual(HourLabel.hour("3PM"), 15); XCTAssertEqual(HourLabel.hour("12AM"), 0); XCTAssertEqual(HourLabel.hour("15:00"), 15)
+        XCTAssertEqual(HourLabel.hour("Now"), nil)
+        XCTAssertEqual(HourLabel.word(15, clock12: true), "3PM"); XCTAssertEqual(HourLabel.word(15, clock12: false), "15:00")
+        XCTAssertEqual(HourLabel.window(15, 17, clock12: true), "3–5PM"); XCTAssertEqual(HourLabel.window(11, 13, clock12: true), "11AM–1PM")
+        XCTAssertEqual(L("%@쯤 비 예정 · 우산 챙기세요", HourLabel.word(15, clock12: true)), "Rain around 3PM · Take an umbrella")
+        // one tone: the voices leave English alone and the picker has nothing to show
+        XCTAssertEqual(Voice.casual.say("Rain expected. Take an umbrella."), "Rain expected. Take an umbrella.")
+        XCTAssertTrue(Voice.choices.isEmpty)
+        XCTAssertEqual(Place.here.name, "Seoul Mapo-gu")
+    }
+
+    func testJapaneseWords() {
+        Lang.current = .ja
+        defer { Lang.current = .ko }
+        XCTAssertEqual(Brand.name, "ゴロゴロ天気")
+        XCTAssertEqual(Rules.feelsWord(20), "快適")
+        XCTAssertEqual(Notifications.changeTitle(place: "麻浦区", todayHi: 15, yesterdayHi: 19, unitF: false), "麻浦区・昨日より4°低い")
+        XCTAssertEqual(Notifications.changeTitle(place: "麻浦区", todayHi: 20, yesterdayHi: 19, unitF: false), "麻浦区・昨日とほぼ同じ")
+        XCTAssertEqual(HourLabel.hour("15時"), 15); XCTAssertEqual(HourLabel.hour("午後3時"), 15)
+        XCTAssertEqual(HourLabel.word(15, clock12: false), "15時"); XCTAssertEqual(HourLabel.window(15, 17, clock12: false), "15〜17時")
+        XCTAssertEqual(L("%@쯤 비 예정 · 우산 챙기세요", HourLabel.word(15, clock12: false)), "15時ごろ雨・傘をお持ちください")
+        var s = WeatherScene(); s.temp = 16; s.feels = 15; s.hi = 18; s.lo = 11; s.cond = "雨"; s.rain = "umbrella"
+        s.bubble = WeatherScene.Bubble(kind: "speech", tone: "sky", icon: "umbrella", text: "雨!")
+        XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "雨 · 16° · 傘")
+        // 丁寧 leaves the text alone, タメ口 swaps the fixed endings, formal counts as polite
+        XCTAssertEqual(Voice.polite.say("雨の予報です。傘をお持ちください。"), "雨の予報です。傘をお持ちください。")
+        XCTAssertEqual(Voice.formal.say("雨の予報です。傘をお持ちください。"), "雨の予報です。傘をお持ちください。")
+        XCTAssertEqual(Voice.casual.say("雨の予報です。傘をお持ちください。"), "雨の予報だよ。傘持ってって。")
+        XCTAssertEqual(Voice.casual.say("寒暖差が大きいです"), "寒暖差が大きいよ")
+        XCTAssertEqual(Voice.choices, [.polite, .casual])
+        XCTAssertEqual(Voice.formal.effective, .polite)
+    }
+
+    func testKoreanHourLabels() {
+        XCTAssertEqual(HourLabel.hour("15시"), 15); XCTAssertEqual(HourLabel.hour("오후 3시"), 15); XCTAssertNil(HourLabel.hour("지금"))
+        XCTAssertEqual(HourLabel.word(15, clock12: false), "15시"); XCTAssertEqual(HourLabel.word(15, clock12: true), "오후 3시")
+        XCTAssertEqual(HourLabel.window(15, 17, clock12: false), "15~17시")
+        XCTAssertEqual(HourLabel.clock(950, clock12: false), "15:50")
+        XCTAssertEqual(L("%@쯤 비 예정 · 우산 챙기세요", HourLabel.word(15, clock12: false)), "15시쯤 비 예정 · 우산 챙기세요")
+        XCTAssertEqual(Lang.detect(["ko-KR"]), .ko); XCTAssertEqual(Lang.detect(["ja-JP"]), .ja); XCTAssertEqual(Lang.detect(["de-DE"]), .en); XCTAssertEqual(Lang.detect([]), .en)
     }
 }

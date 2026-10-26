@@ -49,7 +49,7 @@ struct MediumWidgetView: View {
                 Text(snap.placeShort).font(.px(11))
                 if let t = sunsetTile(s) { PixelIcon(name: "sunset", size: 12); Text(t).font(.px(11)) }
                 Spacer()
-                Text(s.isPlus ? "\(s.updated) 받음" : "\(s.updated) 기준").font(.px(10)).opacity(0.75)
+                Text(s.isPlus ? L("%@ 받음", s.updated) : L("%@ 기준", s.updated)).font(.px(10)).opacity(0.75)
                 PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16)
             }
             HStack(alignment: .bottom, spacing: 4) {
@@ -65,8 +65,8 @@ struct MediumWidgetView: View {
                 VStack(alignment: .trailing, spacing: 6) {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         VStack(alignment: .trailing, spacing: 2) {
-                            Text("강수확률 \(chanceNow(s))%").font(.px(10))
-                            Text("체감 \(snap.deg(s.feels))").font(.px(10))
+                            Text(L("강수확률 %d%%", chanceNow(s))).font(.px(10))
+                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(10))
                         }
                         Text(snap.deg(s.temp)).font(.px(34))
                     }
@@ -116,8 +116,8 @@ struct SmallWidgetView: View {
                 VStack(alignment: .trailing, spacing: 3) {
                     Text(snap.deg(s.temp)).font(.px(30))
                     if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11); Text(t).font(.px(9)) } }
-                    Text("체감 \(snap.deg(s.feels))").font(.px(9))
-                    Text("강수 \(chanceNow(s))%").font(.px(9))
+                    Text(L("체감 %@", snap.deg(s.feels))).font(.px(9))
+                    Text(L("강수 %d%%", chanceNow(s))).font(.px(9))
                 }
             }
         }

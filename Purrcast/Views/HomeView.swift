@@ -32,7 +32,7 @@ struct HomeView: View {
                         hourlyCard(s, ink: ink).reveal(2).settleInScroll()
                         dailyCard(s, ink: ink).reveal(3).settleInScroll()
                         tilesGrid(s, ink: ink).reveal(4).settleInScroll()
-                        Text(model.isSample ? "예시 날씨예요 · 실제 날씨는 서버 연결 후" : "기상청 · Data from MET Norway")
+                        Text(model.isSample ? L("예시 날씨예요 · 실제 날씨는 서버 연결 후") : L("기상청 · Data from MET Norway"))
                             .font(.ui(11)).foregroundStyle(ink.sub).padding(.top, 8).reveal(5)
                     }
                     .padding(.horizontal, 16)
@@ -57,10 +57,10 @@ struct HomeView: View {
             CharacterSprite(character: model.shownCharacter, level: 4, rain: .none, width: 150)
             if model.lastError == nil {
                 ProgressView().tint(ink.ink)
-                Text("날씨를 받아 오는 중이에요").font(.px(15))
+                Text(L("날씨를 받아 오는 중이에요")).font(.px(15))
             } else {
                 Text(model.lastError ?? "").font(.px(14)).multilineTextAlignment(.center).padding(.horizontal, 30)
-                Button("다시 시도") { Task { await model.refresh(force: true) } }
+                Button(L("다시 시도")) { Task { await model.refresh(force: true) } }
                     .font(.px(15)).padding(.horizontal, 22).padding(.vertical, 10).background(ink.btn).clipShape(Capsule())
                     .accessibilityIdentifier("retry")
             }
@@ -94,9 +94,11 @@ struct HomeView: View {
         .foregroundStyle(ink.night ? Color(hex: "#FFD2BC") : Color(hex: "#8A3A1C"))
     }
     private func alertIcon(_ name: String) -> String {
-        name.contains("대설") ? "snowflake" : name.contains("태풍") || name.contains("강풍") || name.contains("풍랑") ? "wind"
-        : name.contains("호우") ? "raincloud" : name.contains("폭염") ? "thermo_hot" : name.contains("한파") ? "thermo_cold"
-        : name.contains("건조") ? "sun_strong" : "exclaim"
+        // the server names the warning in the app's language; match the Korean key or its translation
+        func has(_ keys: String...) -> Bool { keys.contains { name.contains($0) || name.contains(L($0)) } }
+        return has("대설") ? "snowflake" : has("태풍", "강풍", "풍랑", "폭풍") ? "wind"
+        : has("호우") ? "raincloud" : has("폭염") ? "thermo_hot" : has("한파") ? "thermo_cold"
+        : has("건조") ? "sun_strong" : "exclaim"
     }
 
     // MARK: hero
@@ -130,13 +132,13 @@ struct HomeView: View {
                             Text(s.place ?? model.currentPlace.name).font(.px(17))
                         }
                     }.buttonStyle(.press(0.97)).accessibilityIdentifier("place")
-                    Text(s.isPlus ? "\(s.updated) 받음 · Plus" : "오늘 \(s.updated) 기준").font(.px(11)).opacity(0.8)
+                    Text(s.isPlus ? L("%@ 받음 · Plus", s.updated) : L("오늘 %@ 기준", s.updated)).font(.px(11)).opacity(0.8)
                 }
                 Spacer()
                 HStack(spacing: 8) {
-                    roundButton(ink, id: "character", label: "캐릭터") { route = .character } content: { Image(char.faceImage).resizable().scaledToFit().frame(width: 26, height: 26) }
-                    roundButton(ink, id: "places", label: "지역") { route = .places } content: { Image(systemName: "plus").font(.system(size: 16, weight: .bold)) }
-                    roundButton(ink, id: "settings", label: "설정") { route = .settings } content: { Image(systemName: "gearshape.fill").font(.system(size: 16)) }
+                    roundButton(ink, id: "character", label: L("캐릭터")) { route = .character } content: { Image(char.faceImage).resizable().scaledToFit().frame(width: 26, height: 26) }
+                    roundButton(ink, id: "places", label: L("지역")) { route = .places } content: { Image(systemName: "plus").font(.system(size: 16, weight: .bold)) }
+                    roundButton(ink, id: "settings", label: L("설정")) { route = .settings } content: { Image(systemName: "gearshape.fill").font(.system(size: 16)) }
                 }
             }
             .padding(.horizontal, 4).padding(.top, 8)
@@ -145,9 +147,9 @@ struct HomeView: View {
             VStack(alignment: .trailing, spacing: 10) {
                 Text(deg(s.temp)).font(.px(88)).rolling(s.temp)
                 Text(s.cond).font(.px(17)).id(s.cond).transition(.opacity.combined(with: .move(edge: .trailing)))
-                Text("최고 \(deg(s.hi)) · 최저 \(deg(s.lo))").font(.px(12)).rolling(s.hi * 1000 + s.lo)
+                Text(L("최고 %@ · 최저 %@", deg(s.hi), deg(s.lo))).font(.px(12)).rolling(s.hi * 1000 + s.lo)
                 HStack(spacing: 5) {
-                    Text("체감 \(deg(s.feels)) \(Rules.feelsWord(s.feels))").rolling(s.feels); Text("·"); Text("전일 대비")
+                    Text(L("체감 %@ %@", deg(s.feels), Rules.feelsWord(s.feels))).rolling(s.feels); Text("·"); Text(L("전일 대비"))
                     Text(delta(s.yday)).foregroundStyle(s.yday > 0 ? ink.hot : (s.yday < 0 ? ink.blue : ink.ink)).rolling(s.yday)
                 }.font(.px(12))
             }
@@ -197,35 +199,36 @@ struct HomeView: View {
         let nowMin: Int = WeatherScene.clockMinutes(s.clock) ?? 12 * 60
         if let six = s.next6 {
             let R = six.map { $0.mm }
-            var head = "6시간 동안 비 소식 없어요", sub = "", icon = "cloud"
+            var head = L("6시간 동안 비 소식 없어요"), sub = "", icon = "cloud"
             if let st = R.firstIndex(where: { $0 >= 0.1 }) {
                 let en = R[st...].firstIndex(where: { $0 < 0.1 })
                 let last = en == nil ? R.count - 1 : en! - 1
                 // the hours people plan around: "15~17시 비 예정", and when it may stop
-                let hr = { (i: Int) -> String in six[i].label.replacingOccurrences(of: "시", with: "") }
-                head = st == 0 ? "지금 비" : (st == last ? "\(hr(st))시쯤 비 예정" : "\(hr(st))~\(hr(last))시 비 예정")
-                let stop = en == nil ? "6시간 넘게 이어질 예보" : "\(((Int(hr(last)) ?? 0) + 1) % 24)시쯤 그칠 예보"
+                let hr = { (i: Int) -> Int in HourLabel.hour(six[i].label) ?? 0 }
+                head = st == 0 ? L("지금 비") : (st == last ? L("%@쯤 비 예정", HourLabel.word(hr(st), clock12: model.clock12))
+                                                 : L("%@ 비 예정", HourLabel.window(hr(st), hr(last), clock12: model.clock12)))
+                let stop = en == nil ? L("6시간 넘게 이어질 예보") : L("%@쯤 그칠 예보", HourLabel.word((hr(last) + 1) % 24, clock12: model.clock12))
                 let peak = R.max() ?? 0
-                sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop) · 가능성 \(chance)%"
+                sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop) · " + L("가능성 %d%%", chance)
                 icon = st == 0 ? "umbrella" : "umbrella_closed"
             }
-            return ("다음 6시간", s.nextSource == "met" ? "MET Norway · Plus" : "기상청 초단기 · Plus", head, sub, icon, R, six.map { model.hourLabel($0.label) })
+            return (L("다음 6시간"), s.nextSource == "met" ? "MET Norway · Plus" : L("기상청 초단기 · Plus"), head, sub, icon, R, six.map { model.hourLabel($0.label) })
         }
         if let mm = s.minutes {
-            var head = "1시간 동안 비 소식 없어요", sub = "", icon = "cloud"
+            var head = L("1시간 동안 비 소식 없어요"), sub = "", icon = "cloud"
             if let st = mm.firstIndex(where: { $0 >= 0.1 }) {
                 let en = mm[st...].firstIndex(where: { $0 < 0.1 }).map { $0 - st }
                 // clock times, pulled earlier to the 10 minutes for the start (15:57 → 15:50쯤) and later for the end
-                let hhmm = { (t: Int) -> String in let m = ((t % 1440) + 1440) % 1440; return "\(m / 60):" + String(format: "%02d", m % 60) }
+                let hhmm = { (t: Int) -> String in HourLabel.clock(t, clock12: model.clock12) }
                 let s10 = (nowMin + st) / 10 * 10
-                head = st == 0 ? "지금 비" : (s10 > nowMin ? "\(hhmm(s10))쯤 비 예정" : "\(hhmm((nowMin + st + 9) / 10 * 10)) 전 비 예정")
-                let stop = en == nil ? "한동안 이어질 예보" : "\(hhmm((nowMin + st + en! + 9) / 10 * 10))쯤 그칠 예보"
+                head = st == 0 ? L("지금 비") : (s10 > nowMin ? L("%@쯤 비 예정", hhmm(s10)) : L("%@ 전 비 예정", hhmm((nowMin + st + 9) / 10 * 10)))
+                let stop = en == nil ? L("한동안 이어질 예보") : L("%@쯤 그칠 예보", hhmm((nowMin + st + en! + 9) / 10 * 10))
                 let peak = mm.max() ?? 0
-                sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop) · 가능성 \(chance)%"
+                sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop) · " + L("가능성 %d%%", chance)
                 icon = st == 0 ? "umbrella" : "umbrella_closed"
             }
             let span = mm.count
-            return ("다음 1시간", "분 단위 · Plus", head, sub, icon, mm, ["지금"] + [1, 2, 3, 4].map { "\(span * $0 / 4)분" })
+            return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) })
         }
         return nil
     }
@@ -238,7 +241,7 @@ struct HomeView: View {
             if !head.sub.isEmpty { Text(model.say(head.sub)).font(.ui(12)).foregroundStyle(ink.sub).padding(.leading, 28).padding(.top, -9) }
             ZStack(alignment: .bottomLeading) {
                 ForEach(0..<3, id: \.self) { gi in
-                    let labels = ["약", "보통", "강"], levels: [Double] = [0.5, 2.5, 6.0]
+                    let labels = [L("약"), L("보통"), L("강")], levels: [Double] = [0.5, 2.5, 6.0]
                     let y = 64 - min(1, levels[gi] / 6) * 64
                     HStack(spacing: 4) {
                         Rectangle().fill(ink.line).frame(height: 1)
@@ -263,7 +266,7 @@ struct HomeView: View {
 
     private func hourlyCard(_ s: WeatherScene, ink: Ink) -> some View {
         Card(ink: ink) {
-            HStack(alignment: .firstTextBaseline) { Text("시간별").font(.px(13)); Spacer(); Text("강수확률 · 강수량").font(.ui(11)).foregroundStyle(ink.sub) }
+            HStack(alignment: .firstTextBaseline) { Text(L("시간별")).font(.px(13)); Spacer(); Text(L("강수확률 · 강수량")).font(.ui(11)).foregroundStyle(ink.sub) }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
                     ForEach(Array(s.hours.enumerated()), id: \.offset) { i, h in
@@ -284,7 +287,7 @@ struct HomeView: View {
         let wmin = s.days.map { $0.lo }.min() ?? 0, wmax = s.days.map { $0.hi }.max() ?? 1
         let span = CGFloat(max(1, wmax - wmin))
         return Card(ink: ink) {
-            Text("10일").font(.px(13))
+            Text(L("10일")).font(.px(13))
             VStack(spacing: 0) {
                 ForEach(Array(s.days.enumerated()), id: \.offset) { i, d in
                     Button { day = i } label: { HStack(spacing: 9) {
@@ -321,9 +324,9 @@ struct HomeView: View {
                 }
             }
             Card(ink: ink) {
-                HStack(spacing: 6) { PixelIcon(name: "wind", size: 16); Text("바람").font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
+                HStack(spacing: 6) { PixelIcon(name: "wind", size: 16); Text(L("바람")).font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
                 Text("\(wind(s.wind.speed))").font(.px(26)).rolling(s.wind.speed)
-                Text(model.say("\(Rules.windWord(ms: s.wind.speed)) · 돌풍 \(wind(s.wind.gust)) · \(dir(s.wind.deg))")).font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2)
+                Text(model.say("\(Rules.windWord(ms: s.wind.speed)) · " + L("돌풍 %@", wind(s.wind.gust)) + " · \(dir(s.wind.deg))")).font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2)
             }
         }
     }
@@ -340,7 +343,7 @@ struct HomeView: View {
     private func dir(_ deg: Int) -> String {
         let d = ["북", "북북동", "북동", "동북동", "동", "동남동", "남동", "남남동", "남", "남남서", "남서", "서남서", "서", "서북서", "북서", "북북서"]
         let i = Int((Double(((deg % 360) + 360) % 360) / 22.5).rounded()) % 16
-        return d[i] + "풍"
+        return L("%@풍", L(d[i]))
     }
 }
 

@@ -61,26 +61,26 @@ struct OnboardingView: View {
         switch step {
         case 3:
             VStack(spacing: 10) {
-                PrimaryButton(title: "지금 위치 쓰기") { model.location.ask(); model.useLocation = true; next() }
-                secondary("나중에 · 서울로 볼게요") { model.useLocation = false; next() }
+                PrimaryButton(title: L("지금 위치 쓰기")) { model.location.ask(); model.useLocation = true; next() }
+                secondary(L("나중에 · 서울로 볼게요")) { model.useLocation = false; next() }
             }
         case 4:
             VStack(spacing: 10) {
-                PrimaryButton(title: "알림 켜기") {
+                PrimaryButton(title: L("알림 켜기")) {
                     UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in
                         Task { @MainActor in model.planNotifications() }
                     }
                     next()
                 }
-                secondary("나중에") { model.notifyRain = false; model.notifyMorning = false; next() }
+                secondary(L("나중에")) { model.notifyRain = false; model.notifyMorning = false; next() }
             }
         case 5:
             VStack(spacing: 10) {
-                PrimaryButton(title: "Plus 자세히 보기") { showPlus = true }
-                secondary("무료로 시작하기") { model.onboarded = true }.accessibilityIdentifier("start-free")
+                PrimaryButton(title: L("Plus 자세히 보기")) { showPlus = true }
+                secondary(L("무료로 시작하기")) { model.onboarded = true }.accessibilityIdentifier("start-free")
             }
         default:
-            PrimaryButton(title: "다음") { next() }.accessibilityIdentifier("next")
+            PrimaryButton(title: L("다음")) { next() }.accessibilityIdentifier("next")
         }
     }
 
@@ -88,7 +88,7 @@ struct OnboardingView: View {
 
     private var demoScene: WeatherScene { SceneLibrary.scene(Self.demoKeys[demo % Self.demoKeys.count]) }
     private var demoSnap: WeatherSnapshot {
-        WeatherSnapshot(scene: demoScene, character: .cat, plus: false, characterName: "", placeShort: "서울", saved: Date())
+        WeatherSnapshot(scene: demoScene, character: .cat, plus: false, characterName: "", placeShort: L("서울"), saved: Date())
     }
     private func rainState(_ s: WeatherScene) -> RainState { RainState(rawValue: s.rain) ?? .none }
     /// A piece of sky for the pictures: the weather's colour wash with its moving rain, snow or wind.
@@ -125,8 +125,8 @@ struct OnboardingView: View {
             }
             .frame(width: 349, height: 360).clipShape(RoundedRectangle(cornerRadius: 28))
             .frame(maxWidth: .infinity).padding(.top, 24)
-            Text("옷차림으로 보는 날씨").font(.px(22)).padding(.top, 20)
-            Text("체감온도에 맞춰 옷을 입고, 비가 오면 우산을 펴요.").font(.system(size: 14)).foregroundStyle(UI.sub).padding(.top, 8)
+            Text(L("옷차림으로 보는 날씨")).font(.px(22)).padding(.top, 20)
+            Text(L("체감온도에 맞춰 옷을 입고, 비가 오면 우산을 펴요.")).font(.system(size: 14)).foregroundStyle(UI.sub).padding(.top, 8)
         }
         .foregroundStyle(UI.ink).padding(.horizontal, 22)
     }
@@ -153,32 +153,32 @@ struct OnboardingView: View {
             .padding(14).frame(maxWidth: .infinity)
             .background(LinearGradient(colors: [Color(hex: "#A7B6E8"), Color(hex: "#F2B8A0")], startPoint: .top, endPoint: .bottom))
             .clipShape(RoundedRectangle(cornerRadius: 28)).padding(.top, 24)
-            Text("위젯").font(.px(22))
-            Text("홈 화면 · 잠금 화면에서 바로 봐요.").font(.system(size: 14)).foregroundStyle(UI.sub)
+            Text(L("위젯")).font(.px(22))
+            Text(L("홈 화면 · 잠금 화면에서 바로 봐요.")).font(.system(size: 14)).foregroundStyle(UI.sub)
         }
         .foregroundStyle(UI.ink).padding(.horizontal, 20)
     }
 
     private var watch: some View {
         VStack(spacing: 16) {
-            HStack { Text("애플워치").font(.px(22)); Spacer(); PlusTag() }.padding(.top, 30)
+            HStack { Text(L("애플워치")).font(.px(22)); Spacer(); PlusTag() }.padding(.top, 30)
             ZStack {
                 RoundedRectangle(cornerRadius: 40).fill(Color(hex: "#15161C")).frame(width: 170, height: 204)
                 let s = demoScene
                 sky(s, 150, 184).clipShape(RoundedRectangle(cornerRadius: 30)).id("ws\(demo)").transition(.opacity)
                 VStack(alignment: .leading, spacing: 0) {
-                    HStack { Text("서울").font(.px(10)); Spacer(); Text("13:46").font(.px(10)) }
+                    HStack { Text(L("서울")).font(.px(10)); Spacer(); Text("13:46").font(.px(10)) }
                     Text("\(s.temp)°").font(.px(36)).frame(maxWidth: .infinity, alignment: .trailing)
                     HStack(alignment: .bottom) {
                         CharacterSprite(character: .cat, level: s.level, rain: rainState(s), width: 60, animate: false).frame(width: 60, height: 70)
-                        VStack(alignment: .trailing, spacing: 2) { Text(s.cond).font(.px(10)); Text("체감 \(s.feels)°").font(.px(9)) }
+                        VStack(alignment: .trailing, spacing: 2) { Text(s.cond).font(.px(10)); Text(L("체감 %@", "\(s.feels)°")).font(.px(9)) }
                     }
                 }
                 .foregroundStyle(s.time == "night" ? .white : UI.ink).frame(width: 128, height: 164)
                 .id("wc\(demo)").transition(.opacity)
             }
-            Text("워치 앱 · 워치 페이스 · 컴플리케이션").font(.system(size: 14)).foregroundStyle(UI.sub)
-            Text("Plus에서 쓸 수 있어요.").font(.system(size: 14)).foregroundStyle(UI.sub)
+            Text(L("워치 앱 · 워치 페이스 · 컴플리케이션")).font(.system(size: 14)).foregroundStyle(UI.sub)
+            Text(L("Plus에서 쓸 수 있어요.")).font(.system(size: 14)).foregroundStyle(UI.sub)
         }
         .foregroundStyle(UI.ink).padding(.horizontal, 22)
     }
@@ -188,7 +188,7 @@ struct OnboardingView: View {
             Circle().fill(Color.white).frame(width: 110, height: 110)
                 .overlay(Image(systemName: "mappin.and.ellipse").font(.system(size: 40, weight: .bold)).foregroundStyle(UI.accent))
                 .padding(.top, 90)
-            Text("어디 날씨를 볼까요?").font(.px(22))
+            Text(L("어디 날씨를 볼까요?")).font(.px(22))
             CharacterSprite(character: .cat, level: 4, rain: .none, width: 120).padding(.top, 30)
         }
         .foregroundStyle(UI.ink)
@@ -196,11 +196,11 @@ struct OnboardingView: View {
 
     private var alerts: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("알림").font(.px(22)).padding(.top, 30)
+            Text(L("알림")).font(.px(22)).padding(.top, 30)
             RowGroup {
-                SettingRow(icon: "umbrella_closed", title: "비 오기 전") { Toggle("", isOn: $model.notifyRain).labelsHidden().tint(UI.accent) }
+                SettingRow(icon: "umbrella_closed", title: L("비 오기 전")) { Toggle("", isOn: $model.notifyRain).labelsHidden().tint(UI.accent) }
                 RowDivider()
-                SettingRow(icon: "sun", title: "아침 요약") { Toggle("", isOn: $model.notifyMorning).labelsHidden().tint(UI.accent) }
+                SettingRow(icon: "sun", title: L("아침 요약")) { Toggle("", isOn: $model.notifyMorning).labelsHidden().tint(UI.accent) }
                 DatePicker("", selection: $model.morningTime, displayedComponents: .hourAndMinute)
                     .datePickerStyle(.wheel).labelsHidden().frame(height: 150).clipped()
             }
@@ -217,7 +217,7 @@ struct OnboardingView: View {
             }.frame(maxWidth: .infinity).padding(.top, 20)
             FlowChecks(items: PaywallView.features.map { $0.check })
             if let y = purchases.price(Purchases.yearly), let m = purchases.price(Purchases.monthly) {
-                Text("연 \(y) · 월 \(m) · 자동 갱신").font(.px(14)).frame(maxWidth: .infinity)
+                Text(L("연 %@ · 월 %@ · 자동 갱신", y, m)).font(.px(14)).frame(maxWidth: .infinity)
             }
         }
         .foregroundStyle(UI.ink).padding(.horizontal, 22)

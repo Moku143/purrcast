@@ -5,7 +5,7 @@ enum PurrCharacter: String, CaseIterable, Codable, Identifiable {
     case cat, abys, brit
     var id: String { rawValue }
     var defaultName: String {
-        switch self { case .cat: return "고양이"; case .abys: return "아비시니안"; case .brit: return "브리티시숏헤어" }
+        switch self { case .cat: return L("고양이"); case .abys: return L("아비시니안"); case .brit: return L("브리티시숏헤어") }
     }
     var isPlus: Bool { self != .cat }
     /// How each one talks by default: 고양이 존댓말 · 브리티시숏헤어 격식 · 아비시니안 반말

@@ -10,14 +10,14 @@ struct DayDetailView: View {
     @State private var metric = 0
     @Namespace private var ns
 
-    private let metrics = [("thermo_hot", "기온"), ("umbrella_closed", "비"), ("wind", "바람"), ("sun_strong", "자외선"), ("raindrop", "습도")]
+    private let metrics = [("thermo_hot", L("기온")), ("umbrella_closed", L("비")), ("wind", L("바람")), ("sun_strong", L("자외선")), ("raindrop", L("습도"))]
 
     var body: some View {
         let s = model.scene
         if s.days.isEmpty {
             VStack(spacing: 12) {
-                Text("이 날의 예보가 아직 없어요").font(.px(16))
-                Button("닫기") { dismiss() }.tint(UI.accent)
+                Text(L("이 날의 예보가 아직 없어요")).font(.px(16))
+                Button(L("닫기")) { dismiss() }.tint(UI.accent)
             }.frame(maxWidth: .infinity, maxHeight: .infinity).background(UI.bg)
         } else {
             content(s, index: max(0, min(start, s.days.count - 1)))
@@ -35,7 +35,7 @@ struct DayDetailView: View {
                     Text(title(d, index: index)).font(.px(18))
                     Spacer()
                     Button { dismiss() } label: { Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).frame(width: 32, height: 32).background(Color.white).clipShape(Circle()) }
-                        .buttonStyle(.plain).accessibilityIdentifier("sheet-close").accessibilityLabel("닫기")
+                        .buttonStyle(.plain).accessibilityIdentifier("sheet-close").accessibilityLabel(L("닫기"))
                 }
 
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -66,7 +66,7 @@ struct DayDetailView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 8) {
                             Text("\(model.deg(d.hi)) / \(model.deg(d.lo))").font(.px(20)).rolling(d.hi * 1000 + d.lo)
-                            Text("일교차 \(d.hi - d.lo)°").font(.px(11)).padding(.horizontal, 6).padding(.vertical, 2).background(Color(hex: "#FFE8A3"))
+                            Text(L("일교차 %d°", d.hi - d.lo)).font(.px(11)).padding(.horizontal, 6).padding(.vertical, 2).background(Color(hex: "#FFE8A3"))
                         }
                         Text(model.say(summary(d, detail))).font(.ui(15)).foregroundStyle(UI.ink)
                     }
@@ -104,7 +104,7 @@ struct DayDetailView: View {
                     }
 
                     Card(ink: Ink(night: false)) {
-                        Text("시간대별 \(metrics[metric].1)").font(.px(13))
+                        Text(L("시간대별 %@", metrics[metric].1)).font(.px(13))
                         HStack(spacing: 8) {
                             ForEach(Array(bands(detail).enumerated()), id: \.offset) { i, b in
                                 VStack(spacing: 4) { Text(b.0).font(.ui(11)); Text(value(b.1)).font(.px(16)).rolling(value(b.1)) }
@@ -124,8 +124,8 @@ struct DayDetailView: View {
 
     private func title(_ d: WeatherScene.DayRow, index: Int) -> String {
         let date = Calendar.current.date(byAdding: .day, value: index, to: Date()) ?? Date()
-        let f = DateFormatter(); f.locale = Locale(identifier: "ko_KR"); f.dateFormat = "M월 d일 EEEE"
-        let lead = index == 0 ? "오늘" : (index == 1 ? "내일" : d.name)
+        let f = DateFormatter(); f.locale = Lang.current.locale; f.dateFormat = L("M월 d일 EEEE")
+        let lead = index == 0 ? L("오늘") : (index == 1 ? L("내일") : d.name)
         return "\(lead) · \(f.string(from: date))"
     }
 
@@ -137,29 +137,29 @@ struct DayDetailView: View {
     private func summary(_ d: WeatherScene.DayRow, _ detail: [WeatherScene.DayHour]?) -> String {
         var t: String
         let lo = d.lo, hi = d.hi
-        var loPart = "아침", hiPart = "낮"
+        var loPart = L("아침"), hiPart = L("낮")
         if let detail, let cold = detail.min(by: { $0.temp < $1.temp }), let warm = detail.max(by: { $0.temp < $1.temp }) {
             loPart = partOfDay(cold.label); hiPart = partOfDay(warm.label)
         }
         if hi >= 30 {
-            t = "\(hiPart)에 최고 \(model.deg(hi))예요. 더우니 물을 챙겨 주세요." + (lo >= 25 ? " 밤에도 \(model.deg(lo)) 이상이에요." : "")
+            t = L("%@에 최고 %@예요. 더우니 물을 챙겨 주세요.", hiPart, model.deg(hi)) + (lo >= 25 ? " " + L("밤에도 %@ 이상이에요.", model.deg(lo)) : "")
         } else if hi <= 0 || lo <= -5 {
-            t = "\(loPart) \(model.deg(lo)), \(hiPart) \(model.deg(hi))예요. 많이 추워요."
+            t = L("%@ %@, %@ %@예요. 많이 추워요.", loPart, model.deg(lo), hiPart, model.deg(hi))
         } else if hi - lo >= 6 {
-            t = "\(loPart) \(model.deg(lo)), \(hiPart) \(model.deg(hi))예요. 일교차가 커요."
+            t = L("%@ %@, %@ %@예요. 일교차가 커요.", loPart, model.deg(lo), hiPart, model.deg(hi))
         } else {
-            t = "하루 종일 \(model.deg(lo))~\(model.deg(hi))예요."
+            t = L("하루 종일 %@~%@예요.", model.deg(lo), model.deg(hi))
         }
         // vs the day before (the 10-day list has yesterday only as "today" when looking at tomorrow+)
         let s = model.scene
         if let i = s.days.firstIndex(where: { $0.name == d.name && $0.hi == d.hi && $0.lo == d.lo }), i > 0 {
             let diff = d.hi - s.days[i - 1].hi
-            if abs(diff) >= 3 { t += " 전날보다 \(abs(diff))° \(diff > 0 ? "높아요" : "낮아요")." }
+            if abs(diff) >= 3 { t += " " + (diff > 0 ? L("전날보다 %d° 높아요.", abs(diff)) : L("전날보다 %d° 낮아요.", abs(diff))) }
         } else if i0(d), abs(s.yday) >= 3 {
-            t += " 어제 이맘때보다 \(abs(s.yday))° \(s.yday > 0 ? "높아요" : "낮아요")."
+            t += " " + (s.yday > 0 ? L("어제 이맘때보다 %d° 높아요.", abs(s.yday)) : L("어제 이맘때보다 %d° 낮아요.", abs(s.yday)))
         }
-        if d.chance >= 60 { t += d.icon == "snowflake" ? " 눈 예보예요. 길이 미끄러울 수 있어요." : " 비 예보예요. 우산을 챙겨 주세요." }
-        else if d.chance >= 30 { t += " 비 올 가능성이 \(d.chance)%예요. 우산이 있으면 좋아요." }
+        if d.chance >= 60 { t += " " + (d.icon == "snowflake" ? L("눈 예보예요. 길이 미끄러울 수 있어요.") : L("비 예보예요. 우산을 챙겨 주세요.")) }
+        else if d.chance >= 30 { t += " " + L("비 올 가능성이 %d%%예요. 우산이 있으면 좋아요.", d.chance) }
         return t
     }
 
@@ -167,8 +167,8 @@ struct DayDetailView: View {
 
     /// "9시" → 아침 (never a clock time in a sentence)
     private func partOfDay(_ label: String) -> String {
-        let h = Int(label.replacingOccurrences(of: "시", with: "")) ?? 12
-        return h < 5 ? "밤" : h < 12 ? "아침" : h < 17 ? "낮" : h < 21 ? "저녁" : "밤"
+        let h = HourLabel.hour(label) ?? 12
+        return h < 5 ? L("밤") : h < 12 ? L("아침") : h < 17 ? L("낮") : h < 21 ? L("저녁") : L("밤")
     }
 
     private func values(_ detail: [WeatherScene.DayHour]) -> [Double] {
@@ -181,7 +181,7 @@ struct DayDetailView: View {
     private func bands(_ detail: [WeatherScene.DayHour]) -> [(String, Double)] {
         let v = values(detail)
         let pick = { (i: Int) -> Double in v[min(i, v.count - 1)] }
-        return [("새벽", pick(1)), ("아침", pick(3)), ("낮", pick(5)), ("밤", pick(7))]
+        return [(L("새벽"), pick(1)), (L("아침"), pick(3)), (L("낮"), pick(5)), (L("밤"), pick(7))]
     }
 
     private func value(_ v: Double) -> String {

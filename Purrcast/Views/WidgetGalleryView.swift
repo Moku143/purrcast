@@ -12,18 +12,18 @@ struct WidgetGalleryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                label("홈 화면")
+                label(L("홈 화면"))
                 HStack(alignment: .top, spacing: 14) {
                     widgetBox(170, 170) { SmallWidgetView(snap: snap) }
                     VStack(alignment: .leading, spacing: 8) {
-                        step("1", "홈 화면 빈 곳을 길게 눌러요")
-                        step("2", "왼쪽 위 ‘편집’ → ‘위젯 추가’")
-                        step("3", "\(Brand.name)를 찾아 크기를 골라요")
+                        step("1", L("홈 화면 빈 곳을 길게 눌러요"))
+                        step("2", L("왼쪽 위 ‘편집’ → ‘위젯 추가’"))
+                        step("3", L("%@를 찾아 크기를 골라요", Brand.name))
                     }
                 }
                 widgetBox(364, 170) { MediumWidgetView(snap: snap) }
 
-                label("잠금 화면")
+                label(L("잠금 화면"))
                 ZStack {
                     LinearGradient(colors: [Color(hex: "#5B5FA8"), Color(hex: "#2E2F66")], startPoint: .top, endPoint: .bottom)
                     VStack(spacing: 10) {
@@ -38,13 +38,13 @@ struct WidgetGalleryView: View {
                     .foregroundStyle(.white).padding(.vertical, 18)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 26))
-                Text("잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 \(Brand.name)를 골라요.").font(.ui(12)).foregroundStyle(UI.sub)
+                Text(L("잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 %@를 골라요.", Brand.name)).font(.ui(12)).foregroundStyle(UI.sub)
             }
             .padding(16)
         }
         .background(UI.bg)
-        .navigationTitle("위젯").navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("완료") { dismiss() }.tint(UI.accent) } }
+        .navigationTitle(L("위젯")).navigationBarTitleDisplayMode(.inline)
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("완료")) { dismiss() }.tint(UI.accent) } }
     }
 
     private func label(_ t: String) -> some View { Text(t).font(.px(15)).foregroundStyle(UI.ink).padding(.top, 6) }

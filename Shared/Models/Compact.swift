@@ -6,20 +6,25 @@ import Foundation
 /// Official names stay as they are (호우주의보, 태풍경보, 폭염, 한파, 폭우, 폭설, 열대야, 천둥번개, 황사 …):
 /// the server only sends them above their thresholds, so a word in a widget means the real thing.
 /// Everything else is shortened to a word ("15~17시 비 예정" → "15~17시 비", "우산 챙겨요" → "우산").
+/// The server's text is already in the app's language, so the words are compared in that language (L).
 enum Compact {
-    /// Alert and weather names that are kept as they are (after the "!" is removed).
-    static let keep: Set<String> = ["폭염", "한파", "폭우", "폭설", "열대야", "천둥번개", "황사", "태풍", "꽃샘추위", "비바람", "눈보라", "비", "눈", "진눈깨비"]
+    /// Alert and weather names that are kept as they are (after the "!" is removed), Korean keys.
+    static let keepKeys = ["폭염", "한파", "폭우", "폭설", "열대야", "천둥번개", "황사", "태풍", "꽃샘추위", "비바람", "눈보라", "비", "눈", "진눈깨비"]
+    /// The same names in the current language.
+    static var keep: Set<String> { Set(keepKeys.map { L($0) }) }
 
     /// The first word: the alert name when there is one, the weather otherwise.
     static func head(_ s: WeatherScene) -> String {
         if let t = s.bubble?.text.replacingOccurrences(of: "!", with: "").trimmingCharacters(in: .whitespaces), !t.isEmpty {
-            if keep.contains(t) || t.hasSuffix("주의보") || t.hasSuffix("경보") || t.hasSuffix("특보") { return t }
-            if t.hasSuffix(" 예보") || t.hasSuffix(" 예정") { return String(t.dropLast(3)) }   // "15~17시 비 예정" → "15~17시 비"
+            if keep.contains(t) || t.hasSuffix(L("주의보")) || t.hasSuffix(L("경보")) || t.hasSuffix(L("특보")) { return t }
+            let forecast = L(" 예보"), expected = L(" 예정")
+            if t.hasSuffix(forecast) { return String(t.dropLast(forecast.count)) }   // "15~17시 비 예정" → "15~17시 비"
+            if t.hasSuffix(expected) { return String(t.dropLast(expected.count)) }
             switch t {
-            case "바람 세요": return "강한 바람"
-            case "안개 짙어요": return "짙은 안개"
-            case "일교차 커요": return "큰 일교차"
-            case "우산 챙겨요": return condWord(s)                              // the umbrella goes in the tail
+            case L("바람 세요"): return L("강한 바람")
+            case L("안개 짙어요"): return L("짙은 안개")
+            case L("일교차 커요"): return L("큰 일교차")
+            case L("우산 챙겨요"): return condWord(s)                              // the umbrella goes in the tail
             default: return t
             }
         }
@@ -36,13 +41,13 @@ enum Compact {
     static func tail(_ s: WeatherScene, deg: (Int) -> String) -> String {
         let h = head(s)
         let rain = RainState(rawValue: s.rain) ?? .none
-        if (rain == .umbrella || rain == .bag) && !h.contains("우산") { return "우산" }
-        if abs(s.feels - s.temp) >= 3 { return "체감 \(deg(s.feels))" }
-        if s.hi - s.lo >= 10 && !h.contains("일교차") { return "큰 일교차" }
-        if s.aux == "wind" && !h.contains("바람") { return "바람" }
-        if s.aux == "fog" && !h.contains("안개") { return "안개" }
-        if s.aux == "dust" && !h.contains("황사") { return "황사" }
-        return s.temp >= (s.hi + s.lo) / 2 ? "최저 \(deg(s.lo))" : "최고 \(deg(s.hi))"
+        if (rain == .umbrella || rain == .bag) && !h.localizedCaseInsensitiveContains(L("우산")) { return L("우산") }
+        if abs(s.feels - s.temp) >= 3 { return L("체감 %@", deg(s.feels)) }
+        if s.hi - s.lo >= 10 && !h.localizedCaseInsensitiveContains(L("일교차")) { return L("큰 일교차") }
+        if s.aux == "wind" && !h.localizedCaseInsensitiveContains(L("바람")) { return L("바람") }
+        if s.aux == "fog" && !h.localizedCaseInsensitiveContains(L("안개")) { return L("안개") }
+        if s.aux == "dust" && !h.localizedCaseInsensitiveContains(L("황사")) { return L("황사") }
+        return s.temp >= (s.hi + s.lo) / 2 ? L("최저 %@", deg(s.lo)) : L("최고 %@", deg(s.hi))
     }
 
     /// "비 · 16° · 우산": the one line for inline complications and the lock screen.

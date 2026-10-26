@@ -44,7 +44,7 @@ struct PurrcastComplications: Widget {
             ComplicationView(entry: e).containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(Brand.name)
-        .description("옷차림으로 보는 지금 날씨")
+        .description(L("옷차림으로 보는 지금 날씨"))
         .supportedFamilies([.accessoryRectangular, .accessoryCircular, .accessoryCorner, .accessoryInline])
     }
 }

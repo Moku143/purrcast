@@ -16,7 +16,7 @@ enum UI {
 /// Big pixel title on the left, one text button on the right ("완료" / "닫기").
 struct SheetHeader: View {
     let title: String
-    var trailing = "완료"
+    var trailing = L("완료")
     var action: () -> Void
     var body: some View {
         HStack(alignment: .firstTextBaseline) {

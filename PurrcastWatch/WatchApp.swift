@@ -81,7 +81,7 @@ struct WatchHours: View {
                 }
             }
         }
-        .navigationTitle("시간별")
+        .navigationTitle(L("시간별"))
     }
 }
 
@@ -99,7 +99,7 @@ struct WatchDays: View {
                 }
             }
         }
-        .navigationTitle("10일")
+        .navigationTitle(L("10일"))
     }
 }
 
@@ -107,8 +107,8 @@ struct WatchLocked: View {
     var body: some View {
         VStack(spacing: 8) {
             CharacterSprite(character: .cat, level: 4, rain: .none, width: 70, animate: false).frame(height: 80)
-            Text("애플워치는 Plus에서\n쓸 수 있어요").font(.px(13)).multilineTextAlignment(.center)
-            Text("아이폰에서 \(Brand.name)를 열어 주세요").font(.system(size: 11)).foregroundStyle(.secondary).multilineTextAlignment(.center)
+            Text(L("애플워치는 Plus에서\n쓸 수 있어요")).font(.px(13)).multilineTextAlignment(.center)
+            Text(L("아이폰에서 %@를 열어 주세요", Brand.name)).font(.system(size: 11)).foregroundStyle(.secondary).multilineTextAlignment(.center)
         }
     }
 }

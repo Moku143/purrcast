@@ -89,7 +89,8 @@ final class AppModel: ObservableObject {
         character = arg("-char").flatMap(PurrCharacter.init(rawValue:)) ?? (testing ? .cat : PurrCharacter(rawValue: d.string(forKey: "character") ?? "") ?? .cat)
         names = testing ? [:] : (d.dictionary(forKey: "names") as? [String: String] ?? [:])
         unitF = !testing && d.bool(forKey: "unitF")
-        clock12 = !testing && d.bool(forKey: "clock12")
+        // English reads hours as "3PM" unless the person chose otherwise; Korean and Japanese as "15시" / "15時"
+        clock12 = testing ? false : (d.object(forKey: "clock12") as? Bool ?? (Lang.current == .en))
         wind = WindUnit(rawValue: d.string(forKey: "wind") ?? "") ?? .ms
         pixelFont = testing ? true : (d.object(forKey: "pixelFont") as? Bool ?? true)
         useLocation = testing ? false : (d.object(forKey: "useLocation") as? Bool ?? true)
@@ -127,7 +128,7 @@ final class AppModel: ObservableObject {
             publish()
         } catch {
             guard mine == generation else { return }
-            lastError = hasData ? "새 날씨를 못 받았어요. 마지막으로 받은 날씨예요." : "날씨를 못 받았어요. 아래로 당겨 다시 시도해 주세요."
+            lastError = hasData ? L("새 날씨를 못 받았어요. 마지막으로 받은 날씨예요.") : L("날씨를 못 받았어요. 아래로 당겨 다시 시도해 주세요.")
         }
     }
 
@@ -178,7 +179,7 @@ final class AppModel: ObservableObject {
     /// Free plan always shows the cat.
     var shownCharacter: PurrCharacter { plus ? character : .cat }
     /// The voice the character speaks in: the free plan is always 존댓말.
-    var voice: Voice { plus ? (Voice(rawValue: voiceChoice) ?? shownCharacter.defaultVoice) : .polite }
+    var voice: Voice { (plus ? (Voice(rawValue: voiceChoice) ?? shownCharacter.defaultVoice) : .polite).effective }
     /// Weather text in the current voice (information unchanged, endings only).
     func say(_ text: String) -> String { voice.say(text) }
     func name(of c: PurrCharacter) -> String { names[c.rawValue] ?? c.defaultName }
@@ -192,7 +193,7 @@ final class AppModel: ObservableObject {
     func deg(_ v: Int) -> String { "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)°" }
     func delta(_ v: Int) -> String {
         let d = unitF ? Int((Double(abs(v)) * 1.8).rounded()) : abs(v)
-        return v > 0 ? "+\(d)°" : (v < 0 ? "−\(d)°" : "같음")
+        return v > 0 ? "+\(d)°" : (v < 0 ? "−\(d)°" : L("같음"))
     }
     func windText(_ ms: Int) -> String {
         switch wind {
@@ -201,11 +202,8 @@ final class AppModel: ObservableObject {
         case .mph: return "\(Int((Double(ms) * 2.237).rounded()))mph"
         }
     }
-    /// "15시" → "오후 3시" in 12-hour mode
-    func hourLabel(_ l: String) -> String {
-        guard clock12, l.hasSuffix("시"), let h = Int(l.dropLast()) else { return l }
-        return (h < 12 ? "오전 " : "오후 ") + "\(h % 12 == 0 ? 12 : h % 12)시"
-    }
+    /// "15시" → "오후 3시" in 12-hour mode (in the app's language)
+    func hourLabel(_ l: String) -> String { HourLabel.display(l, clock12: clock12) }
 
     // MARK: persistence · widgets · watch · notifications
 
@@ -240,7 +238,7 @@ final class AppModel: ObservableObject {
         guard pinnedScene == nil, hasData else { return }
         // example weather must never turn into a real-looking alert
         Notifications.plan(scene: scene, place: currentPlace, rain: notifyRain && !isSample, morning: notifyMorning && !isSample,
-                           change: notifyChange && !isSample, morningTime: morningTime, unitF: unitF, voice: voice)
+                           change: notifyChange && !isSample, morningTime: morningTime, unitF: unitF, voice: voice, clock12: clock12)
     }
 
     /// A toggle went on: ask for permission if nobody asked yet, then plan.

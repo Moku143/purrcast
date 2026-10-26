@@ -46,17 +46,14 @@ struct WeatherSnapshot: Codable {
     var shownCharacter: PurrCharacter { plusActive ? character : .cat }
 
     func deg(_ v: Int) -> String { "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)°" }
-    /// "15시" → "오후 3시" when the 12-hour setting is on
-    func hourLabel(_ l: String) -> String {
-        guard clock12, l.hasSuffix("시"), let h = Int(l.dropLast()) else { return l }
-        return (h < 12 ? "오전 " : "오후 ") + "\(h % 12 == 0 ? 12 : h % 12)시"
-    }
+    /// "15시" → "오후 3시" when the 12-hour setting is on (and in the app's language)
+    func hourLabel(_ l: String) -> String { HourLabel.display(l, clock12: clock12) }
 
     /// Shown before the app has handed over anything (a widget added before the first launch).
     static var waiting: WeatherSnapshot {
         var s = SceneLibrary.scene("clear")
         s.bubble = WeatherScene.Bubble(kind: "thought", tone: "white", icon: "question", text: "")
-        s.cond = "앱을 열어 주세요"
+        s.cond = L("앱을 열어 주세요")
         return WeatherSnapshot(scene: s, character: .cat, plus: false, characterName: PurrCharacter.cat.defaultName,
                                placeShort: Brand.name, saved: .distantPast, isSample: true)
     }

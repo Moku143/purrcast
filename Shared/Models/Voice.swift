@@ -3,11 +3,37 @@ import Foundation
 /// How the character talks. The information never changes — only the endings do.
 /// 존댓말 (polite, the default) · 격식 (formal, the butler) · 반말 (casual, the lively one).
 /// Widgets, the watch and official alert names are words, so they have no voice.
+/// Korean has all three. Japanese has 丁寧 (polite, the text as it comes) and タメ口 (casual, a phrase table);
+/// formal counts as polite there. English has one tone, so `say` returns the text unchanged.
 enum Voice: String, CaseIterable, Codable {
     case polite, formal, casual
 
-    var name: String { self == .polite ? "존댓말" : self == .formal ? "격식" : "반말" }
-    var sample: String { self == .polite ? "비 예보예요. 우산을 챙겨 주세요." : self == .formal ? "비 예보입니다. 우산을 챙겨 주십시오." : "비 예보야. 우산 챙겨." }
+    var name: String { self == .polite ? L("존댓말") : self == .formal ? L("격식") : L("반말") }
+    var sample: String { self == .polite ? L("비 예보예요. 우산을 챙겨 주세요.") : self == .formal ? L("비 예보입니다. 우산을 챙겨 주십시오.") : L("비 예보야. 우산 챙겨.") }
+
+    /// The voices a person can pick in this language (none in English: the picker is hidden).
+    static var choices: [Voice] {
+        switch Lang.current {
+        case .ko: return allCases
+        case .ja: return [.polite, .casual]
+        case .en: return []
+        }
+    }
+    /// The voice that actually speaks: English has one tone, Japanese has no formal one.
+    var effective: Voice {
+        switch Lang.current {
+        case .ko: return self
+        case .ja: return self == .formal ? .polite : self
+        case .en: return .polite
+        }
+    }
+
+    /// Japanese casual (タメ口): the fixed phrases the app and the server produce, longest first.
+    private static let jaCasual: [(String, String)] = [
+        ("傘をお持ちください", "傘持ってって"), ("お持ちください", "持ってって"), ("ご注意ください", "気をつけて"), ("してください", "して"),
+        ("の予報です", "の予報だよ"), ("見込みです", "見込みだよ"), ("かもしれません", "かも"), ("ありません", "ないよ"),
+        ("いです", "いよ"), ("です", "だよ"),
+    ]
 
     /// Known polite endings → (formal, casual). Matched on the last word of each sentence or " · " segment.
     private static let words: [String: (String, String)] = [
@@ -29,7 +55,13 @@ enum Voice: String, CaseIterable, Codable {
 
     /// The text in this voice. Polite text in, the same information out.
     func say(_ text: String) -> String {
-        guard self != .polite, !text.isEmpty else { return text }
+        let v = effective
+        guard v != .polite, !text.isEmpty else { return text }
+        if Lang.current == .ja {
+            var out = text
+            for (a, b) in Self.jaCasual { out = out.replacingOccurrences(of: a, with: b) }
+            return out
+        }
         // sentences end with . or !; tiles and notifications join clauses with " · "
         var out = ""
         var buf = ""

@@ -61,7 +61,7 @@ struct PurrcastWidget: Widget {
                 }
         }
         .configurationDisplayName(Brand.name)
-        .description("옷차림으로 보는 지금 날씨")
+        .description(L("옷차림으로 보는 지금 날씨"))
         .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular, .accessoryInline])
     }
 }
@@ -72,8 +72,8 @@ struct RainWidget: Widget {
             LockRainCircularView(snap: entry.snap)
                 .containerBackground(for: .widget) { Color.clear }
         }
-        .configurationDisplayName("비 올 확률")
-        .description("앞으로 몇 시간 안에 비 올 확률")
+        .configurationDisplayName(L("비 올 확률"))
+        .description(L("앞으로 몇 시간 안에 비 올 확률"))
         .supportedFamilies([.accessoryCircular])
     }
 }

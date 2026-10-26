@@ -30,7 +30,7 @@ enum WeatherSource {
 /// Example weather from the design canvas (Shared/Data/scenes.json).
 struct SampleWeatherProvider: WeatherProvider {
     var sceneOverride: String?
-    var name: String { "예시 날씨" }
+    var name: String { L("예시 날씨") }
     var isSample: Bool { true }
 
     func forecast(for place: Place, plus: Bool, previousLevel: Int?) async throws -> WeatherScene {
@@ -40,12 +40,12 @@ struct SampleWeatherProvider: WeatherProvider {
     }
 }
 
-/// Our forecast server. GET {base}/v1/forecast?lat=..&lon=..&region=..&tz=..&plan=free|plus&lang=ko&prev=..&name=..
+/// Our forecast server. GET {base}/v1/forecast?lat=..&lon=..&region=..&tz=..&plan=free|plus&lang=ko|en|ja&prev=..&name=..
 /// → 200 with one `WeatherScene` as JSON. Coordinates are sent rounded to ~1 km.
 struct ServerWeatherProvider: WeatherProvider {
     let baseURL: URL
     var session: URLSession = .shared
-    var name: String { "기상청 · MET Norway" }
+    var name: String { L("기상청 · MET Norway") }
     var isSample: Bool { false }
 
     func forecast(for place: Place, plus: Bool, previousLevel: Int?) async throws -> WeatherScene {
@@ -56,7 +56,7 @@ struct ServerWeatherProvider: WeatherProvider {
             URLQueryItem(name: "region", value: place.region),
             URLQueryItem(name: "tz", value: place.timeZone),
             URLQueryItem(name: "plan", value: plus ? "plus" : "free"),
-            URLQueryItem(name: "lang", value: "ko"),
+            URLQueryItem(name: "lang", value: Lang.current.code),
             URLQueryItem(name: "name", value: place.name),
         ]
         if let p = previousLevel { q.append(URLQueryItem(name: "prev", value: String(p))) }

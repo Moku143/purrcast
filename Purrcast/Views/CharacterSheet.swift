@@ -14,7 +14,7 @@ struct CharacterSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            SheetHeader(title: "캐릭터", trailing: "닫기") { dismiss() }
+            SheetHeader(title: L("캐릭터"), trailing: L("닫기")) { dismiss() }
             ScrollView {
                 LazyVGrid(columns: cols, spacing: 12) {
                     ForEach(PurrCharacter.allCases) { c in tile(c) }
@@ -26,7 +26,7 @@ struct CharacterSheet: View {
                     Button { open(.paywall) } label: {
                         HStack(spacing: 10) {
                             PixelIcon(name: "sparkle", size: 22)
-                            Text("캐릭터 바꾸기는 Plus").font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.ink)
+                            Text(L("캐릭터 바꾸기는 Plus")).font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.ink)
                             Spacer()
                             if let t = purchases.trialText(Purchases.yearly) { PlusTag(text: t) }
                         }
@@ -34,16 +34,16 @@ struct CharacterSheet: View {
                     }
                     .buttonStyle(.press(0.98)).padding(.horizontal, 16).padding(.top, 14).reveal(1)
                 }
-                Text("위젯 · 애플워치도 같이 바뀌어요").font(.ui(12)).foregroundStyle(UI.sub)
+                Text(L("위젯 · 애플워치도 같이 바뀌어요")).font(.ui(12)).foregroundStyle(UI.sub)
                     .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 24)
             }
         }
         .background(UI.bg)
-        .alert("이름 바꾸기", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
-            TextField("이름", text: $draft)
-            Button("저장") { if let c = renaming { model.rename(c, to: draft) }; renaming = nil }
-            Button("취소", role: .cancel) { renaming = nil }
-        } message: { Text("8글자까지 쓸 수 있어요") }
+        .alert(L("이름 바꾸기"), isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
+            TextField(L("이름"), text: $draft)
+            Button(L("저장")) { if let c = renaming { model.rename(c, to: draft) }; renaming = nil }
+            Button(L("취소"), role: .cancel) { renaming = nil }
+        } message: { Text(L("8글자까지 쓸 수 있어요")) }
     }
 
     private func tile(_ c: PurrCharacter) -> some View {
@@ -62,7 +62,7 @@ struct CharacterSheet: View {
                     if selected {
                         Button { draft = model.name(of: c); renaming = c } label: {
                             Image(systemName: "pencil").font(.ui(13, .bold)).foregroundStyle(UI.sub)
-                        }.buttonStyle(.plain).accessibilityIdentifier("rename").accessibilityLabel("이름 바꾸기")
+                        }.buttonStyle(.plain).accessibilityIdentifier("rename").accessibilityLabel(L("이름 바꾸기"))
                     }
                 }
             }

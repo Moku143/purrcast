@@ -50,15 +50,15 @@ final class Purchases: ObservableObject {
 
     /// "연" / "월"
     func periodWord(_ id: String) -> String {
-        guard let p = product(id)?.subscription?.subscriptionPeriod else { return id == Self.yearly ? "연" : "월" }
-        switch p.unit { case .year: return "연"; case .month: return p.value == 1 ? "월" : "\(p.value)개월"; case .week: return "주"; default: return "일" }
+        guard let p = product(id)?.subscription?.subscriptionPeriod else { return id == Self.yearly ? L("연") : L("월") }
+        switch p.unit { case .year: return L("연"); case .month: return p.value == 1 ? L("월") : L("%d개월", p.value); case .week: return L("주"); default: return L("일") }
     }
 
     /// "3일 무료" when this person can still get the trial, else nil.
     func trialText(_ id: String) -> String? {
         guard trialEligible, let o = product(id)?.subscription?.introductoryOffer, o.paymentMode == .freeTrial else { return nil }
         let n = o.period.value
-        switch o.period.unit { case .day: return "\(n)일 무료"; case .week: return "\(n * 7)일 무료"; case .month: return "\(n)개월 무료"; default: return "무료 체험" }
+        switch o.period.unit { case .day: return L("%d일 무료", n); case .week: return L("%d일 무료", n * 7); case .month: return L("%d개월 무료", n); default: return L("무료 체험") }
     }
 
     /// Yearly price per month in the store's currency, e.g. "₩1,242".
@@ -95,17 +95,17 @@ final class Purchases: ObservableObject {
     /// "연간 · 2027년 10월 21일에 자동 갱신" / "월간 · 11월 21일에 끝나요"
     var statusLine: String? {
         guard active else { return nil }
-        let kind = activeProduct == Self.monthly ? "월간" : "연간"
+        let kind = activeProduct == Self.monthly ? L("월간") : L("연간")
         guard let e = expires else { return kind }
-        let f = DateFormatter(); f.locale = Locale(identifier: "ko_KR"); f.dateFormat = "yyyy년 M월 d일"
-        return "\(kind) · " + f.string(from: e) + (willRenew ? "에 자동 갱신" : "에 끝나요")
+        let f = DateFormatter(); f.locale = Lang.current.locale; f.dateFormat = L("yyyy년 M월 d일")
+        return willRenew ? L("%@ · %@에 자동 갱신", kind, f.string(from: e)) : L("%@ · %@에 끝나요", kind, f.string(from: e))
     }
 
     /// true when the purchase went through
     func buy(_ id: String) async -> Bool {
         guard !busy else { return false }
         guard let p = product(id) else {
-            message = "지금은 결제할 수 없어요. 잠시 뒤 다시 해 주세요."
+            message = L("지금은 결제할 수 없어요. 잠시 뒤 다시 해 주세요.")
             return false
         }
         busy = true; defer { busy = false }
@@ -113,12 +113,12 @@ final class Purchases: ObservableObject {
             switch try await p.purchase() {
             case .success(let v):
                 if case .verified(let t) = v { await t.finish(); await refresh(); return true }
-                message = "결제를 확인하지 못했어요."
-            case .pending: message = "승인을 기다리고 있어요. 승인되면 Plus가 켜져요."
+                message = L("결제를 확인하지 못했어요.")
+            case .pending: message = L("승인을 기다리고 있어요. 승인되면 Plus가 켜져요.")
             case .userCancelled: break
             @unknown default: break
             }
-        } catch { message = "결제에 실패했어요." }
+        } catch { message = L("결제에 실패했어요.") }
         return false
     }
 
@@ -128,9 +128,9 @@ final class Purchases: ObservableObject {
         do {
             try await AppStore.sync()
             await refresh()
-            message = active ? "Plus를 되찾았어요." : "이 Apple 계정에는 복원할 구독이 없어요."
+            message = active ? L("Plus를 되찾았어요.") : L("이 Apple 계정에는 복원할 구독이 없어요.")
         } catch {
-            message = "복원하지 못했어요. 잠시 뒤 다시 해 주세요."
+            message = L("복원하지 못했어요. 잠시 뒤 다시 해 주세요.")
         }
     }
 }
