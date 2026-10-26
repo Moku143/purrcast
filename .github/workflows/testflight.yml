@@ -17,10 +17,15 @@ on:
 
 jobs:
   upload:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - name: Xcode 26 (App Store Connect only takes builds made with the iOS 26 SDK)
+        run: |
+          latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          [ -n "$latest" ] || { echo "::error::No Xcode 26 on this runner"; ls /Applications | grep Xcode; exit 1; }
+          sudo xcode-select -s "$latest" && xcodebuild -version
       - name: Check secrets
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
