@@ -293,3 +293,16 @@ test('snow kinds: 눈 · 많은 눈 (3 cm/h+) · 진눈깨비', () => {
   const s3 = buildScene({ points: parseMet(met(at(13), h3)).points }, { ...SEOUL, plan: 'plus', now: at(13, 40) });
   validateScene(s3); assert.equal(s3.precip, 'sleet'); assert.equal(s3.cond, '진눈깨비'); assert.equal(s3.bubble.text, '진눈깨비!'); assert.match(s3.tiles[0].note, /mm/);
 });
+
+test('KMA extended days: PCP · SNO · WSD codes become amounts (글피 from a 05 h run)', () => {
+  const items = [];
+  const add = (date, time, cat, v) => items.push({ baseDate: '20261021', baseTime: '0500', fcstDate: date, fcstTime: time, category: cat, fcstValue: v });
+  add('20261022', '1200', 'TMP', '18'); add('20261022', '1200', 'PCP', '2.5'); add('20261022', '1200', 'WSD', '2'); add('20261022', '1200', 'PTY', '1');
+  add('20261024', '1200', 'TMP', '15'); add('20261024', '1200', 'PCP', '2'); add('20261024', '1200', 'WSD', '3'); add('20261024', '1200', 'PTY', '1');
+  add('20261024', '1500', 'TMP', '14'); add('20261024', '1500', 'SNO', '2'); add('20261024', '1500', 'PTY', '3'); add('20261024', '1500', 'WSD', '1');
+  const f = parseForecast({ response: { header: { resultCode: '00' }, body: { items: { item: items } } } }, 'kma');
+  const p = Object.fromEntries(f.points.map((x) => [`${x.t.getUTCDate()}-${x.t.getUTCHours()}`, x]));
+  assert.equal(p['22-3'].wind, 2);                      // +1 day: real numbers stay
+  assert.equal(p['24-3'].wind, 10); assert.equal(p['24-3'].mm, 8);   // +3 day: code 3 → 10 m/s, 보통 비 → 8 mm
+  assert.equal(p['24-6'].wind, 2); assert.equal(p['24-6'].mm, 2);    // 많은 눈 → 2 cm
+});

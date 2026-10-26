@@ -115,6 +115,11 @@ export function kmaXmlError(text) {
 // Fields that describe the *preceding* hour in KMA's forecasts ("19시 날씨 = 18~19시"): rain amount, rain type,
 // sky, chance, lightning. Our points cover [t, t + 1 h), so these move to the point an hour earlier.
 const PERIOD_FIELDS = ['PCP', 'RN1', 'SNO', 'PTY', 'SKY', 'POP', 'LGT'];
+/** 'YYYYMMDD' + n days, as 'YYYYMMDD' */
+function dayOffset(ymd8, n) {
+  const d = new Date(Date.UTC(+ymd8.slice(0, 4), +ymd8.slice(4, 6) - 1, +ymd8.slice(6, 8) + n));
+  return `${d.getUTCFullYear()}${pad2(d.getUTCMonth() + 1)}${pad2(d.getUTCDate())}`;
+}
 
 /** 단기예보 / 초단기예보 items → hourly points (+ daily min / max from TMN / TMX). */
 export function parseForecast(json, source) {
@@ -129,9 +134,17 @@ export function parseForecast(json, source) {
       if (v != null) { daily[it.fcstDate] = daily[it.fcstDate] || {}; daily[it.fcstDate][it.category === 'TMN' ? 'lo' : 'hi'] = v; }
     }
   }
-  const rows = [...by.values()].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).map((r) => ({
-    ...r, t: instant(+r.date.slice(0, 4), +r.date.slice(4, 6), +r.date.slice(6, 8), +r.time.slice(0, 2), +r.time.slice(2, 4), TZ),
-  }));
+  // the extended days (글피 from the 02–14 h runs, 그글피 from 17–23 h; guide 2610) carry PCP · SNO · WSD as
+  // qualitative codes, not amounts: 1 약한 비 (< 3 mm) · 2 보통 비 (3–15) · 3 강한 비 (15+); 눈 1 보통 (< 1 cm) · 2 많은 눈;
+  // 바람 1 약한 (< 4 m/s) · 2 약간 강한 (4–9) · 3 강한 (9+)
+  const first = items(json)[0];
+  const baseDate = first?.baseDate, baseHour = first?.baseTime ? +String(first.baseTime).slice(0, 2) : 0;
+  const codedFrom = baseDate ? dayOffset(baseDate, baseHour >= 17 ? 4 : 3) : null;
+  const CODE = { PCP: { 1: '1', 2: '8', 3: '20' }, SNO: { 1: '0.5', 2: '2' }, WSD: { 1: '2', 2: '6', 3: '10' } };
+  const rows = [...by.values()].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).map((r) => {
+    if (codedFrom && r.date >= codedFrom) for (const k of ['PCP', 'SNO', 'WSD']) if (r[k] != null && CODE[k][String(r[k]).trim()]) r[k] = CODE[k][String(r[k]).trim()];
+    return { ...r, t: instant(+r.date.slice(0, 4), +r.date.slice(4, 6), +r.date.slice(6, 8), +r.time.slice(0, 2), +r.time.slice(2, 4), TZ) };
+  });
   const at = new Map(rows.map((r) => [r.t.getTime(), r]));
   const points = rows.map((r) => {
     // weather of [t, t+1h) is reported at t+1h; temperature / wind / humidity are the values at t
