@@ -19,10 +19,13 @@ jobs:
       - name: Unit tests (fake upstreams)
         working-directory: server
         run: node --test test/*.test.js
-      - name: Live check against MET Norway (and 기상청 when the key is set)
+      - name: Live check against MET Norway (and 기상청 / WeatherKit when the keys are set)
         working-directory: server
         env:
           KMA_SERVICE_KEY: ${{ secrets.KMA_SERVICE_KEY }}
+          WEATHERKIT_KEY_ID: ${{ secrets.WEATHERKIT_KEY_ID }}
+          WEATHERKIT_KEY_P8: ${{ secrets.WEATHERKIT_KEY_P8 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: node scripts/live-check.mjs | tee live.txt
       - name: Publish the live check
         if: always()
@@ -46,6 +49,9 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           KMA_SERVICE_KEY: ${{ secrets.KMA_SERVICE_KEY }}
+          WEATHERKIT_KEY_ID: ${{ secrets.WEATHERKIT_KEY_ID }}
+          WEATHERKIT_KEY_P8: ${{ secrets.WEATHERKIT_KEY_P8 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
             echo "::notice::No Cloudflare secrets yet — server not deployed. See server/README.md."
@@ -63,6 +69,10 @@ jobs:
           npx --yes wrangler@4 deploy 2>&1 | tee deploy.txt
           test "${PIPESTATUS[0]}" -eq 0
           if [ -n "$KMA_SERVICE_KEY" ]; then echo "$KMA_SERVICE_KEY" | npx --yes wrangler@4 secret put KMA_SERVICE_KEY; fi
+          # Apple WeatherKit (everywhere but Korea): key id, the .p8 file's text (multi-line, so printf, no trailing newline), team id
+          if [ -n "$WEATHERKIT_KEY_ID" ]; then printf '%s' "$WEATHERKIT_KEY_ID" | npx --yes wrangler@4 secret put WEATHERKIT_KEY_ID; fi
+          if [ -n "$WEATHERKIT_KEY_P8" ]; then printf '%s' "$WEATHERKIT_KEY_P8" | npx --yes wrangler@4 secret put WEATHERKIT_KEY_P8; fi
+          if [ -n "$APPLE_TEAM_ID" ]; then printf '%s' "$APPLE_TEAM_ID" | npx --yes wrangler@4 secret put APPLE_TEAM_ID; fi
           url=$(grep -o 'https://[a-z0-9.-]*workers.dev' deploy.txt | head -1)
           echo "Deployed: ${url:-?}" >> "$GITHUB_STEP_SUMMARY"
           echo "$url" > ../url.txt

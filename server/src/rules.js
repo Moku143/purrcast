@@ -88,9 +88,10 @@ export function bubble(c, lang = c.lang ?? 'ko') {
   const S = strings(lang), T = S.bubble;
   const { warnings, nowWet, nowPr, thunder, startIn, wind, fog, feels, night, swing, maxPop, rain, snowNext } = c;
   if (warnings?.length) {
-    const w = warnings[0].name;   // the KMA name: icons are chosen from it, the text is its translation
-    const ic = /호우|태풍/.test(w) ? (/태풍/.test(w) ? 'wind' : 'raincloud') : /대설/.test(w) ? 'snowflake' : /강풍|풍랑/.test(w) ? 'wind'
-      : /폭염/.test(w) ? 'thermo_hot' : /한파/.test(w) ? 'thermo_cold' : /건조/.test(w) ? 'sun_strong' : 'exclaim';
+    const w = warnings[0].name;   // the KMA name (or Apple's own description): icons are chosen from it, the text is its translation
+    const k = warningKind(w);
+    const ic = k === 'typhoon' || k === 'wind' ? 'wind' : k === 'rain' ? 'raincloud' : k === 'snow' ? 'snowflake'
+      : k === 'heat' ? 'thermo_hot' : k === 'cold' ? 'thermo_cold' : k === 'dry' ? 'sun_strong' : 'exclaim';
     return B('shout', 'coral', ic, S.warning(w));
   }
   if (thunder) return B('shout', 'coral', 'lightning', T.thunder);
@@ -137,20 +138,38 @@ export function uvNote(uv, lang = 'ko') {
 }
 
 /**
+ * What a warning is about, from its name: KMA's Korean names, and the English / Japanese words Apple WeatherKit
+ * alerts use (their description passes through untranslated). Unknown → 'other'.
+ */
+export function warningKind(name) {
+  const w = String(name || '');
+  if (/태풍|typhoon|hurricane|tropical (storm|cyclone)|台風/i.test(w)) return 'typhoon';
+  if (/대설|snow|blizzard|ice storm|winter storm|大雪|暴風雪/i.test(w)) return 'snow';
+  if (/호우|rain|flood|大雨|洪水/i.test(w)) return 'rain';
+  if (/강풍|풍랑|wind|gale|storm|強風|暴風|波浪/i.test(w)) return 'wind';
+  if (/폭염|heat|高温|猛暑/i.test(w)) return 'heat';
+  if (/한파|cold|freez|frost|wind chill|低温|寒波|霜/i.test(w)) return 'cold';
+  if (/건조|dry|fire weather|red flag|乾燥/i.test(w)) return 'dry';
+  if (/황사|미세먼지|dust|smoke|air quality|黄砂/i.test(w)) return 'dust';
+  return 'other';
+}
+
+/**
  * The line under the character when an official warning is in force: the warning's name and what it means
  * today, in one short clause from the forecast. "대설주의보 · 오늘 6cm, 18시쯤 그칠 예보".
  */
 export function alertNote(name, c, lang = c.lang ?? 'ko') {
   const S = strings(lang), A = S.alert, sep = S.sep;
-  const { total, pr, nowWet, when, endH, hi, lo, gust, rh } = c;   // `name` is the KMA name; `when` already in this language
+  const { total, pr, nowWet, when, endH, hi, lo, gust, rh } = c;   // `name` is the KMA name (or Apple's description); `when` already in this language
   const end = endH == null ? '' : S.stopAt(endH);
-  if (/대설/.test(name)) return [total ? A.todayCm(total) : '', nowWet ? end : (when ? S.expect(when, S.what.snow) : '')].filter(Boolean).join(sep) || A.icy;
-  if (/호우/.test(name)) return [total ? A.todayMm(total, rainAmountWord(total, S)) : '', nowWet ? end : (when ? S.expect(when, S.what.rain) : '')].filter(Boolean).join(sep) || A.heavyRain;
-  if (/태풍/.test(name)) return [A.windRain, gust ? A.gust(gust) : '', A.takeCare].filter(Boolean).join(sep);
-  if (/강풍|풍랑/.test(name)) return [gust ? A.gust(gust) : A.veryWindy, A.takeCare].join(sep);
-  if (/폭염/.test(name)) return A.heat(hi);
-  if (/한파/.test(name)) return A.cold(lo);
-  if (/건조/.test(name)) return [rh == null ? '' : A.humidity(rh), A.fire].filter(Boolean).join(sep);
-  if (/황사|미세먼지/.test(name)) return A.mask;
+  const k = warningKind(name);
+  if (k === 'snow') return [total ? A.todayCm(total) : '', nowWet ? end : (when ? S.expect(when, S.what.snow) : '')].filter(Boolean).join(sep) || A.icy;
+  if (k === 'rain') return [total ? A.todayMm(total, rainAmountWord(total, S)) : '', nowWet ? end : (when ? S.expect(when, S.what.rain) : '')].filter(Boolean).join(sep) || A.heavyRain;
+  if (k === 'typhoon') return [A.windRain, gust ? A.gust(gust) : '', A.takeCare].filter(Boolean).join(sep);
+  if (k === 'wind') return [gust ? A.gust(gust) : A.veryWindy, A.takeCare].join(sep);
+  if (k === 'heat') return A.heat(hi);
+  if (k === 'cold') return A.cold(lo);
+  if (k === 'dry') return [rh == null ? '' : A.humidity(rh), A.fire].filter(Boolean).join(sep);
+  if (k === 'dust') return A.mask;
   return /snow|sleet/.test(pr) ? A.icy : A.takeCare;
 }

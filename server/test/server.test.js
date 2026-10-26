@@ -3,14 +3,15 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { toGrid, amount, num, parseForecast, parseNow, parseWarnings, splitAreas, vilageBase, ultraBase, kmaXmlError, kmaOK } from '../src/providers/kma.js';
 import { parseMet, metUrl } from '../src/providers/met.js';
+import { parseWeatherKit, weatherKitUrl, weatherKitToken, hasWeatherKit, resetWeatherKitTokens } from '../src/providers/weatherkit.js';
 import { buildScene, validateScene } from '../src/scene.js';
-import { level, bubble, uvNote, whenWord, alertNote, condition, rainKind, feelsWord } from '../src/rules.js';
+import { level, bubble, uvNote, whenWord, alertNote, condition, rainKind, feelsWord, warningKind } from '../src/rules.js';
 import { strings, normLang, warningName, hourLabel } from '../src/i18n.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike, humidityWord, windWord } from '../src/physics.js';
 import worker, { forecast, readQuery, resetCache } from '../src/index.js';
 import { beforeEach } from 'node:test';
-beforeEach(() => resetCache());
+beforeEach(() => { resetCache(); resetWeatherKitTokens(); });
 
 const TZ = 'Asia/Seoul';
 const SEOUL = { lat: 37.5663, lon: 126.9019, tz: TZ };
@@ -340,6 +341,159 @@ test('Tokyo, Plus: MET only, next six hours labelled MET', async () => {
   const s = await forecast(q, {}, null, { now, fetcher });
   validateScene(s);
   assert.equal(s.nextSource, 'met'); assert.equal(s.clock, '15:00');
+});
+
+// ---- Apple WeatherKit (every region but Korea; MET when it is not configured or fails) ----
+
+/** WeatherKit-shaped JSON: 48 hourly from `start` (REST units: °C, km/h, mm, m, 0–1), 10 daily, 60 minutes, one alert */
+function weatherKit(start, { wetHours = [], minuteRain = false, alert = true, temp = 20 } = {}) {
+  const hours = [];
+  for (let i = 0; i < 48; i++) {
+    const wet = wetHours.includes(i);
+    hours.push({
+      forecastStart: new Date(start.getTime() + i * 3600000).toISOString(), cloudCover: wet ? 0.95 : 0.2, conditionCode: wet ? 'Rain' : 'MostlyClear',
+      daylight: true, humidity: 0.62, precipitationAmount: wet ? 1.8 : 0, precipitationIntensity: wet ? 1.8 : 0, precipitationChance: wet ? 0.8 : 0.05,
+      precipitationType: wet ? 'rain' : 'clear', pressure: 1013, pressureTrend: 'steady', snowfallIntensity: 0, snowfallAmount: 0,
+      temperature: temp, temperatureApparent: temp, temperatureDewPoint: 12.5, uvIndex: 4, visibility: 18000, windDirection: 180, windGust: 36, windSpeed: 18,
+    });
+  }
+  const days = [];
+  for (let i = 0; i < 10; i++) {
+    const d = new Date(start.getTime() + i * 86400000);
+    days.push({ forecastStart: d.toISOString(), forecastEnd: new Date(d.getTime() + 86400000).toISOString(), conditionCode: 'MostlyClear', temperatureMax: temp + 5, temperatureMin: temp - 5, precipitationChance: 0.1, precipitationType: 'clear', precipitationAmount: 0 });
+  }
+  const minutes = Array.from({ length: 60 }, (_, i) => ({ startTime: new Date(start.getTime() + i * 60000).toISOString(), precipitationChance: minuteRain && i >= 20 ? 0.7 : 0, precipitationIntensity: minuteRain && i >= 20 ? 0.5 + i / 100 : 0 }));
+  const alerts = alert ? [{ name: 'test-alert-1', areaName: 'Tokyo', certainty: 'likely', countryCode: 'JP', description: 'Heavy Rain Warning', detailsUrl: 'https://example.invalid', effectiveTime: start.toISOString(), expireTime: new Date(start.getTime() + 6 * 3600000).toISOString(), issuedTime: start.toISOString(), precedence: 0, severity: 'severe', source: 'JMA', eventSource: 'JMA', urgency: 'expected', responses: [] }] : [];
+  return {
+    currentWeather: { name: 'CurrentWeather', metadata: { readTime: start.toISOString(), expireTime: new Date(start.getTime() + 600000).toISOString() }, asOf: start.toISOString(), cloudCover: 0.3, conditionCode: 'PartlyCloudy', daylight: true, humidity: 0.6, precipitationIntensity: 0, temperature: temp + 0.7, temperatureApparent: temp, temperatureDewPoint: 12, uvIndex: 4, visibility: 20000, windDirection: 190, windGust: 30, windSpeed: 14.4 },
+    forecastHourly: { name: 'HourWeather', metadata: { readTime: start.toISOString() }, hours },
+    forecastDaily: { name: 'DailyWeather', metadata: {}, days },
+    forecastNextHour: { name: 'NextHourForecast', metadata: {}, forecastStart: start.toISOString(), forecastEnd: new Date(start.getTime() + 3600000).toISOString(), minutes, summary: [] },
+    weatherAlerts: { name: 'WeatherAlertCollection', metadata: {}, alerts, detailsUrl: 'https://example.invalid' },
+  };
+}
+
+/** A throw-away P-256 key as the .p8 PEM text Apple hands out */
+async function testP8() {
+  const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  const der = new Uint8Array(await crypto.subtle.exportKey('pkcs8', kp.privateKey));
+  const b64 = btoa(String.fromCharCode(...der)).match(/.{1,64}/g).join('\n');
+  return { pem: `-----BEGIN PRIVATE KEY-----\n${b64}\n-----END PRIVATE KEY-----\n`, publicKey: kp.publicKey };
+}
+const wkEnv = (pem) => ({ WEATHERKIT_KEY_P8: pem, WEATHERKIT_KEY_ID: 'ABC123DEFG', APPLE_TEAM_ID: '9865Z67LR4', WEATHERKIT_SERVICE_ID: 'app.purrcast.ios' });
+
+test('WeatherKit: URL (lang, 4 decimals, tz, country) and the parsed shapes in our units', () => {
+  assert.equal(weatherKitUrl(35.693812, 139.70341, { lang: 'ja', tz: 'Asia/Tokyo', country: 'JP' }),
+    'https://weatherkit.apple.com/api/v1/weather/ja/35.6938/139.7034?dataSets=currentWeather,forecastHourly,forecastDaily,forecastNextHour,weatherAlerts&timezone=Asia%2FTokyo&countryCode=JP');
+  assert.doesNotMatch(weatherKitUrl(40.7, -74, { lang: 'en', tz: 'America/New_York' }), /countryCode/);
+  const start = instant(2026, 10, 21, 15, 0, 'Asia/Tokyo');
+  const w = parseWeatherKit(weatherKit(start, { wetHours: [3, 4], minuteRain: true }), 'Asia/Tokyo');
+  assert.equal(w.points.length, 48);
+  const p = w.points[0];
+  assert.equal(p.source, 'apple'); assert.equal(p.step, 1); assert.equal(p.t.getTime(), start.getTime());
+  assert.equal(p.temp, 20); assert.equal(p.rh, 62); assert.equal(p.dew, 12.5); assert.equal(p.wind, 5); assert.equal(p.gust, 10); assert.equal(p.dir, 180);
+  assert.equal(p.cloud, 20); assert.equal(p.fog, false); assert.equal(p.mm, 0); assert.equal(p.pop, 5); assert.equal(p.type, 'none'); assert.equal(p.thunder, false); assert.equal(p.symbol, 'MostlyClear');
+  assert.ok(Math.abs(p.uvClear - 4 / (1 - 0.75 * Math.pow(0.2, 3.4))) < 1e-9, 'uvIndex is already under cloud: undone so scene.js lands back on 4');
+  const wet = w.points[3];
+  assert.equal(wet.mm, 1.8); assert.equal(wet.pop, 80); assert.equal(wet.type, 'rain'); assert.equal(wet.cloud, 95);
+  assert.deepEqual(w.now, { t: start, temp: 20.7, rh: 60, wind: 4, dir: 190, mm: 0, type: 'none' });
+  assert.deepEqual(w.daily['20261021'], { lo: 15, hi: 25 }); assert.equal(Object.keys(w.daily).length, 10);
+  assert.equal(w.minutes.length, 60); assert.equal(w.minutes[0], 0); assert.equal(w.minutes[20], 0.7); assert.equal(w.minutesStart.getTime(), start.getTime());
+  assert.deepEqual(w.warnings, [{ name: 'Heavy Rain Warning', severity: 2 }]);
+  assert.equal(w.updated.getTime(), start.getTime());
+  // thunder, snow, sleet, fog, missing fields
+  const j = weatherKit(start, { alert: false });
+  Object.assign(j.forecastHourly.hours[0], { conditionCode: 'Thunderstorms', precipitationType: 'rain', precipitationAmount: 4 });
+  Object.assign(j.forecastHourly.hours[1], { conditionCode: 'Snow', precipitationType: 'snow', precipitationAmount: 2 });
+  Object.assign(j.forecastHourly.hours[2], { conditionCode: 'Sleet', precipitationType: 'mixed', precipitationAmount: 1 });
+  Object.assign(j.forecastHourly.hours[3], { conditionCode: 'Fog', visibility: 400 });
+  Object.assign(j.forecastHourly.hours[4], { precipitationType: 'rain', precipitationAmount: 0 });
+  delete j.forecastNextHour;
+  const v = parseWeatherKit(j, 'Asia/Tokyo');
+  assert.equal(v.points[0].thunder, true); assert.equal(v.points[0].type, 'rain');
+  assert.equal(v.points[1].type, 'snow'); assert.equal(v.points[2].type, 'sleet'); assert.equal(v.points[3].fog, true);
+  assert.equal(v.points[4].type, 'none', 'a type with no amount this hour is dry');
+  assert.equal(v.minutes, null); assert.deepEqual(v.warnings, []);
+  assert.deepEqual(parseWeatherKit({}).points, []);
+});
+
+test('WeatherKit JWT: ES256 over WebCrypto, header / payload as Apple wants, cached until near expiry', async () => {
+  const { pem, publicKey } = await testP8();
+  const env = wkEnv(pem);
+  assert.equal(hasWeatherKit(env), true); assert.equal(hasWeatherKit({ WEATHERKIT_KEY_ID: 'x' }), false);
+  const now = at(12, 0);
+  const jwt = await weatherKitToken(env, { now });
+  const [h, p, s] = jwt.split('.');
+  const dec = (x) => JSON.parse(Buffer.from(x.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString());
+  assert.deepEqual(dec(h), { alg: 'ES256', kid: 'ABC123DEFG', id: '9865Z67LR4.app.purrcast.ios' });
+  const iat = Math.floor(now.getTime() / 1000);
+  assert.deepEqual(dec(p), { iss: '9865Z67LR4', iat, exp: iat + 3600, sub: 'app.purrcast.ios' });
+  const sig = Buffer.from(s.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
+  assert.equal(sig.length, 64, 'raw r||s');
+  assert.equal(await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, publicKey, sig, new TextEncoder().encode(`${h}.${p}`)), true);
+  assert.equal(await weatherKitToken(env, { now: new Date(now.getTime() + 50 * 60000) }), jwt, 'reused with 10 minutes left');
+  assert.notEqual(await weatherKitToken(env, { now: new Date(now.getTime() + 56 * 60000) }), jwt, 'renewed under 5 minutes');
+});
+
+test('Tokyo, Plus: WeatherKit with the key — bearer JWT sent, nextSource apple, minutes present, alert passes through', async () => {
+  const { pem } = await testP8();
+  const now = instant(2026, 10, 21, 15, 0, 'Asia/Tokyo');
+  let auth = null, wkUrl = null;
+  const fetcher = async (url, init) => {
+    if (url.includes('weatherkit.apple.com')) {
+      auth = init?.headers?.authorization; wkUrl = url;
+      return new Response(JSON.stringify(weatherKit(now, { wetHours: [3, 4], minuteRain: true })), { status: 200 });
+    }
+    return fakeFetch([['api.met.no', met(now, flat(48, { temp: 5 }))]])(url);
+  };
+  const q = readQuery(new URLSearchParams('lat=35.69&lon=139.70&region=jp&tz=Asia/Tokyo&plan=plus&lang=en'));
+  const s = await forecast(q, wkEnv(pem), null, { now, fetcher });
+  validateScene(s);
+  assert.match(auth, /^Bearer [\w-]+\.[\w-]+\.[\w-]+$/);
+  assert.match(wkUrl, /\/weather\/en\/35\.69\/139\.7\?.*countryCode=JP/);
+  assert.equal(s.src, 'apple'); assert.equal(s.nextSource, 'apple'); assert.equal(s.next6.length, 6); assert.equal(s.next6[0][0], '4PM');
+  assert.equal(s.minutes.length, 60); assert.equal(s.minutes[30], 0.8);
+  assert.equal(s.temp, 21, 'currentWeather wins for now (20.7 → 21), not MET\'s 5°');
+  assert.equal(s.clock, '15:00'); assert.equal(s.updated, '15:00');
+  assert.equal(s.days[0][3], 15); assert.equal(s.days[0][4], 25, 'daily min / max from forecastDaily');
+  assert.equal(s.rain, 'bag'); assert.equal(s.hours[3][4], 1.8);
+  assert.equal(s.alert.name, 'Heavy Rain Warning'); assert.equal(s.bubble.text, 'Heavy Rain Warning'); assert.equal(s.bubble.icon, 'raincloud');
+  assert.match(s.alert.note, /mm today/);
+  assert.equal(s.tiles[1].uv, 4, 'UV index as Apple gave it');
+  // free: no minutes / next6 / now
+  const free = await forecast(readQuery(new URLSearchParams('lat=35.69&lon=139.70&region=jp&tz=Asia/Tokyo&plan=free')), wkEnv(pem), null, { now, fetcher });
+  validateScene(free);
+  assert.equal(free.src, 'apple'); assert.equal(free.minutes, undefined); assert.equal(free.next6, undefined); assert.equal(free.temp, 20);
+});
+
+test('WeatherKit 401 (or no key) → MET carries on; Korea still uses KMA with the key set', async () => {
+  const { pem } = await testP8();
+  const now = instant(2026, 10, 21, 15, 0, 'Asia/Tokyo');
+  const fetcher = async (url) => url.includes('weatherkit.apple.com') ? new Response('{"reason":"NOT_ENABLED"}', { status: 401 }) : fakeFetch([['api.met.no', met(now, flat(48, { temp: 7 }))]])(url);
+  const q = readQuery(new URLSearchParams('lat=35.69&lon=139.70&region=jp&tz=Asia/Tokyo&plan=plus'));
+  const s = await forecast(q, wkEnv(pem), null, { now, fetcher });
+  validateScene(s);
+  assert.equal(s.src, 'met'); assert.equal(s.nextSource, 'met'); assert.equal(s.temp, 7); assert.equal(s.minutes, undefined);
+  const noKey = await forecast(q, { WEATHERKIT_KEY_ID: 'only-the-id' }, null, { now, fetcher: fakeFetch([['api.met.no', met(now, flat(48, { temp: 7 }))]]) });
+  assert.equal(noKey.src, 'met');
+  // Korea keeps KMA even with WeatherKit configured
+  const kst = at(13, 50);
+  let appleCalled = false;
+  const krFetch = async (url) => {
+    if (url.includes('weatherkit.apple.com')) { appleCalled = true; return new Response('{}', { status: 200 }); }
+    return fakeFetch([['getVilageFcst', kmaFixture(kst)], ['api.met.no', met(kst, flat(240, { temp: 12 }))]])(url);
+  };
+  const kr = await forecast(readQuery(new URLSearchParams('lat=37.5663&lon=126.9019&region=kr&tz=Asia/Seoul&plan=free')), { ...wkEnv(pem), KMA_SERVICE_KEY: 'k' }, null, { now: kst, fetcher: krFetch });
+  validateScene(kr);
+  assert.equal(kr.src, 'kma'); assert.equal(appleCalled, false);
+});
+
+test('warning kinds from Apple / JMA / NWS alert names (icons and notes), KMA names unchanged', () => {
+  assert.equal(warningKind('호우경보'), 'rain'); assert.equal(warningKind('대설주의보'), 'snow'); assert.equal(warningKind('태풍경보'), 'typhoon');
+  assert.equal(warningKind('Flash Flood Warning'), 'rain'); assert.equal(warningKind('Winter Storm Warning'), 'snow'); assert.equal(warningKind('High Wind Advisory'), 'wind');
+  assert.equal(warningKind('Excessive Heat Warning'), 'heat'); assert.equal(warningKind('Freeze Warning'), 'cold'); assert.equal(warningKind('大雨警報'), 'rain'); assert.equal(warningKind('Tsunami Warning'), 'other');
+  assert.equal(bubble({ warnings: [{ name: 'Winter Storm Warning', severity: 2 }], feels: 0 }, 'en').icon, 'snowflake');
+  assert.equal(alertNote('Excessive Heat Warning', { total: 0, pr: 'none', hi: 38, lo: 27 }, 'en'), 'High 38°, limit midday outings');
 });
 
 test('HTTP: /health, bad input 400, unknown path 404', async () => {

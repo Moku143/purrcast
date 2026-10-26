@@ -1,6 +1,7 @@
 # Cloudflare Workers (free plan: 100,000 requests a day).
 # Deploy: the "Server" GitHub workflow runs `wrangler deploy` once the CLOUDFLARE_API_TOKEN and
-# CLOUDFLARE_ACCOUNT_ID secrets exist. The KMA key goes in as a Worker secret (the workflow copies KMA_SERVICE_KEY).
+# CLOUDFLARE_ACCOUNT_ID secrets exist. Keys go in as Worker secrets (the workflow copies KMA_SERVICE_KEY,
+# WEATHERKIT_KEY_ID, WEATHERKIT_KEY_P8 and APPLE_TEAM_ID when they are set).
 name = "purrcast"
 main = "src/index.js"
 compatibility_date = "2025-09-01"
@@ -8,6 +9,7 @@ workers_dev = true
 
 [vars]
 CONTACT = "oo0785@daum.net github.com/Moku143/purrcast"
+WEATHERKIT_SERVICE_ID = "app.purrcast.ios"   # the WeatherKit service id = the app's bundle id (JWT `sub`)
 
 # Optional "전일 대비" memory. Create once with:  npx wrangler kv namespace create HISTORY
 # then uncomment and paste the id.

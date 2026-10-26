@@ -16,8 +16,10 @@ const ri = (v) => (v == null || Number.isNaN(v) ? 0 : Math.round(v));
  *   warnings optional [{ name, severity }]
  *   precip none | rain | heavy | snow | heavysnow (3 cm/h+) | sleet (진눈깨비: rain and snow together)
  *   → scene.alert { name, note } when one is in force (the line under the character on the home screen)
- *   next6    optional [{ t, mm }] (KMA 초단기예보, Plus)
- *   nextSource 'kma' | 'met'
+ *   next6    optional [{ t, mm }] (KMA 초단기예보 / WeatherKit hourly, Plus)
+ *   minutes  optional [mm/h per minute, up to 60] (WeatherKit forecastNextHour, Plus)
+ *   nextSource 'kma' | 'met' | 'apple'
+ *   src      'kma' | 'met' | 'apple' — the main forecast's source (nextSource when missing)
  *   updated  Date of the forecast run used
  * @param {object} o  { lat, lon, tz, plan: 'free'|'plus', prev, yday, now: Date, lang: 'ko'|'en'|'ja' (ko) }
  */
@@ -156,6 +158,7 @@ export function buildScene(f, o) {
     tiles,
     wind: { speed: ri(cur.wind), gust: ri(cur.gust ?? (cur.wind ?? 0) * 1.5), deg: ri(cur.dir) },
     plus,
+    src: f.src || f.nextSource || 'met',
   };
   if (f.warnings?.length) {
     const w = f.warnings[0].name;
@@ -176,6 +179,7 @@ export function buildScene(f, o) {
     scene.next6 = f.next6.slice(0, 6).map((p) => [S.hour(H(p)), r1(p.mm || 0)]);
     scene.nextSource = f.nextSource || 'kma';
   }
+  if (plus && f.minutes?.length) scene.minutes = f.minutes.slice(0, 60).map((v) => (Number.isFinite(v) ? Math.round(v * 100) / 100 : 0));
   return scene;
 }
 
@@ -199,6 +203,8 @@ export function validateScene(s) {
   if (!s.wind || !['speed', 'gust', 'deg'].every((k) => Number.isFinite(s.wind[k]))) bad.push('wind');
   if (s.next6 != null && !(Array.isArray(s.next6) && s.next6.every((n) => n.length === 2 && typeof n[0] === 'string' && Number.isFinite(n[1])))) bad.push('next6');
   if (s.minutes != null && !(Array.isArray(s.minutes) && s.minutes.every(Number.isFinite))) bad.push('minutes');
+  if (s.nextSource != null && typeof s.nextSource !== 'string') bad.push('nextSource');
+  if (s.src != null && typeof s.src !== 'string') bad.push('src');
   if (s.dayDetail != null && !(Array.isArray(s.dayDetail) && s.dayDetail.every((d) => Array.isArray(d) && d.every((h) => h.length === 6 && typeof h[0] === 'string' && h.slice(1).every(Number.isFinite))))) bad.push('dayDetail');
   if (bad.length) throw new Error('scene does not match the app: ' + bad.join(', '));
   return true;

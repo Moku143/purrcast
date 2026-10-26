@@ -17,7 +17,7 @@ Accept: application/json
 | param  | meaning |
 |--------|---------|
 | lat, lon | place, rounded to 2 decimals (~1 km) by the app and again by the server |
-| region | `kr` (기상청 + MET Norway, six-hour rain), `jp` (minute rain), `other` (hourly only) |
+| region | `kr` (기상청 + MET Norway, six-hour rain), `jp` / `other` (Apple WeatherKit: minute rain where Apple has it, MET Norway without a key) |
 | tz     | IANA time zone of the place; every clock time in the answer is local to it |
 | plan   | `free` → the 06:00 forecast only, no `minutes` / `next6`; `plus` → latest run, with them |
 | lang   | `ko` (default) · `en` · `ja`; any other value → `en`. Changes the words in the answer only — see [Languages](#languages) |
@@ -51,9 +51,10 @@ Accept: application/json
              { "icon": "sunset", "label": "일몰", "value": "17:52", "unit": "", "note": "내일 일출 06:49" },
              { "icon": "raindrop", "label": "습도", "value": "72%", "unit": "", "note": "이슬점 13°" } ],
   "wind": { "speed": 4, "gust": 7, "deg": 225 },       // m/s, m/s, degrees the wind comes from
-  "minutes": [0, 0, 0.2, …],                            // Plus · jp/other where available: 60 values, mm/h per minute
+  "minutes": [0, 0, 0.2, …],                            // Plus · WeatherKit forecastNextHour where Apple has it: up to 60 values, mm/h per minute, from now
   "next6": [ ["15시", 0], ["16시", 0.8], … ],            // Plus: next 6 hourly slots, mm
-  "nextSource": "kma",                                  // kma (초단기예보) | met — the card's legend
+  "nextSource": "kma",                                  // kma (초단기예보) | apple | met — the card's legend
+  "src": "kma",                                         // kma | apple | met — where the main forecast came from (attribution)
   "dayDetail": [ [ ["0시", 9.5, 10, 2.1, 0, 82], … 8 per day ], … one per day ],  // °C, chance %, wind m/s, UV, humidity %
   "plus": true                                          // echo of the plan
 }
@@ -102,14 +103,23 @@ Tone: en short and friendly, sentence case; ja です・ます, concise. The app
 
 ## Implementation
 
-`server/` in this repo (Cloudflare Worker): `src/index.js` (request, cache, merge, fallbacks), `src/providers/` (MET, KMA),
+`server/` in this repo (Cloudflare Worker): `src/index.js` (request, cache, merge, fallbacks), `src/providers/` (KMA, WeatherKit, MET),
 `src/rules.js` (the rules below), `src/i18n.js` (the three dictionaries), `src/scene.js` (builds and validates this JSON). `node --test test/*.test.js` runs
 the rules and the contract against fake upstreams; `scripts/live-check.mjs` against the real ones.
 
 ## Sources
 
-* **기상청 (KMA)** — 단기예보 + 초단기예보 (`next6`), 기상특보. Needs a data.go.kr service key (free).
-* **MET Norway Locationforecast 2.0** — everything outside Korea, and the comparison. Free; requires a
+| region | main source (`src`) | adds | fallback |
+|---|---|---|---|
+| `kr` | **기상청 (KMA)** 단기예보; Plus: 초단기실황 (`now`), 초단기예보 (`next6`), 기상특보 (`alert`) | MET Norway: days 4–10, UV, gusts, fog | MET Norway (no key, or KMA down) → then WeatherKit if configured |
+| `jp`, `other` | **Apple WeatherKit** currentWeather (`now`), forecastHourly (hours, `next6`), forecastDaily (lo / hi), forecastNextHour (`minutes`, only where Apple has it), weatherAlerts (`alert`, in the request `lang`) | — | MET Norway (no key, 401, or any error) |
+
+* **기상청 (KMA)** — needs a data.go.kr service key (free). 공공누리 제1유형 (출처표시).
+* **Apple WeatherKit REST** — needs `WEATHERKIT_KEY_ID` + `WEATHERKIT_KEY_P8` (the .p8) + `APPLE_TEAM_ID`; service id = bundle id
+  (`WEATHERKIT_SERVICE_ID`, wrangler var). 500,000 calls / month in the developer membership; answers are cached 10 min (Plus) / 30 min (free)
+  per ~1 km cell. Attribution is required wherever its data is shown: “Weather data provided by  Weather” (the Apple Weather mark or
+  the words) plus a link to <https://weatherkit.apple.com/legal-attribution.html> — the app shows it on 데이터 출처 when `src` is `apple`.
+* **MET Norway Locationforecast 2.0** — the fallback everywhere, and the comparison for Korea. Free; requires a
   descriptive `User-Agent` with contact info, caching by `Expires`/`If-Modified-Since`, and attribution
   “Data from MET Norway” (CC BY 4.0) — the app shows it on 데이터 출처.
 

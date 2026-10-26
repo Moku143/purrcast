@@ -2,13 +2,16 @@
 //   GET /v1/forecast?lat=&lon=&region=kr|jp|other&tz=&plan=free|plus&lang=ko[&prev=0..9][&name=서울 마포구]
 //   GET /health
 // Korea: 기상청 단기예보 (+ Plus: 초단기실황 · 초단기예보 · 특보), days 4–10 and UV from MET Norway.
-// Elsewhere: MET Norway. Any source failing falls back to the other where possible.
+// Elsewhere: Apple WeatherKit (current, hourly, daily, next-hour minutes, alerts) when its key is set.
+// MET Norway is the fallback everywhere: no key, or a source failing, falls back to it.
 //
-// Bindings (wrangler.toml / secrets): KMA_SERVICE_KEY (secret), CONTACT (var, for MET's User-Agent),
+// Bindings (wrangler.toml / secrets): KMA_SERVICE_KEY (secret), WEATHERKIT_KEY_ID · WEATHERKIT_KEY_P8 · APPLE_TEAM_ID
+// (secrets), WEATHERKIT_SERVICE_ID (var), CONTACT (var, for MET's User-Agent),
 // HISTORY (optional KV namespace: yesterday-at-this-hour temperatures for "전일 대비").
 
 import { metUrl, parseMet } from './providers/met.js';
 import { toGrid, vilageBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError } from './providers/kma.js';
+import { hasWeatherKit, weatherKitUrl, weatherKitToken, parseWeatherKit } from './providers/weatherkit.js';
 import { buildScene, validateScene } from './scene.js';
 import { local, pad2 } from './time.js';
 import { normLang } from './i18n.js';
@@ -19,7 +22,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, time: new Date().toISOString() };
+      const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, weatherkit: hasWeatherKit(env), time: new Date().toISOString() };
       if (url.searchParams.get('deep') === '1') out.check = await deepCheck(env);   // first-deploy check: can we reach both sources?
       return json(out);
     }
@@ -103,12 +106,15 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch 
   if (q.region === 'kr' && env.KMA_SERVICE_KEY) {
     try { f = await korea(q, env, now, fetcher, ctx); } catch (e) { console.log('KMA failed, using MET:', e.message); f = null; }
   }
+  if (!f && hasWeatherKit(env)) {   // everywhere else (and Korea when KMA is down): Apple WeatherKit
+    try { f = await apple(q, env, now, fetcher, ctx); } catch (e) { console.log('WeatherKit failed, using MET:', e.message); f = null; }
+  }
   const met = await metP;
   if (!f) {
     if (met.error) throw met.error;
-    f = { points: met.points, updated: met.updated, nextSource: 'met' };
+    f = { points: met.points, updated: met.updated, nextSource: 'met', src: 'met' };
     if (q.plan === 'plus') f.next6 = met.points.filter((p) => p.t > now).slice(0, 6);
-  } else if (!met.error) {
+  } else if (f.src === 'kma' && !met.error) {
     // KMA hourly for the first ~4 days (day 5 is 3-hourly and in words), MET after; MET's UV / gusts / fog where KMA has none
     const cut = now.getTime() + 4 * 86400000;
     f.points = f.points.filter((p) => p.t.getTime() < cut);
@@ -134,7 +140,7 @@ async function korea(q, env, now, fetcher, ctx) {
   const vb = vilageBase(now, plus ? null : 5);       // free: the 05 h run ("06:00 기준")
   const vil = parseForecast(await get('getVilageFcst', { base_date: vb.date, base_time: vb.time }, plus ? 1800 : 6 * 3600), 'kma');
   if (vil.total != null && vil.total > vil.got) console.log(`KMA 단기예보 cut: ${vil.got} of ${vil.total} rows`);
-  const f = { points: vil.points, daily: vil.daily, updated: vb.at, nextSource: 'kma' };
+  const f = { points: vil.points, daily: vil.daily, updated: vb.at, nextSource: 'kma', src: 'kma' };
   if (plus) {
     const [ultra, ncst, warn] = await Promise.allSettled([
       (async () => { const b = ultraBase(now); return { b, d: parseForecast(await get('getUltraSrtFcst', { base_date: b.date, base_time: b.time }, 600), 'kma-ultra') }; })(),
@@ -168,9 +174,34 @@ async function korea(q, env, now, fetcher, ctx) {
   return f;
 }
 
+const COUNTRY = { kr: 'KR', jp: 'JP' };   // WeatherKit wants a country code for weatherAlerts; 'other' has none
+
+/** Apple WeatherKit: one call gives everything. Plus refreshes every 10 min, free every 30. */
+async function apple(q, env, now, fetcher, ctx) {
+  const plus = q.plan === 'plus';
+  const jwt = await weatherKitToken(env, { now });
+  const url = weatherKitUrl(q.lat, q.lon, { lang: q.lang, tz: q.tz, country: COUNTRY[q.region] ?? null });
+  const w = parseWeatherKit(await getJSON(url, { ttl: plus ? 600 : 1800, headers: { authorization: `Bearer ${jwt}` }, fetcher, ok: (d) => !!d?.forecastHourly?.hours?.length, ctx }), q.tz);
+  if (!w.points.length) throw new Error('WeatherKit: no hourly forecast');
+  const f = { points: w.points, updated: w.updated, daily: w.daily, warnings: w.warnings, nextSource: 'apple', src: 'apple' };
+  if (plus) {
+    f.next6 = w.points.filter((p) => p.t > now).slice(0, 6);
+    if (w.now) f.now = w.now;
+    if (w.minutes) f.minutes = w.minutes;
+  }
+  return f;
+}
+
 /** /health?deep=1: one real call to each source, so a first deploy shows at once whether keys and network work. */
 async function deepCheck(env) {
   const out = {};
+  if (hasWeatherKit(env)) {
+    try {
+      const jwt = await weatherKitToken(env);
+      const r = await fetch(weatherKitUrl(35.69, 139.7, { lang: 'en', tz: 'Asia/Tokyo', country: 'JP' }), { headers: { authorization: `Bearer ${jwt}` } });
+      out.weatherkit = r.status;
+    } catch (e) { out.weatherkit = String(e.message || e); }
+  } else out.weatherkit = 'no key';
   try { const r = await fetch(metUrl(37.57, 126.98), { headers: { 'user-agent': `Purrcast/1.0 ${env.CONTACT || ''}` } }); out.met = r.status; }
   catch (e) { out.met = String(e.message || e); }
   if (env.KMA_SERVICE_KEY) {
