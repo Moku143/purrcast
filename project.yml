@@ -25,6 +25,8 @@ targets:
     info:
       path: Purrcast/Info.plist
       properties:
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleDisplayName: Purrcast
         CFBundleDevelopmentRegion: en
         UILaunchScreen: {}
@@ -37,6 +39,8 @@ targets:
     entitlements:
       path: Config/Purrcast.entitlements
       properties:
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
         com.apple.security.application-groups: [group.app.purrcast]
     dependencies:
       - target: PurrcastWidgets
@@ -57,6 +61,8 @@ targets:
     info:
       path: PurrcastWidgets/Info.plist
       properties:
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleDisplayName: Purrcast
         UIAppFonts: [Galmuri11.ttf, Galmuri11-Bold.ttf]
         PurrcastServerURL: ""
@@ -65,6 +71,8 @@ targets:
     entitlements:
       path: Config/PurrcastWidgets.entitlements
       properties:
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
         com.apple.security.application-groups: [group.app.purrcast]
     settings:
       base:
@@ -80,6 +88,8 @@ targets:
     info:
       path: PurrcastWatch/Info.plist
       properties:
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleDisplayName: Purrcast
         WKApplication: true
         WKCompanionAppBundleIdentifier: app.purrcast.ios
@@ -89,6 +99,8 @@ targets:
     entitlements:
       path: Config/PurrcastWatch.entitlements
       properties:
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
         com.apple.security.application-groups: [group.app.purrcast.watch]
     dependencies:
       - target: PurrcastWatchWidgets
@@ -107,6 +119,8 @@ targets:
     info:
       path: PurrcastWatchWidgets/Info.plist
       properties:
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleDisplayName: Purrcast
         UIAppFonts: [Galmuri11.ttf, Galmuri11-Bold.ttf]
         PurrcastServerURL: ""
@@ -115,6 +129,8 @@ targets:
     entitlements:
       path: Config/PurrcastWatchWidgets.entitlements
       properties:
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
         com.apple.security.application-groups: [group.app.purrcast.watch]
     settings:
       base:
