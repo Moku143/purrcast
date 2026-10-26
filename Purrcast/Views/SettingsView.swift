@@ -314,7 +314,7 @@ struct SourcesView: View {
             .foregroundStyle(UI.ink).padding(.horizontal, 8).padding(.vertical, 4)
             .overlay(RoundedRectangle(cornerRadius: 5).stroke(UI.sub, style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
             line(L("기본 예보 (한국 밖) · 한국에선 예보 비교"))
-            link(L("기타 데이터 출처"), Self.appleLegal)
+            link(L("Apple 날씨 출처 안내"), Self.appleLegal)
         }
     }
 

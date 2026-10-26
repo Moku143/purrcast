@@ -39,6 +39,13 @@ final class ScreenshotTests: XCTestCase {
         shot("home-scrolled", ["-scene", "maybe", "-plus"]) { app in
             app.swipeUp(); sleep(1)
         }
+        // the lower cards: wind dial · 예보 비교 · tiles · footer
+        shot("home-cards", ["-scene", "maybe", "-plus"]) { app in
+            for _ in 0..<3 { app.swipeUp() }; sleep(1)
+        }
+        shot("home-bottom", ["-scene", "maybe"]) { app in
+            for _ in 0..<6 { app.swipeUp() }; sleep(1)
+        }
     }
 
     func test4Onboarding() {
