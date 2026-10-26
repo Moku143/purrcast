@@ -14,9 +14,9 @@ struct PaywallView: View {
         var f: [Feature] = []
         if Features.adsInFree { f.append(Feature(art: "ads", title: L("광고 없이"), note: L("화면 사이 광고가 사라져요."), check: L("광고 제거"))) }
         f += [
-            Feature(art: "fresh", title: L("새 예보마다 업데이트"), note: L("무료는 아침 예보 하나, Plus는 새 예보가 나올 때마다."), check: L("새 예보마다")),
-            Feature(art: "rain", title: L("가까운 비"), note: L("앞으로 6시간, 언제 얼마나 오는지."), check: L("가까운 비")),
-            Feature(art: "watch", title: L("애플워치"), note: L("워치 앱 · 컴플리케이션"), check: L("애플워치")),
+            Feature(art: "fresh", title: L("새 예보마다 업데이트"), note: L("무료는 하루 1번, Plus는 새 예보가 나올 때마다."), check: L("새 예보마다")),
+            Feature(art: "rain", title: L("가까운 비"), note: L("비 올 시각까지 · 한국은 다음 6시간"), check: L("가까운 비")),
+            Feature(art: "watch", title: L("애플워치"), note: L("워치 앱 · 워치 페이스 · 컴플리케이션"), check: L("애플워치")),
             Feature(art: "places", title: L("지역 여러 곳"), note: L("무료는 1곳 더, Plus는 제한 없이."), check: L("지역 여러 곳")),
             Feature(art: "chars", title: L("캐릭터 바꾸기"), note: L("아비시니안 · 브리티시숏헤어 · 추후 업데이트로 추가 예정"), check: L("캐릭터")),
         ]
@@ -37,9 +37,10 @@ struct PaywallView: View {
                 .padding(.top, 18)
 
                 HStack(spacing: 12) {
-                    Image(PurrCharacter.cat.faceImage).resizable().scaledToFit().frame(width: 46, height: 46).reveal(0, rise: 8)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(Brand.plus).font(.px(26)).foregroundStyle(UI.ink)
+                    Image(PurrCharacter.cat.faceImage).resizable().scaledToFit().frame(width: 40, height: 40)
+                        .frame(width: 56, height: 56).background(Color(hex: "#D9EFCF")).clipShape(Circle()).reveal(0, rise: 8)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(Brand.plus).font(.px(24)).foregroundStyle(UI.ink)
                         Text(L("옆으로 넘겨 보세요")).font(.ui(13)).foregroundStyle(UI.sub)
                     }
                 }
@@ -49,15 +50,15 @@ struct PaywallView: View {
                     ForEach(Array(features.enumerated()), id: \.offset) { i, f in
                         VStack(alignment: .leading, spacing: 10) {
                             featureArt(f.art)
-                            Text(f.title).font(.px(19)).foregroundStyle(UI.ink)
-                            Text(f.note).font(.system(size: 14)).foregroundStyle(UI.sub)
+                            Text(f.title).font(.ui(17, .bold)).foregroundStyle(UI.ink).padding(.horizontal, 4)
+                            Text(f.note).font(.ui(13)).lineSpacing(3).foregroundStyle(Color(hex: "#33405E")).padding(.horizontal, 4)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .tag(i)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 270)
+                .frame(height: 290)
                 .padding(.top, 14)
                 .reveal(1)
                 .onChange(of: page) { _, _ in Haptic.soft() }
@@ -93,15 +94,16 @@ struct PaywallView: View {
                     .font(.ui(11)).foregroundStyle(UI.sub).multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity).padding(.top, 10)
                 HStack(spacing: 6) {
-                    Link(L("이용약관(EULA)"), destination: Legal.terms)
+                    Link(destination: Legal.terms) { Text(L("이용약관")).underline() }
                     Text("·")
-                    Link(L("개인정보 처리방침"), destination: Legal.privacy)
+                    Link(destination: Legal.privacy) { Text(L("개인정보 처리방침")).underline() }
                 }
-                .font(.ui(12)).foregroundStyle(UI.sub).frame(maxWidth: .infinity).padding(.top, 6).padding(.bottom, 30)
+                .font(.ui(11.5)).foregroundStyle(UI.sub).frame(maxWidth: .infinity).padding(.top, 6).padding(.bottom, 30)
             }
             .padding(.horizontal, 20)
         }
-        .background(LinearGradient(colors: [Color(hex: "#FFF6E3"), Color(hex: "#FFF0E6")], startPoint: .top, endPoint: .bottom).ignoresSafeArea())
+        .background(LinearGradient(stops: [.init(color: Color(hex: "#FFE8A3"), location: 0), .init(color: Color(hex: "#FFF6EC"), location: 0.4), .init(color: Color(hex: "#F6F7FB"), location: 1)],
+                                   startPoint: .top, endPoint: .bottom).ignoresSafeArea())
         .alert(purchases.message ?? "", isPresented: Binding(get: { purchases.message != nil }, set: { if !$0 { purchases.message = nil } })) {
             Button(L("확인"), role: .cancel) {}
         }
@@ -148,44 +150,157 @@ struct PaywallView: View {
     /// Small picture per feature, drawn from app parts (no screenshots, so it stays language-neutral).
     @ViewBuilder private func featureArt(_ key: String) -> some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.7))
+            RoundedRectangle(cornerRadius: 18).fill(artBackground(key))
             switch key {
-            case "ads":
-                HStack(spacing: 18) {
-                    miniPhone(ad: true)
-                    Image(systemName: "arrow.right").foregroundStyle(UI.faint)
-                    miniPhone(ad: false)
-                }
-            case "fresh":
-                HStack(alignment: .bottom, spacing: 10) {
-                    ForEach(0..<6, id: \.self) { k in
-                        RoundedRectangle(cornerRadius: 3).fill(k == 1 ? UI.faint : UI.accent).frame(width: 14, height: k == 1 ? 18 : 70)
-                    }
-                }
-            case "rain":
-                HStack(alignment: .bottom, spacing: 4) {
-                    ForEach(Array([0, 0, 1, 3, 5, 4, 2, 1, 0, 0, 0, 0].enumerated()), id: \.offset) { _, v in
-                        RoundedRectangle(cornerRadius: 2).fill(v > 0 ? Color(hex: "#1F5BD0") : UI.line).frame(width: 12, height: CGFloat(max(3, v * 16)))
-                    }
-                }
-            case "watch":
-                RoundedRectangle(cornerRadius: 26).fill(Color(hex: "#1B1F2E")).frame(width: 104, height: 124)
-                    .overlay(CharacterSprite(character: .cat, level: 4, rain: .none, width: 70, animate: false).offset(y: 6))
-            case "places":
-                VStack(spacing: 8) {
-                    ForEach([(L("서울"), 18), (L("도쿄"), 19), (L("뉴욕"), 12)], id: \.0) { n, t in
-                        HStack { Text(n).font(.px(14)); Spacer(); Text("\(t)°").font(.px(16)) }
-                            .foregroundStyle(UI.ink).padding(.horizontal, 14).frame(width: 190, height: 34)
-                            .background(UI.bg).clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
-                }
-            default:
-                HStack(spacing: -6) {
-                    ForEach(PurrCharacter.allCases) { c in CharacterSprite(character: c, level: 2, rain: .none, width: 86, animate: false) }
-                }.offset(y: 8)
+            case "ads": adsArt
+            case "fresh": freshArt
+            case "rain": rainArt
+            case "watch": watchArt
+            case "places": placesArt
+            default: charsArt
             }
         }
-        .frame(height: 170)
+        .frame(height: 196)
+    }
+
+    private func artBackground(_ key: String) -> Color {
+        switch key {
+        case "fresh": return .white
+        case "rain": return Color(hex: "#EEF4FF")
+        case "watch": return Color(hex: "#E9ECF3")
+        default: return Color(hex: "#F4F6FA")
+        }
+    }
+
+    /// Free: a phone with an ad slot → Plus: the same phone without it
+    private var adsArt: some View {
+        HStack(spacing: 18) {
+            VStack(spacing: 6) {
+                miniPhone(ad: true)
+                Text("Free").font(.ui(11, .bold)).foregroundStyle(UI.sub)
+            }
+            Image(systemName: "arrow.right").font(.system(size: 20)).foregroundStyle(UI.faint)
+            VStack(spacing: 6) {
+                miniPhone(ad: false)
+                Text("Plus").font(.ui(11, .bold)).foregroundStyle(UI.accent)
+            }
+        }
+    }
+
+    /// Two day-lines: Free gets one forecast a day, Plus one at every new run
+    private var freshArt: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            timeline(label: "Free", color: UI.sub, track: Color(hex: "#E6E9F0"), dots: [0.25])
+            timeline(label: "Plus", color: UI.accent, track: Color(hex: "#FFE3CC"), dots: [0.08, 0.21, 0.25, 0.33, 0.46, 0.58, 0.71, 0.83, 0.96])
+            axis(["0", "6", "12", "18", "24"])
+        }
+        .padding(.horizontal, 20)
+    }
+
+    /// "0  6  12  18  24" spread across the width
+    private func axis(_ labels: [String]) -> some View {
+        HStack(spacing: 0) {
+            ForEach(Array(labels.enumerated()), id: \.offset) { i, t in
+                Text(t)
+                if i < labels.count - 1 { Spacer() }
+            }
+        }
+        .font(.ui(10.5)).foregroundStyle(Color(hex: "#8A93AA"))
+    }
+
+    private func timeline(label: String, color: Color, track: Color, dots: [CGFloat]) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label).font(.ui(12, .bold)).foregroundStyle(color)
+            GeometryReader { g in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(track)
+                    ForEach(Array(dots.enumerated()), id: \.offset) { _, x in
+                        Circle().fill(color).frame(width: 12, height: 12).offset(x: g.size.width * x - 6, y: 1)
+                    }
+                }
+            }
+            .frame(height: 14)
+        }
+    }
+
+    /// Minute-by-minute rain: a bubble with the start time, then the bars and a 0–60 min axis
+    private var rainArt: some View {
+        let bars: [CGFloat] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 14, 22, 30, 38, 46, 54, 60, 66, 70, 72, 74, 74, 72, 70, 66, 60, 54, 48, 42, 36, 30, 24, 18, 12, 8, 6, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        return ZStack(alignment: .topLeading) {
+            HStack(spacing: 4) {
+                PixelIcon(name: "umbrella_closed", size: 14)
+                Text(L("%@쯤 비 예정", "15:50")).font(.px(11)).foregroundStyle(UI.ink)
+            }
+            .padding(.horizontal, 10).padding(.vertical, 6).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 10))
+            .padding(.leading, 18).padding(.top, 16)
+            VStack(spacing: 6) {
+                Spacer()
+                HStack(alignment: .bottom, spacing: 1.5) {
+                    ForEach(Array(bars.enumerated()), id: \.offset) { _, h in
+                        RoundedRectangle(cornerRadius: 1).fill(h > 0 ? Color(hex: "#1F5BD0") : Color(hex: "#DDE2EC")).frame(height: max(2, h))
+                    }
+                }
+                .frame(height: 92)
+                axis(["0", "15", "30", "45", "60 min"])
+            }
+            .padding(.horizontal, 18).padding(.bottom, 14)
+        }
+    }
+
+    /// Two watches: the app and a face with the character on it
+    private var watchArt: some View {
+        HStack(spacing: 10) {
+            miniWatch { CharacterSprite(character: .cat, level: 4, rain: .bag, width: 64, animate: false) }
+            miniWatch {
+                VStack(spacing: 2) {
+                    Text("10:09").font(.px(18)).foregroundStyle(.white)
+                    CharacterSprite(character: .cat, level: 4, rain: .none, width: 48, animate: false)
+                }
+            }
+        }
+    }
+
+    private func miniWatch<C: View>(@ViewBuilder _ c: () -> C) -> some View {
+        RoundedRectangle(cornerRadius: 30).fill(Color(hex: "#111114")).frame(width: 113, height: 132)
+            .overlay {
+                RoundedRectangle(cornerRadius: 22).fill(Color(hex: "#1B1F2E")).padding(8)
+                    .overlay(c())
+            }
+    }
+
+    /// Three place cards fanned out: Seoul, Tokyo, New York (night)
+    private var placesArt: some View {
+        let rows: [(String, Int, Int, Bool, CGFloat)] = [(L("서울"), 18, 4, false, -56), (L("도쿄"), 19, 4, false, 0), (L("뉴욕"), 12, 5, true, 56)]
+        return ZStack {
+            ForEach(Array(rows.enumerated()), id: \.offset) { i, r in
+                HStack(spacing: 8) {
+                    CharacterSprite(character: .cat, level: r.2, rain: r.3 ? .none : .bag, width: 44, animate: false).frame(width: 44, height: 52).clipped()
+                    Text(r.0).font(.px(13))
+                    Spacer()
+                    Text("\(r.1)°").font(.px(24))
+                }
+                .foregroundStyle(r.3 ? Color(hex: "#F3F5FF") : UI.ink)
+                .padding(.horizontal, 10).frame(width: 220, height: 64)
+                .background(LinearGradient(colors: [Color(hex: Rules.background[r.2]), r.3 ? Color(hex: "#2B3566") : .white], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .shadow(color: Color(hex: "#1E2A44").opacity(0.12), radius: 7, y: 6)
+                .offset(x: CGFloat(i - 1) * 16, y: r.4)
+            }
+        }
+    }
+
+    /// The three characters as tiles, the first one chosen
+    private var charsArt: some View {
+        HStack(spacing: 12) {
+            ForEach(Array(PurrCharacter.allCases.enumerated()), id: \.offset) { i, c in
+                CharacterSprite(character: c, level: 4, rain: .none, width: 72, animate: false)
+                    .frame(width: 92, height: 132)
+                    .background(i == 0 ? Color(hex: "#D9EFCF") : Color.white)
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(i == 0 ? UI.accent : Color.white, lineWidth: 3))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: Color(hex: "#1E2A44").opacity(i == 0 ? 0 : 0.06), radius: 5, y: 2)
+            }
+        }
     }
 
     private func miniPhone(ad: Bool) -> some View {
