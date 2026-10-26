@@ -36,7 +36,7 @@ jobs:
       - name: Generate project with the team id and the server
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
-          SERVER: ${{ vars.SERVER_URL }}
+          SERVER: ${{ vars.SERVER_URL || 'https://purrcast.oo0785.workers.dev' }}
         run: |
           case "$SERVER" in https://*) ;; *) echo "::error::Set the SERVER_URL repository variable (https://…) — see the top of testflight.yml"; exit 1;; esac
           curl -fsS "$SERVER/health" || { echo "::error::$SERVER/health does not answer"; exit 1; }

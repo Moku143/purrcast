@@ -29,7 +29,7 @@ Cloudflare Workers 무료 플랜(하루 10만 요청)에서 돌아가고, 코드
 
 4. **배포**
    Actions → **Server** → Run workflow. 끝나면 로그의 "Deploy" 단계에 주소가 나와요:
-   `https://purrcast.<계정이름>.workers.dev`
+   `https://purrcast.oo0785.workers.dev` (지금 올라가 있는 주소)
    브라우저로 `…/health`를 열어 `{"ok":true,"kma":true}`가 보이면 끝.
 
 5. **앱에 연결**
