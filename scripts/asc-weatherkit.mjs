@@ -3,7 +3,7 @@
 //   node scripts/asc-weatherkit.mjs [--enable] [bundle id]
 import { createPrivateKey, sign } from 'node:crypto';
 
-const BUNDLE = process.argv.find((a) => a.includes('.') && !a.startsWith('-') && !a.endsWith('.mjs')) || 'app.purrcast.ios';
+const BUNDLE = process.argv.slice(2).find((a) => !a.startsWith('-')) || 'app.purrcast.ios';
 const ENABLE = process.argv.includes('--enable');
 const { ASC_KEY_ID: kid, ASC_ISSUER_ID: iss, ASC_KEY_P8: p8 } = process.env;
 if (!kid || !iss || !p8) { console.log('missing ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_P8'); process.exit(1); }
