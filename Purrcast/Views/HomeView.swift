@@ -25,8 +25,13 @@ struct HomeView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 12) {
                         // how far the page has scrolled (drives the compact header)
-                        GeometryReader { g in Color.clear.preference(key: ScrollOffsetKey.self, value: g.frame(in: .named("home")).minY) }
-                            .frame(height: 0)
+                        GeometryReader { g in
+                            let y = g.frame(in: .named("home")).minY
+                            Color.clear
+                                .onAppear { setScrolled(y) }
+                                .onChange(of: y) { _, v in setScrolled(v) }
+                        }
+                        .frame(height: 0)
                         hero(s, ink: ink, level: lv)
                             .frame(height: heroH)
                             .parallaxHero()
@@ -43,7 +48,6 @@ struct HomeView: View {
                     .padding(.bottom, 44)
                 }
                 .coordinateSpace(name: "home")
-                .onPreferenceChange(ScrollOffsetKey.self) { y in let on = y < -240; if on != scrolled { scrolled = on } }
                 .overlay(alignment: .top) {
                     CompactHeader(place: s.place ?? model.currentPlace.name, text: "\(deg(s.temp)) \(s.cond)", level: lv, ink: ink, shown: scrolled)
                 }
@@ -57,6 +61,12 @@ struct HomeView: View {
         .animation(Motion.fade, value: skyKey(s))
         .animation(Motion.gentle, value: model.hasData)
         .animation(Motion.gentle, value: model.lastError)
+    }
+
+    /// The compact header shows once the page has moved 240 pt up.
+    private func setScrolled(_ y: CGFloat) {
+        let on = y < -240
+        if on != scrolled { DispatchQueue.main.async { scrolled = on } }
     }
 
     /// First launch, before any forecast arrived (or it failed): the cat waits, no made-up numbers.
