@@ -65,3 +65,14 @@ jobs:
           if [ -n "$KMA_SERVICE_KEY" ]; then echo "$KMA_SERVICE_KEY" | npx --yes wrangler@4 secret put KMA_SERVICE_KEY; fi
           url=$(grep -o 'https://[a-z0-9.-]*workers.dev' deploy.txt | head -1)
           echo "Deployed: ${url:-?}" >> "$GITHUB_STEP_SUMMARY"
+          echo "$url" > ../url.txt
+      - name: Smoke test the live server (URL + /health + one Seoul scene, published to the server-deploy branch)
+        run: |
+          url=$(cat url.txt); mkdir -p out; echo "$url" > out/url.txt
+          sleep 8
+          curl -s -m 20 "$url/health?deep=1" > out/health.json || echo '{"error":"health request failed"}' > out/health.json
+          curl -s -m 25 "$url/v1/forecast?lat=37.5663&lon=126.9019&plan=plus&name=%EC%84%9C%EC%9A%B8%20%EB%A7%88%ED%8F%AC%EA%B5%AC" | head -c 4000 > out/seoul.json || true
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt
+          cd out && git init -q && git checkout -q -b server-deploy
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "deploy ${{ github.run_id }}"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} server-deploy
