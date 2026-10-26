@@ -215,7 +215,7 @@ export function validateScene(s) {
   for (const k of ['cond', 'clock', 'updated']) str(k);
   if (s.cmp != null) {
     if (!Number.isInteger(s.cmp.start) || !Array.isArray(s.cmp.sources) || s.cmp.sources.length < 2) bad.push('cmp');
-    else s.cmp.sources.forEach((x, i) => { if (!(typeof x.name === 'string' && typeof x.key === 'string' && x.t?.length === 24 && x.r?.length === 24)) bad.push(`cmp.sources[${i}]`); });
+    else s.cmp.sources.forEach((x, i) => { if (!(typeof x.name === 'string' && typeof x.key === 'string' && x.t?.length >= 2 && x.t.length <= 24 && x.r?.length === x.t.length)) bad.push(`cmp.sources[${i}]`); });
   }
   if (s.bubble != null) for (const k of ['kind', 'tone', 'icon', 'text']) if (typeof s.bubble[k] !== 'string') bad.push(`bubble.${k}`);
   if (!Array.isArray(s.hours) || s.hours.length < 1) bad.push('hours empty');
