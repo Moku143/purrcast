@@ -208,7 +208,7 @@ async function deepCheck(env) {
     try {
       const jwt = await weatherKitToken(env);
       const r = await fetch(weatherKitUrl(35.69, 139.7, { lang: 'en', tz: 'Asia/Tokyo', country: 'JP' }), { headers: { authorization: `Bearer ${jwt}` } });
-      out.weatherkit = r.status;
+      out.weatherkit = r.ok ? r.status : `${r.status} ${(await r.text().catch(() => '')).slice(0, 160)}`.trim();   // Apple's reason, e.g. NOT_ENABLED
     } catch (e) { out.weatherkit = String(e.message || e); }
   } else out.weatherkit = 'no key';
   try { const r = await fetch(metUrl(37.57, 126.98), { headers: { 'user-agent': `Purrcast/1.0 ${env.CONTACT || ''}` } }); out.met = r.status; }
