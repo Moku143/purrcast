@@ -83,7 +83,7 @@ struct HomeView: View {
     private func alertBanner(_ a: WeatherScene.Alert, ink: Ink) -> some View {
         HStack(spacing: 10) {
             PixelIcon(name: alertIcon(a.name), size: 18)
-            (Text(a.name).font(.px(13)) + Text(" · ").font(.px(13)) + Text(a.note).font(.px(13)))
+            (Text(a.name).font(.px(13)) + Text(" · ").font(.px(13)) + Text(model.say(a.note)).font(.px(13)))
                 .lineLimit(2).minimumScaleFactor(0.85)
             Spacer(minLength: 0)
         }
@@ -163,7 +163,7 @@ struct HomeView: View {
                 .animation(Motion.gentle, value: catLeft)
 
             if let b = s.bubble {
-                BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: b.text, live: true)
+                BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: model.say(b.text), live: true)
                     .fixedSize()
                     .alignmentGuide(.leading) { d in d.width / 2 - headX }
                     .alignmentGuide(.top) { d in d.height - tipY }
@@ -234,8 +234,8 @@ struct HomeView: View {
         let six = s.next6 != nil
         return Card(ink: ink) {
             HStack(alignment: .firstTextBaseline) { Text(head.title).font(.px(13)); Spacer(); Text(head.legend).font(.ui(11)).foregroundStyle(ink.sub) }
-            HStack(spacing: 8) { PixelIcon(name: head.icon, size: 20); Text(head.head).font(.px(15)).id(head.head).transition(.opacity) }
-            if !head.sub.isEmpty { Text(head.sub).font(.ui(12)).foregroundStyle(ink.sub).padding(.leading, 28).padding(.top, -9) }
+            HStack(spacing: 8) { PixelIcon(name: head.icon, size: 20); Text(model.say(head.head)).font(.px(15)).id(head.head).transition(.opacity) }
+            if !head.sub.isEmpty { Text(model.say(head.sub)).font(.ui(12)).foregroundStyle(ink.sub).padding(.leading, 28).padding(.top, -9) }
             ZStack(alignment: .bottomLeading) {
                 ForEach(0..<3, id: \.self) { gi in
                     let labels = ["약", "보통", "강"], levels: [Double] = [0.5, 2.5, 6.0]
@@ -317,13 +317,13 @@ struct HomeView: View {
                 Card(ink: ink) {
                     HStack(spacing: 6) { PixelIcon(name: t.icon, size: 16); Text(t.label).font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
                     Text(t.uv.map { String($0) } ?? (t.value ?? "")).font(.px(26)).rolling(t.uv.map { String($0) } ?? (t.value ?? ""))
-                    Text(t.note).font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2)
+                    Text(model.say(t.note)).font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2)
                 }
             }
             Card(ink: ink) {
                 HStack(spacing: 6) { PixelIcon(name: "wind", size: 16); Text("바람").font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
                 Text("\(wind(s.wind.speed))").font(.px(26)).rolling(s.wind.speed)
-                Text("\(Rules.windWord(ms: s.wind.speed)) · 돌풍 \(wind(s.wind.gust)) · \(dir(s.wind.deg))").font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2)
+                Text(model.say("\(Rules.windWord(ms: s.wind.speed)) · 돌풍 \(wind(s.wind.gust)) · \(dir(s.wind.deg))")).font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2)
             }
         }
     }

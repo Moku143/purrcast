@@ -68,7 +68,7 @@ struct DayDetailView: View {
                             Text("\(model.deg(d.hi)) / \(model.deg(d.lo))").font(.px(20)).rolling(d.hi * 1000 + d.lo)
                             Text("일교차 \(d.hi - d.lo)°").font(.px(11)).padding(.horizontal, 6).padding(.vertical, 2).background(Color(hex: "#FFE8A3"))
                         }
-                        Text(summary(d, detail)).font(.ui(15)).foregroundStyle(UI.ink)
+                        Text(model.say(summary(d, detail))).font(.ui(15)).foregroundStyle(UI.ink)
                     }
                     .padding(12).frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color.white).overlay(Rectangle().stroke(UI.ink, lineWidth: 2))

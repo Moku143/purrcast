@@ -8,6 +8,8 @@ enum PurrCharacter: String, CaseIterable, Codable, Identifiable {
         switch self { case .cat: return "고양이"; case .abys: return "아비시니안"; case .brit: return "브리티시숏헤어" }
     }
     var isPlus: Bool { self != .cat }
+    /// How each one talks by default: 고양이 존댓말 · 브리티시숏헤어 격식 · 아비시니안 반말
+    var defaultVoice: Voice { self == .brit ? .formal : self == .abys ? .casual : .polite }
     var faceImage: String { "\(rawValue)-face" }
     func stand(level: Int, rain: RainState) -> String { "\(rawValue)-stand-\(level)-\(rain.spriteKey)" }
     func walk(level: Int, rain: RainState, frame: Int) -> String { "\(rawValue)-walk-\(level)-\(rain.spriteKey)-\(frame % 2 == 0 ? "A" : "B")" }

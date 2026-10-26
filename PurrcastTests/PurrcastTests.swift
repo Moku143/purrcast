@@ -192,4 +192,21 @@ final class PurrcastTests: XCTestCase {
         let pour = Sky.compose(time: "day", cover: "overcast", precip: "heavy", thunder: false, aux: [], mm: 30).items.filter { $0.a == "fall" }.count
         XCTAssertLessThan(light, normal); XCTAssertLessThan(normal, pour)
     }
+
+    /// 말투: the same information in 존댓말 · 격식 · 반말
+    func testVoices() {
+        let f = Voice.formal, c = Voice.casual
+        XCTAssertEqual(f.say("비 예보예요. 우산을 챙겨 주세요."), "비 예보입니다. 우산을 챙겨 주십시오.")
+        XCTAssertEqual(c.say("비 예보예요. 우산을 챙겨 주세요."), "비 예보야. 우산을 챙겨.")
+        XCTAssertEqual(f.say("아침 13°, 낮 19°예요. 일교차가 커요."), "아침 13°, 낮 19°입니다. 일교차가 큽니다.")
+        XCTAssertEqual(c.say("아침 13°, 낮 19°예요. 일교차가 커요."), "아침 13°, 낮 19°야. 일교차가 커.")
+        XCTAssertEqual(f.say("아침 -14°예요. 많이 추워요."), "아침 -14°입니다. 많이 춥습니다.")
+        XCTAssertEqual(c.say("12시간 동안 비 소식 없어요"), "12시간 동안 비 소식 없어")
+        XCTAssertEqual(f.say("보송해요 · 이슬점 7°"), "보송합니다 · 이슬점 7°")
+        XCTAssertEqual(c.say("15시쯤 비 예정 · 우산 챙기세요"), "15시쯤 비 예정 · 우산 챙겨")
+        XCTAssertEqual(f.say("바람 세요!"), "바람이 셉니다!"); XCTAssertEqual(c.say("안개 짙어요!"), "안개 짙어!")
+        XCTAssertEqual(f.say("호우주의보"), "호우주의보"); XCTAssertEqual(c.say("15~17시 비 예정"), "15~17시 비 예정")
+        XCTAssertEqual(Voice.polite.say("많이 추워요."), "많이 추워요.")
+        XCTAssertEqual(PurrCharacter.brit.defaultVoice, .formal); XCTAssertEqual(PurrCharacter.abys.defaultVoice, .casual)
+    }
 }

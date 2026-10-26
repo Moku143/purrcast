@@ -57,6 +57,15 @@ struct SettingsView: View {
                         Button { go(.character) } label: {
                             SettingRow(icon: "fish", title: "캐릭터", plus: !model.plus) { trailingText(model.name(of: model.shownCharacter)) }
                         }.buttonStyle(.row)
+                        RowDivider()
+                        // 말투: the character's own by default (고양이 존댓말 · 브리티시숏헤어 격식 · 아비시니안 반말), Plus can choose
+                        VStack(alignment: .leading, spacing: 8) {
+                            SettingRow(icon: "music", title: "말투", subtitle: model.plus ? model.voice.sample : "Plus에서 고를 수 있어요", plus: !model.plus) { EmptyView() }
+                            if model.plus {
+                                Pills(options: [("", "캐릭터 기본")] + Voice.allCases.map { ($0.rawValue, $0.name) }, value: $model.voiceChoice)
+                                    .padding(.horizontal, 14).padding(.bottom, 10)
+                            }
+                        }
                     }
 
                     SectionLabel(text: "위젯 · 워치")

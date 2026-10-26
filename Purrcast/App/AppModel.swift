@@ -36,6 +36,8 @@ final class AppModel: ObservableObject {
     @Published var notifyRain: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyRain && !oldValue) } }
     @Published var notifyMorning: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyMorning && !oldValue) } }
     @Published var notifyChange: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyChange && !oldValue) } }   // 어제와 기온 비교, 아침에
+    /// 말투: "" follows the character (고양이 존댓말 · 브리티시숏헤어 격식 · 아비시니안 반말), or a Voice rawValue chosen in 설정 (Plus)
+    @Published var voiceChoice: String { didSet { persist(); notificationsChanged(turnedOn: false) } }
     @Published var morningTime: Date { didSet { persist(); planNotifications() } }
     @Published var onboarded: Bool { didSet { persist() } }
 
@@ -94,6 +96,7 @@ final class AppModel: ObservableObject {
         notifyRain = d.object(forKey: "notifyRain") as? Bool ?? true
         notifyMorning = d.object(forKey: "notifyMorning") as? Bool ?? true
         notifyChange = d.object(forKey: "notifyChange") as? Bool ?? true
+        voiceChoice = d.string(forKey: "voiceChoice") ?? ""
         morningTime = d.object(forKey: "morningTime") as? Date ?? Calendar.current.date(from: DateComponents(hour: 7, minute: 0)) ?? Date()
         onboarded = testing ? !args.contains("-onboarding") : d.bool(forKey: "onboarded")
         FontPref.pixel = pixelFont
@@ -174,6 +177,10 @@ final class AppModel: ObservableObject {
 
     /// Free plan always shows the cat.
     var shownCharacter: PurrCharacter { plus ? character : .cat }
+    /// The voice the character speaks in: the free plan is always 존댓말.
+    var voice: Voice { plus ? (Voice(rawValue: voiceChoice) ?? shownCharacter.defaultVoice) : .polite }
+    /// Weather text in the current voice (information unchanged, endings only).
+    func say(_ text: String) -> String { voice.say(text) }
     func name(of c: PurrCharacter) -> String { names[c.rawValue] ?? c.defaultName }
     func rename(_ c: PurrCharacter, to n: String) {
         let t = n.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -210,7 +217,7 @@ final class AppModel: ObservableObject {
         d.set(character.rawValue, forKey: "character"); d.set(names, forKey: "names")
         d.set(unitF, forKey: "unitF"); d.set(clock12, forKey: "clock12"); d.set(wind.rawValue, forKey: "wind")
         d.set(pixelFont, forKey: "pixelFont"); d.set(useLocation, forKey: "useLocation")
-        d.set(notifyRain, forKey: "notifyRain"); d.set(notifyMorning, forKey: "notifyMorning"); d.set(notifyChange, forKey: "notifyChange"); d.set(morningTime, forKey: "morningTime")
+        d.set(notifyRain, forKey: "notifyRain"); d.set(notifyMorning, forKey: "notifyMorning"); d.set(notifyChange, forKey: "notifyChange"); d.set(morningTime, forKey: "morningTime"); d.set(voiceChoice, forKey: "voiceChoice")
         d.set(onboarded, forKey: "onboarded")
     }
 
@@ -233,7 +240,7 @@ final class AppModel: ObservableObject {
         guard pinnedScene == nil, hasData else { return }
         // example weather must never turn into a real-looking alert
         Notifications.plan(scene: scene, place: currentPlace, rain: notifyRain && !isSample, morning: notifyMorning && !isSample,
-                           change: notifyChange && !isSample, morningTime: morningTime, unitF: unitF)
+                           change: notifyChange && !isSample, morningTime: morningTime, unitF: unitF, voice: voice)
     }
 
     /// A toggle went on: ask for permission if nobody asked yet, then plan.
