@@ -51,6 +51,15 @@ jobs:
             echo "::notice::No Cloudflare secrets yet — server not deployed. See server/README.md."
             exit 0
           fi
+          # first deploy on a new account: the workers.dev subdomain has to exist (the dashboard asks interactively)
+          api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain"
+          have=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$api" | grep -o '"subdomain":"[^"]*"' || true)
+          if [ -z "$have" ]; then
+            for name in purrcast purrcast-app purrcast-weather "purrcast-${CLOUDFLARE_ACCOUNT_ID:0:6}"; do
+              r=$(curl -s -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" "$api" -d "{\"subdomain\":\"$name\"}")
+              echo "$r" | grep -q '"success":true' && { echo "registered workers.dev subdomain: $name"; break; }
+            done
+          else echo "workers.dev subdomain already set: $have"; fi
           npx --yes wrangler@4 deploy 2>&1 | tee deploy.txt
           test "${PIPESTATUS[0]}" -eq 0
           if [ -n "$KMA_SERVICE_KEY" ]; then echo "$KMA_SERVICE_KEY" | npx --yes wrangler@4 secret put KMA_SERVICE_KEY; fi
