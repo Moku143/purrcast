@@ -58,11 +58,11 @@ jobs:
           ISS: ${{ secrets.ASC_ISSUER_ID }}
         run: |
           set -o pipefail
+          # the archive itself is built unsigned (a team with no registered device cannot make development
+          # profiles); the export step signs it for the App Store with cloud signing, which needs no device
           xcodebuild archive -project Purrcast.xcodeproj -scheme Purrcast -configuration Release \
             -destination 'generic/platform=iOS' -archivePath build/Purrcast.xcarchive \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/AuthKey.p8 \
-            -authenticationKeyID "$KEY" -authenticationKeyIssuerID "$ISS" 2>&1 | tee archive.log | tail -40
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" 2>&1 | tee archive.log | tail -40
           st=${PIPESTATUS[0]}
           # the reasons, as annotations (readable without opening the log)
           grep -E "error:|Error:|No profiles|No signing|Provisioning|not registered|requires a" archive.log | sort -u | head -12 | while read -r l; do echo "::error::${l:0:300}"; done
@@ -79,4 +79,7 @@ jobs:
             -exportOptionsPlist build/ExportOptions.plist -exportPath build/export \
             -allowProvisioningUpdates \
             -authenticationKeyPath ~/.appstoreconnect/AuthKey.p8 \
-            -authenticationKeyID "$KEY" -authenticationKeyIssuerID "$ISS" | tail -40
+            -authenticationKeyID "$KEY" -authenticationKeyIssuerID "$ISS" 2>&1 | tee export.log | tail -40
+          st=${PIPESTATUS[0]}
+          grep -E "error:|Error:|No profiles|No signing|Provisioning|not registered|requires a|failed" export.log | sort -u | head -12 | while read -r l; do echo "::error::${l:0:300}"; done
+          exit $st
