@@ -66,6 +66,8 @@ struct RowDivider: View {
 /// One settings row: pixel icon, title (+ subtitle), trailing content
 struct SettingRow<Trailing: View>: View {
     var icon: String?
+    /// An SF Symbol in place of a pixel icon (the location pin has no pixel version).
+    var symbol: String?
     let title: String
     var subtitle: String?
     var plus = false
@@ -73,6 +75,7 @@ struct SettingRow<Trailing: View>: View {
     var body: some View {
         HStack(spacing: 12) {
             if let icon { PixelIcon(name: icon, size: 22) }
+            else if let symbol { Image(systemName: symbol).font(.system(size: 16, weight: .semibold)).foregroundStyle(UI.ink).frame(width: 22, height: 22) }
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(title).font(.system(size: 16, weight: .medium)).foregroundStyle(UI.ink)
@@ -84,6 +87,33 @@ struct SettingRow<Trailing: View>: View {
             trailing
         }
         .padding(.horizontal, 14).frame(minHeight: 54)
+    }
+}
+
+/// The small grey "›" at the end of a row that opens something.
+struct RowChevron: View {
+    var body: some View { Image(systemName: "chevron.right").font(.ui(11, .bold)).foregroundStyle(UI.faint) }
+}
+
+/// Grey text + chevron at the end of a row ("2곳 ›", "22:00~07:00 ›").
+struct RowValue: View {
+    let text: String
+    var chevron = true
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(text).font(.system(size: 14)).foregroundStyle(UI.sub)
+            if chevron { RowChevron() }
+        }
+    }
+}
+
+/// Grey capsule tag ("한국", "전 세계", "추가됨")
+struct GreyTag: View {
+    let text: String
+    var body: some View {
+        Text(text).font(.ui(11, .bold)).foregroundStyle(UI.sub)
+            .padding(.horizontal, 8).padding(.vertical, 4)
+            .background(Color(hex: "#ECEFF5")).clipShape(Capsule())
     }
 }
 

@@ -36,6 +36,12 @@ final class AppModel: ObservableObject {
     @Published var notifyRain: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyRain && !oldValue) } }
     @Published var notifyMorning: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyMorning && !oldValue) } }
     @Published var notifyChange: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyChange && !oldValue) } }   // 어제와 기온 비교, 아침에
+    /// 기상특보 알림 (설정 → 알림). Stored only: the server has to push warnings; Notifications.swift has no hook yet.
+    // TODO: send the preference to the server (push) once 기상특보 push exists; until then warnings show in the bubble only.
+    @Published var notifyAlert: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyAlert && !oldValue) } }
+    /// 가까운 비 알림 (Plus): 다음 6시간 (한국) · 다음 1시간 (분 단위). Stored only until Notifications.swift plans it.
+    // TODO: plan a near-rain notification from `minutes` / `next6` in Notifications.plan.
+    @Published var notifyNearRain: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyNearRain && !oldValue) } }
     /// 말투: "" follows the character (고양이 존댓말 · 브리티시숏헤어 격식 · 아비시니안 반말), or a Voice rawValue chosen in 설정 (Plus)
     @Published var voiceChoice: String { didSet { persist(); notificationsChanged(turnedOn: false) } }
     @Published var morningTime: Date { didSet { persist(); planNotifications() } }
@@ -97,6 +103,8 @@ final class AppModel: ObservableObject {
         notifyRain = d.object(forKey: "notifyRain") as? Bool ?? true
         notifyMorning = d.object(forKey: "notifyMorning") as? Bool ?? true
         notifyChange = d.object(forKey: "notifyChange") as? Bool ?? true
+        notifyAlert = d.object(forKey: "notifyAlert") as? Bool ?? true
+        notifyNearRain = d.object(forKey: "notifyNearRain") as? Bool ?? true
         voiceChoice = d.string(forKey: "voiceChoice") ?? ""
         morningTime = d.object(forKey: "morningTime") as? Date ?? Calendar.current.date(from: DateComponents(hour: 7, minute: 0)) ?? Date()
         onboarded = testing ? !args.contains("-onboarding") : d.bool(forKey: "onboarded")
@@ -217,7 +225,8 @@ final class AppModel: ObservableObject {
         d.set(character.rawValue, forKey: "character"); d.set(names, forKey: "names")
         d.set(unitF, forKey: "unitF"); d.set(clock12, forKey: "clock12"); d.set(wind.rawValue, forKey: "wind")
         d.set(pixelFont, forKey: "pixelFont"); d.set(useLocation, forKey: "useLocation")
-        d.set(notifyRain, forKey: "notifyRain"); d.set(notifyMorning, forKey: "notifyMorning"); d.set(notifyChange, forKey: "notifyChange"); d.set(morningTime, forKey: "morningTime"); d.set(voiceChoice, forKey: "voiceChoice")
+        d.set(notifyRain, forKey: "notifyRain"); d.set(notifyMorning, forKey: "notifyMorning"); d.set(notifyChange, forKey: "notifyChange")
+        d.set(notifyAlert, forKey: "notifyAlert"); d.set(notifyNearRain, forKey: "notifyNearRain"); d.set(morningTime, forKey: "morningTime"); d.set(voiceChoice, forKey: "voiceChoice")
         d.set(onboarded, forKey: "onboarded")
     }
 

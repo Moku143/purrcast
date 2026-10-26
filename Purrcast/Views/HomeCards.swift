@@ -78,7 +78,7 @@ struct WindCard: View {
     /// 128-pt dial drawn at 0.8125 (104 pt): ticks every 5°, longer every 30°, gaps for the four labels.
     private var dial: some View {
         let r: CGFloat = 64
-        func pt(_ deg: Double, _ rad: CGFloat) -> CGPoint { let a = deg * .pi / 180; return CGPoint(x: r + rad * sin(a), y: r - rad * cos(a)) }
+        func pt(_ deg: Double, _ rad: CGFloat) -> CGPoint { let a = deg * Double.pi / 180; return CGPoint(x: r + rad * CGFloat(Foundation.sin(a)), y: r - rad * CGFloat(Foundation.cos(a))) }
         let from = Double(wind.deg), to = Double((wind.deg + 180) % 360)
         return ZStack {
             Canvas { ctx, _ in
@@ -95,7 +95,7 @@ struct WindCard: View {
                 arrow.move(to: pt(to, 26)); arrow.addLine(to: pt(to, 39))
                 ctx.stroke(arrow, with: .color(ink.ink), style: StrokeStyle(lineWidth: 3, lineCap: .round))
                 let base = pt(to, 38), tip = pt(to, 47)
-                func wing(_ s: Double) -> CGPoint { let a = (to + s * 90) * .pi / 180; return CGPoint(x: base.x + 5.5 * sin(a), y: base.y - 5.5 * cos(a)) }
+                func wing(_ s: Double) -> CGPoint { let a = (to + s * 90) * Double.pi / 180; return CGPoint(x: base.x + 5.5 * CGFloat(Foundation.sin(a)), y: base.y - 5.5 * CGFloat(Foundation.cos(a))) }
                 var head = Path(); head.move(to: tip); head.addLine(to: wing(1)); head.addLine(to: wing(-1)); head.closeSubpath()
                 ctx.fill(head, with: .color(ink.ink))
                 ctx.fill(Path(ellipseIn: CGRect(x: pt(from, 45).x - 4.5, y: pt(from, 45).y - 4.5, width: 9, height: 9)), with: .color(ink.ink))

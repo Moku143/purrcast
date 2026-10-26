@@ -65,7 +65,7 @@ struct RootView: View {
             case .paywall: PaywallView().presentationCornerRadius(28)
             case .settings: SettingsView(route: $route).presentationCornerRadius(28)
             case .places: PlacesView().presentationCornerRadius(28)
-            case .sources: NavigationStack { SourcesView() }.presentationCornerRadius(28)
+            case .sources: SourcesView(route: $route).presentationCornerRadius(28)
             case .widgets: NavigationStack { WidgetGalleryView() }.presentationCornerRadius(28)
             }
         }
