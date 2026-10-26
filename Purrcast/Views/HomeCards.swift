@@ -301,15 +301,23 @@ struct CompactHeader: View {
             Text(place).font(.px(15)); Spacer(); Text(text).font(.px(15))
         }
         .lineLimit(1)
-        .padding(.horizontal, 22).padding(.bottom, 14).padding(.top, 8)
+        .padding(.horizontal, 22).padding(.top, 6).padding(.bottom, 14)
         .frame(maxWidth: .infinity)
-        .background(.ultraThinMaterial)
-        .background(ink.night ? Color(hex: "#141A38").opacity(0.82) : Color(hex: Rules.background[level]).opacity(0.85))
-        .overlay(alignment: .bottom) { Rectangle().fill(ink.line).frame(height: 1) }
+        .background {
+            // the band's background reaches up under the status bar; the text stays below it
+            ZStack(alignment: .bottom) {
+                Rectangle().fill(.ultraThinMaterial)
+                Rectangle().fill(ink.night ? Color(hex: "#141A38").opacity(0.82) : Color(hex: Rules.background[level]).opacity(0.85))
+                Rectangle().fill(ink.line).frame(height: 1)
+            }
+            .ignoresSafeArea(edges: .top)
+        }
         .foregroundStyle(ink.ink)
         .opacity(shown ? 1 : 0)
         .animation(.easeOut(duration: 0.18), value: shown)
         .allowsHitTesting(false)
+        .accessibilityIdentifier("compact-header")
+        .accessibilityHidden(!shown)
     }
 }
 

@@ -24,6 +24,9 @@ struct HomeView: View {
             if model.hasData {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 12) {
+                        // how far the page has scrolled (drives the compact header)
+                        GeometryReader { g in Color.clear.preference(key: ScrollOffsetKey.self, value: g.frame(in: .named("home")).minY) }
+                            .frame(height: 0)
                         hero(s, ink: ink, level: lv)
                             .frame(height: heroH)
                             .parallaxHero()
@@ -38,13 +41,11 @@ struct HomeView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.bottom, 44)
-                    .background(GeometryReader { g in Color.clear.preference(key: ScrollOffsetKey.self, value: -g.frame(in: .named("home")).minY) })
                 }
                 .coordinateSpace(name: "home")
-                .onPreferenceChange(ScrollOffsetKey.self) { y in let on = y > 240; if on != scrolled { scrolled = on } }
+                .onPreferenceChange(ScrollOffsetKey.self) { y in let on = y < -240; if on != scrolled { scrolled = on } }
                 .overlay(alignment: .top) {
                     CompactHeader(place: s.place ?? model.currentPlace.name, text: "\(deg(s.temp)) \(s.cond)", level: lv, ink: ink, shown: scrolled)
-                        .ignoresSafeArea(edges: .top)
                 }
                 .refreshable { await model.refresh(force: true) }
                 .transition(.opacity)
