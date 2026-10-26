@@ -6,7 +6,7 @@ name: TestFlight
 #   APPLE_TEAM_ID       10-character team id (Membership page)
 #   ASC_KEY_ID          App Store Connect API key id (Users and Access → Integrations → App Store Connect API, role "App Manager")
 #   ASC_ISSUER_ID       the issuer id shown on the same page
-#   ASC_KEY_P8_BASE64   the downloaded AuthKey_XXXX.p8, base64-encoded
+#   ASC_KEY_P8          the downloaded AuthKey_XXXX.p8 pasted as is (the whole file, BEGIN … END lines included)
 # and one repository *variable* (same page, "Variables" tab):
 #   SERVER_URL          the forecast server, e.g. https://purrcast.<you>.workers.dev  (without it the build is refused:
 #                       a store build must never run on example weather)
@@ -26,7 +26,7 @@ jobs:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
           KEY: ${{ secrets.ASC_KEY_ID }}
           ISS: ${{ secrets.ASC_ISSUER_ID }}
-          P8: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          P8: ${{ secrets.ASC_KEY_P8 }}
         run: |
           for v in TEAM KEY ISS P8; do
             if [ -z "${!v}" ]; then echo "::error::Missing secret for $v — see the comment at the top of testflight.yml"; exit 1; fi
@@ -47,10 +47,11 @@ jobs:
           xcodegen generate
       - name: API key
         env:
-          P8: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          P8: ${{ secrets.ASC_KEY_P8 }}
         run: |
           mkdir -p ~/.appstoreconnect
-          echo "$P8" | base64 --decode > ~/.appstoreconnect/AuthKey.p8
+          printf '%s\n' "$P8" > ~/.appstoreconnect/AuthKey.p8
+          grep -q "BEGIN PRIVATE KEY" ~/.appstoreconnect/AuthKey.p8 || { echo "::error::ASC_KEY_P8 must be the .p8 file contents"; exit 1; }
       - name: Archive
         env:
           KEY: ${{ secrets.ASC_KEY_ID }}
