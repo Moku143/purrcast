@@ -203,7 +203,9 @@ enum SceneLibrary {
     static let order = ["clear", "maybe", "combo", "tokyo_soon", "seoul_soon", "spring_chill", "spring_dust", "spring_rain",
                         "summer_monsoon", "summer_night", "summer_heat", "summer_typhoon", "winter_eve", "winter_cold", "winter_snow"]
     static let all: [String: WeatherScene] = {
-        guard let url = Bundle.main.url(forResource: "scenes", withExtension: "json"),
+        // the Korean originals, or the translated copies (server/scripts/translate-scenes.mjs) for an English / Japanese phone
+        let name = Lang.current == .ko ? "scenes" : "scenes.\(Lang.current.rawValue)"
+        guard let url = Bundle.main.url(forResource: name, withExtension: "json") ?? Bundle.main.url(forResource: "scenes", withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let raw = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [:] }
         var dict: [String: WeatherScene] = [:]

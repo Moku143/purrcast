@@ -5,9 +5,10 @@ import XCTest
 final class ScreenshotTests: XCTestCase {
     let scenes = ["clear", "maybe", "combo", "tokyo_soon", "spring_rain", "summer_heat", "summer_night", "winter_cold", "winter_snow", "summer_typhoon"]
 
-    private func shot(_ name: String, _ args: [String], wait: UInt32 = 1, then: ((XCUIApplication) -> Void)? = nil) {
+    private func shot(_ name: String, _ args: [String], wait: UInt32 = 1, lang: String = "ko", then: ((XCUIApplication) -> Void)? = nil) {
         let app = XCUIApplication()
-        app.launchArguments = args + ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]   // Korean phone: 그르릉날씨
+        let locale = ["ko": "ko_KR", "en": "en_US", "ja": "ja_JP"][lang] ?? "en_US"
+        app.launchArguments = args + ["-AppleLanguages", "(\(lang))", "-AppleLocale", locale]   // Korean phone by default: 그르릉날씨
         app.launch()
         sleep(wait)
         then?(app)
@@ -44,6 +45,18 @@ final class ScreenshotTests: XCTestCase {
         shot("onboarding-1", ["-scene", "maybe", "-onboarding"])
         shot("onboarding-2", ["-scene", "maybe", "-onboarding"]) { app in app.buttons["next"].tap(); sleep(1) }
         shot("onboarding-3", ["-scene", "maybe", "-onboarding"]) { app in app.buttons["next"].tap(); sleep(1); app.buttons["next"].tap(); sleep(1) }
+    }
+
+    /// The same app on an English and a Japanese phone (strings, sample scenes, 話し方).
+    func test6Languages() {
+        for lang in ["en", "ja"] {
+            shot("lang-\(lang)-home", ["-scene", "maybe", "-plus", "-char", "brit"], lang: lang)
+            shot("lang-\(lang)-snow", ["-scene", "winter_snow", "-plus", "-char", "abys"], lang: lang)
+            shot("lang-\(lang)-settings", ["-scene", "maybe", "-plus", "-char", "brit", "-open", "settings"], wait: 2, lang: lang)
+            shot("lang-\(lang)-day", ["-scene", "maybe", "-plus", "-open", "day"], wait: 2, lang: lang)
+            shot("lang-\(lang)-paywall", ["-scene", "maybe", "-open", "paywall"], wait: 2, lang: lang)
+            shot("lang-\(lang)-onboarding", ["-scene", "maybe", "-onboarding"], lang: lang)
+        }
     }
 
     /// App Store screenshots: the store workflow runs this on the 6.9" simulator (iPhone 16 Pro Max).
