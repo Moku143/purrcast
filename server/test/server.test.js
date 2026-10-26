@@ -485,7 +485,31 @@ test('WeatherKit 401 (or no key) → MET carries on; Korea still uses KMA with t
   };
   const kr = await forecast(readQuery(new URLSearchParams('lat=37.5663&lon=126.9019&region=kr&tz=Asia/Seoul&plan=free')), { ...wkEnv(pem), KMA_SERVICE_KEY: 'k' }, null, { now: kst, fetcher: krFetch });
   validateScene(kr);
-  assert.equal(kr.src, 'kma'); assert.equal(appleCalled, false);
+  assert.equal(kr.src, 'kma'); assert.equal(appleCalled, true);   // Apple is fetched for the comparison card only
+  assert.deepEqual(kr.cmp.sources.map((s) => s.key), ['kma', 'met']);   // an empty Apple answer leaves 기상청 + MET in the comparison
+});
+
+test('예보 비교: the main source first, the others for the same 24 hours; absent elsewhere', async () => {
+  const kst = at(13, 50);
+  const { pem } = await testP8();
+  const krFetch = async (url) => {
+    if (url.includes('weatherkit.apple.com')) return new Response(JSON.stringify(weatherKit(kst)), { status: 200 });
+    return fakeFetch([['getVilageFcst', kmaFixture(kst)], ['api.met.no', met(kst, flat(240, { temp: 12 }))]])(url);
+  };
+  const kr = await forecast(readQuery(new URLSearchParams('lat=37.5663&lon=126.9019&region=kr&tz=Asia/Seoul&plan=free&lang=ko')), { ...wkEnv(pem), KMA_SERVICE_KEY: 'k' }, null, { now: kst, fetcher: krFetch });
+  validateScene(kr);
+  assert.equal(kr.cmp.sources.length, 3);
+  assert.deepEqual(kr.cmp.sources.map((s) => s.key), ['kma', 'apple', 'met']);
+  assert.deepEqual(kr.cmp.sources.map((s) => s.name), ['기상청', 'Apple 날씨', 'MET Norway']);
+  assert.equal(kr.cmp.sources[0].main, true); assert.equal(kr.cmp.sources[1].main, false);
+  for (const s of kr.cmp.sources) { assert.equal(s.t.length, 24); assert.equal(s.r.length, 24); assert.ok(Number.isInteger(s.t[0])); }
+  assert.ok(Number.isInteger(kr.cmp.start) && kr.cmp.start >= 0 && kr.cmp.start < 24);
+  // Tokyo: Apple main + MET; English names
+  const jp = await forecast(readQuery(new URLSearchParams('lat=35.69&lon=139.7&region=jp&tz=Asia/Tokyo&plan=free&lang=en')), wkEnv(pem), null, { now: kst, fetcher: krFetch });
+  assert.deepEqual(jp.cmp.sources.map((s) => s.name), ['Apple Weather', 'MET Norway']);
+  // MET only: no comparison
+  const only = await forecast(readQuery(new URLSearchParams('lat=35.69&lon=139.7&region=jp&tz=Asia/Tokyo&plan=free')), {}, null, { now: kst, fetcher: krFetch });
+  assert.equal(only.cmp, undefined);
 });
 
 test('warning kinds from Apple / JMA / NWS alert names (icons and notes), KMA names unchanged', () => {

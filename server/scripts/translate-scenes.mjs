@@ -83,6 +83,7 @@ function translator(lang) {
     if (s.next6) s.next6 = s.next6.map((h) => [hourLabel(h[0]), ...h.slice(1)]);
     if (s.dayDetail) s.dayDetail = s.dayDetail.map((d) => d.map((r) => [hourLabel(r[0]), ...r.slice(1)]));
     s.days = s.days.map((d) => [dayName(d[0]), ...d.slice(1)]);
+    if (s.cmp) s.cmp = { ...s.cmp, sources: s.cmp.sources.map((x) => ({ ...x, name: T.src[x.key] ?? x.name })) };
     return s;
   };
 }

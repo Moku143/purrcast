@@ -195,13 +195,15 @@ final class AppModel: ObservableObject {
         let d = unitF ? Int((Double(abs(v)) * 1.8).rounded()) : abs(v)
         return v > 0 ? "+\(d)°" : (v < 0 ? "−\(d)°" : L("같음"))
     }
-    func windText(_ ms: Int) -> String {
+    func windText(_ ms: Int) -> String { windNumber(ms) + windUnit }
+    func windNumber(_ ms: Int) -> String {
         switch wind {
-        case .ms: return "\(ms)m/s"
-        case .kmh: return "\(Int((Double(ms) * 3.6).rounded()))km/h"
-        case .mph: return "\(Int((Double(ms) * 2.237).rounded()))mph"
+        case .ms: return "\(ms)"
+        case .kmh: return "\(Int((Double(ms) * 3.6).rounded()))"
+        case .mph: return "\(Int((Double(ms) * 2.237).rounded()))"
         }
     }
+    var windUnit: String { wind == .ms ? "m/s" : wind == .kmh ? "km/h" : "mph" }
     /// "15시" → "오후 3시" in 12-hour mode (in the app's language)
     func hourLabel(_ l: String) -> String { HourLabel.display(l, clock12: clock12) }
 

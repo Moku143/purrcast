@@ -7,6 +7,7 @@ struct HomeView: View {
     @Binding var day: Int?
     private let heroH: CGFloat = 372
     @Environment(\.accessibilityReduceMotion) private var reduce
+    @State private var scrolled = false
 
     /// What the sky is made of; when it changes the whole sky cross-fades
     private func skyKey(_ s: WeatherScene) -> String { "\(s.time)|\(s.cover)|\(s.precip)|\(s.thunder)|\(s.aux)" }
@@ -32,11 +33,18 @@ struct HomeView: View {
                         hourlyCard(s, ink: ink).reveal(2).settleInScroll()
                         dailyCard(s, ink: ink).reveal(3).settleInScroll()
                         tilesGrid(s, ink: ink).reveal(4).settleInScroll()
-                        Text(model.isSample ? L("예시 날씨예요 · 실제 날씨는 서버 연결 후") : L("기상청 · Data from MET Norway"))
-                            .font(.ui(11)).foregroundStyle(ink.sub).padding(.top, 8).reveal(5)
+                        if !model.plus { PlusPromoCard(ink: ink) { route = .paywall }.reveal(5).settleInScroll() }
+                        HomeFooter(scene: s, region: model.currentPlace.region, isSample: model.isSample, ink: ink) { route = .sources }.reveal(6)
                     }
                     .padding(.horizontal, 16)
                     .padding(.bottom, 44)
+                    .background(GeometryReader { g in Color.clear.preference(key: ScrollOffsetKey.self, value: -g.frame(in: .named("home")).minY) })
+                }
+                .coordinateSpace(name: "home")
+                .onPreferenceChange(ScrollOffsetKey.self) { y in let on = y > 240; if on != scrolled { scrolled = on } }
+                .overlay(alignment: .top) {
+                    CompactHeader(place: s.place ?? model.currentPlace.name, text: "\(deg(s.temp)) \(s.cond)", level: lv, ink: ink, shown: scrolled)
+                        .ignoresSafeArea(edges: .top)
                 }
                 .refreshable { await model.refresh(force: true) }
                 .transition(.opacity)
@@ -266,7 +274,7 @@ struct HomeView: View {
 
     private func hourlyCard(_ s: WeatherScene, ink: Ink) -> some View {
         Card(ink: ink) {
-            HStack(alignment: .firstTextBaseline) { Text(L("시간별")).font(.px(13)); Spacer(); Text(L("강수확률 · 강수량")).font(.ui(11)).foregroundStyle(ink.sub) }
+            HStack(alignment: .firstTextBaseline) { Text(L("시간별")).font(.px(13)); Spacer(); Text(s.anyChance || s.anyMM ? L("강수확률 · 강수량") : L("12시간 동안 비 소식 없음")).font(.ui(11)).foregroundStyle(ink.sub) }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
                     ForEach(Array(s.hours.enumerated()), id: \.offset) { i, h in
@@ -313,22 +321,43 @@ struct HomeView: View {
         }
     }
 
+    /// 강수확률 · 자외선 / 바람 (full width) / 예보 비교 (full width) / 일몰 · 습도 — the prototype's order.
     private func tilesGrid(_ s: WeatherScene, ink: Ink) -> some View {
         let cols = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
-        return LazyVGrid(columns: cols, spacing: 12) {
-            ForEach(Array(s.tiles.enumerated()), id: \.offset) { _, t in
-                Card(ink: ink) {
-                    HStack(spacing: 6) { PixelIcon(name: t.icon, size: 16); Text(t.label).font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
-                    Text(t.uv.map { String($0) } ?? (t.value ?? "")).font(.px(26)).rolling(t.uv.map { String($0) } ?? (t.value ?? ""))
-                    Text(model.say(t.note)).font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2)
+        let first = Array(s.tiles.prefix(2)), rest = Array(s.tiles.dropFirst(2))
+        return VStack(spacing: 12) {
+            LazyVGrid(columns: cols, spacing: 12) { ForEach(Array(first.enumerated()), id: \.offset) { _, t in tile(t, ink: ink) } }
+            WindCard(wind: s.wind, ink: ink)
+            if let c = s.cmp { CompareCard(cmp: c, updated: s.updated, ink: ink) }
+            if !rest.isEmpty { LazyVGrid(columns: cols, spacing: 12) { ForEach(Array(rest.enumerated()), id: \.offset) { _, t in tile(t, ink: ink) } } }
+        }
+    }
+
+    private func tile(_ t: WeatherScene.Tile, ink: Ink) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) { PixelIcon(name: t.icon, size: 16); Text(t.label).font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
+            if let uv = t.uv, t.kind == "uv" {
+                let b = UVScale.band(uv)
+                HStack(spacing: 6) {
+                    Text(String(uv)).font(.px(26)).rolling(String(uv))
+                    Text(L(b.word)).font(.px(11)).foregroundStyle(Color(hex: b.onColor))
+                        .padding(.horizontal, 7).padding(.vertical, 4).background(Color(hex: b.color)).clipShape(RoundedRectangle(cornerRadius: 7))
+                }
+                UVBar(uv: uv, ink: ink)
+            } else {
+                HStack(alignment: .center, spacing: 6) {
+                    Text(t.value ?? "").font(.px(26)).rolling(t.value ?? "")
+                    if let u = t.unit, !u.isEmpty { Text(u).font(.px(13)) }
                 }
             }
-            Card(ink: ink) {
-                HStack(spacing: 6) { PixelIcon(name: "wind", size: 16); Text(L("바람")).font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
-                Text("\(wind(s.wind.speed))").font(.px(26)).rolling(s.wind.speed)
-                Text(model.say("\(Rules.windWord(ms: s.wind.speed)) · " + L("돌풍 %@", wind(s.wind.gust)) + " · \(dir(s.wind.deg))")).font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2)
-            }
+            Text(model.say(t.note)).font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2).lineSpacing(2)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(ink.card)
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(ink.cardBorder, lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .shadow(color: Color(hex: "#1E2A44").opacity(ink.night ? 0.22 : 0.08), radius: 9, y: 6)
     }
 
     // MARK: formatting
@@ -338,12 +367,6 @@ struct HomeView: View {
     private func mmText(_ mm: Double, snow: Bool) -> String {
         let n = mm == mm.rounded() ? String(Int(mm)) : String(format: "%.1f", mm)
         return n + (snow ? "cm" : "mm")
-    }
-    private func wind(_ ms: Int) -> String { model.windText(ms) }
-    private func dir(_ deg: Int) -> String {
-        let d = ["북", "북북동", "북동", "동북동", "동", "동남동", "남동", "남남동", "남", "남남서", "남서", "서남서", "서", "서북서", "북서", "북북서"]
-        let i = Int((Double(((deg % 360) + 360) % 360) / 22.5).rounded()) % 16
-        return L("%@풍", L(d[i]))
     }
 }
 

@@ -58,6 +58,7 @@ const DICT = {
     dewPoint: (d) => `이슬점 ${d}°`,
     nowWetNote: (what, amt) => `지금 ${what} · 12시간 ${amt}`,
     noRain12h: '12시간 동안 비 소식 없어요',
+    src: { apple: 'Apple 날씨', kma: '기상청', met: 'MET Norway' },
     sep: ', ',
     alert: {
       todayCm: (n) => `오늘 ${n}cm`, todayMm: (n, word) => `오늘 ${n}mm (${word})`,
@@ -97,6 +98,7 @@ const DICT = {
     dewPoint: (d) => `Dew point ${d}°`,
     nowWetNote: (what, amt) => `${what} now · ${amt} in 12h`,
     noRain12h: 'No rain for the next 12 hours',
+    src: { apple: 'Apple Weather', kma: 'KMA', met: 'MET Norway' },
     sep: ', ',
     alert: {
       todayCm: (n) => `${n}cm today`, todayMm: (n, word) => `${n}mm today (${word})`,
@@ -133,6 +135,7 @@ const DICT = {
     dewPoint: (d) => `露点 ${d}°`,
     nowWetNote: (what, amt) => `今 ${what} · 12時間 ${amt}`,
     noRain12h: '12時間 雨の心配はありません',
+    src: { apple: 'Apple 天気', kma: '気象庁', met: 'MET Norway' },
     sep: '、',
     alert: {
       todayCm: (n) => `今日 ${n}cm`, todayMm: (n, word) => `今日 ${n}mm (${word})`,

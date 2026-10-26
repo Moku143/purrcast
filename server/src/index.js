@@ -128,6 +128,15 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch 
     }).concat(mp.filter((p) => p.t > lastKma));
   }
 
+  // 예보 비교: the other sources' next 24 h go to the comparison card only (the main source drives everything else)
+  const compare = [{ key: f.src, points: f.points, main: true }];
+  if (f.src !== 'apple' && hasWeatherKit(env)) {
+    try { const a = await apple(q, env, now, fetcher, ctx); compare.push({ key: 'apple', points: a.points }); }
+    catch (e) { console.log('WeatherKit (compare) failed:', e.message); }
+  }
+  if (f.src !== 'met' && !met.error) compare.push({ key: 'met', points: met.points });
+  if (compare.length > 1) f.compare = compare;
+
   const yday = await history(env, q, now, f, ctx);
   return buildScene(f, { lat: q.lat, lon: q.lon, tz: q.tz, plan: q.plan, prev: q.prev, yday, now, lang: q.lang });
 }

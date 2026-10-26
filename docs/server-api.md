@@ -55,6 +55,10 @@ Accept: application/json
   "next6": [ ["15시", 0], ["16시", 0.8], … ],            // Plus: next 6 hourly slots, mm
   "nextSource": "kma",                                  // kma (초단기예보) | apple | met — the card's legend
   "src": "kma",                                         // kma | apple | met — where the main forecast came from (attribution)
+  "cmp": { "start": 14, "snow": false,                  // 예보 비교 (both plans): this hour + 23 more, every source we have for the place
+           "sources": [ { "name": "기상청", "key": "kma", "main": true, "t": [18, 18, …], "r": [0, 0.4, …] },   // °C · mm (cm when snow); null = no point
+                        { "name": "Apple 날씨", "key": "apple", "main": false, "t": […], "r": […] },
+                        { "name": "MET Norway", "key": "met", "main": false, "t": […], "r": […] } ] },   // absent with one source only
   "dayDetail": [ [ ["0시", 9.5, 10, 2.1, 0, 82], … 8 per day ], … one per day ],  // °C, chance %, wind m/s, UV, humidity %
   "plus": true                                          // echo of the plan
 }

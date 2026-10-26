@@ -179,8 +179,28 @@ export function buildScene(f, o) {
     scene.next6 = f.next6.slice(0, 6).map((p) => [S.hour(H(p)), r1(p.mm || 0)]);
     scene.nextSource = f.nextSource || 'kma';
   }
+  if (f.compare?.length > 1) scene.cmp = compareBlock(f.compare, cur, nowT, tz, S);
   if (plus && f.minutes?.length) scene.minutes = f.minutes.slice(0, 60).map((v) => (Number.isFinite(v) ? Math.round(v * 100) / 100 : 0));
   return scene;
+}
+
+/** 예보 비교: each source's temperature and precipitation for this hour and the next 23, so people can see where sources agree.
+ *  { start: hour of slot 0, snow, sources: [{ name, key, main, t: [24 ints], r: [24 mm] }] } — a source without a point near a slot gets null. */
+function compareBlock(list, cur, nowT, tz, S) {
+  const t0 = new Date(cur.t);
+  const slots = Array.from({ length: 24 }, (_, i) => new Date(t0.getTime() + i * 3600000));
+  const sources = list.map((s) => {
+    const pts = (s.points || []).filter((p) => p.temp != null);
+    let j = 0;
+    const near = slots.map((h) => {
+      while (j + 1 < pts.length && Math.abs(pts[j + 1].t - h) <= Math.abs(pts[j].t - h)) j++;
+      return pts.length && Math.abs(pts[j].t - h) <= 1.5 * 3600000 ? pts[j] : null;
+    });
+    return { name: S.src[s.key] ?? s.key, key: s.key, main: !!s.main,
+      t: near.map((p) => (p ? Math.round(p.temp) : null)), r: near.map((p) => (p ? Math.round((p.mm || 0) * 10) / 10 : null)) };
+  }).filter((s) => s.t.some((v) => v != null));
+  const snow = (list[0].points || []).some((p) => p.t >= t0 && p.t - t0 < 24 * 3600000 && p.type === 'snow' && (p.mm || 0) >= 0.1);
+  return { start: local(t0, tz).h, snow, sources };
 }
 
 /** Throws with a list of problems when a scene does not match what the app decodes (docs/server-api.md). */
@@ -193,6 +213,10 @@ export function validateScene(s) {
   for (const k of ['level', 'temp', 'feels', 'hi', 'lo', 'yday']) int(k);
   if (!(s.level >= 0 && s.level <= 9)) bad.push('level out of 0…9');
   for (const k of ['cond', 'clock', 'updated']) str(k);
+  if (s.cmp != null) {
+    if (!Number.isInteger(s.cmp.start) || !Array.isArray(s.cmp.sources) || s.cmp.sources.length < 2) bad.push('cmp');
+    else s.cmp.sources.forEach((x, i) => { if (!(typeof x.name === 'string' && typeof x.key === 'string' && x.t?.length === 24 && x.r?.length === 24)) bad.push(`cmp.sources[${i}]`); });
+  }
   if (s.bubble != null) for (const k of ['kind', 'tone', 'icon', 'text']) if (typeof s.bubble[k] !== 'string') bad.push(`bubble.${k}`);
   if (!Array.isArray(s.hours) || s.hours.length < 1) bad.push('hours empty');
   else s.hours.forEach((h, i) => { if (!(h.length === 5 && typeof h[0] === 'string' && typeof h[1] === 'string' && h.slice(2).every(Number.isFinite))) bad.push(`hours[${i}]`); });

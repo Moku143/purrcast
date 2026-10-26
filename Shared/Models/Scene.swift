@@ -37,9 +37,11 @@ struct WeatherScene: Codable, Identifiable {
     var nextSource: String?             // kma | met — which forecast the six hours come from
     var dayDetail: [[DayHour]]?         // per day, 8 three-hourly values for the day sheet
     var alert: Alert?                   // official warning in force: name + what it means today (home banner)
+    var cmp: Compare?                   // 예보 비교: every source's next 24 h, for the comparison card
+    var src: String?                    // kma | apple | met — the source behind everything else
 
     enum CodingKeys: String, CodingKey {
-        case time, cover, precip, thunder, aux, level, rain, temp, feels, hi, lo, yday, cond, clock, updated, bubble, hours, tiles, wind, days, place, plus, snow, mood, minutes, next6, nextSource, dayDetail, alert
+        case time, cover, precip, thunder, aux, level, rain, temp, feels, hi, lo, yday, cond, clock, updated, bubble, hours, tiles, wind, days, place, plus, snow, mood, minutes, next6, nextSource, dayDetail, alert, cmp, src
     }
 
     init() {}
@@ -73,6 +75,9 @@ struct WeatherScene: Codable, Identifiable {
         nextSource = (try? c.decodeIfPresent(String.self, forKey: .nextSource)) ?? nil
         dayDetail = (try? c.decodeIfPresent([[DayHour]].self, forKey: .dayDetail)) ?? nil
         alert = (try? c.decodeIfPresent(Alert.self, forKey: .alert)) ?? nil
+        let cm = (try? c.decodeIfPresent(Compare.self, forKey: .cmp)) ?? nil
+        cmp = (cm?.sources.count ?? 0) >= 2 ? cm : nil
+        src = (try? c.decodeIfPresent(String.self, forKey: .src)) ?? nil
     }
 
     /// Decode an array, skipping elements that do not parse instead of failing the whole forecast.
@@ -92,6 +97,28 @@ struct WeatherScene: Codable, Identifiable {
         let a = s.split(separator: ":")
         guard a.count == 2, let h = Int(a[0]), let m = Int(a[1]), (0..<24).contains(h), (0..<60).contains(m) else { return nil }
         return h * 60 + m
+    }
+
+    /// { start: hour of slot 0, snow, sources: [{ name, key, main, t: [24], r: [24] }] } — a slot a source has no point for is null.
+    struct Compare: Codable {
+        var start: Int; var snow: Bool; var sources: [Source]
+        struct Source: Codable {
+            var name: String; var key: String; var main: Bool; var t: [Int?]; var r: [Double?]
+            init(from decoder: Decoder) throws {
+                let c = try decoder.container(keyedBy: CodingKeys.self)
+                name = (try? c.decode(String.self, forKey: .name)) ?? ""
+                key = (try? c.decode(String.self, forKey: .key)) ?? ""
+                main = (try? c.decode(Bool.self, forKey: .main)) ?? false
+                t = ((try? c.decode([Double?].self, forKey: .t)) ?? []).map { $0.map { Int($0.rounded()) } }
+                r = (try? c.decode([Double?].self, forKey: .r)) ?? []
+            }
+        }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            start = (((try? c.decode(Int.self, forKey: .start)) ?? 0) % 24 + 24) % 24
+            snow = (try? c.decode(Bool.self, forKey: .snow)) ?? false
+            sources = ((try? c.decode([Source].self, forKey: .sources)) ?? []).filter { $0.t.contains { $0 != nil } }
+        }
     }
 
     struct Alert: Codable, Equatable {
