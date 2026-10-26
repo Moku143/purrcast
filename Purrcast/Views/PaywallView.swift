@@ -224,5 +224,5 @@ enum Legal {
     static let terms = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
     static let privacy = URL(string: "https://moku143.github.io/purrcast/privacy.html")!
     /// 문의하기 · FAQ (docs/support.html on GitHub Pages)
-    static let support: URL? = URL(string: "https://moku143.github.io/purrcast/support.html")
+    static let support: URL? = URL(string: "mailto:oo0785@daum.net?subject=%EA%B7%B8%EB%A5%B4%EB%A6%89%EB%82%A0%EC%94%A8%20%EB%AC%B8%EC%9D%98")
 }

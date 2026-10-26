@@ -151,7 +151,7 @@ Purrcast (Korean name: 그르릉날씨) is a weather app: a pixel cat changes cl
 - To test Plus, please use a Sandbox account. The Apple Watch app shows its content only with Plus and gets its data from the iPhone app.
 ```
 
-연락처: 이름 · 전화 · 이메일은 본인 정보로 채워 주세요 (심사팀만 봐요).
+연락처: 이름 · 전화는 본인 정보, 이메일은 `oo0785@daum.net` (심사팀만 봐요).
 
 ## 스크린샷
 

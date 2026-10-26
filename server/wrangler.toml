@@ -7,7 +7,7 @@ compatibility_date = "2026-06-01"
 workers_dev = true
 
 [vars]
-CONTACT = "github.com/Moku143/purrcast"
+CONTACT = "oo0785@daum.net github.com/Moku143/purrcast"
 
 # Optional "전일 대비" memory. Create once with:  npx wrangler kv namespace create HISTORY
 # then uncomment and paste the id.
