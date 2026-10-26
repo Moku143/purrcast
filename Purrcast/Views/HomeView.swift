@@ -151,7 +151,7 @@ struct HomeView: View {
                 HStack(spacing: 5) {
                     Text(L("체감 %@ %@", deg(s.feels), Rules.feelsWord(s.feels))).rolling(s.feels); Text("·"); Text(L("전일 대비"))
                     Text(delta(s.yday)).foregroundStyle(s.yday > 0 ? ink.hot : (s.yday < 0 ? ink.blue : ink.ink)).rolling(s.yday)
-                }.font(.px(12))
+                }.font(.px(12)).lineLimit(1).minimumScaleFactor(0.75)      // "Feels -3° Cold · vs yesterday +2°" fits too
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.trailing, 6).padding(.top, 64)
@@ -291,7 +291,7 @@ struct HomeView: View {
             VStack(spacing: 0) {
                 ForEach(Array(s.days.enumerated()), id: \.offset) { i, d in
                     Button { day = i } label: { HStack(spacing: 9) {
-                        Text(d.name).font(.px(13)).frame(width: 34, alignment: .leading)
+                        Text(d.name).font(.px(13)).frame(width: Lang.current == .en ? 48 : 34, alignment: .leading)   // "Today"
                         PixelIcon(name: d.icon, size: 24)
                         Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(11)).foregroundStyle(ink.blue).frame(width: 34, alignment: .leading)
                         Text(deg(d.lo)).font(.px(13)).foregroundStyle(ink.sub).frame(width: 28, alignment: .trailing).rolling(d.lo)
