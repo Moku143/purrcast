@@ -1,5 +1,7 @@
 // Feels-like temperature and dew point.
 
+import { strings } from './i18n.js';
+
 /**
  * Feels-like °C the way KMA computes it (data.kma.go.kr → 체감온도):
  *  - winter (air ≤ 10 °C and wind ≥ 1.3 m/s): the JAG/TI wind-chill formula
@@ -33,33 +35,28 @@ export function discomfortIndex(t, rh) {
  * (NWS: ≤ 10 °C comfortable, 16–18 sticky, 18+ muggy, 21+ oppressive), but on a cold wet day a low
  * dew point still feels damp, so relative humidity and rain weigh in too.
  */
-export function humidityWord({ temp, rh, dew, wet }) {
+export function humidityWord({ temp, rh, dew, wet }, lang = 'ko') {
+  const H = strings(lang).humidity;
   if (rh == null) return '';
-  if (rh < 20) return '매우 건조해요';
-  if (rh < 30) return '건조해요';
-  if (dew != null && dew >= 24) return '매우 끈적해요';
-  if (dew != null && dew >= 21) return '끈적해요';
-  if (dew != null && dew >= 18) return '꿉꿉해요';
-  if (wet || rh >= 85) return temp != null && temp < 15 ? '눅눅해요' : '습해요';
-  if (rh >= 70) return '조금 습해요';
-  if (dew != null && dew < 10 && rh < 60) return '보송해요';
-  return '적당해요';
+  if (rh < 20) return H.veryDry;
+  if (rh < 30) return H.dry;
+  if (dew != null && dew >= 24) return H.verySticky;
+  if (dew != null && dew >= 21) return H.sticky;
+  if (dew != null && dew >= 18) return H.muggy;
+  if (wet || rh >= 85) return temp != null && temp < 15 ? H.damp : H.humid;
+  if (rh >= 70) return H.bitHumid;
+  if (dew != null && dew < 10 && rh < 60) return H.crisp;
+  return H.ok;
 }
 
 /**
  * Wind as people feel it (Beaufort, with KMA's everyday guidance: umbrellas turn around 7 m/s,
  * walking gets hard around 9–10 m/s, 강풍주의보 at 14 m/s).
  */
-export function windWord(ms) {
+export function windWord(ms, lang = 'ko') {
   if (ms == null) return '';
-  if (ms < 0.5) return '바람 없어요';
-  if (ms < 1.6) return '바람 약해요';
-  if (ms < 3.4) return '산들바람';
-  if (ms < 5.5) return '바람 조금';
-  if (ms < 8) return '바람 꽤 강해요';
-  if (ms < 10.8) return '바람 강해요';
-  if (ms < 13.9) return '매우 강한 바람';
-  return '강풍 · 외출 주의';
+  const W = strings(lang).wind;
+  return W[ms < 0.5 ? 0 : ms < 1.6 ? 1 : ms < 3.4 ? 2 : ms < 5.5 ? 3 : ms < 8 ? 4 : ms < 10.8 ? 5 : ms < 13.9 ? 6 : 7];
 }
 
 /** Dew point °C (Magnus). */

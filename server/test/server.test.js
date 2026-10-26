@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 import { toGrid, amount, num, parseForecast, parseNow, parseWarnings, splitAreas, vilageBase, ultraBase, kmaXmlError, kmaOK } from '../src/providers/kma.js';
 import { parseMet, metUrl } from '../src/providers/met.js';
 import { buildScene, validateScene } from '../src/scene.js';
-import { level, bubble, uvNote, whenWord, alertNote } from '../src/rules.js';
+import { level, bubble, uvNote, whenWord, alertNote, condition, rainKind, feelsWord } from '../src/rules.js';
+import { strings, normLang, warningName, hourLabel } from '../src/i18n.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike, humidityWord, windWord } from '../src/physics.js';
 import worker, { forecast, readQuery, resetCache } from '../src/index.js';
@@ -187,6 +188,84 @@ test('alert line under the character: the warning name + what it means today', (
   validateScene(s);
   assert.equal(s.alert.name, '호우주의보'); assert.match(s.alert.note, /^오늘 \d+(\.\d)?mm/);
   assert.equal(s.bubble.text, '호우주의보');
+});
+
+// ---- languages (docs/i18n-glossary.md) ----
+
+test('lang: ko default, en / ja chosen, anything else → en', () => {
+  assert.equal(readQuery(new URLSearchParams('lat=37.57&lon=126.9')).lang, 'ko');
+  assert.equal(readQuery(new URLSearchParams('lat=37.57&lon=126.9&lang=ja')).lang, 'ja');
+  assert.equal(readQuery(new URLSearchParams('lat=37.57&lon=126.9&lang=fr')).lang, 'en');
+  assert.equal(normLang(undefined), 'ko'); assert.equal(normLang('EN'), 'en');
+});
+
+test('scene in en / ja: rain in a few hours → "Rain 4–5PM" · "16〜17時 雨", labels and tiles translated, icons and numbers unchanged', () => {
+  const hrs = flat(40, { cloud: 90, sym: 'cloudy' });
+  hrs[3] = { cloud: 95, mm: 1.2, pop: 70, sym: 'rain' }; hrs[4] = { cloud: 95, mm: 2.0, pop: 70, sym: 'rain' };
+  const m = parseMet(met(at(13), hrs));
+  const build = (lang) => buildScene({ points: m.points, next6: m.points.slice(1, 7) }, { ...SEOUL, plan: 'plus', now: at(13, 40), lang });
+  const ko = build('ko'), en = build('en'), ja = build('ja');
+  for (const s of [en, ja]) validateScene(s);
+  assert.equal(en.bubble.text, 'Rain 4–5PM'); assert.match(en.tiles[0].note, /^Rain 4–5PM · /);
+  assert.equal(ja.bubble.text, '16〜17時 雨'); assert.match(ja.tiles[0].note, /^16〜17時 雨 · /);
+  assert.equal(ko.bubble.text, '16~17시 비 예정');
+  assert.deepEqual([en.bubble.kind, en.bubble.tone, en.bubble.icon], [ko.bubble.kind, ko.bubble.tone, ko.bubble.icon]);
+  assert.equal(en.cond, 'Cloudy'); assert.equal(ja.cond, '曇り');
+  assert.deepEqual(en.hours.slice(0, 3).map((h) => h[0]), ['Now', '2PM', '3PM']); assert.deepEqual(ja.hours.slice(0, 3).map((h) => h[0]), ['今', '14時', '15時']);
+  assert.deepEqual(en.hours.map((h) => h.slice(1)), ko.hours.map((h) => h.slice(1)), 'icons and numbers do not change with the language');
+  assert.equal(en.days[0][0], 'Today'); assert.equal(en.days[1][0], 'Thu'); assert.equal(ja.days[0][0], '今日'); assert.equal(ja.days[1][0], '木'); assert.equal(ko.days[1][0], '목');
+  assert.deepEqual(en.tiles.map((t) => t.label), ['Rain chance', 'UV', 'Sunset', 'Humidity']);
+  assert.deepEqual(ja.tiles.map((t) => t.label), ['降水確率', '紫外線', '日の入り', '湿度']);
+  assert.match(en.tiles[2].note, /^Sunrise tomorrow \d\d:\d\d$/); assert.match(ja.tiles[2].note, /^明日の日の出 \d\d:\d\d$/);
+  assert.match(en.tiles[3].note, /^Comfortable · Dew point \d+°$/); assert.match(ja.tiles[3].note, /^ちょうどいい · 露点 \d+°$/);
+  assert.equal(en.next6[0][0], '2PM'); assert.equal(ja.next6[0][0], '14時');
+  assert.deepEqual(en.dayDetail[0].map((h) => h[0]), ['12AM', '3AM', '6AM', '9AM', '12PM', '3PM', '6PM', '9PM']);
+  assert.equal(ja.dayDetail[0][5][0], '15時');
+  assert.equal(en.updated, ko.updated); assert.equal(en.clock, ko.clock);
+  const dry = buildScene({ points: parseMet(met(at(13), flat(40))).points }, { ...SEOUL, plan: 'free', now: at(13, 40), lang: 'en' });
+  assert.equal(dry.tiles[0].note, 'No rain for the next 12 hours'); assert.equal(dry.updated, '06:00');
+  assert.equal(buildScene({ points: parseMet(met(at(13), flat(40))).points }, { ...SEOUL, plan: 'free', now: at(13, 40), lang: 'ja' }).tiles[0].note, '12時間 雨の心配はありません');
+});
+
+test('words per language: condition, when, hour, rain kind, feels, humidity, wind, UV', () => {
+  const c = { pr: 'rain', cov: 'overcast', thunder: false, auxKind: 'none', night: false, feels: 15 };
+  assert.equal(condition(c), '비'); assert.equal(condition(c, 'en'), 'Rain'); assert.equal(condition(c, 'ja'), '雨');
+  assert.equal(condition({ ...c, pr: 'none', auxKind: 'wind' }, 'en'), 'Cloudy · Windy'); assert.equal(condition({ ...c, auxKind: 'wind' }, 'ja'), '雨 · 強風');
+  assert.equal(whenWord(15, 17, false, 'en'), '3–5PM'); assert.equal(whenWord(15, 15, false, 'en'), 'around 3PM'); assert.equal(whenWord(7, 9, true, 'en'), 'tomorrow 7–9AM');
+  assert.equal(whenWord(11, 13, false, 'en'), '11AM–1PM');
+  assert.equal(whenWord(15, 17, false, 'ja'), '15〜17時'); assert.equal(whenWord(15, 15, false, 'ja'), '15時ごろ'); assert.equal(whenWord(7, 9, true, 'ja'), '明日7〜9時');
+  assert.equal(hourLabel(0, 'en'), '12AM'); assert.equal(hourLabel(12, 'en'), '12PM'); assert.equal(hourLabel(14, 'ko'), '14시'); assert.equal(hourLabel(14, 'ja'), '14時');
+  assert.equal(rainKind(5, 'en'), 'Moderate rain'); assert.equal(rainKind(5, 'ja'), 'やや強い雨'); assert.equal(rainKind(5), '보통 비');
+  assert.equal(feelsWord(20, 'en'), 'Pleasant'); assert.equal(feelsWord(-12, 'ja'), '極寒');
+  assert.equal(humidityWord({ temp: 8, rh: 92, dew: 7, wet: true }, 'en'), 'Damp'); assert.equal(humidityWord({ temp: 30, rh: 70, dew: 24 }, 'ja'), '非常にべたつく');
+  assert.equal(windWord(2, 'en'), 'Gentle breeze'); assert.equal(windWord(15, 'ja'), '暴風 · 外出注意');
+  assert.equal(uvNote(1, 'en'), 'Low'); assert.equal(uvNote(null, 'ja'), '情報なし'); assert.ok(uvNote(11, 'en').startsWith('Extreme'));
+  assert.equal(strings('en').bubble.umbrella, 'Take an umbrella'); assert.equal(strings('ja').bubble.thunder, '雷!');
+});
+
+test('warnings translate by the glossary table, unknown names pass through', () => {
+  assert.equal(warningName('호우주의보', 'en'), 'Heavy Rain Advisory'); assert.equal(warningName('호우주의보', 'ja'), '大雨注意報');
+  assert.equal(warningName('태풍경보', 'en'), 'Typhoon Warning'); assert.equal(warningName('강풍경보', 'ja'), '暴風警報');
+  assert.equal(warningName('호우주의보', 'ko'), '호우주의보'); assert.equal(warningName('황사경보', 'en'), '황사경보');
+  const b = bubble({ warnings: [{ name: '대설경보', severity: 2 }], feels: 0 }, 'en');
+  assert.deepEqual(b, { kind: 'shout', tone: 'coral', icon: 'snowflake', text: 'Heavy Snow Warning' });
+  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }, 'en'), '6cm today, Should stop around 6PM');
+  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }, 'ja'), '今日 6cm、18時ごろ止む見込み');
+  assert.equal(alertNote('폭염경보', { total: 0, pr: 'none', hi: 36, lo: 27 }, 'en'), 'High 36°, limit midday outings');
+  const hrs = flat(40, { cloud: 95, mm: 3, pop: 90, sym: 'rain' });
+  const s = buildScene({ points: parseMet(met(at(13), hrs)).points, warnings: [{ name: '호우주의보', severity: 1 }] }, { ...SEOUL, plan: 'plus', now: at(13, 40), lang: 'en' });
+  validateScene(s);
+  assert.equal(s.alert.name, 'Heavy Rain Advisory'); assert.equal(s.bubble.text, 'Heavy Rain Advisory'); assert.match(s.alert.note, /^\d+(\.\d)?mm today \(/);
+  assert.equal(s.bubble.icon, 'raincloud');
+});
+
+test('HTTP: lang=en answers in English', async () => {
+  const now = at(9, 0);
+  const fetcher = fakeFetch([['api.met.no', met(now, flat(48))]]);
+  const q = readQuery(new URLSearchParams('lat=37.5663&lon=126.9019&region=other&tz=Asia/Seoul&plan=free&lang=en'));
+  const s = await forecast(q, {}, null, { now, fetcher });
+  validateScene(s);
+  assert.equal(s.cond, 'Clear'); assert.equal(s.hours[0][0], 'Now'); assert.equal(s.days[0][0], 'Today');
 });
 
 test('every example scene the app ships with passes the contract check', () => {

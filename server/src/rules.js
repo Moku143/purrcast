@@ -1,4 +1,7 @@
 // The design kit's judgement rules (kit README §1, rules.json), in one place.
+// Every function that returns words takes a trailing `lang` ('ko' default, or a strings() object) — see i18n.js.
+
+import { strings } from './i18n.js';
 
 /** Outfit level 0…9 from the feels-like °C, with ±1° hysteresis against the previous level. */
 const UPPER = [Infinity, 32.5, 27.5, 22.5, 19.5, 16.5, 11.5, 8.5, 4.5, -9.5];
@@ -13,13 +16,14 @@ export function level(feels, prev = null) {
   return lv;
 }
 
-/** Rain per hour in everyday terms, and what it means for an umbrella */
-export const rainKind = (mm) => (mm >= 30 ? '매우 강한 비' : mm >= 15 ? '강한 비' : mm >= 3 ? '보통 비' : mm >= 1 ? '약한 비' : '이슬비');
-export const rainKindNote = (mm) => (mm >= 30 ? '우산으로 막기 어려워요' : mm >= 15 ? '바닥에 물이 고여요' : mm >= 3 ? '우산이 꼭 필요해요' : mm >= 1 ? '우산이 필요해요' : '우산 없이도 괜찮아요');
+/** Rain per hour in everyday terms (이슬비 · 약한 비 · 보통 비 · 강한 비 · 매우 강한 비), and what it means for an umbrella */
+const rainStep = (mm) => (mm >= 30 ? 4 : mm >= 15 ? 3 : mm >= 3 ? 2 : mm >= 1 ? 1 : 0);
+export const rainKind = (mm, lang = 'ko') => strings(lang).rainKind[rainStep(mm)];
+export const rainKindNote = (mm, lang = 'ko') => strings(lang).rainKindNote[rainStep(mm)];
 /** A day's or 12 h total: 조금 · 보통 · 많음 · 매우 많음 */
-export const rainAmountWord = (mm) => (mm >= 50 ? '매우 많음' : mm >= 20 ? '많음' : mm >= 5 ? '보통' : '조금');
-/** Feels-like in eight steps */
-export const feelsWord = (c) => (c <= -10 ? '매우 추움' : c <= 0 ? '추움' : c <= 8 ? '쌀쌀' : c <= 16 ? '선선' : c <= 22 ? '쾌적' : c <= 27 ? '따뜻' : c <= 32 ? '더움' : '매우 더움');
+export const rainAmountWord = (mm, lang = 'ko') => strings(lang).rainAmount[mm >= 50 ? 3 : mm >= 20 ? 2 : mm >= 5 ? 1 : 0];
+/** Feels-like in eight steps: 매우 추움 … 매우 더움 */
+export const feelsWord = (c, lang = 'ko') => strings(lang).feels[c <= -10 ? 0 : c <= 0 ? 1 : c <= 8 ? 2 : c <= 16 ? 3 : c <= 22 ? 4 : c <= 27 ? 5 : c <= 32 ? 6 : 7];
 
 /** Pixel icon for one hour. */
 export function icon(p, night) {
@@ -52,13 +56,14 @@ export function aux({ now, feels, night }) {
   return 'none';
 }
 
-export function condition({ pr, cov, thunder, auxKind, night, feels }) {
-  let base = thunder ? '뇌우' : pr === 'heavy' ? '강한 비' : pr === 'rain' ? '비' : pr === 'snow' ? '눈' : pr === 'heavysnow' ? '많은 눈' : pr === 'sleet' ? '진눈깨비'
-    : cov === 'clear' ? '맑음' : cov === 'partly' ? '구름 조금' : '흐림';
-  const extra = auxKind === 'wind' ? (pr === 'none' ? '바람' : '바람 강함')
-    : auxKind === 'fog' ? '안개'
-    : auxKind === 'heat' ? (night ? '열대야' : '폭염')
-    : auxKind === 'frost' ? '한파' : '';
+export function condition({ pr, cov, thunder, auxKind, night, feels, lang }, l = lang ?? 'ko') {
+  const C = strings(l).cond;
+  const base = thunder ? C.thunder : pr === 'heavy' ? C.heavy : pr === 'rain' ? C.rain : pr === 'snow' ? C.snow : pr === 'heavysnow' ? C.heavysnow : pr === 'sleet' ? C.sleet
+    : cov === 'clear' ? C.clear : cov === 'partly' ? C.partly : C.overcast;
+  const extra = auxKind === 'wind' ? (pr === 'none' ? C.wind : C.windStrong)
+    : auxKind === 'fog' ? C.fog
+    : auxKind === 'heat' ? (night ? C.night : C.heat)
+    : auxKind === 'frost' ? C.frost : '';
   return extra ? `${base} · ${extra}` : base;
 }
 
@@ -79,31 +84,32 @@ const B = (kind, tone, icon, text) => ({ kind, tone, icon, text });
  * 4 strong wind / thick fog · 5 extreme feels-like · 6 temperature swing / umbrella dilemma / umbrella packed.
  * Rain timing is the clock window (15~17시 비 예정), never a countdown.
  */
-export function bubble(c) {
+export function bubble(c, lang = c.lang ?? 'ko') {
+  const S = strings(lang), T = S.bubble;
   const { warnings, nowWet, nowPr, thunder, startIn, wind, fog, feels, night, swing, maxPop, rain, snowNext } = c;
   if (warnings?.length) {
-    const w = warnings[0].name;
+    const w = warnings[0].name;   // the KMA name: icons are chosen from it, the text is its translation
     const ic = /호우|태풍/.test(w) ? (/태풍/.test(w) ? 'wind' : 'raincloud') : /대설/.test(w) ? 'snowflake' : /강풍|풍랑/.test(w) ? 'wind'
       : /폭염/.test(w) ? 'thermo_hot' : /한파/.test(w) ? 'thermo_cold' : /건조/.test(w) ? 'sun_strong' : 'exclaim';
-    return B('shout', 'coral', ic, w);
+    return B('shout', 'coral', ic, S.warning(w));
   }
-  if (thunder) return B('shout', 'coral', 'lightning', '천둥번개!');
-  if (nowPr === 'heavy') return B('shout', 'sky', 'umbrella', '폭우!');
-  if (nowPr === 'heavysnow') return B('speech', 'sky', 'snowflake', '폭설!');
-  const what = snowNext ? '눈' : '비';
+  if (thunder) return B('shout', 'coral', 'lightning', T.thunder);
+  if (nowPr === 'heavy') return B('shout', 'sky', 'umbrella', T.downpour);
+  if (nowPr === 'heavysnow') return B('speech', 'sky', 'snowflake', T.heavysnow);
+  const what = snowNext ? S.what.snow : S.what.rain;
   if (!nowWet && startIn != null && startIn <= 2) {
-    return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${c.when} ${what} 예정`);
+    return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', S.expect(c.when, what));
   }
-  if (wind) return B('speech', 'sky', 'wind', nowWet ? (nowPr === 'snow' || nowPr === 'heavysnow' ? '눈보라!' : '비바람!') : '바람 세요!');
-  if (fog) return B('speech', 'white', 'cloud', '안개 짙어요!');
-  if (!night && feels >= 33) return B('shout', 'coral', 'thermo_hot', '폭염!');
-  if (night && feels >= 25) return B('speech', 'night', 'sweat', '열대야!');
-  if (feels <= -10) return B('shout', 'sky', 'thermo_cold', '한파!');
-  if (nowWet) return nowPr === 'snow' || nowPr === 'heavysnow' ? B('speech', night ? 'night' : 'sky', 'snowman', '눈!') : nowPr === 'sleet' ? B('speech', 'sky', 'umbrella', '진눈깨비!') : B('speech', 'sky', 'umbrella', '비!');
-  if (startIn != null && startIn <= 12) return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', `${c.when} ${what} 예정`);
-  if (swing >= 10) return B('speech', 'night', 'daynight', '일교차 커요!');
+  if (wind) return B('speech', 'sky', 'wind', nowWet ? (nowPr === 'snow' || nowPr === 'heavysnow' ? T.blizzard : T.windrain) : T.windy);
+  if (fog) return B('speech', 'white', 'cloud', T.fog);
+  if (!night && feels >= 33) return B('shout', 'coral', 'thermo_hot', T.heat);
+  if (night && feels >= 25) return B('speech', 'night', 'sweat', T.tropical);
+  if (feels <= -10) return B('shout', 'sky', 'thermo_cold', T.cold);
+  if (nowWet) return nowPr === 'snow' || nowPr === 'heavysnow' ? B('speech', night ? 'night' : 'sky', 'snowman', T.snow) : nowPr === 'sleet' ? B('speech', 'sky', 'umbrella', T.sleet) : B('speech', 'sky', 'umbrella', T.rain);
+  if (startIn != null && startIn <= 12) return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', S.expect(c.when, what));
+  if (swing >= 10) return B('speech', 'night', 'daynight', T.swing);
   if (rain === 'think') return B('thought', 'sky', 'umbrella', '');
-  if (rain === 'bag' && maxPop >= 30) return B('speech', 'sky', 'umbrella_closed', '우산 챙겨요');
+  if (rain === 'bag' && maxPop >= 30) return B('speech', 'sky', 'umbrella_closed', T.umbrella);
   return null;
 }
 
@@ -111,38 +117,40 @@ export function bubble(c) {
  * When rain (or snow) is expected, as the hours people plan around: "15~17시" (first to last wet hour),
  * "15시쯤" when it is one hour, "내일 7~9시" when it starts tomorrow. Always "… 비 예정", never a promise.
  */
-export function whenWord(startH, endH, tomorrow) {
+export function whenWord(startH, endH, tomorrow, lang = 'ko') {
   if (startH == null) return '';
-  const w = startH === endH || endH == null ? `${startH}시쯤` : `${startH}~${endH}시`;
-  return tomorrow ? `내일 ${w}` : w;
+  return strings(lang).when(startH, endH, tomorrow);
 }
 
 /** "저녁 비!" style words for rain 6–12 h away. */
-export function partOfDay(h, tomorrow) {
-  const part = h >= 5 && h < 12 ? '아침' : h >= 12 && h < 17 ? '오후' : h >= 17 && h < 21 ? '저녁' : '밤';
-  return tomorrow ? `내일 ${part}` : part;
+export function partOfDay(h, tomorrow, lang = 'ko') {
+  const S = strings(lang);
+  const part = S.partOfDay[h >= 5 && h < 12 ? 'morning' : h >= 12 && h < 17 ? 'afternoon' : h >= 17 && h < 21 ? 'evening' : 'night'];
+  return tomorrow ? S.partTomorrow(part) : part;
 }
 
 /** WHO / KMA UV index scale: 0–2 낮음 · 3–5 보통 · 6–7 높음 · 8–10 매우 높음 · 11+ 위험 */
-export function uvNote(uv) {
-  if (uv == null) return '정보 없음';
-  return uv <= 2 ? '약해요' : uv <= 5 ? '보통 · 선크림' : uv <= 7 ? '강해요 · 선크림, 모자' : uv <= 10 ? '매우 강해요 · 한낮 외출 줄여요' : '위험 · 한낮 외출 피해요';
+export function uvNote(uv, lang = 'ko') {
+  const U = strings(lang).uv;
+  if (uv == null) return U.none;
+  return uv <= 2 ? U.low : uv <= 5 ? U.moderate : uv <= 7 ? U.high : uv <= 10 ? U.veryHigh : U.extreme;
 }
 
 /**
  * The line under the character when an official warning is in force: the warning's name and what it means
  * today, in one short clause from the forecast. "대설주의보 · 오늘 6cm, 18시쯤 그칠 예보".
  */
-export function alertNote(name, c) {
-  const { total, pr, nowWet, when, endH, hi, lo, gust, rh } = c;
-  const end = endH == null ? '' : `${endH}시쯤 그칠 예보`;
-  if (/대설/.test(name)) return [total ? `오늘 ${total}cm` : '', nowWet ? end : (when ? `${when} 눈 예정` : '')].filter(Boolean).join(', ') || '눈길 조심';
-  if (/호우/.test(name)) return [total ? `오늘 ${total}mm (${rainAmountWord(total)})` : '', nowWet ? end : (when ? `${when} 비 예정` : '')].filter(Boolean).join(', ') || '강한 비 주의';
-  if (/태풍/.test(name)) return [`강한 비바람`, gust ? `돌풍 ${gust} m/s` : '', '외출 주의'].filter(Boolean).join(', ');
-  if (/강풍|풍랑/.test(name)) return [gust ? `돌풍 ${gust} m/s` : '바람 매우 강함', '외출 주의'].join(', ');
-  if (/폭염/.test(name)) return `낮 최고 ${hi}°, 한낮 외출 줄여요`;
-  if (/한파/.test(name)) return `아침 ${lo}°, 많이 추워요`;
-  if (/건조/.test(name)) return [rh == null ? '' : `습도 ${rh}%`, '불조심'].filter(Boolean).join(', ');
-  if (/황사|미세먼지/.test(name)) return '마스크 챙겨요';
-  return /snow|sleet/.test(pr) ? '눈길 조심' : '외출 주의';
+export function alertNote(name, c, lang = c.lang ?? 'ko') {
+  const S = strings(lang), A = S.alert, sep = S.sep;
+  const { total, pr, nowWet, when, endH, hi, lo, gust, rh } = c;   // `name` is the KMA name; `when` already in this language
+  const end = endH == null ? '' : S.stopAt(endH);
+  if (/대설/.test(name)) return [total ? A.todayCm(total) : '', nowWet ? end : (when ? S.expect(when, S.what.snow) : '')].filter(Boolean).join(sep) || A.icy;
+  if (/호우/.test(name)) return [total ? A.todayMm(total, rainAmountWord(total, S)) : '', nowWet ? end : (when ? S.expect(when, S.what.rain) : '')].filter(Boolean).join(sep) || A.heavyRain;
+  if (/태풍/.test(name)) return [A.windRain, gust ? A.gust(gust) : '', A.takeCare].filter(Boolean).join(sep);
+  if (/강풍|풍랑/.test(name)) return [gust ? A.gust(gust) : A.veryWindy, A.takeCare].join(sep);
+  if (/폭염/.test(name)) return A.heat(hi);
+  if (/한파/.test(name)) return A.cold(lo);
+  if (/건조/.test(name)) return [rh == null ? '' : A.humidity(rh), A.fire].filter(Boolean).join(sep);
+  if (/황사|미세먼지/.test(name)) return A.mask;
+  return /snow|sleet/.test(pr) ? A.icy : A.takeCare;
 }

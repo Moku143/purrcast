@@ -3,6 +3,7 @@
 import { local, hhmm, hhmm0, dayKey, sunDay, isNight, pad2, offsetMinutes } from './time.js';
 import { feelsLike, dewPoint, uvUnderCloud, humidityWord } from './physics.js';
 import * as R from './rules.js';
+import { strings } from './i18n.js';
 
 const r1 = (v) => Math.round(v * 10) / 10;
 const ri = (v) => (v == null || Number.isNaN(v) ? 0 : Math.round(v));
@@ -18,10 +19,11 @@ const ri = (v) => (v == null || Number.isNaN(v) ? 0 : Math.round(v));
  *   next6    optional [{ t, mm }] (KMA 초단기예보, Plus)
  *   nextSource 'kma' | 'met'
  *   updated  Date of the forecast run used
- * @param {object} o  { lat, lon, tz, plan: 'free'|'plus', prev, yday, now: Date }
+ * @param {object} o  { lat, lon, tz, plan: 'free'|'plus', prev, yday, now: Date, lang: 'ko'|'en'|'ja' (ko) }
  */
 export function buildScene(f, o) {
   const { lat, lon, tz } = o;
+  const S = strings(o.lang);   // every word in the answer comes from here
   const offsetMin = (t) => offsetMinutes(t, tz);
   const nowT = o.now ?? new Date();
   const plus = o.plan === 'plus';
@@ -54,7 +56,7 @@ export function buildScene(f, o) {
   if (startIdx >= 0) for (let i = startIdx + 1; i < ahead.length && (wet(ahead[i]) || (ahead[i].pop ?? 0) >= 60); i++) endP = ahead[i];
   const H = (p) => local(p.t, tz).h;
   const tomorrow = startP ? dayKey(startP.t, tz) !== dayKey(nowT, tz) : false;
-  const when = startP ? R.whenWord(H(startP), H(endP), tomorrow) : '';   // 15~17시 · 15시쯤 · 내일 7~9시
+  const when = startP ? R.whenWord(H(startP), H(endP), tomorrow, S) : '';   // 15~17시 · 15시쯤 · 내일 7~9시
   const maxPop = Math.max(0, ...next12.map((p) => p.pop ?? (wet(p) ? 70 : 0)));
   const rain = R.rainState({ nowWet, startIn, maxPop });
   const snowNext = startP ? startP.type === 'snow' || startP.type === 'sleet' : false;
@@ -84,15 +86,15 @@ export function buildScene(f, o) {
     let ic = 'sun';
     for (const p of (dayPts.length ? dayPts : list)) ic = R.worse(ic, R.icon({ ...p, mm: p.mm >= 0.1 ? p.mm : 0, type: p.mm >= 0.1 ? p.type : 'none' }, false));
     if (ic === 'sun' && chance >= 60) ic = 'raincloud';
-    const name = days.length === 0 ? '오늘' : local(list[0].t, tz).wd;
+    const name = days.length === 0 ? S.today : S.weekday(local(list[0].t, tz).wdEn);
     days.push([name, ic, ri(chance), ri(Math.min(lo, hi)), ri(Math.max(lo, hi))]);
   }
-  const today = days[0] || ['오늘', 'sun', 0, ri(cur.temp), ri(cur.temp)];
+  const today = days[0] || [S.today, 'sun', 0, ri(cur.temp), ri(cur.temp)];
   const hi = Math.max(today[4], ri(cur.temp)), lo = Math.min(today[3], ri(cur.temp));
 
   // hourly rows: 지금 + 12 hours
   const hours = next12.map((p, i) => [
-    i === 0 ? '지금' : `${H(p)}시`,
+    i === 0 ? S.now : S.hour(H(p)),
     R.icon(p, isNight(p.t, lat, lon, tz)),
     ri(i === 0 ? cur.temp : p.temp),
     ri(p.pop ?? (wet(p) ? 70 : 0)),
@@ -101,9 +103,9 @@ export function buildScene(f, o) {
 
   // tiles
   const total = r1(next12.reduce((s, p) => s + (p.mm || 0), 0));
-  const amt = pr === 'snow' || pr === 'heavysnow' ? `${total}cm` : `${total}mm (${R.rainAmountWord(total)})`;   // sleet is measured as water, like rain
-  const rainNote = nowWet ? `지금 ${pr === 'snow' || pr === 'heavysnow' ? '눈' : pr === 'sleet' ? '진눈깨비' : '비'} · 12시간 ${amt}`
-    : startP ? `${when} ${snowNext ? '눈' : '비'} 예정 · ${amt}` : '12시간 동안 비 소식 없어요';
+  const amt = pr === 'snow' || pr === 'heavysnow' ? `${total}cm` : `${total}mm (${R.rainAmountWord(total, S)})`;   // sleet is measured as water, like rain
+  const rainNote = nowWet ? S.nowWetNote(pr === 'snow' || pr === 'heavysnow' ? S.what.snow : pr === 'sleet' ? S.what.sleet : S.what.rain, amt)
+    : startP ? `${S.expect(when, snowNext ? S.what.snow : S.what.rain)} · ${amt}` : S.noRain12h;
   const todayPts = pts.filter((p) => dayKey(p.t, tz) === dayKey(nowT, tz));
   const uvs = (todayPts.length ? todayPts : next12).map((p) => uvUnderCloud(p.uvClear, p.cloud)).filter((v) => v != null);
   const uv = uvs.length ? Math.round(Math.max(...uvs)) : null;
@@ -111,25 +113,25 @@ export function buildScene(f, o) {
   const sunTomorrow = sunDay(new Date(nowT.getTime() + 86400000), lat, lon, tz);
   let sunTile;
   if (sunToday.polar) {
-    sunTile = { icon: 'sunset', label: sunToday.polar === 'day' ? '백야' : '극야', value: '–', unit: '', note: '해가 지지 않아요' };
+    sunTile = { icon: 'sunset', label: sunToday.polar === 'day' ? S.tile.polarDay : S.tile.polarNight, value: '–', unit: '', note: S.polarNote[sunToday.polar] };
   } else if (!night) {
-    sunTile = { icon: 'sunset', label: '일몰', value: hhmm0(sunToday.set, tz), unit: '', note: `내일 일출 ${hhmm0(sunTomorrow.rise ?? sunToday.rise, tz)}` };
+    sunTile = { icon: 'sunset', label: S.tile.sunset, value: hhmm0(sunToday.set, tz), unit: '', note: S.sunriseTomorrow(hhmm0(sunTomorrow.rise ?? sunToday.rise, tz)) };
   } else {
     const nextRise = nowT < sunToday.rise ? sunToday.rise : sunTomorrow.rise;
-    sunTile = { icon: 'sunrise', label: '일출', value: hhmm0(nextRise, tz), unit: '', note: `일몰 ${hhmm0(sunToday.set, tz)}` };
+    sunTile = { icon: 'sunrise', label: S.tile.sunrise, value: hhmm0(nextRise, tz), unit: '', note: S.sunsetAt(hhmm0(sunToday.set, tz)) };
   }
   const dew = cur.dew ?? dewPoint(cur.temp, cur.rh);
   const tiles = [
-    { icon: 'raindrop', label: '강수확률', value: `${ri(maxPop)}%`, unit: '', note: rainNote },
-    { kind: 'uv', icon: 'sun_strong', label: '자외선', uv: uv ?? 0, note: R.uvNote(uv) },
+    { icon: 'raindrop', label: S.tile.rainChance, value: `${ri(maxPop)}%`, unit: '', note: rainNote },
+    { kind: 'uv', icon: 'sun_strong', label: S.tile.uv, uv: uv ?? 0, note: R.uvNote(uv, S) },
     sunTile,
-    { icon: 'raindrop', label: '습도', value: cur.rh == null ? '–' : `${ri(cur.rh)}%`, unit: '', note: [humidityWord({ temp: cur.temp, rh: cur.rh, dew, wet: nowWet }), dew == null ? '' : `이슬점 ${ri(dew)}°`].filter(Boolean).join(' · ') },
+    { icon: 'raindrop', label: S.tile.humidity, value: cur.rh == null ? '–' : `${ri(cur.rh)}%`, unit: '', note: [humidityWord({ temp: cur.temp, rh: cur.rh, dew, wet: nowWet }, S), dew == null ? '' : S.dewPoint(ri(dew))].filter(Boolean).join(' · ') },
   ];
 
   const bub = R.bubble({
     warnings: f.warnings, nowWet, nowPr: pr, nowMm: cur.mm, thunder, startIn, when,
     wind: auxKind === 'wind', fog: auxKind === 'fog', feels, night, swing: hi - lo, maxPop, plus, rain, snowNext,
-  });
+  }, S);
 
   const scene = {
     time: night ? 'night' : 'day',
@@ -143,7 +145,7 @@ export function buildScene(f, o) {
     feels,
     hi, lo,
     yday: o.yday == null ? 0 : ri(cur.temp - o.yday),
-    cond: R.condition({ pr, cov, thunder, auxKind, night, feels }),
+    cond: R.condition({ pr, cov, thunder, auxKind, night, feels }, S),
     clock: hhmm(nowT, tz),
     updated: plus ? hhmm0(f.updated ?? nowT, tz) : '06:00',
     bubble: bub,
@@ -157,7 +159,7 @@ export function buildScene(f, o) {
   };
   if (f.warnings?.length) {
     const w = f.warnings[0].name;
-    scene.alert = { name: w, note: R.alertNote(w, { total, pr, nowWet, when, endH: nowWet && endP ? (H(endP) + 1) % 24 : null, hi, lo, gust: ri(cur.gust ?? 0), rh: cur.rh == null ? null : ri(cur.rh) }) };
+    scene.alert = { name: S.warning(w), note: R.alertNote(w, { total, pr, nowWet, when, endH: nowWet && endP ? (H(endP) + 1) % 24 : null, hi, lo, gust: ri(cur.gust ?? 0), rh: cur.rh == null ? null : ri(cur.rh) }, S) };
   }
   // day sheet: 8 three-hourly values per day (0, 3, … 21 h) — temp, rain chance, wind, UV, humidity
   scene.dayDetail = [...byDay.entries()].slice(0, days.length).map(([, list]) => {
@@ -167,11 +169,11 @@ export function buildScene(f, o) {
       let best = list[0], bd = Infinity;
       for (const p of list) { const x = Math.abs(p.t - target); if (x < bd) { bd = x; best = p; } }
       const uvv = uvUnderCloud(best.uvClear, best.cloud);
-      return [`${h}시`, r1(best.temp), ri(best.pop ?? (wet(best) ? 70 : 0)), r1(best.wind ?? 0), r1(h >= 6 && h <= 18 ? uvv ?? 0 : 0), ri(best.rh ?? 0)];
+      return [S.hour(h), r1(best.temp), ri(best.pop ?? (wet(best) ? 70 : 0)), r1(best.wind ?? 0), r1(h >= 6 && h <= 18 ? uvv ?? 0 : 0), ri(best.rh ?? 0)];
     });
   });
   if (plus && f.next6?.length) {
-    scene.next6 = f.next6.slice(0, 6).map((p) => [`${H(p)}시`, r1(p.mm || 0)]);
+    scene.next6 = f.next6.slice(0, 6).map((p) => [S.hour(H(p)), r1(p.mm || 0)]);
     scene.nextSource = f.nextSource || 'kma';
   }
   return scene;

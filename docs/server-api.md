@@ -20,7 +20,7 @@ Accept: application/json
 | region | `kr` (기상청 + MET Norway, six-hour rain), `jp` (minute rain), `other` (hourly only) |
 | tz     | IANA time zone of the place; every clock time in the answer is local to it |
 | plan   | `free` → the 06:00 forecast only, no `minutes` / `next6`; `plus` → latest run, with them |
-| lang   | `ko` for now |
+| lang   | `ko` (default) · `en` · `ja`; any other value → `en`. Changes the words in the answer only — see [Languages](#languages) |
 | prev   | optional, the outfit level the app showed last for this place (±1° hysteresis) |
 | name   | optional, the place name ("서울 마포구"); used to match 기상특보 areas |
 
@@ -77,10 +77,33 @@ chance 10–29 % → `think`; otherwise `none`.
 Rain ahead is said as the hours people plan around, never as a promise: `15~17시 비 예정` (first to last wet hour),
 `15시쯤 비 예정` (one hour), `내일 7~9시 비 예정`. The next-6-hours card says when it may stop (`18시쯤 그칠 예보`).
 
+## Languages
+
+`lang` picks the dictionary (`server/src/i18n.js`, words from `docs/i18n-glossary.md`). Keys, icons, kinds, tones, numbers,
+`clock` and `updated` (free: `06:00`) are the same in every language; only the text fields change:
+
+| field | ko | en | ja |
+|---|---|---|---|
+| `cond` | `비 · 바람 강함` | `Rain · Strong wind` | `雨 · 強風` |
+| `bubble.text` (rain ahead) | `15~17시 비 예정` · `15시쯤 비 예정` · `내일 7~9시 비 예정` | `Rain 3–5PM` · `Rain around 3PM` · `Rain tomorrow 7–9AM` | `15〜17時 雨` · `15時ごろ 雨` · `明日7〜9時 雨` |
+| `bubble.text` (fixed) | `비!` `폭우!` `한파!` `우산 챙겨요` | `Rain!` `Downpour!` `Cold wave!` `Take an umbrella` | `雨!` `豪雨!` `寒波!` `傘を持って` |
+| `bubble.text` / `alert.name` (특보) | `호우주의보` (KMA name) | `Heavy Rain Advisory` (glossary table; unknown names pass through) | `大雨注意報` |
+| `alert.note` | `오늘 6cm, 18시쯤 그칠 예보` | `6cm today, Should stop around 6PM` | `今日 6cm、18時ごろ止む見込み` |
+| `hours[][0]`, `next6[][0]` | `지금` `14시` | `Now` `2PM` | `今` `14時` |
+| `dayDetail[][][0]` | `0시` … `21시` | `12AM` … `9PM` | `0時` … `21時` |
+| `days[][0]` | `오늘` `월`…`일` | `Today` `Mon`…`Sun` | `今日` `月`…`日` |
+| `tiles[].label` | `강수확률` `자외선` `일몰`/`일출` `습도` | `Rain chance` `UV` `Sunset`/`Sunrise` `Humidity` | `降水確率` `紫外線` `日の入り`/`日の出` `湿度` |
+| rain tile note | `15~17시 비 예정 · 7mm (보통)` · `12시간 동안 비 소식 없어요` | `Rain 3–5PM · 7mm (Moderate)` · `No rain for the next 12 hours` | `15〜17時 雨 · 7mm (普通)` · `12時間 雨の心配はありません` |
+| UV note | `강해요 · 선크림, 모자` | `High · Sunscreen, hat` | `強い · 日焼け止め、帽子` |
+| sun tile note | `내일 일출 06:49` / `일몰 17:52` | `Sunrise tomorrow 06:49` / `Sunset 17:52` | `明日の日の出 06:49` / `日の入り 17:52` |
+| humidity note | `적당해요 · 이슬점 13°` | `Comfortable · Dew point 13°` | `ちょうどいい · 露点 13°` |
+
+Tone: en short and friendly, sentence case; ja です・ます, concise. The app's 말투 switch (존댓말 · 격식 · 반말) applies to `ko` only.
+
 ## Implementation
 
 `server/` in this repo (Cloudflare Worker): `src/index.js` (request, cache, merge, fallbacks), `src/providers/` (MET, KMA),
-`src/rules.js` (the rules below), `src/scene.js` (builds and validates this JSON). `node --test test/*.test.js` runs
+`src/rules.js` (the rules below), `src/i18n.js` (the three dictionaries), `src/scene.js` (builds and validates this JSON). `node --test test/*.test.js` runs
 the rules and the contract against fake upstreams; `scripts/live-check.mjs` against the real ones.
 
 ## Sources

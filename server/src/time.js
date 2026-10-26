@@ -25,7 +25,7 @@ function localUncached(date, tz) {
   }
   const o = {};
   for (const p of f.formatToParts(date)) o[p.type] = p.value;
-  return { y: +o.year, m: +o.month, d: +o.day, h: +o.hour % 24, mi: +o.minute, wd: WD[o.weekday] || o.weekday };
+  return { y: +o.year, m: +o.month, d: +o.day, h: +o.hour % 24, mi: +o.minute, wd: WD[o.weekday] || o.weekday, wdEn: o.weekday };   // wd 월…일, wdEn Mon…Sun
 }
 
 /** Offset of the zone from UTC at that instant, in minutes (KST → 540). */

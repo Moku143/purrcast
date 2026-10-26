@@ -11,6 +11,7 @@ import { metUrl, parseMet } from './providers/met.js';
 import { toGrid, vilageBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError } from './providers/kma.js';
 import { buildScene, validateScene } from './scene.js';
 import { local, pad2 } from './time.js';
+import { normLang } from './i18n.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' };
 
@@ -49,6 +50,7 @@ export function readQuery(sp) {
     plan: sp.get('plan') === 'plus' ? 'plus' : 'free',
     prev: Number.isInteger(prev) && prev >= 0 && prev <= 9 ? prev : null,
     name: sp.get('name') || '',
+    lang: normLang(sp.get('lang')),   // ko (default) | en | ja; anything else → en
   };
 }
 
@@ -121,7 +123,7 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch 
   }
 
   const yday = await history(env, q, now, f, ctx);
-  return buildScene(f, { lat: q.lat, lon: q.lon, tz: q.tz, plan: q.plan, prev: q.prev, yday, now });
+  return buildScene(f, { lat: q.lat, lon: q.lon, tz: q.tz, plan: q.plan, prev: q.prev, yday, now, lang: q.lang });
 }
 
 async function korea(q, env, now, fetcher, ctx) {
