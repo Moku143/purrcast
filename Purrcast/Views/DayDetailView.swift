@@ -868,19 +868,36 @@ private struct DayChart: View {
         }
     }
 
+    /// The curve as ONE path, coloured along x (hard steps between the colours of neighbouring hours), so the line has
+    /// the same width everywhere — no bumps where hour segments meet. The canvas reaches a few points past the plot
+    /// so a line on 0 % / 0 UV / 100 % is not cut in half by the chart's edge.
     private func curves(_ pts: [CGPoint]) -> some View {
-        Canvas { c, _ in
+        let pad: CGFloat = 4
+        return Canvas { c, _ in
             guard pts.count > 1 else { return }
-            for i in 0..<(pts.count - 1) {
-                let col = i < spec.segColors.count ? spec.segColors[i] : ctx.ink.ink
-                c.stroke(DayCurve.segment(pts, i), with: .color(col), style: StrokeStyle(lineWidth: 3, lineCap: .round))
+            c.translateBy(x: 0, y: pad)
+            let style = StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
+            let path = DayCurve.line(pts)
+            let cols = spec.segColors
+            if cols.isEmpty || Set(cols.map { "\($0)" }).count == 1 {
+                c.stroke(path, with: .color(cols.first ?? ctx.ink.ink), style: style)
+            } else {
+                var stops: [Gradient.Stop] = []
+                for i in 0..<(pts.count - 1) {
+                    let col = i < cols.count ? cols[i] : (cols.last ?? ctx.ink.ink)
+                    stops.append(.init(color: col, location: pts[i].x / W))
+                    stops.append(.init(color: col, location: pts[i + 1].x / W))
+                }
+                c.stroke(path, with: .linearGradient(Gradient(stops: stops), startPoint: .zero, endPoint: CGPoint(x: W, y: 0)), style: style)
             }
             if let l2 = spec.line2 {
                 let p2 = DayCurve.points(l2.map { spec.y($0, H) }, cw: cw)
-                c.stroke(DayCurve.line(p2), with: .color(spec.line2Color), style: StrokeStyle(lineWidth: 3, dash: [3, 4]))
+                c.stroke(DayCurve.line(p2), with: .color(spec.line2Color), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round, dash: [3, 4]))
             }
         }
-        .frame(width: W, height: H)
+        .frame(width: W, height: H + pad * 2)
+        .offset(y: -pad)
+        .allowsHitTesting(false)
     }
 
     private var selY: CGFloat { H - spec.y(spec.vals[ctx.sel], H) }
