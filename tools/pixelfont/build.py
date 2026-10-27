@@ -134,6 +134,24 @@ def even_vowel(lit):
     return out
 
 
+def even_rings(lit):
+    """The small ㅇ (above ㅗ ㅜ ㅡ, beside ㅘ ㅝ, and as a final) is 4 rows: a 1-px top and a 2-px bottom, so it looks
+    pressed down. Hollow out the extra bottom row: 1-px top and bottom, 2-px sides, the same all round."""
+    rows = {}
+    for c, r in lit: rows.setdefault(r, set()).add(c)
+    out = set(lit); n = 0
+    for w in (9, 8, 7):
+        for x in range(0, 12 - w + 1):
+            full = set(range(x, x + w)); inner = set(range(x + 1, x + w - 1)); sides = {x, x + 1, x + w - 2, x + w - 1}
+            near = set(range(x - 1, x + w + 1))
+            for r in range(12, -3, -1):
+                g = lambda rr: rows.get(rr, set()) & near
+                if g(r) == inner and g(r - 1) == sides and g(r - 2) == full and g(r - 3) == inner:
+                    for c in full - sides: out.discard((c, r - 2))
+                    n += 1
+    return out, n
+
+
 def main():
     R, B, J = TTFont(SRC_R), TTFont(SRC_B), TTFont(SRC_J)
     rmap, bmap, jmap = R.getBestCmap(), B.getBestCmap(), J.getBestCmap()
@@ -151,6 +169,13 @@ def main():
         if lit is None: continue
         glyf[name] = draw(lit); evened += 1
     print(f'evened the vowel strokes of {evened} Hangul syllables')
+    # 0b. the small ㅇ: same weight top and bottom
+    bgs = B.getGlyphSet(); rings = 0
+    for cp in range(0xAC00, 0xD7A4):
+        name = bmap[cp]
+        lit, n = even_rings(raster(polygons(bgs, name)))
+        if n: glyf[name] = draw(lit); rings += n
+    print(f'evened {rings} small ㅇ rings')
     added, src_count = {}, {'PixelMplus12 Bold': 0, 'Galmuri11 Regular (bolded)': 0}
     jpx = J['head'].unitsPerEm / 12            # PixelMplus12: 12 px per em
     jyoff = -jpx * 0.4                         # its pixel rows start 0.4 px under the baseline (… -117, -33, 50 …)
