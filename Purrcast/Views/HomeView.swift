@@ -130,6 +130,17 @@ struct HomeView: View {
             startPoint: .top, endPoint: .bottom)
     }
 
+    private func feelsPart(_ s: WeatherScene) -> some View {
+        Text(L("체감 %@ %@", deg(s.feels), Rules.feelsWord(s.feels))).rolling(s.feels)
+    }
+
+    private func ydayPart(_ s: WeatherScene, _ ink: Ink) -> some View {
+        HStack(spacing: 5) {
+            Text(L("전일 대비"))
+            Text(delta(s.yday)).foregroundStyle(s.yday > 0 ? ink.hot : (s.yday < 0 ? ink.blue : ink.ink)).rolling(s.yday)
+        }
+    }
+
     private func hero(_ s: WeatherScene, ink: Ink, level: Int) -> some View {
         let char = model.shownCharacter
         let rain = RainState(rawValue: s.rain) ?? .none
@@ -167,10 +178,13 @@ struct HomeView: View {
                 Text(deg(s.temp)).font(.px(88)).rolling(s.temp)
                 Text(s.cond).font(.px(17)).id(s.cond).transition(.opacity.combined(with: .move(edge: .trailing)))
                 Text(L("최고 %@ · 최저 %@", deg(s.hi), deg(s.lo))).font(.px(12)).rolling(s.hi * 1000 + s.lo)
-                HStack(spacing: 5) {
-                    Text(L("체감 %@ %@", deg(s.feels), Rules.feelsWord(s.feels))).rolling(s.feels); Text("·"); Text(L("전일 대비"))
-                    Text(delta(s.yday)).foregroundStyle(s.yday > 0 ? ink.hot : (s.yday < 0 ? ink.blue : ink.ink)).rolling(s.yday)
-                }.font(.px(12)).lineLimit(1).minimumScaleFactor(0.75)      // "Feels -3° Cold · vs yesterday +2°" fits too
+                // one line when it fits beside the character's head, else two ("Feels 17° Pleasant" / "vs yesterday -1°")
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 5) { feelsPart(s); Text("·"); ydayPart(s, ink) }
+                    VStack(alignment: .trailing, spacing: 6) { feelsPart(s); ydayPart(s, ink) }
+                }
+                .font(.px(12)).lineLimit(1).minimumScaleFactor(0.8)
+                .frame(maxWidth: 230, alignment: .trailing)
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.trailing, 6).padding(.top, 64)

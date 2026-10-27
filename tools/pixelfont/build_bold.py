@@ -20,7 +20,7 @@ from strokes import best, transpose, stretch, components
 from fontTools.ttLib import TTFont
 
 HERE = pathlib.Path(__file__).resolve().parent
-BASE = ROOT / 'Shared/Fonts/PurrcastPixel-Bold.ttf'
+BASE = HERE / 'out/PurrcastPixel-Bold.ttf'      # run build.py first
 OUT = HERE / 'out/PurrcastPixel-D.ttf'
 TOP = 11          # Hangul rows 0..11
 

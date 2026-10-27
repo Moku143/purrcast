@@ -17,7 +17,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 SRC_R, SRC_B = HERE / 'src/Galmuri11.ttf', HERE / 'src/Galmuri11-Bold.ttf'
 SRC_J = HERE / 'src/PixelMplus12-Bold.ttf'   # M+ FONT LICENSE (src/LICENSE-MPLUS.txt): a 12-px bold Japanese pixel font
-OUT = ROOT / 'Shared/Fonts/PurrcastPixel-Bold.ttf'
+OUT = HERE / 'out/PurrcastPixel-Bold.ttf'   # the earlier bold font (no longer in the app)
 PX = 100                      # one pixel in font units (1200 upm, 11 px design + 1 px gap)
 Y0, Y1 = -300, 1300           # rows to scan
 
@@ -231,7 +231,7 @@ def main():
     B['OS/2'].fsSelection = (B['OS/2'].fsSelection | 0x20) & ~0x40
     OUT.parent.mkdir(parents=True, exist_ok=True)
     B.save(OUT)
-    print(f'{OUT.relative_to(ROOT)}: {len(added)} glyphs added {src_count}, {len(B.getGlyphOrder())} glyphs, {OUT.stat().st_size // 1024} KB')
+    print(f'{OUT.relative_to(HERE)}: {len(added)} glyphs added {src_count}, {len(B.getGlyphOrder())} glyphs, {OUT.stat().st_size // 1024} KB')
 
 
 if __name__ == '__main__':

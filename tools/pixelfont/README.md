@@ -1,7 +1,16 @@
 # Purrcast Pixel (the app's pixel font)
 
-`Shared/Fonts/PurrcastPixel-Bold.ttf` is the only pixel face the app ships (iPhone, widgets, watch).
-It is built from three free fonts on one 12-px grid:
+**Now in the app (Oct 2026):** `Shared/Fonts/PurrcastPixel-Medium.ttf` — Purrcast Pixel Medium, MGalmuri10 Regular
+(Monad ABXY, after Galmuri by Lee Minseo) with its upright strokes made half a pixel heavier, SIL OFL 1.1. Korean,
+English and Japanese on one 10-px grid. Its notice and the licence text ship next to it (`Shared/Fonts/FONT-NOTICE.txt`,
+`OFL.txt`) and show in the app under 설정 › 오픈소스 라이선스. Only a ✓ (U+2713) was added to it here.
+`check.py` checks this file.
+
+The rest of this page describes the earlier bold font and the candidates built while choosing (A, B, C, D, A2); the
+scripts still build them into `out/`.
+
+Earlier: `Shared/Fonts/PurrcastPixel-Bold.ttf` was the only pixel face the app shipped (iPhone, widgets, watch).
+It was built from three free fonts on one 12-px grid:
 
 | Part | Source | Licence |
 |---|---|---|
