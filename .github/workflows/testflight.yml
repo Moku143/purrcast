@@ -100,13 +100,26 @@ jobs:
         run: |
           set +e
           sed "s/TEAM_ID/$TEAM/" Config/ExportOptions.plist > build/ExportOptions.plist
-          xcodebuild -exportArchive -archivePath build/Purrcast.xcarchive \
-            -exportOptionsPlist build/ExportOptions.plist -exportPath build/export \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/AuthKey.p8 \
-            -authenticationKeyID "$KEY" -authenticationKeyIssuerID "$ISS" 2>&1 | tee export.log | tail -40; st=${PIPESTATUS[0]}; true
+          export_it() {
+            xcodebuild -exportArchive -archivePath build/Purrcast.xcarchive \
+              -exportOptionsPlist build/ExportOptions.plist -exportPath build/export \
+              -allowProvisioningUpdates \
+              -authenticationKeyPath ~/.appstoreconnect/AuthKey.p8 \
+              -authenticationKeyID "$KEY" -authenticationKeyIssuerID "$ISS" > "$1" 2>&1
+          }
+          export_it export.log; st=$?
+          if [ $st -ne 0 ] && grep -q "No profiles for\|Authentication failed" export.log; then
+            # The App Groups (group.app.purrcast, group.app.purrcast.watch) are not set up on the bundle ids in the
+            # developer portal yet, and the API key cannot do that part. Upload without them meanwhile: the app works,
+            # only the widgets / complications cannot read its forecast.
+            echo "::warning::Export with the App Group failed (App Groups not set up in the developer portal?) — uploading without it"
+            grep -E "error:" export.log | sort -u | head -8 | while read -r l; do echo "::warning::${l:0:300}"; done
+            find build/Purrcast.xcarchive/Products/Applications/Purrcast.app -depth \( -name '*.appex' -o -name '*.app' \) -exec codesign --remove-signature {} \;
+            echo nogroup > build/NOGROUP
+            export_it export2.log; st=$?; cat export2.log >> export.log
+          fi
+          tail -40 export.log
           grep -E "error:|Error:|No profiles|No signing|Provisioning|not registered|requires a|failed" export.log | sort -u | head -12 | while read -r l; do echo "::error::${l:0:300}"; done
-          tail -25 export.log | while read -r l; do echo "::notice::${l:0:300}"; done
           exit $st
       - name: What the uploaded build carries (entitlements per bundle → tf-output branch)
         if: always()
@@ -122,6 +135,7 @@ jobs:
             -authenticationKeyID "$KEY" -authenticationKeyIssuerID "$ISS" > check.log 2>&1 || true
           mkdir -p tfout; ipa=$(ls build/check/*.ipa 2>/dev/null | head -1)
           { echo "run=${{ github.run_id }} build=${{ github.run_number }} $(date -u)"
+            [ -f build/NOGROUP ] && echo "APP GROUP: NOT IN THIS BUILD (export with it failed: $(grep -m1 -E 'error:' export.log))" || echo "APP GROUP: in the build"
             if [ -n "$ipa" ]; then
               rm -rf x && mkdir x && unzip -q "$ipa" -d x
               find x/Payload -depth \( -name '*.appex' -o -name '*.app' \) | while read -r b; do
