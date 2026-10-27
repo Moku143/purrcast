@@ -65,6 +65,19 @@ final class ScreenshotTests: XCTestCase {
         shot("page-character-voice", ["-scene", "maybe", "-plus", "-char", "abys", "-open", "character"], wait: 2) { app in
             app.swipeUp(); sleep(1)
         }
+        // place search: empty field, a country (lists its regions), a 시도, a foreign name typed in Korean
+        for (name, q) in [("empty", ""), ("usa", "미국"), ("seoul", "서울"), ("california", "캘리포니아")] {
+            shot("search-\(name)", ["-scene", "maybe", "-plus", "-open", "places"], wait: 2) { app in
+                app.buttons["search"].firstMatch.tap(); sleep(1)
+                if !q.isEmpty { app.textFields["search-field"].firstMatch.typeText(q); sleep(2) }
+            }
+        }
+        for (lang, key, q) in [("en", "us", "United States"), ("ja", "us", "アメリカ"), ("ja", "jp", "日本")] {
+            shot("search-\(lang)-\(key)", ["-scene", "maybe", "-plus", "-open", "places"], wait: 2, lang: lang) { app in
+                app.buttons["search"].firstMatch.tap(); sleep(1)
+                app.textFields["search-field"].firstMatch.typeText(q); sleep(2)
+            }
+        }
         for lang in ["en", "ja"] {
             shot("lang-\(lang)-paywall-watch", ["-scene", "maybe", "-open", "paywall"], wait: 2, lang: lang) { app in
                 for _ in 0..<2 { app.swipeLeft(); sleep(1) }
