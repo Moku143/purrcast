@@ -27,6 +27,18 @@ const app = apps.json?.data?.[0];
 if (!app) { console.log(`app ${BUNDLE} not found (HTTP ${apps.status} ${apps.err ?? ''})`); process.exit(1); }
 console.log(`app ${app.attributes.name} (${app.id})`);
 
+// subscriptions (Plus): groups, products, their state; and whether the paid-apps agreement lets them be sold
+const sg = await api(`/apps/${app.id}/subscriptionGroups?include=subscriptions&limit=10`);
+if (sg.status !== 200) console.log(`subscription groups: HTTP ${sg.status} ${sg.err ?? ''}`);
+else if (!sg.json.data.length) console.log('subscription groups: none yet');
+for (const g of sg.json?.data || []) {
+  console.log(`subscription group "${g.attributes.referenceName}" (${g.id})`);
+  for (const x of (sg.json.included || []).filter((i) => i.type === 'subscriptions' && g.relationships?.subscriptions?.data?.some((d) => d.id === i.id)))
+    console.log(`  ${x.attributes.productId} · ${x.attributes.name} · ${x.attributes.subscriptionPeriod} · state ${x.attributes.state}`);
+}
+const iaps = await api(`/apps/${app.id}/inAppPurchasesV2?limit=20`);
+console.log(`in-app purchases (non-subscription): ${iaps.status === 200 ? iaps.json.data.length : 'HTTP ' + iaps.status}`);
+
 const groups = (await api(`/apps/${app.id}/betaGroups?limit=50`)).json?.data || [];
 for (const g of groups) console.log(`group "${g.attributes.name}" ${g.attributes.isInternalGroup ? 'internal' : 'external'} · auto-add new builds: ${g.attributes.hasAccessToAllBuilds ?? '?'} (${g.id})`);
 
