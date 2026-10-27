@@ -17,10 +17,12 @@ struct WatchFacePreview: View {
         ZStack {
             Color.black
             VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(dateText).font(.system(size: 15, weight: .semibold)).foregroundStyle(accent)
-                    Spacer()
-                    Text("10:09").font(.system(size: 44, weight: .semibold, design: .rounded)).foregroundStyle(.white)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(dateText).font(.system(size: 14, weight: .semibold)).foregroundStyle(accent)
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                    Spacer(minLength: 0)
+                    Text("10:09").font(.system(size: 36, weight: .semibold, design: .rounded)).foregroundStyle(.white)
+                        .lineLimit(1).fixedSize()
                 }
                 LockRectangularView(snap: snap)
                     .foregroundStyle(.white)

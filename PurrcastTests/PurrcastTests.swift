@@ -31,6 +31,8 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(plus.next6?.count, 6)
         XCTAssertEqual(plus.nextSource, "met")
         XCTAssertEqual(plus.dayDetail?.first?.count, 8)
+        XCTAssertEqual(plus.dayDetail?.first?[5].mm, 2.8, "16 h + 17 h of rain in the 15–18 h slot")
+        XCTAssertEqual(plus.dayDetail?.first?[5].gust, 7); XCTAssertEqual(plus.dayDetail?.first?[5].dir, 225)
         XCTAssertEqual(plus.bubble?.text, "16~18시 비 예정")
         XCTAssertEqual(AppModel.planView(plus, plus: false).bubble?.text, "16~18시 비 예정", "the free plan keeps the window from the morning run")
         XCTAssertNil(free.next6)
@@ -69,6 +71,17 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(s.tiles.first?.note, "")
         XCTAssertEqual(s.bubble?.kind, "speech")
         XCTAssertEqual(s.time, "day"); XCTAssertEqual(s.precip, "none")
+    }
+
+    /// Day-sheet rows: older answers have 6 values, newer ones add mm · gust · direction; both decode and round-trip.
+    func testDayDetailRowsOldAndNew() throws {
+        let json = #"[["0시", 9.5, 10, 2.1, 0, 82], ["3시", 9, 60, 3, 0, 90, 1.4, 6.2, 370], ["6시", 8, 70, 3, 0, 90, null, 5, 200]]"#
+        let rows = try JSONDecoder().decode([WeatherScene.DayHour].self, from: Data(json.utf8))
+        XCTAssertNil(rows[0].mm); XCTAssertNil(rows[0].gust); XCTAssertNil(rows[0].dir)
+        XCTAssertEqual(rows[1].mm, 1.4); XCTAssertEqual(rows[1].gust, 6.2); XCTAssertEqual(rows[1].dir, 10, "370° is 10°")
+        XCTAssertNil(rows[2].mm); XCTAssertEqual(rows[2].gust, 5); XCTAssertEqual(rows[2].dir, 200)
+        let again = try JSONDecoder().decode([WeatherScene.DayHour].self, from: JSONEncoder().encode(rows))
+        XCTAssertNil(again[0].dir); XCTAssertEqual(again[1].mm, 1.4); XCTAssertEqual(again[2].dir, 200); XCTAssertEqual(again[0].rh, 82)
     }
 
     func testClockParsing() {

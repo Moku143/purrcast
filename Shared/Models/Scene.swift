@@ -202,19 +202,33 @@ struct WeatherScene: Codable, Identifiable {
             try c.encode(label); try c.encode(mm)
         }
     }
-    /// ["9시", 13, 20, 3, 4, 70] → hour label, °C, rain chance %, wind m/s, UV, humidity %  (one of 8 per day)
+    /// ["9시", 13, 20, 3, 4, 70, 0.4, 5.2, 225] → hour label, °C, rain chance %, wind m/s, UV, humidity %, then for the
+    /// whole 3-hour slot: precipitation mm (cm on a snowy day), strongest gust m/s, wind direction ° (where it comes from).
+    /// One of 8 per day. Older answers stop after humidity: `mm`, `gust` and `dir` are nil then.
     struct DayHour: Codable {
         var label: String; var temp: Double; var chance: Double; var wind: Double; var uv: Double; var rh: Double
+        var mm: Double?; var gust: Double?; var dir: Double?
         init(from decoder: Decoder) throws {
             var c = try decoder.unkeyedContainer()
             label = try c.decode(String.self)
             temp = try c.decode(Double.self)
             chance = (try? c.decode(Double.self)) ?? 0; wind = (try? c.decode(Double.self)) ?? 0
             uv = (try? c.decode(Double.self)) ?? 0; rh = (try? c.decode(Double.self)) ?? 0
+            // optional tail: decoded only when present (a missing or null value stays nil)
+            func more() -> Double? {
+                if c.isAtEnd { return nil }
+                if (try? c.decodeNil()) == true { return nil }
+                return try? c.decode(Double.self)
+            }
+            mm = more().map { max(0, $0) }
+            gust = more().map { max(0, $0) }
+            dir = more().map { ($0.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360) }
         }
         func encode(to encoder: Encoder) throws {
             var c = encoder.unkeyedContainer()
             try c.encode(label); try c.encode(temp); try c.encode(chance); try c.encode(wind); try c.encode(uv); try c.encode(rh)
+            // the tail only when there is one (a nil in the middle is written as null so the positions stay right)
+            if mm != nil || gust != nil || dir != nil { try c.encode(mm); try c.encode(gust); try c.encode(dir) }
         }
     }
 

@@ -136,6 +136,37 @@ test('scene: clear dry day — no umbrella, no bubble, sun tile, valid for the a
   assert.equal(s.hours[1][0], '14시'); assert.equal(s.tiles[2].label, '일몰'); assert.equal(s.updated, '06:00');
   assert.equal(s.cond, '맑음');
   assert.equal(s.dayDetail.length, s.days.length); assert.equal(s.dayDetail[1].length, 8); assert.equal(s.dayDetail[1][4][0], '12시');
+  assert.deepEqual(s.dayDetail[1][4].slice(6), [0, 4.8, 225], 'dry slot: no rain, gust 1.6 × 3 m/s, wind from the south-west');
+});
+
+test('day sheet rows: + the 3-hour slot\'s rain (MET 6-hourly points spread over their hours), strongest gust, wind direction', () => {
+  const hrs = flat(40, { cloud: 90, sym: 'cloudy' });   // 13:00 on the 21st + 40 h, so the 22nd is covered hour by hour
+  const i22 = (h) => 11 + h;                             // index of h:00 on the 22nd
+  hrs[i22(12)] = { cloud: 95, mm: 1.2, pop: 80, sym: 'rain' }; hrs[i22(13)] = { cloud: 95, mm: 2.0, pop: 80, sym: 'rain' };
+  hrs[i22(14)] = { cloud: 95, mm: 0.6, pop: 70, sym: 'rain' };
+  hrs[i22(16)] = { ...hrs[i22(16)], wind: 6, gust: 12.4 };
+  const j = met(at(13), hrs);
+  j.properties.timeseries[i22(9)].data.instant.details.wind_from_direction = 90;
+  // after the hourly part MET steps 6 hours at a time, with next_6_hours only: 6 mm over 6 h is 1 mm in each hour
+  const last = new Date(j.properties.timeseries.at(-1).time).getTime();   // 04:00 on the 23rd
+  for (let k = 1; k <= 4; k++) {
+    j.properties.timeseries.push({ time: new Date(last + k * 6 * 3600000).toISOString(), data: {
+      instant: { details: { air_temperature: 15, relative_humidity: 70, wind_speed: 2, wind_from_direction: 180, cloud_area_fraction: 90 } },
+      next_6_hours: { summary: { symbol_code: 'rain' }, details: { precipitation_amount: 6, probability_of_precipitation: 80 } } } });
+  }
+  const s = buildScene({ points: parseMet(j).points }, { ...SEOUL, plan: 'free', now: at(13, 40) });
+  validateScene(s);
+  const d22 = s.dayDetail[1], d23 = s.dayDetail[2];
+  assert.ok(s.dayDetail.every((d) => d.every((r) => r.length === 9)), 'label + 5 point values + mm, gust, direction');
+  assert.deepEqual(d22.map((r) => r[6]), [0, 0, 0, 0, 3.8, 0, 0, 0], '12–15h holds 1.2 + 2.0 + 0.6 mm');
+  assert.equal(d22[5][7], 12.4, 'the strongest gust in 15–18h'); assert.equal(d22[4][7], 4.8);
+  assert.equal(d22[3][8], 90); assert.equal(d22[4][8], 225);
+  assert.deepEqual(d23.slice(3, 7).map((r) => r[6]), [2, 3, 3, 3], '10:00 and 16:00 points (6 h each, 1 mm/h) split over the slots');
+  assert.equal(d23[4][7], 3, 'no gust in the source: 1.5 × wind'); assert.equal(d23[4][8], 180);
+  // older answers (6 values per row) still pass; anything else does not
+  validateScene({ ...s, dayDetail: s.dayDetail.map((d) => d.map((r) => r.slice(0, 6))) });
+  assert.throws(() => validateScene({ ...s, dayDetail: [[['0시', 1, 2, 3, 4, 5, 6, 7]]] }), /dayDetail/);
+  assert.throws(() => validateScene({ ...s, dayDetail: [[['0시', 1, 2, 3, 4, 5, -1, 7, 90]]] }), /dayDetail/);
 });
 
 test('scene: rain in a few hours → bag + "16~17시 비 예정" (the hours people plan around)', () => {

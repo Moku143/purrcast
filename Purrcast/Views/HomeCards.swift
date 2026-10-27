@@ -136,6 +136,8 @@ struct CompareCard: View {
         return (f, hourOf(f), hourOf(l + 1), max(1, Int(mm.rounded())))
     }
     private var summary: String {
+        // mid-sentence the weather word is lower case in English ("All three expect rain")
+        let wet = Lang.current == .en ? self.wet.lowercased() : self.wet
         let spans = cmp.sources.map(span), wetOnes = spans.compactMap { $0 }
         let all = n == 3 ? L("세 곳") : L("두 곳")
         if wetOnes.isEmpty { return L("%@ 모두 %d시간 동안 %@ 없음", all, N >= 24 ? 24 : N - 1, wet) }

@@ -164,15 +164,34 @@ export function buildScene(f, o) {
     const w = f.warnings[0].name;
     scene.alert = { name: S.warning(w), note: R.alertNote(w, { total, pr, nowWet, when, endH: nowWet && endP ? (H(endP) + 1) % 24 : null, hi, lo, gust: ri(cur.gust ?? 0), rh: cur.rh == null ? null : ri(cur.rh) }, S) };
   }
-  // day sheet: 8 three-hourly values per day (0, 3, … 21 h) — temp, rain chance, wind, UV, humidity
+  // day sheet: 8 three-hourly values per day (0, 3, … 21 h) — temp, rain chance, wind, UV, humidity (the point nearest
+  // the slot), then what the whole 3-hour slot holds: the precipitation (mm; cm when it falls as snow, as in `hours`),
+  // the strongest gust and the wind direction (degrees it comes from). Points cover [t, t + step h) with mm per hour
+  // (MET's 6-hourly points too), so a slot takes each point's amount for the hours it overlaps.
+  const HOUR = 3600000;
   scene.dayDetail = [...byDay.entries()].slice(0, days.length).map(([, list]) => {
     const [y, m, d] = [list[0].t, list[0].t, list[0].t].map((t, i) => [local(t, tz).y, local(t, tz).m, local(t, tz).d][i]);
     return [0, 3, 6, 9, 12, 15, 18, 21].map((h) => {
       const target = Date.UTC(y, m - 1, d, h) - offsetMin(list[0].t) * 60000;
+      const end = target + 3 * HOUR;
       let best = list[0], bd = Infinity;
       for (const p of list) { const x = Math.abs(p.t - target); if (x < bd) { bd = x; best = p; } }
       const uvv = uvUnderCloud(best.uvClear, best.cloud);
-      return [S.hour(h), r1(best.temp), ri(best.pop ?? (wet(best) ? 70 : 0)), r1(best.wind ?? 0), r1(h >= 6 && h <= 18 ? uvv ?? 0 : 0), ri(best.rh ?? 0)];
+      const gustOf = (p) => p.gust ?? (p.wind != null ? p.wind * 1.5 : null);   // no gust in the source (KMA alone): 1.5 × wind, as `wind.gust`
+      let mm = 0, gust = null;
+      for (const p of pts) {
+        const from = +p.t, overlap = Math.min(from + (p.step || 1) * HOUR, end) - Math.max(from, target);
+        if (overlap <= 0) continue;
+        mm += (p.mm || 0) * overlap / HOUR;
+        const g = gustOf(p);
+        if (g != null && (gust == null || g > gust)) gust = g;
+      }
+      if (gust == null) gust = gustOf(best);   // a slot before the first point (earlier today): the nearest point's
+      let dir = best.dir, dd = Infinity;
+      if (dir == null) for (const p of list) { const x = Math.abs(p.t - target); if (p.dir != null && x < dd) { dd = x; dir = p.dir; } }
+      dir = ri((((dir ?? cur.dir ?? 0) % 360) + 360) % 360) % 360;
+      return [S.hour(h), r1(best.temp), ri(best.pop ?? (wet(best) ? 70 : 0)), r1(best.wind ?? 0), r1(h >= 6 && h <= 18 ? uvv ?? 0 : 0), ri(best.rh ?? 0),
+        r1(mm), r1(Math.max(gust ?? 0, best.wind ?? 0)), dir];
     });
   });
   if (plus && f.next6?.length) {
@@ -229,7 +248,9 @@ export function validateScene(s) {
   if (s.minutes != null && !(Array.isArray(s.minutes) && s.minutes.every(Number.isFinite))) bad.push('minutes');
   if (s.nextSource != null && typeof s.nextSource !== 'string') bad.push('nextSource');
   if (s.src != null && typeof s.src !== 'string') bad.push('src');
-  if (s.dayDetail != null && !(Array.isArray(s.dayDetail) && s.dayDetail.every((d) => Array.isArray(d) && d.every((h) => h.length === 6 && typeof h[0] === 'string' && h.slice(1).every(Number.isFinite))))) bad.push('dayDetail');
+  // dayDetail rows: 6 values (older answers) or 9 (+ mm, gust, direction); the app reads both
+  if (s.dayDetail != null && !(Array.isArray(s.dayDetail) && s.dayDetail.every((d) => Array.isArray(d) && d.every((h) => (h.length === 6 || h.length === 9)
+    && typeof h[0] === 'string' && h.slice(1).every(Number.isFinite) && (h.length === 6 || (h[6] >= 0 && h[7] >= 0 && h[8] >= 0 && h[8] < 360)))))) bad.push('dayDetail');
   if (bad.length) throw new Error('scene does not match the app: ' + bad.join(', '));
   return true;
 }
