@@ -107,12 +107,50 @@ def check_glyph():
     return draw(lit), 1000
 
 
+# Hangul vowels drawn with two vertical strokes: ㅐ ㅒ ㅔ ㅖ ㅙ ㅞ (medial indices). Galmuri11 Bold draws the inner stroke
+# 1 px and the outer one 2 px (…#.##..), so 예 · 애 · 게 looked uneven next to the 2-px consonants. The glyph has two empty
+# columns on the right, so: the outer stroke moves one pixel right and the inner stroke becomes 2 px (…##.##.).
+TWO_STROKE = {1, 3, 5, 7, 10, 15}
+INNER, OUTER = 6, 8          # the columns Galmuri11 Bold uses for them
+
+
+def even_vowel(lit):
+    """The vowel's own rows: the run from the top where the outer stroke (cols 8–9) is lit and col 10 is free."""
+    rows = sorted({r for _, r in lit}, reverse=True)
+    run, started = [], False
+    for r in rows:
+        on = (OUTER, r) in lit and (OUTER + 1, r) in lit and (OUTER + 2, r) not in lit
+        if on: run.append(r); started = True
+        elif started: break
+    if len(run) < 4: return None                     # not the expected shape: leave the glyph alone
+    out = {p for p in lit if p[1] not in run}
+    for r in run:
+        row = {c for c, rr in lit if rr == r}
+        new = {c for c in row if c < INNER}           # the consonant and the ticks left of the inner stroke
+        if INNER in row: new |= {INNER, INNER + 1}    # inner stroke, now 2 px
+        if INNER + 1 in row: new |= {INNER + 1, INNER + 2}   # a tick between the strokes (ㅐ ㅒ) still joins them
+        new |= {OUTER + 1, OUTER + 2}                 # outer stroke, one pixel right
+        out |= {(c, r) for c in new}
+    return out
+
+
 def main():
     R, B, J = TTFont(SRC_R), TTFont(SRC_B), TTFont(SRC_J)
     rmap, bmap, jmap = R.getBestCmap(), B.getBestCmap(), J.getBestCmap()
     rgs, jgs = R.getGlyphSet(), J.getGlyphSet()
     order = B.getGlyphOrder()
     glyf, hmtx = B['glyf'], B['hmtx']
+
+    # 0. even strokes in ㅐ ㅒ ㅔ ㅖ ㅙ ㅞ syllables
+    bgs = B.getGlyphSet()
+    evened = 0
+    for cp in range(0xAC00, 0xD7A4):
+        if ((cp - 0xAC00) // 28) % 21 not in TWO_STROKE or cp not in bmap: continue
+        name = bmap[cp]
+        lit = even_vowel(raster(polygons(bgs, name)))
+        if lit is None: continue
+        glyf[name] = draw(lit); evened += 1
+    print(f'evened the vowel strokes of {evened} Hangul syllables')
     added, src_count = {}, {'PixelMplus12 Bold': 0, 'Galmuri11 Regular (bolded)': 0}
     jpx = J['head'].unitsPerEm / 12            # PixelMplus12: 12 px per em
     jyoff = -jpx * 0.4                         # its pixel rows start 0.4 px under the baseline (… -117, -33, 50 …)

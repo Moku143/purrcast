@@ -59,7 +59,7 @@ enum Notifications {
 
     static func morningBody(_ d: WeatherScene.DayRow) -> String {
         if d.chance >= 60 { return d.icon == "snowflake" ? L("눈 예보예요 · 길이 미끄러울 수 있어요") : L("비 예보예요 · 우산을 챙겨 주세요") }
-        if d.chance >= 30 { return L("비 올 가능성 %d%% · 우산이 있으면 좋아요", d.chance) }
+        if d.chance >= 30 { return L("비 올 가능성 %d%% · 우산을 챙기는 게 좋을 것 같아요", d.chance) }
         return d.hi - d.lo >= 8 ? L("일교차가 커요") : L("옷차림은 앱에서 확인해 보세요")
     }
 
