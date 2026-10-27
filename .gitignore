@@ -5,3 +5,4 @@ DerivedData/
 *.xcresult
 .DS_Store
 __pycache__/
+tools/pixelfont/out/
