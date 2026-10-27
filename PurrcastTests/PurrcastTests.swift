@@ -295,4 +295,102 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(L("%@쯤 비 예정 · 우산 챙기세요", HourLabel.word(15, clock12: false)), "15시쯤 비 예정 · 우산 챙기세요")
         XCTAssertEqual(Lang.detect(["ko-KR"]), .ko); XCTAssertEqual(Lang.detect(["ja-JP"]), .ja); XCTAssertEqual(Lang.detect(["de-DE"]), .en); XCTAssertEqual(Lang.detect([]), .en)
     }
+
+    // MARK: place search (Purrcast/Resources/places.json)
+
+    private func placeIndex() async throws -> PlaceIndex {
+        let index = PlaceIndex.shared
+        await index.load()
+        XCTAssertTrue(index.isLoaded, "places.json is in the app bundle")
+        return index
+    }
+
+    /// Any of the three languages (and any width / case) finds the same place; nothing is listed before typing.
+    func testPlaceSearchFindsEveryLanguage() async throws {
+        let index = try await placeIndex()
+        XCTAssertTrue(index.search("").isEmpty)
+        XCTAssertTrue(index.search("  ").isEmpty)
+        for q in ["캘리포니아", "カリフォルニア", "かりふぉるにあ", "California", "ＣＡＬＩＦＯＲＮＩＡ"] {
+            XCTAssertTrue(index.search(q).all.contains(where: { $0.id == "rg:US-CA" }), q)
+        }
+        let row = try XCTUnwrap(index.search("캘리포니아").rows.first)
+        XCTAssertEqual(row.id, "rg:US-CA")
+        XCTAssertEqual(row.title, "캘리포니아"); XCTAssertEqual(row.subtitle, "미국")
+        let ca = try XCTUnwrap(row.place)
+        XCTAssertEqual(ca.name, "캘리포니아, 미국"); XCTAssertEqual(ca.short, "캘리포니아")
+        XCTAssertEqual(ca.region, "other"); XCTAssertEqual(ca.timeZone, "America/Los_Angeles")
+        XCTAssertNotNil(index.search("とうきょう").all.first(where: { $0.id == "rg:JP-13" }), "Japanese readings of the prefectures")
+        Lang.current = .ja
+        XCTAssertEqual(index.renamed(ca)?.name, "カリフォルニア, アメリカ合衆国")
+    }
+
+    /// A country lists all of its regions, in the app language's own order.
+    func testCountryListsItsRegionsInOrder() async throws {
+        let index = try await placeIndex()
+        let us = try XCTUnwrap(index.search("미국").groups.first)
+        XCTAssertEqual(us.head.id, "rg:US")
+        XCTAssertNil(us.head.place, "a country with regions lists them instead of being added")
+        XCTAssertGreaterThanOrEqual(us.children.count, 50)
+        let ko = us.children.map { $0.title }
+        XCTAssertEqual(ko, ko.sorted(), "ㄱㄴㄷ")
+        XCTAssertTrue(ko.contains("캘리포니아"))
+
+        Lang.current = .en
+        let en = try XCTUnwrap(index.search("United States").groups.first).children.map { $0.title }
+        XCTAssertEqual(en.first, "Alabama")
+        XCTAssertEqual(en.count, ko.count)
+
+        Lang.current = .ja
+        let jp = try XCTUnwrap(index.search("日本").groups.first).children
+        XCTAssertEqual(jp.count, 47)
+        XCTAssertEqual(jp.first?.title, "北海道"); XCTAssertEqual(jp.last?.title, "沖縄県")
+        XCTAssertEqual(jp.map { $0.id }, (1...47).map { String(format: "rg:JP-%02d", $0) }, "JIS code order")
+        XCTAssertEqual(try XCTUnwrap(index.search("アメリカ").groups.first).head.id, "rg:US")
+    }
+
+    /// Korea down to 읍면동: 시도 → 시군구 → 읍면동, names in each language, ids that survive a language change.
+    func testKoreanPlaces() async throws {
+        let index = try await placeIndex()
+        let mapo = try XCTUnwrap(index.search("마포").rows.first)
+        XCTAssertEqual(mapo.title, "서울 마포구"); XCTAssertEqual(mapo.id, "kr:1144000000")
+        let p = try XCTUnwrap(mapo.place)
+        XCTAssertEqual(p.name, "서울 마포구"); XCTAssertEqual(p.short, "마포구")
+        XCTAssertEqual(p.region, "kr"); XCTAssertEqual(p.timeZone, "Asia/Seoul")
+
+        let seoul = try XCTUnwrap(index.search("서울").groups.first)
+        XCTAssertEqual(seoul.children.count, 25)
+        XCTAssertEqual(seoul.children.first?.title, "서울 강남구")
+        let gu = try XCTUnwrap(index.search("마포구").groups.first)
+        XCTAssertTrue(gu.children.contains { $0.title == "서울 마포구 아현동" })
+        XCTAssertTrue(index.search("분당").rows.contains { $0.title == "경기 성남시 분당구" && $0.place?.short == "분당구" })
+        XCTAssertGreaterThanOrEqual(try XCTUnwrap(index.search("한국").groups.first).children.count, 16)
+
+        Lang.current = .en
+        XCTAssertEqual(index.search("Mapo").rows.first?.title, "Mapo-gu, Seoul")
+        XCTAssertEqual(index.renamed(p)?.name, "Mapo-gu, Seoul"); XCTAssertEqual(index.renamed(p)?.short, "Mapo-gu")
+        Lang.current = .ja
+        XCTAssertEqual(index.renamed(p)?.name, "ソウル Mapo-gu")
+        XCTAssertNil(index.renamed(Place.catalog[0]), "catalog and Apple Maps places are not the index's")
+    }
+
+    func testSearchKeys() {
+        XCTAssertEqual(PlaceKey.norm("Mapo-gu, Seoul"), "mapoguseoul")
+        XCTAssertEqual(PlaceKey.norm("Hà Nội"), "hanoi")
+        XCTAssertEqual(PlaceKey.norm("ｶﾘﾌｫﾙﾆｱ"), PlaceKey.norm("かりふぉるにあ"))
+        XCTAssertEqual(PlaceKey.norm("ガ"), "が")
+        XCTAssertEqual(PlaceKey.norm("서울 마포구"), "서울마포구")
+        XCTAssertEqual(PlaceKey.norm("서울・마포"), "서울마포")
+    }
+
+    func testMapKitPlace() {
+        let tokyo = PlaceIndex.shared.mapKitPlace(name: "渋谷区", short: "渋谷区", lat: 35.66184, lon: 139.70361, country: "JP",
+                                                  timeZone: TimeZone(identifier: "Asia/Tokyo"))
+        XCTAssertEqual(tokyo.id, "mk:35.662,139.704"); XCTAssertEqual(tokyo.region, "jp"); XCTAssertEqual(tokyo.timeZone, "Asia/Tokyo")
+        let gangnam = PlaceIndex.shared.mapKitPlace(name: "역삼동", short: "", lat: 37.5, lon: 127.03, country: "KR", timeZone: nil)
+        XCTAssertEqual(gangnam.region, "kr"); XCTAssertEqual(gangnam.timeZone, "Asia/Seoul"); XCTAssertEqual(gangnam.short, "역삼동")
+        let nowhere = PlaceIndex.shared.mapKitPlace(name: "X", short: "X", lat: 0, lon: 0, country: "", timeZone: nil)
+        XCTAssertEqual(nowhere.region, "other"); XCTAssertEqual(nowhere.timeZone, "UTC")
+        XCTAssertEqual(AppleSearch.shortName("Shibuya, Tokyo", korean: false), "Shibuya")
+        XCTAssertEqual(AppleSearch.shortName("서울특별시 강남구 역삼동", korean: true), "역삼동")
+    }
 }

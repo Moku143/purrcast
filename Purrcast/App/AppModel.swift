@@ -244,15 +244,29 @@ final class AppModel: ObservableObject {
     /// (the server writes its sentences in the app's language). Widgets and the watch get the new snapshot.
     private func languageChanged() {
         Lang.picked = Lang(rawValue: language)
-        places = places.map { p in
-            if p.id == "here" && !hereIsLive { return Place.here }
-            guard let c = Place.catalog.first(where: { $0.id == p.id }) else { return p }
-            var q = p; q.name = c.name; q.short = c.short; return q
+        places = places.map { renamed($0) }
+        // places from the search index ("kr:" · "rg:") need the index: read it first when it is not loaded yet
+        if !PlaceIndex.shared.isLoaded && places.contains(where: { PlaceIndex.handles($0.id) }) {
+            Task {
+                await PlaceIndex.shared.load()
+                self.places = self.places.map { PlaceIndex.shared.renamed($0) ?? $0 }
+                self.publish()
+            }
         }
         if provider.isSample { raw = SceneLibrary.scene(pinnedScene ?? currentPlace.sample) }
         previews = [:]
         publish()
         Task { await refresh(force: true) }
+    }
+
+    /// A saved place named in the current language: "here" (when not live) and catalog places from their tables,
+    /// index places ("kr:" · "rg:") from the search index. Apple Maps picks ("mk:") keep the name they were added with.
+    private func renamed(_ p: Place) -> Place {
+        if p.id == "here" && !hereIsLive { return Place.here }
+        if let c = Place.catalog.first(where: { $0.id == p.id }) {
+            var q = p; q.name = c.name; q.short = c.short; return q
+        }
+        return PlaceIndex.shared.renamed(p) ?? p
     }
 
     /// Hand the current forecast to the widgets and the watch, and re-plan notifications from it.

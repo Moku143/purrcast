@@ -1,12 +1,19 @@
 import SwiftUI
 
 /// 지역: the places you follow (current location first), search to add more. Free: one more place; Plus: no limit.
+/// Search: the bundled index first (PlaceIndex: countries, their regions, Korea down to 읍면동, in ko / en / ja),
+/// then Apple Maps for everything else (AppleSearch). Nothing is listed until something is typed.
 struct PlacesView: View {
     @EnvironmentObject var model: AppModel
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var apple = AppleSearch()
     @State private var query = ""
     @State private var searching = false
     @State private var showPaywall = false
+    @State private var found = PlaceResults()
+    @State private var indexDone = false          // the index finished loading (or could not)
+    @State private var resolving: String?         // the Apple Maps row being looked up
+    @State private var appleFailed = false
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -18,7 +25,9 @@ struct PlacesView: View {
         .background(UI.bg)
         .animation(Motion.gentle, value: searching)
         .onChange(of: focused) { _, on in if on { searching = true } }
+        .onChange(of: query) { _, q in runSearch(q) }
         .task { await model.refreshPreviews() }
+        .task { await loadIndex() }
         .sheet(isPresented: $showPaywall) { PaywallView() }
     }
 
@@ -59,6 +68,8 @@ struct PlacesView: View {
 
     private func endSearch() {
         query = ""; focused = false; searching = false
+        appleFailed = false; resolving = nil
+        apple.update("")
     }
 
     // MARK: list
@@ -114,67 +125,218 @@ struct PlacesView: View {
 
     // MARK: search results
 
+    private func loadIndex() async {
+        await PlaceIndex.shared.load()
+        indexDone = true
+        found = PlaceIndex.shared.search(query)
+    }
+
+    /// Every keystroke: the index at once (precomputed keys), Apple Maps once typing pauses.
+    private func runSearch(_ q: String) {
+        found = PlaceIndex.shared.search(q)
+        appleFailed = false
+        apple.update(q)
+    }
+
+    /// One line of the result list. Cards are drawn line by line (rounded top on the first line, bottom on the last)
+    /// so the list stays lazy when a country lists two hundred regions.
+    private struct Item: Identifiable {
+        enum Content {
+            case note(String)
+            case label(String)
+            case row(PlaceRow, head: Bool)
+            case apple(AppleSearch.Row)
+        }
+        let id: String
+        let content: Content
+        var first = false
+        var last = false
+        var indent = false
+    }
+
     private var results: some View {
-        let q = query.trimmingCharacters(in: .whitespaces)
-        let found = Place.catalog.filter { q.isEmpty || $0.name.contains(q) || $0.short.contains(q) }
-        return ScrollView {
-            VStack(spacing: 0) {
-                ForEach(Array(found.enumerated()), id: \.element.id) { i, p in
-                    if i > 0 { Rectangle().fill(UI.line).frame(height: 1).padding(.leading, 16) }
-                    resultRow(p)
-                }
-                if found.isEmpty {
-                    Text(L("찾는 지역이 없어요")).font(.ui(13)).foregroundStyle(UI.sub).padding(20)
-                }
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                ForEach(items) { item in itemView(item) }
             }
-            .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 14))
             .padding(.horizontal, 16).padding(.bottom, 30)
         }
         .scrollDismissesKeyboard(.immediately)
     }
 
-    private func resultRow(_ p: Place) -> some View {
-        let added = model.places.contains { $0.id == p.id }
-        return Button {
-            guard !added else { return }
-            Haptic.tap()
-            if model.canAddPlace { model.add(p); endSearch() } else { showPaywall = true }
-        } label: {
+    /// Empty field: one hint line. Then: exact countries / 시도 / 시군구 with everything under them, the other
+    /// matches, and Apple Maps for the rest.
+    private var items: [Item] {
+        if query.trimmingCharacters(in: .whitespaces).isEmpty {
+            return [Item(id: "hint", content: .note(L("도시 · 동네 · 나라 이름으로 찾아보세요")))]
+        }
+        var out: [Item] = []
+        if !indexDone { out.append(Item(id: "loading", content: .note(L("지역 목록을 불러오는 중…")))) }
+        for g in found.groups { out += Self.boxed(groupItems(g)) }
+        out += Self.boxed(found.rows.map { (r: PlaceRow) -> Item in Item(id: "f:" + r.id, content: .row(r, head: false)) })
+        out += appleItems
+        if indexDone && found.isEmpty && apple.rows.isEmpty && !apple.busy {
+            out.append(Item(id: "none", content: .note(L("찾는 지역이 없어요"))))
+        }
+        return out
+    }
+
+    private func groupItems(_ g: PlaceResults.Group) -> [Item] {
+        var lines = [Item(id: "g:" + g.id, content: .row(g.head, head: true))]
+        for r in g.children {
+            lines.append(Item(id: "g:" + g.id + ":" + r.id, content: .row(r, head: false), indent: true))
+        }
+        return lines
+    }
+
+    private var appleItems: [Item] {
+        var out: [Item] = []
+        if !apple.rows.isEmpty {
+            out.append(Item(id: "apple-label", content: .label(L("다른 곳 (Apple 지도)"))))
+            out += Self.boxed(apple.rows.map { (r: AppleSearch.Row) -> Item in Item(id: "a:" + r.id, content: .apple(r)) })
+        }
+        if appleFailed { out.append(Item(id: "apple-failed", content: .note(L("위치를 찾지 못했어요. 다시 시도해 주세요.")))) }
+        return out
+    }
+
+    /// Marks the first and the last line of a card.
+    private static func boxed(_ lines: [Item]) -> [Item] {
+        var c = lines
+        guard !c.isEmpty else { return c }
+        c[0].first = true
+        c[c.count - 1].last = true
+        return c
+    }
+
+    @ViewBuilder private func itemView(_ item: Item) -> some View {
+        switch item.content {
+        case .note(let text):
+            Text(text).font(.ui(13)).foregroundStyle(UI.sub)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 4).padding(.vertical, 12)
+        case .label(let text):
+            Text(text).font(.ui(12, .bold)).foregroundStyle(UI.sub)
+                .padding(.horizontal, 4).padding(.top, 18).padding(.bottom, 2)
+        case .row(let r, let head):
+            framed(item) { placeRow(r, head: head, indent: item.indent) }
+        case .apple(let r):
+            framed(item) { appleRow(r) }
+        }
+    }
+
+    /// A line of a white card: rounded where the card starts / ends, a hairline between lines.
+    private func framed<C: View>(_ item: Item, @ViewBuilder _ content: () -> C) -> some View {
+        let r: CGFloat = item.first ? 14 : 0, b: CGFloat = item.last ? 14 : 0
+        let shape = UnevenRoundedRectangle(topLeadingRadius: r, bottomLeadingRadius: b, bottomTrailingRadius: b, topTrailingRadius: r)
+        return content()
+            .background(Color.white)
+            .clipShape(shape)
+            .overlay(alignment: .top) {
+                if !item.first { Rectangle().fill(UI.line).frame(height: 1).padding(.leading, 16) }
+            }
+            .padding(.top, item.first ? 10 : 0)
+    }
+
+    private func isAdded(_ r: PlaceRow) -> Bool {
+        guard let p = r.place else { return false }
+        return model.places.contains { $0.id == p.id }
+    }
+
+    private func placeRow(_ r: PlaceRow, head: Bool, indent: Bool) -> some View {
+        let added = isAdded(r)
+        return Button { tap(r, added: added) } label: { placeLabel(r, head: head, added: added, indent: indent) }
+            .buttonStyle(.row)
+            .accessibilityIdentifier("result-\(r.id)")
+    }
+
+    private func placeLabel(_ r: PlaceRow, head: Bool, added: Bool, indent: Bool) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: r.kind == .country ? "globe" : "mappin")
+                .font(.system(size: 14, weight: .semibold)).foregroundStyle(UI.sub).frame(width: 14)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(r.title).font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.ink)
+                Text(r.subtitle).font(.ui(12)).foregroundStyle(UI.sub)
+            }
+            Spacer(minLength: 8)
+            if Self.minuteRain(r) { minuteChip }
+            trailing(r, head: head, added: added)
+        }
+        .padding(.leading, indent ? 30 : 16).padding(.trailing, 16).padding(.vertical, 12)
+        .contentShape(Rectangle())
+    }
+
+    /// Apple's minute-by-minute rain: Japan and elsewhere, not Korea (기상청 has its own six hours).
+    private static func minuteRain(_ r: PlaceRow) -> Bool {
+        guard let p = r.place else { return false }
+        return p.region == "jp" || p.region == "other"
+    }
+
+    private var minuteChip: some View {
+        Text(L("분 단위 비")).font(.ui(11, .bold)).foregroundStyle(Color(hex: "#1F7A3A"))
+            .padding(.horizontal, 8).padding(.vertical, 4).background(Color(hex: "#DDF3E3")).clipShape(Capsule())
+    }
+
+    private var plusBadge: some View {
+        Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(UI.accent)
+            .frame(width: 28, height: 28).background(Color(hex: "#FFF1E6")).clipShape(Circle())
+    }
+
+    /// "추가됨", the + to add, or for a country a chevron (tapping lists its regions).
+    @ViewBuilder private func trailing(_ r: PlaceRow, head: Bool, added: Bool) -> some View {
+        if r.place == nil {
+            if !head {
+                Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(UI.faint)
+            }
+        } else if added {
+            Text(L("추가됨")).font(.ui(12, .bold)).foregroundStyle(Color(hex: "#8A93AA"))
+        } else {
+            plusBadge
+        }
+    }
+
+    /// A place: add it (free plan: up to the limit, then Plus). A country: search its name, which lists its regions.
+    private func tap(_ r: PlaceRow, added: Bool) {
+        guard let p = r.place else {
+            Haptic.soft()
+            query = r.title
+            return
+        }
+        guard !added else { return }
+        Haptic.tap()
+        if model.canAddPlace { model.add(p); endSearch() } else { showPaywall = true }
+    }
+
+    private func appleRow(_ r: AppleSearch.Row) -> some View {
+        Button { pick(r) } label: {
             HStack(spacing: 12) {
-                Image(systemName: "mappin").font(.system(size: 14, weight: .semibold)).foregroundStyle(UI.sub).frame(width: 14)
+                Image(systemName: "map").font(.system(size: 14, weight: .semibold)).foregroundStyle(UI.sub).frame(width: 14)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(p.name).font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.ink)
-                    Text(Self.country(of: p)).font(.ui(12)).foregroundStyle(UI.sub)
+                    Text(r.title).font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.ink)
+                    if !r.subtitle.isEmpty { Text(r.subtitle).font(.ui(12)).foregroundStyle(UI.sub) }
                 }
                 Spacer(minLength: 8)
-                if p.region != "kr" {
-                    Text(L("분 단위 비")).font(.ui(11, .bold)).foregroundStyle(Color(hex: "#1F7A3A"))
-                        .padding(.horizontal, 8).padding(.vertical, 4).background(Color(hex: "#DDF3E3")).clipShape(Capsule())
-                }
-                if added {
-                    Text(L("추가됨")).font(.ui(12, .bold)).foregroundStyle(Color(hex: "#8A93AA"))
-                } else {
-                    Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(UI.accent)
-                        .frame(width: 28, height: 28).background(Color(hex: "#FFF1E6")).clipShape(Circle())
-                }
+                if resolving == r.id { ProgressView().controlSize(.small) } else { plusBadge }
             }
             .padding(.horizontal, 16).padding(.vertical, 12)
             .contentShape(Rectangle())
         }
         .buttonStyle(.row)
-        .accessibilityIdentifier("result-\(p.id)")
+        .accessibilityIdentifier("apple-result")
     }
 
-    /// The country line under a search result, from the place's time zone (the catalog has no geocoder yet).
-    static func country(of p: Place) -> String {
-        switch p.timeZone {
-        case "Asia/Seoul": return L("대한민국")
-        case "Asia/Tokyo": return L("일본")
-        case "America/New_York": return L("미국")
-        case "Europe/London": return L("영국")
-        case "Europe/Paris": return L("프랑스")
-        case "Asia/Bangkok": return L("태국")
-        default: return p.timeZone.split(separator: "/").first.map(String.init) ?? ""
+    /// An Apple Maps row: look up its coordinate, time zone and country, then add it like any other place.
+    private func pick(_ r: AppleSearch.Row) {
+        guard resolving == nil else { return }
+        Haptic.tap()
+        guard model.canAddPlace else { showPaywall = true; return }
+        resolving = r.id
+        appleFailed = false
+        Task {
+            let p = await apple.place(for: r)
+            resolving = nil
+            guard let p else { appleFailed = true; return }
+            model.add(p)
+            endSearch()
         }
     }
 }

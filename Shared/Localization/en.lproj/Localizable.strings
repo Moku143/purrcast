@@ -528,3 +528,12 @@
 "가장 강할 때" = "Strongest";
 "자외선 3 이상" = "UV 3 or more";
 "없음" = "None";
+
+/* 지역 찾기: the search index and Apple Maps */
+"도시 · 동네 · 나라 이름으로 찾아보세요" = "Search by city, neighbourhood or country";
+"다른 곳 (Apple 지도)" = "Other places (Apple Maps)";
+"나라" = "Country";
+"나라 · %d곳" = "Country · %d regions";
+"지역 목록을 불러오는 중…" = "Loading places…";
+"위치를 찾지 못했어요. 다시 시도해 주세요." = "Couldn't find that place. Please try again.";
+"지역 이름: countries-states-cities-database (ODbL 1.0) · 기상청 격자 위경도" = "Place names: countries-states-cities-database (ODbL 1.0) · KMA grid coordinates";
