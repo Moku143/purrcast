@@ -23,6 +23,8 @@ jobs:
           node scripts/asc-weatherkit.mjs --enable 2>&1 | tee out/apple.txt; true
           echo >> out/apple.txt
           node scripts/asc-builds.mjs --add 2>&1 | tee -a out/apple.txt; true
+          echo >> out/apple.txt
+          node scripts/asc-capabilities.mjs 2>&1 | tee -a out/apple.txt; true
           echo "run=${{ github.run_id }} $(date -u)" > out/RUN.txt
           cat out/apple.txt >> "$GITHUB_STEP_SUMMARY"
       - name: Publish
