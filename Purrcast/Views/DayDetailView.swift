@@ -464,14 +464,37 @@ struct DayDetailView: View {
 
     // MARK: 최고 · 최저 (under the chart, out of its way)
 
-    private struct Extreme { var title: String; var value: String; var hour: Int? }
+    private struct Extreme { var title: String; var value: String; var hour: Int?; var isSel = false }
 
     /// The two numbers people look for on each tab, with the hour they happen; tapping one moves the chart's marker there.
     private func extremes(_ c: DayCtx, _ h: DayHourly) -> [Extreme] {
-        func at(_ v: [Double], max: Bool) -> (Double, Int) {
-            let i = (max ? v.indices.max { v[$0] < v[$1] } : v.indices.min { v[$0] < v[$1] }) ?? 0
-            return (v.isEmpty ? 0 : v[i], i)
+        [selected(c, h)] + pair(c, h)
+    }
+
+    /// The largest (or smallest) value of the day and its hour.
+    private func at(_ v: [Double], max: Bool) -> (Double, Int) {
+        guard !v.isEmpty else { return (0, 0) }
+        var i = 0
+        for k in v.indices where max ? v[k] > v[i] : v[k] < v[i] { i = k }
+        return (v[i], i)
+    }
+
+    /// The chosen hour (지금 on today) and its value on this tab — what the box on the curve used to say.
+    private func selected(_ c: DayCtx, _ h: DayHourly) -> Extreme {
+        let i = max(0, min(23, c.sel))
+        let v: String
+        switch metric {
+        case .temp: v = model.deg(roundHalfUp(h.temp[i]))
+        case .feels: v = model.deg(roundHalfUp(h.feel[i]))
+        case .rain: v = "\(Int(h.chance[i].rounded()))%"
+        case .wind: v = model.windText(Int(h.wind[i].rounded()))
+        case .uv: v = "\(Int(h.uv[i].rounded()))"
+        case .humidity: v = "\(Int(h.rh[i].rounded()))%"
         }
+        return Extreme(title: timeWord(c), value: v, hour: nil, isSel: true)
+    }
+
+    private func pair(_ c: DayCtx, _ h: DayHourly) -> [Extreme] {
         switch metric {
         case .temp, .feels:
             let v = metric == .feels ? h.feel : h.temp
@@ -502,7 +525,7 @@ struct DayDetailView: View {
     }
 
     private func extremesRow(_ c: DayCtx, _ h: DayHourly) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             ForEach(Array(extremes(c, h).enumerated()), id: \.offset) { _, e in extremeBox(c, e) }
         }
         .animation(Motion.snappy, value: metric)
@@ -513,23 +536,38 @@ struct DayDetailView: View {
             guard let hr = e.hour else { return }
             Haptic.select(); withAnimation(Motion.snappy) { picked = hr; scrubbing = false }
         } label: {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(e.title).font(.px(12)).foregroundStyle(c.ink.sub).lineLimit(1).minimumScaleFactor(0.7)
-                    Text(e.value).font(.px(20)).lineLimit(1).minimumScaleFactor(0.6).rolling(e.value)
-                }
-                Spacer(minLength: 0)
-                if let hr = e.hour {
-                    Text(HourLabel.word(hr, clock12: model.clock12)).font(.px(12)).foregroundStyle(c.ink.sub).lineLimit(1)
+            VStack(alignment: .leading, spacing: 7) {
+                Text(e.title).font(.px(11)).foregroundStyle(e.isSel ? c.inv.opacity(0.75) : c.ink.sub)
+                    .lineLimit(1).minimumScaleFactor(0.7)
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(e.value).font(.px(19)).lineLimit(1).minimumScaleFactor(0.6).rolling(e.value)
+                    if let hr = e.hour {
+                        Text(HourLabel.word(hr, clock12: model.clock12)).font(.px(11)).foregroundStyle(c.ink.sub)
+                            .lineLimit(1).minimumScaleFactor(0.7)
+                    }
                 }
             }
+            .foregroundStyle(e.isSel ? c.inv : c.ink.ink)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .dayCard(c)
+            .modifier(ExtremeBackground(c: c, filled: e.isSel))
             .contentShape(Rectangle())
         }
         .buttonStyle(.press(0.97))
         .disabled(e.hour == nil)
         .accessibilityElement(children: .combine)
+    }
+
+    /// The chosen hour's box is filled in ink (as the scale's current step); the others are ordinary cards.
+    private struct ExtremeBackground: ViewModifier {
+        let c: DayCtx; let filled: Bool
+        func body(content: Content) -> some View {
+            content.padding(.horizontal, 12).padding(.vertical, 12)
+                .background {
+                    RoundedRectangle(cornerRadius: 16).fill(filled ? c.ink.ink : c.cardFill)
+                        .shadow(color: Color(hex: "#1E2A44").opacity(c.night || filled ? 0 : 0.08), radius: 9, y: 6)
+                }
+                .overlay { if !filled { RoundedRectangle(cornerRadius: 16).strokeBorder(c.cardBorder, lineWidth: 1) } }
+        }
     }
 
     private func scaleCard(_ c: DayCtx, _ h: DayHourly) -> some View {
@@ -582,7 +620,7 @@ struct DayDetailView: View {
         s.segColors = (0..<25).map { i in DayTempColor.color(mid(vals, i)) }
         s.areaStops = vals.enumerated().map { i, v in Gradient.Stop(color: DayTempColor.color(v), location: (Double(i) + 0.5) / 24) }
         s.areaHorizontal = true; s.areaOpacity = c.night ? 0.38 : 0.45
-        s.showHiLo = false; s.showSel = true     // 최고 · 최저 live in their own row under the chart
+        s.showHiLo = false; s.showSel = false    // no boxes over the curve: the hour's value, 최고 and 최저 sit in the row under the chart
         s.hiText = L("최고 %@", model.deg(Int(vmax.rounded())))
         s.loText = L("최저 %@", model.deg(Int(vmin.rounded())))
         s.selText = "\(timeWord(c)) \(model.deg(Int(vals[c.sel].rounded())))"
