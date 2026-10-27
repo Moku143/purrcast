@@ -39,8 +39,6 @@ targets:
     entitlements:
       path: Config/Purrcast.entitlements
       properties:
-        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        CFBundleShortVersionString: $(MARKETING_VERSION)
         com.apple.security.application-groups: [group.app.purrcast]
     dependencies:
       - target: PurrcastWidgets
@@ -71,8 +69,6 @@ targets:
     entitlements:
       path: Config/PurrcastWidgets.entitlements
       properties:
-        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        CFBundleShortVersionString: $(MARKETING_VERSION)
         com.apple.security.application-groups: [group.app.purrcast]
     settings:
       base:
@@ -99,8 +95,6 @@ targets:
     entitlements:
       path: Config/PurrcastWatch.entitlements
       properties:
-        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        CFBundleShortVersionString: $(MARKETING_VERSION)
         com.apple.security.application-groups: [group.app.purrcast.watch]
     dependencies:
       - target: PurrcastWatchWidgets
@@ -129,8 +123,6 @@ targets:
     entitlements:
       path: Config/PurrcastWatchWidgets.entitlements
       properties:
-        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        CFBundleShortVersionString: $(MARKETING_VERSION)
         com.apple.security.application-groups: [group.app.purrcast.watch]
     settings:
       base:

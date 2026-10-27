@@ -549,3 +549,5 @@
 "%d일 무료로 써보기 (테스트)" = "Try free for %d days (test)";
 "테스트 버전이라 결제 없이 %d일 동안 Plus를 써 볼 수 있어요. 설정에서 언제든 끝낼 수 있어요." = "This is a test build, so you can try Plus for %d days without paying. You can end it any time in Settings.";
 "Apple 날씨 · Plus" = "Apple Weather · Plus";
+"시간별 예보로는 %@쯤 비 · 가능성 %d%%" = "Hourly forecast: rain around %@ · %d%% chance";
+"시간별 예보로는 %@쯤 비" = "Hourly forecast: rain around %@";

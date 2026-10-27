@@ -15,6 +15,9 @@ name: TestFlight
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   upload:
     runs-on: macos-26
@@ -72,6 +75,23 @@ jobs:
           # the reasons, as annotations (readable without opening the log)
           grep -E "error:|Error:|No profiles|No signing|Provisioning|not registered|requires a" archive.log | sort -u | head -12 | while read -r l; do echo "::error::${l:0:300}"; done
           exit $st
+      - name: Entitlements into the archive (built unsigned; the export re-signs it and keeps these)
+        run: |
+          # Without this the App Group never reaches the build: the app and its widgets / watch could not share
+          # the forecast ("앱을 열어 주세요" on the widget). Inner bundles first, the app last.
+          A=build/Purrcast.xcarchive/Products/Applications/Purrcast.app
+          ent() {
+            case "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$1/Info.plist")" in
+              app.purrcast.ios) echo Config/Purrcast.entitlements ;;
+              app.purrcast.ios.widgets) echo Config/PurrcastWidgets.entitlements ;;
+              app.purrcast.ios.watchkitapp) echo Config/PurrcastWatch.entitlements ;;
+              app.purrcast.ios.watchkitapp.widgets) echo Config/PurrcastWatchWidgets.entitlements ;;
+            esac
+          }
+          find "$A" -depth \( -name '*.appex' -o -name '*.app' \) | while read -r b; do
+            e=$(ent "$b"); [ -n "$e" ] || { echo "::warning::no entitlements for $b"; continue; }
+            codesign --force --sign - --entitlements "$e" --timestamp=none --generate-entitlement-der "$b" && echo "signed $(basename "$b") with $e"
+          done
       - name: Upload to TestFlight
         env:
           KEY: ${{ secrets.ASC_KEY_ID }}
@@ -88,6 +108,33 @@ jobs:
           grep -E "error:|Error:|No profiles|No signing|Provisioning|not registered|requires a|failed" export.log | sort -u | head -12 | while read -r l; do echo "::error::${l:0:300}"; done
           tail -25 export.log | while read -r l; do echo "::notice::${l:0:300}"; done
           exit $st
+      - name: What the uploaded build carries (entitlements per bundle → tf-output branch)
+        if: always()
+        env:
+          KEY: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # the upload export leaves no .ipa behind, so sign once more the same way into a local file and look inside
+          sed "s/TEAM_ID/$TEAM/; s#<string>upload</string>#<string>export</string>#" Config/ExportOptions.plist > build/CheckOptions.plist
+          xcodebuild -exportArchive -archivePath build/Purrcast.xcarchive -exportOptionsPlist build/CheckOptions.plist -exportPath build/check \
+            -allowProvisioningUpdates -authenticationKeyPath ~/.appstoreconnect/AuthKey.p8 \
+            -authenticationKeyID "$KEY" -authenticationKeyIssuerID "$ISS" > check.log 2>&1 || true
+          mkdir -p tfout; ipa=$(ls build/check/*.ipa 2>/dev/null | head -1)
+          { echo "run=${{ github.run_id }} build=${{ github.run_number }} $(date -u)"
+            if [ -n "$ipa" ]; then
+              rm -rf x && mkdir x && unzip -q "$ipa" -d x
+              find x/Payload -depth \( -name '*.appex' -o -name '*.app' \) | while read -r b; do
+                echo "== $(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$b/Info.plist")"
+                codesign -d --entitlements - --xml "$b" 2>/dev/null | plutil -convert json -o - - 2>/dev/null || echo "(no entitlements)"
+                echo
+              done
+            else echo "no ipa (export failed)"; grep -E "error|Error" export.log check.log | head -20; fi
+          } > tfout/entitlements.txt 2>&1
+          cat tfout/entitlements.txt
+          cd tfout && git init -q && git checkout -q -b tf-output && git add -A
+          git -c user.name=ci -c user.email=ci@purrcast commit -q -m "testflight ${{ github.run_id }}"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} tf-output
       - name: Keep the logs
         if: always()
         uses: actions/upload-artifact@v4

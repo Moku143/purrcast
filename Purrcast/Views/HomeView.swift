@@ -271,6 +271,11 @@ struct HomeView: View {
             let peak = mm.max() ?? 0
             sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop)" + chanceTail
             icon = st == 0 ? "umbrella" : "umbrella_closed"
+        } else if let h = s.hours.dropFirst().prefix(3).first(where: { $0.mm >= 0.1 || $0.chance >= 30 }) {
+            // the minute forecast is dry for the hour, but the hourly one has rain soon after: say so, so the card
+            // and the bubble ("22시쯤 비 예정") do not seem to disagree
+            let at = model.hourLabel(h.label)
+            sub = h.chance >= 10 ? L("시간별 예보로는 %@쯤 비 · 가능성 %d%%", at, h.chance) : L("시간별 예보로는 %@쯤 비", at)
         }
         let span = mm.count
         return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) })
