@@ -162,12 +162,24 @@ struct DayDetailView: View {
         .buttonStyle(.press(0.95))
     }
 
+    /// The alert's icon from its name, in any language (the same words as the server's `warningKind`)
+    private func alertIcon(_ name: String) -> String {
+        let w = name.lowercased()
+        func has(_ words: [String]) -> Bool { words.contains(where: { w.contains($0) }) }
+        if has(["태풍", "typhoon", "hurricane", "tropical storm", "tropical cyclone", "台風"]) { return "exclaim" }
+        if has(["대설", "snow", "blizzard", "ice storm", "winter storm", "大雪", "暴風雪"]) { return "snowflake" }
+        if has(["호우", "rain", "flood", "大雨", "洪水"]) { return "umbrella" }
+        if has(["강풍", "풍랑", "wind", "gale", "storm", "強風", "暴風", "波浪"]) { return "wind" }
+        if has(["폭염", "heat", "高温", "猛暑"]) { return "thermo_hot" }
+        if has(["한파", "cold", "freez", "frost", "低温", "寒波", "霜"]) { return "thermo_cold" }
+        if has(["황사", "미세먼지", "dust", "smoke", "air quality", "黄砂"]) { return "mask" }
+        return "exclaim"
+    }
+
     private func alertLine(_ a: WeatherScene.Alert, _ c: DayCtx) -> some View {
         let n = a.name
-        let icon = n.contains("호우") ? "umbrella" : n.contains("폭염") ? "thermo_hot" : n.contains("한파") ? "thermo_cold"
-            : n.contains("대설") ? "snowflake" : n.contains("황사") || n.contains("미세") ? "mask" : n.contains("강풍") || n.contains("태풍") ? "wind" : "exclaim"
         return HStack(spacing: 8) {
-            PixelIcon(name: icon, size: 18)
+            PixelIcon(name: alertIcon(n), size: 18)
             Text(a.note.isEmpty ? n : "\(n) · \(model.say(a.note))").font(.px(12)).lineSpacing(3).foregroundStyle(c.ink.ink)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
@@ -513,7 +525,7 @@ struct DayDetailView: View {
         let lo = f ? vmin * 1.8 + 32 : vmin, hi = f ? vmax * 1.8 + 32 : vmax
         let a = floor((lo - (f ? 4 : 2)) / step) * step
         var b = max(a + 3 * step, ceil((hi + (f ? 7 : 4)) / step) * step)
-        while (b - hi) / (b - a) * Double(DayChart.plotHeight) < 32 { b += step }
+        while (b - hi) / (b - a) * Double(DayChart.plotHeight) < 34 { b += step }   // the 22 pt 최고 tag 9 pt over its point, and a little air
         var grid: [(Double, String)] = []
         var y = a
         while y <= b + 0.001 { grid.append(((y - a) / (b - a), "\(Int(y))°")); y += step }
@@ -525,11 +537,17 @@ struct DayDetailView: View {
         s.grid = [(0, "0%"), (0.5, "50%"), (1, "100%")]
         s.segColors = [c.ink.blue]
         if h.hasMM {
-            // bar height in three bands: up to 1 mm the lower third, 1–4 mm the middle, 4–10 mm+ the top
-            s.bars = h.mm.map { v in v <= 1 ? v / 3 : (v <= 4 ? 1 / 3 + (v - 1) / 9 : 2 / 3 + min(1, (v - 4) / 6) / 3) }
+            s.bars = h.mm.map { barHeight($0) }
             s.barFill = c.barFill; s.barCap = c.ink.blue
         }
         return s
+    }
+
+    /// A bar's height (share of the plot) in three bands: up to 1 mm/h the lower third, 1–4 the middle, 4–10+ the top
+    private func barHeight(_ v: Double) -> Double {
+        if v <= 1 { return v / 3 }
+        if v <= 4 { return 1.0 / 3 + (v - 1) / 9 }
+        return 2.0 / 3 + min(1, (v - 4) / 6) / 3
     }
 
     private func windSpec(_ c: DayCtx, _ h: DayHourly) -> DayChartSpec {
@@ -547,8 +565,10 @@ struct DayDetailView: View {
     private func windAxis(_ gmax: Double) -> (ymax: Double, grid: [(Double, String)]) {
         let f: Double = model.windUnit == "km/h" ? 3.6 : (model.windUnit == "mph" ? 2.237 : 1)
         let top = gmax * f
-        let steps: [Double] = f == 1 ? [gmax > 22 ? 8 : 4] : (f > 3 ? [10, 20, 30, 40, 50, 100] : [5, 10, 20, 25, 50])
-        let step = steps.first { ceil((top + f) / $0) <= 5 } ?? (steps.last ?? 4)
+        var steps: [Double] = [5, 10, 20, 25, 50]                  // mph
+        if f == 1 { steps = [gmax > 22 ? 8 : 4] }                   // m/s, as the prototype
+        else if f > 3 { steps = [10, 20, 30, 40, 50, 100] }         // km/h
+        let step = steps.first(where: { ceil((top + f) / $0) <= 5 }) ?? (steps.last ?? 4)
         let ymaxD = max(step, ceil((top + f) / step) * step)
         var grid: [(Double, String)] = []
         var y = 0.0
@@ -812,33 +832,34 @@ private struct DayHourly {
         }
         let day = s.days[index]
         let rainy = day.chance >= 50
-        var d = DayHourly()
-        d.temp = series { $0.temp }
-        d.chance = series { max(0, min(100, $0.chance)) }
-        d.wind = series { max(0, $0.wind) }
-        d.uv = series { max(0, $0.uv) }
-        d.rh = series { max(0, min(100, $0.rh)) }
+        let temp = series { $0.temp }
+        let chance = series { max(0, min(100, $0.chance)) }
+        let wind = series { max(0, $0.wind) }
+        let uv = series { max(0, $0.uv) }
+        let rh = series { max(0, min(100, $0.rh)) }
         // gusts: the strongest in each slot when the forecast has them, else 1.5 × wind + 0.5 (as the prototype); never below the wind
-        let hasGust = rows.contains { $0.gust != nil }
-        let gust = hasGust ? series { $0.gust ?? ($0.wind * 1.5 + 0.5) } : d.wind.map { $0 * 1.5 + 0.5 }
-        d.gust = zip(gust, d.wind).map { max($0, $1) }
+        var gust = wind.map { $0 * 1.5 + 0.5 }
+        if rows.contains(where: { $0.gust != nil }) { gust = series { $0.gust ?? ($0.wind * 1.5 + 0.5) } }
         // directions: the shorter way round between the rows (350° → 10° passes north)
         let deg = Double(s.wind.deg)
         var dpts = zip(hs, rows.map { $0.dir ?? deg }).map { ($0, $1) }.sorted { $0.0 < $1.0 }
         if let n = next { dpts.append((24, n.dir ?? deg)) }
+        // feels-like: muggy heat pushes it up (blended in from 20° to 25°), otherwise night, rain and wind pull it down
+        let feel: [Double] = (0..<24).map { h in
+            let t = temp[h], k = max(0, min(1, (t - 20) / 5))
+            let nightness = max(0, min(1, (abs(Double(h) - 13) - 5) / 2.5))
+            let cold = t - 1 - nightness - (rainy ? 1 : 0) - max(0, wind[h] - 3) * 0.5
+            let hot = t + max(0, (rh[h] - 40) / 15)
+            return (1 - k) * cold + k * hot
+        }
+        var d = DayHourly()
+        d.temp = temp; d.feel = feel; d.chance = chance; d.wind = wind; d.uv = uv; d.rh = rh
+        d.gust = zip(gust, wind).map { max($0, $1) }
         d.dir = (0..<24).map { h in interpAngle(dpts, Double(h)) }
         // rain: every slot's amount spread over its own hours
         d.hasMM = rows.contains { $0.mm != nil }
         d.mm = spread(hs, rows.map { $0.mm ?? 0 })
         d.total = rows.reduce(0) { $0 + max(0, $1.mm ?? 0) }
-        // feels-like: muggy heat pushes it up (blended in from 20° to 25°), otherwise night, rain and wind pull it down
-        d.feel = (0..<24).map { h in
-            let t = d.temp[h], k = max(0, min(1, (t - 20) / 5))
-            let nightness = max(0, min(1, (abs(Double(h) - 13) - 5) / 2.5))
-            let cold = t - 1 - nightness - (rainy ? 1 : 0) - max(0, d.wind[h] - 3) * 0.5
-            let hot = t + max(0, (d.rh[h] - 40) / 15)
-            return (1 - k) * cold + k * hot
-        }
         d.dayProb = day.chance; d.dayIcon = day.icon; d.snowy = day.icon == "snowflake"; d.rainy = rainy
         if index == 0, let m = WeatherScene.clockMinutes(s.clock) { d.now = m / 60 }
         // night icons from the sunset / sunrise tile when there is one ("17:52" → from 18 h)
@@ -1011,10 +1032,10 @@ private struct DayChart: View {
     let ctx: DayCtx; let spec: DayChartSpec; let cw: CGFloat; let scrub: DayScrub
     let onScrub: (Int, Bool) -> Void
     /// nil until a drag shows its direction; true = sideways (scrubbing the hours), false = up-down (scrolling)
-    @State private var sideways: Bool? = nil
-    @State private var sizes: [Int: CGSize] = [:]
+    @State var sideways: Bool? = nil
+    @State var sizes: [Int: CGSize] = [:]
     private var W: CGFloat { cw * 24 }
-    private let H = DayChart.H
+    private var H: CGFloat { DayChart.H }
 
     var body: some View {
         let pts = DayCurve.points(spec.vals.map { spec.y($0) }, cw: cw)
@@ -1091,10 +1112,6 @@ private struct DayChart: View {
         return Canvas { c, _ in
             guard pts.count > 1 else { return }
             c.translateBy(x: 0, y: pad)
-            if let l2 = spec.line2 {
-                let p2 = DayCurve.points(l2.map { spec.y($0) }, cw: cw)
-                c.stroke(DayCurve.line(p2), with: .color(spec.line2Color), style: StrokeStyle(lineWidth: 3, lineCap: .butt, lineJoin: .round, dash: [3, 4]))
-            }
             let style = StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
             let path = DayCurve.line(pts)
             let cols = spec.segColors
@@ -1108,6 +1125,10 @@ private struct DayChart: View {
                     stops.append(.init(color: col, location: pts[i + 1].x / W))
                 }
                 c.stroke(path, with: .linearGradient(Gradient(stops: stops), startPoint: .zero, endPoint: CGPoint(x: W, y: 0)), style: style)
+            }
+            if let l2 = spec.line2 {
+                let p2 = DayCurve.points(l2.map { spec.y($0) }, cw: cw)
+                c.stroke(DayCurve.line(p2), with: .color(spec.line2Color), style: StrokeStyle(lineWidth: 3, lineCap: .butt, lineJoin: .round, dash: [3, 4]))
             }
         }
         .frame(width: W, height: H + pad * 2)
@@ -1130,43 +1151,61 @@ private struct DayChart: View {
 
     // MARK: tags
 
-    private func size(_ k: Int, _ text: String, _ h: CGFloat) -> CGSize { sizes[k] ?? CGSize(width: CGFloat(text.count) * 7 + 14, height: h) }
+    /// A tag's measured size (an estimate until it has been laid out once)
+    private func size(_ k: Int, _ text: String, _ h: CGFloat) -> CGSize { sizes[k] ?? CGSize(width: CGFloat(text.count) * 8 + 14, height: h) }
 
-    /// Where the tags go (top-left corners; nil = hidden). The selected-hour tag sits above its point (below it when
-    /// there is no room); 최고 / 최저 sit above theirs, slide sideways past the selected-hour tag (still over their
-    /// point), 최저 may drop under its point, and a tag that would touch another tag or the marker is hidden.
+    /// Where the tags go (top-left corners; nil = hidden), never touching each other or the marker. The selected-hour
+    /// tag sits above its point (below it when there is no room) and slides to either side when that lets 최고 / 최저
+    /// fit; those sit above their points, slide sideways as far as their point stays under them, 최저 may drop under its
+    /// point, and a tag with no room left is hidden (최고 when the selected hour is the warmest: its tag says it already).
+    /// While the finger scrubs, the selected-hour tag is away, so 최고 / 최저 only make way for the marker.
     private var tagPlan: (hi: CGPoint?, lo: CGPoint?, sel: CGPoint?) {
         let vals = spec.vals
         guard vals.count == 24, let vmax = vals.max(), let vmin = vals.min() else { return (nil, nil, nil) }
         let sx = px(ctx.sel), sy = spec.y(vals[ctx.sel])
-        let ss = size(2, spec.selText, 21)
-        var selRect = CGRect(x: clampX(sx - ss.width / 2, ss.width), y: sy - 8 - ss.height, width: ss.width, height: ss.height)
-        if selRect.minY < -2 { selRect.origin.y = sy + 8 }
-        // the selected-hour tag counts while it is hidden for the readout too, so 최고 / 최저 hold still under the finger
-        var taken = [CGRect(x: sx - 6.5, y: sy - 6.5, width: 13, height: 13)]
-        if spec.showSel { taken.append(selRect) }
-        var hi: CGPoint?, lo: CGPoint?
-        if spec.showHiLo {
-            let hiI = vals.firstIndex(of: vmax) ?? 0, loI = vals.firstIndex(of: vmin) ?? 0
-            if let r = place(hiI, y: spec.y(vmax), size: size(0, spec.hiText, 17), sel: selRect, taken: taken, under: false) { hi = r.origin; taken.append(r) }
-            if let r = place(loI, y: spec.y(vmin), size: size(1, spec.loText, 19), sel: selRect, taken: taken, under: true) { lo = r.origin }
+        let mark = CGRect(x: sx - 6.5, y: sy - 6.5, width: 13, height: 13)
+        let ss = size(2, spec.selText, 26), hs = size(0, spec.hiText, 22), ls = size(1, spec.loText, 24)
+        let selY = sy - 8 - ss.height >= -2 ? sy - 8 - ss.height : sy + 8
+        let hiI = vals.firstIndex(of: vmax) ?? 0, loI = vals.firstIndex(of: vmin) ?? 0
+        let selOn = spec.showSel && !ctx.scrub
+        let xs = [clampX(sx - ss.width / 2, ss.width), clampX(sx - ss.width + 4, ss.width), clampX(sx - 4, ss.width)]
+        var best: (hi: CGRect?, lo: CGRect?, sel: CGRect)?
+        var bestScore = -1
+        for x in xs {
+            let sel = CGRect(x: x, y: selY, width: ss.width, height: ss.height)
+            var taken = [mark]
+            if selOn { taken.append(sel) }
+            let hi = spec.showHiLo ? place(px(hiI), spec.y(vmax), hs, taken, under: false) : nil
+            if let hi { taken.append(hi) }
+            let lo = spec.showHiLo ? place(px(loI), spec.y(vmin), ls, taken, under: true) : nil
+            let score = (hi == nil ? 0 : 2) + (lo == nil ? 0 : 1)
+            if score > bestScore { best = (hi, lo, sel); bestScore = score }
+            if score == 3 || !spec.showHiLo || !selOn { break }
         }
-        return (hi, lo, spec.showSel && !ctx.scrub ? selRect.origin : nil)
+        guard let b = best else { return (nil, nil, nil) }
+        return (b.hi?.origin, b.lo?.origin, selOn ? b.sel.origin : nil)
     }
 
-    private func place(_ i: Int, y py: CGFloat, size s: CGSize, sel: CGRect, taken: [CGRect], under: Bool) -> CGRect? {
-        let x0 = px(i)
+    /// A 최고 / 최저 tag over (or, `under`, below) its point at x0: centred, else slid just clear of what is in the way
+    /// while the point stays at least 4 pt inside the tag; nil when nothing fits.
+    private func place(_ x0: CGFloat, _ py: CGFloat, _ s: CGSize, _ taken: [CGRect], under: Bool) -> CGRect? {
         func free(_ r: CGRect) -> Bool {
-            r.minY >= -2 && r.maxY <= H + 2 && !taken.contains { $0.insetBy(dx: -2, dy: -2).intersects(r) }
+            r.minY >= -2 && r.maxY <= H + 2 && !taken.contains(where: { $0.insetBy(dx: -2, dy: -2).intersects(r) })
         }
-        let above = CGRect(x: clampX(x0 - s.width / 2, s.width), y: py - 9 - s.height, width: s.width, height: s.height)
-        if free(above) { return above }
-        let x2 = i > ctx.sel ? sel.maxX + 3 : sel.minX - 3 - s.width
-        let side = CGRect(x: x2, y: above.minY, width: s.width, height: s.height)
-        if x2 >= 0, x2 + s.width <= W, x0 >= x2 + 4, x0 <= x2 + s.width - 4, free(side) { return side }
-        if under {
-            let below = CGRect(x: above.minX, y: py + 9, width: s.width, height: s.height)
-            if free(below) { return below }
+        let lo = max(0, x0 - s.width + 4), hi = min(W - s.width, x0 - 4)
+        let centre = lo <= hi ? min(max(x0 - s.width / 2, lo), hi) : clampX(x0 - s.width / 2, s.width)
+        var xs = [centre]
+        if lo <= hi {
+            for b in taken { xs.append(b.maxX + 3); xs.append(b.minX - 3 - s.width) }
+            xs = xs.filter { $0 >= lo - 0.5 && $0 <= hi + 0.5 }.sorted { abs($0 - centre) < abs($1 - centre) }
+        }
+        var ys = [py - 9 - s.height]
+        if under { ys.append(py + 9) }
+        for y in ys {
+            for x in xs {
+                let r = CGRect(x: x, y: y, width: s.width, height: s.height)
+                if free(r) { return r }
+            }
         }
         return nil
     }
@@ -1306,7 +1345,7 @@ private struct DayArrow: View {
     }
 }
 
-/// The close button's pixel ✕ (7 × 7 grid)
+/// The close button's pixel cross (7 × 7 grid)
 private struct DayCloseX: View {
     let color: Color
     private static let rows: [[Int]] = [[0, 1, 5, 6], [0, 1, 2, 4, 5, 6], [1, 2, 3, 4, 5], [2, 3, 4], [1, 2, 3, 4, 5], [0, 1, 2, 4, 5, 6], [0, 1, 5, 6]]
