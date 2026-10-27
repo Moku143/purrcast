@@ -54,6 +54,28 @@ final class ScreenshotTests: XCTestCase {
         shot("onboarding-3", ["-scene", "maybe", "-onboarding"]) { app in app.buttons["next"].tap(); sleep(1); app.buttons["next"].tap(); sleep(1) }
     }
 
+    /// Plus page on the watch slide; settings at the 언어 row; the character sheet's 말투 (Plus).
+    func test7NewParts() {
+        shot("page-paywall-watch", ["-scene", "maybe", "-open", "paywall"], wait: 2) { app in
+            for _ in 0..<2 { app.swipeLeft(); sleep(1) }
+        }
+        shot("page-settings-language", ["-scene", "maybe", "-plus", "-open", "settings"], wait: 2) { app in
+            app.swipeUp(); sleep(1)
+        }
+        shot("page-character-voice", ["-scene", "maybe", "-plus", "-char", "abys", "-open", "character"], wait: 2) { app in
+            app.swipeUp(); sleep(1)
+        }
+        for lang in ["en", "ja"] {
+            shot("lang-\(lang)-paywall-watch", ["-scene", "maybe", "-open", "paywall"], wait: 2, lang: lang) { app in
+                for _ in 0..<2 { app.swipeLeft(); sleep(1) }
+            }
+            shot("lang-\(lang)-home-cards", ["-scene", "maybe", "-plus"], lang: lang) { app in
+                for _ in 0..<3 { app.swipeUp() }; sleep(1)
+            }
+            shot("lang-\(lang)-character", ["-scene", "maybe", "-plus", "-char", "abys", "-open", "character"], wait: 2, lang: lang)
+        }
+    }
+
     /// The same app on an English and a Japanese phone (strings, sample scenes, 話し方).
     func test6Languages() {
         for lang in ["en", "ja"] {

@@ -16,7 +16,7 @@ struct PaywallView: View {
         f += [
             Feature(art: "fresh", title: L("새 예보마다 업데이트"), note: L("무료는 하루 1번, Plus는 새 예보가 나올 때마다."), check: L("새 예보마다")),
             Feature(art: "rain", title: L("가까운 비"), note: L("비 올 시각까지 · 한국은 다음 6시간"), check: L("가까운 비")),
-            Feature(art: "watch", title: L("애플워치"), note: L("워치 앱 · 워치 페이스 · 컴플리케이션"), check: L("애플워치")),
+            Feature(art: "watch", title: L("애플워치"), note: L("손목에서 지금 날씨 · 시간별 · 10일\n워치 페이스에 기온 · 비 확률 · 캐릭터"), check: L("애플워치")),
             Feature(art: "places", title: L("지역 여러 곳"), note: L("무료는 1곳 더, Plus는 제한 없이."), check: L("지역 여러 곳")),
             Feature(art: "chars", title: L("캐릭터 바꾸기"), note: L("아비시니안 · 브리티시숏헤어 · 추후 업데이트로 추가 예정"), check: L("캐릭터")),
         ]
@@ -247,25 +247,36 @@ struct PaywallView: View {
         }
     }
 
-    /// Two watches: the app and a face with the character on it
+    /// Two watches, drawn with the real watch views: the watch app's first page, and a watch face with the complications.
     private var watchArt: some View {
-        HStack(spacing: 10) {
-            miniWatch { CharacterSprite(character: .cat, level: 4, rain: .bag, width: 64, animate: false) }
-            miniWatch {
-                VStack(spacing: 2) {
-                    Text("10:09").font(.px(18)).foregroundStyle(.white)
-                    CharacterSprite(character: .cat, level: 4, rain: .none, width: 48, animate: false)
-                }
-            }
+        let snap: WeatherSnapshot = {
+            var x = WeatherSnapshot.sample; x.plus = true; x.character = model.shownCharacter; x.unitF = model.unitF; x.clock12 = model.clock12
+            return x
+        }()
+        return HStack(spacing: 16) {
+            watchBezel { WatchNow(snap: snap) }
+            watchBezel { WatchFacePreview(snap: snap) }
         }
     }
 
-    private func miniWatch<C: View>(@ViewBuilder _ c: () -> C) -> some View {
-        RoundedRectangle(cornerRadius: 30).fill(Color(hex: "#111114")).frame(width: 113, height: 132)
-            .overlay {
-                RoundedRectangle(cornerRadius: 22).fill(Color(hex: "#1B1F2E")).padding(8)
-                    .overlay(c())
-            }
+    /// An Apple Watch: dark case, side button and crown, the screen at the watch's own size scaled down.
+    private func watchBezel<C: View>(@ViewBuilder _ c: () -> C) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 36, style: .continuous).fill(Color(hex: "#111114"))
+                .frame(width: 122, height: 146)
+                .shadow(color: .black.opacity(0.25), radius: 8, y: 5)
+            c().frame(width: 184, height: 224)
+                .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                .scaleEffect(0.57)
+                .frame(width: 105, height: 128)
+        }
+        .overlay(alignment: .trailing) {
+            VStack(spacing: 10) {
+                Capsule().fill(Color(hex: "#3A3A40")).frame(width: 5, height: 20)    // crown
+                Capsule().fill(Color(hex: "#2A2A30")).frame(width: 4, height: 26)    // side button
+            }.offset(x: 4, y: -6)
+        }
+        .accessibilityHidden(true)
     }
 
     /// Three place cards fanned out: Seoul, Tokyo, New York (night)
