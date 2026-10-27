@@ -229,9 +229,19 @@ struct WeatherScene: Codable, Identifiable {
 enum SceneLibrary {
     static let order = ["clear", "maybe", "combo", "tokyo_soon", "seoul_soon", "spring_chill", "spring_dust", "spring_rain",
                         "summer_monsoon", "summer_night", "summer_heat", "summer_typhoon", "winter_eve", "winter_cold", "winter_snow"]
-    static let all: [String: WeatherScene] = {
-        // the Korean originals, or the translated copies (server/scripts/translate-scenes.mjs) for an English / Japanese phone
-        let name = Lang.current == .ko ? "scenes" : "scenes.\(Lang.current.rawValue)"
+    private static var cache: [Lang: [String: WeatherScene]] = [:]
+    private static let lock = NSLock()
+    /// The example scenes in the current language (the language can change while the app runs).
+    static var all: [String: WeatherScene] {
+        let lang = Lang.current
+        lock.lock(); defer { lock.unlock() }
+        if let c = cache[lang] { return c }
+        let d = load(lang); cache[lang] = d
+        return d
+    }
+    private static func load(_ lang: Lang) -> [String: WeatherScene] {
+        // the Korean originals, or the translated copies (server/scripts/translate-scenes.mjs) for English / Japanese
+        let name = lang == .ko ? "scenes" : "scenes.\(lang.rawValue)"
         guard let url = Bundle.main.url(forResource: name, withExtension: "json") ?? Bundle.main.url(forResource: "scenes", withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let raw = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [:] }
@@ -241,7 +251,7 @@ enum SceneLibrary {
             s.id = k; dict[k] = s
         }
         return dict
-    }()
+    }
     /// An example scene; never crashes even if the bundle has none.
     static func scene(_ key: String) -> WeatherScene {
         if let s = all[key] ?? all["clear"] ?? all.values.first { return s }

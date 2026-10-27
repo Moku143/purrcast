@@ -45,6 +45,8 @@ final class AppModel: ObservableObject {
     /// 말투: "" follows the character (고양이 존댓말 · 브리티시숏헤어 격식 · 아비시니안 반말), or a Voice rawValue chosen in 설정 (Plus)
     @Published var voiceChoice: String { didSet { persist(); notificationsChanged(turnedOn: false) } }
     @Published var morningTime: Date { didSet { persist(); planNotifications() } }
+    /// 설정 → 언어: "" follows the device, or ko · en · ja. The whole app, the widgets, the watch and the server's words change.
+    @Published var language: String { didSet { if language != oldValue { languageChanged() } } }
     @Published var onboarded: Bool { didSet { persist() } }
 
     /// UI tests / design review only (compiled out of release builds): a fixed example scene, Plus forced on.
@@ -68,6 +70,7 @@ final class AppModel: ObservableObject {
         debugPlus = forcePlus
         let d = SharedStore.defaults
         let testing = pinned != nil || args.contains("-reset")
+        if testing && !args.contains("-keepLanguage") { Lang.picked = nil }   // screenshots follow the simulator's language
 
         let prov = WeatherSource.make(sceneOverride: pinned)
         provider = prov
@@ -106,6 +109,7 @@ final class AppModel: ObservableObject {
         notifyAlert = d.object(forKey: "notifyAlert") as? Bool ?? true
         notifyNearRain = d.object(forKey: "notifyNearRain") as? Bool ?? true
         voiceChoice = d.string(forKey: "voiceChoice") ?? ""
+        language = Lang.picked?.rawValue ?? ""
         morningTime = d.object(forKey: "morningTime") as? Date ?? Calendar.current.date(from: DateComponents(hour: 7, minute: 0)) ?? Date()
         onboarded = testing ? !args.contains("-onboarding") : d.bool(forKey: "onboarded")
         FontPref.pixel = pixelFont
@@ -233,7 +237,22 @@ final class AppModel: ObservableObject {
     var snapshot: WeatherSnapshot {
         WeatherSnapshot(scene: scene, character: character, plus: plus, characterName: name(of: shownCharacter),
                         placeShort: currentPlace.short, saved: Date(), place: currentPlace, plusUntil: plusUntil,
-                        unitF: unitF, clock12: clock12, isSample: isSample)
+                        unitF: unitF, clock12: clock12, isSample: isSample, lang: language)
+    }
+
+    /// A new language: saved place names follow it, the example scene too, and the forecast is asked for again
+    /// (the server writes its sentences in the app's language). Widgets and the watch get the new snapshot.
+    private func languageChanged() {
+        Lang.picked = Lang(rawValue: language)
+        places = places.map { p in
+            if p.id == "here" && !hereIsLive { return Place.here }
+            guard let c = Place.catalog.first(where: { $0.id == p.id }) else { return p }
+            var q = p; q.name = c.name; q.short = c.short; return q
+        }
+        if provider.isSample { raw = SceneLibrary.scene(pinnedScene ?? currentPlace.sample) }
+        previews = [:]
+        publish()
+        Task { await refresh(force: true) }
     }
 
     /// Hand the current forecast to the widgets and the watch, and re-plan notifications from it.

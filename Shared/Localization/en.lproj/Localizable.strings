@@ -502,3 +502,10 @@
 "확률" = "Chance";
 "Apple 날씨 출처 안내" = "Apple Weather attribution";
 "글꼴: Galmuri11 (SIL OFL 1.1) · PixelMplus12 (M+ FONT LICENSE)" = "Fonts: Galmuri11 (SIL OFL 1.1) · PixelMplus12 (M+ FONT LICENSE)";
+
+/* 언어 · 말투 */
+"언어" = "Language";
+"앱 언어" = "App language";
+"앱 · 위젯 · 워치 · 알림이 같이 바뀌어요" = "The app, widgets, watch and notifications all change";
+"기기 설정" = "Device";
+"이름 · 말투" = "Name · tone";

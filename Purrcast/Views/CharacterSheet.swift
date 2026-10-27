@@ -30,6 +30,7 @@ struct CharacterSheet: View {
                 .reveal(0)
 
                 if !model.plus { plusBanner.reveal(1) }
+                if !Voice.choices.isEmpty { voiceSection.reveal(2) }
                 Text(L("위젯 · 애플워치도 같이 바뀌어요")).font(.ui(12.5)).foregroundStyle(UI.sub)
                     .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 24).padding(.top, 16).padding(.bottom, 24)
             }
@@ -127,6 +128,44 @@ struct CharacterSheet: View {
         .overlay(alignment: .topTrailing) { if !model.plus { PlusTag().padding(8) } }
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .accessibilityIdentifier("pick-soon")
+    }
+
+    // MARK: 말투 (Plus)
+
+    /// How the character talks: its own by default (고양이 존댓말 · 브리티시숏헤어 격식 · 아비시니안 반말), or one picked here.
+    /// English has one tone, so this is hidden there; Japanese offers 丁寧 · タメ口. On Free it shows the sample and opens Plus.
+    private var voiceSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                PixelIcon(name: "music", size: 20)
+                Text(L("말투")).font(.px(15)).foregroundStyle(UI.ink)
+                Spacer()
+                if !model.plus { PlusTag() }
+            }
+            if model.plus {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    Pills(options: [("", L("캐릭터 기본"))] + Voice.choices.map { ($0.rawValue, $0.name) }, value: $model.voiceChoice)
+                }
+                .accessibilityIdentifier("voice-pills")
+            }
+            // what the character sounds like now, in its bubble style
+            Text(model.say(L("비 예보예요. 우산을 챙겨 주세요.")))
+                .font(.ui(13)).foregroundStyle(UI.ink)
+                .padding(.horizontal, 12).padding(.vertical, 9)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(UI.bg).clipShape(RoundedRectangle(cornerRadius: 12))
+                .id(model.voiceChoice).transition(.opacity)
+            if !model.plus {
+                Text(L("Plus에서 고를 수 있어요")).font(.ui(12)).foregroundStyle(UI.sub)
+            }
+        }
+        .padding(16)
+        .background(UI.row).clipShape(RoundedRectangle(cornerRadius: 18))
+        .contentShape(Rectangle())
+        .onTapGesture { if !model.plus { Haptic.soft(); open(.paywall) } }
+        .animation(Motion.snappy, value: model.voiceChoice)
+        .padding(.horizontal, 20).padding(.top, 16)
+        .accessibilityIdentifier("voice")
     }
 
     private var plusBanner: some View {

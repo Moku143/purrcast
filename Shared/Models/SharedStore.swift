@@ -17,12 +17,13 @@ struct WeatherSnapshot: Codable {
     var unitF: Bool = false
     var clock12: Bool = false
     var isSample: Bool = false          // example weather (no server yet)
+    var lang: String? = nil             // 설정 → 언어 on the phone ("" = the device's); the watch follows it
 
     init(scene: WeatherScene, character: PurrCharacter, plus: Bool, characterName: String, placeShort: String, saved: Date,
-         place: Place? = nil, plusUntil: Date? = nil, unitF: Bool = false, clock12: Bool = false, isSample: Bool = false) {
+         place: Place? = nil, plusUntil: Date? = nil, unitF: Bool = false, clock12: Bool = false, isSample: Bool = false, lang: String? = nil) {
         self.scene = scene; self.character = character; self.plus = plus; self.characterName = characterName
         self.placeShort = placeShort; self.saved = saved; self.place = place; self.plusUntil = plusUntil
-        self.unitF = unitF; self.clock12 = clock12; self.isSample = isSample
+        self.unitF = unitF; self.clock12 = clock12; self.isSample = isSample; self.lang = lang
     }
 
     init(from decoder: Decoder) throws {
@@ -38,6 +39,7 @@ struct WeatherSnapshot: Codable {
         unitF = (try? c.decode(Bool.self, forKey: .unitF)) ?? false
         clock12 = (try? c.decode(Bool.self, forKey: .clock12)) ?? false
         isSample = (try? c.decode(Bool.self, forKey: .isSample)) ?? false
+        lang = try? c.decode(String.self, forKey: .lang)
     }
 
     /// Plus, unless the paid period has ended since the app last ran.

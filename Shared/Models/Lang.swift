@@ -1,13 +1,30 @@
 import Foundation
 
-/// The language the app speaks: Korean (default), English, Japanese. Chosen once at launch from the device
-/// language (ko → ko, ja → ja, everything else → en); tests set `current` to pin one.
-/// User-visible text goes through `L(…)`: the key is the Korean source text, looked up in
+/// The language the app speaks: Korean, English, Japanese. 설정 → 언어 picks one (shared with the widgets through the
+/// App Group, and sent to the watch); "기기 설정" follows the device (ko → ko, ja → ja, everything else → en).
+/// Tests set `current` to pin one. User-visible text goes through `L(…)`: the key is the Korean source text, looked up in
 /// Shared/Localization/<lang>.lproj/Localizable.strings. A missing key shows the Korean text.
 enum Lang: String, CaseIterable {
     case ko, en, ja
 
-    static var current: Lang = detect()
+    /// The defaults key for the picked language ("" = the device's).
+    static let pickKey = "appLanguage"
+    private static let store = UserDefaults(suiteName: SharedStore.groupID) ?? .standard
+    private static let device = detect()
+    /// Set by tests (and previews) to pin a language.
+    private static var pinned: Lang?
+
+    static var current: Lang {
+        get { pinned ?? picked ?? device }
+        set { pinned = newValue }
+    }
+    /// The language chosen in 설정 → 언어, nil for the device's.
+    static var picked: Lang? {
+        get { Lang(rawValue: store.string(forKey: pickKey) ?? "") }
+        set { store.set(newValue?.rawValue ?? "", forKey: pickKey) }
+    }
+    /// The language's own name, the same in every language ("한국어", "English", "日本語").
+    var nativeName: String { self == .ko ? "한국어" : self == .en ? "English" : "日本語" }
     /// The code sent to the server (`lang=`).
     var code: String { rawValue }
 

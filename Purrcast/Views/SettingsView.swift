@@ -157,29 +157,25 @@ struct SettingsView: View {
                 SettingRow(title: L("글씨")) { Pills(options: [(true, L("픽셀")), (false, L("일반"))], value: $model.pixelFont) }
                 RowDivider()
                 Button { go(.character) } label: {
-                    SettingRow(icon: "heart", title: L("캐릭터")) {
+                    SettingRow(icon: "heart", title: L("캐릭터"), subtitle: Voice.choices.isEmpty ? nil : L("이름 · 말투")) {
                         if model.plus { RowValue(text: model.name(of: model.shownCharacter)) } else { PlusTag() }
                     }
                 }.buttonStyle(.row)
-                // 말투: the character's own by default (고양이 존댓말 · 브리티시숏헤어 격식 · 아비시니안 반말), Plus can choose.
-                // English has one tone, so the row is not shown; Japanese offers 丁寧 · タメ口.
-                if !Voice.choices.isEmpty {
-                    RowDivider()
-                    voiceRow
-                }
             }
+            // 언어: the app's language (not the tone — 말투 lives on the character sheet, Plus)
+            SectionLabel(text: L("언어"))
+            RowGroup { languageRow }
         }
     }
 
-    private var voiceRow: some View {
+    private var languageRow: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SettingRow(icon: "music", title: L("말투"), subtitle: model.plus ? model.voice.sample : L("Plus에서 고를 수 있어요")) {
-                if !model.plus { PlusTag() }
+            SettingRow(symbol: "globe", title: L("앱 언어"), subtitle: L("앱 · 위젯 · 워치 · 알림이 같이 바뀌어요")) { EmptyView() }
+            ScrollView(.horizontal, showsIndicators: false) {
+                Pills(options: [("", L("기기 설정"))] + Lang.allCases.map { ($0.rawValue, $0.nativeName) }, value: $model.language)
             }
-            if model.plus {
-                Pills(options: [("", L("캐릭터 기본"))] + Voice.choices.map { ($0.rawValue, $0.name) }, value: $model.voiceChoice)
-                    .padding(.horizontal, 14).padding(.bottom, 10)
-            }
+            .padding(.horizontal, 14).padding(.bottom, 10)
+            .accessibilityIdentifier("language")
         }
     }
 

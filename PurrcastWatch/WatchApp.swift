@@ -37,6 +37,7 @@ final class WatchLink: NSObject, ObservableObject, WCSessionDelegate {
 
     private func take(_ ctx: [String: Any]) {
         guard let data = ctx["snapshot"] as? Data, let s = try? JSONDecoder().decode(WeatherSnapshot.self, from: data) else { return }
+        if let l = s.lang { Lang.picked = Lang(rawValue: l) }   // the phone's 설정 → 언어 (complications read it from the group too)
         SharedStore.save(s)
         #if canImport(WidgetKit)
         WidgetCenter.shared.reloadAllTimelines()
