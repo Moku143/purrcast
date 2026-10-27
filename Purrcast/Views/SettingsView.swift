@@ -340,7 +340,7 @@ struct SourcesView: View {
         card {
             Text(L("그 밖에")).font(.ui(15, .bold))
             line(L("일출 · 일몰: 위치로 폰에서 계산"))
-            line(L("글꼴: Galmuri11 (SIL OFL 1.1)"))
+            line(L("글꼴: Galmuri11 (SIL OFL 1.1) · PixelMplus12 (M+ FONT LICENSE)"))
         }
     }
 

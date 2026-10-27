@@ -30,7 +30,7 @@ targets:
         CFBundleDisplayName: Purrcast
         CFBundleDevelopmentRegion: en
         UILaunchScreen: {}
-        UIAppFonts: [Galmuri11.ttf, Galmuri11-Bold.ttf]
+        UIAppFonts: [PurrcastPixel-Bold.ttf]
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIUserInterfaceStyle: Light
         ITSAppUsesNonExemptEncryption: false
@@ -64,7 +64,7 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleDisplayName: Purrcast
-        UIAppFonts: [Galmuri11.ttf, Galmuri11-Bold.ttf]
+        UIAppFonts: [PurrcastPixel-Bold.ttf]
         PurrcastServerURL: ""
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
@@ -94,7 +94,7 @@ targets:
         WKApplication: true
         WKCompanionAppBundleIdentifier: app.purrcast.ios
         WKRunsIndependentlyOfCompanionApp: false
-        UIAppFonts: [Galmuri11.ttf, Galmuri11-Bold.ttf]
+        UIAppFonts: [PurrcastPixel-Bold.ttf]
         PurrcastServerURL: ""
     entitlements:
       path: Config/PurrcastWatch.entitlements
@@ -122,7 +122,7 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleDisplayName: Purrcast
-        UIAppFonts: [Galmuri11.ttf, Galmuri11-Bold.ttf]
+        UIAppFonts: [PurrcastPixel-Bold.ttf]
         PurrcastServerURL: ""
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension

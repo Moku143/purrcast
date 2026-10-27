@@ -35,16 +35,17 @@ struct Ink {
     var hot: Color { night ? Color(hex: "#FFB08A") : Color(hex: "#C2452D") }
 }
 
-/// Settings → 화면 → 글씨: pixel (Galmuri11) or plain (system rounded).
+/// Settings → 화면 → 글씨: pixel (Purrcast Pixel) or plain (system rounded).
 enum FontPref { static var pixel = true }
 
 extension Font {
-    /// Galmuri11 Bold, the pixel face used for numbers and headings (system rounded when the user picks plain text)
+    /// Purrcast Pixel Bold, the pixel face used for numbers and headings (system rounded when the user picks plain text):
+    /// Galmuri11 Bold for Hangul and Latin + PixelMplus12 Bold for Japanese, one 12-px grid (tools/pixelfont).
     /// Small text (≤ 13 pt) reads a notch bigger across the app; big numbers stay as designed.
     private static func bump(_ size: CGFloat) -> CGFloat { size >= 9 && size <= 13 ? size + 1 : size }
     static func px(_ size: CGFloat) -> Font {
         let s = bump(size)
-        return FontPref.pixel ? .custom("Galmuri11-Bold", size: s) : .system(size: s * 1.04, weight: .bold, design: .rounded)
+        return FontPref.pixel ? .custom("PurrcastPixel-Bold", size: s) : .system(size: s * 1.04, weight: .bold, design: .rounded)
     }
     static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font { .system(size: bump(size), weight: weight) }
 }
