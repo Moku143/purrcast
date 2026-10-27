@@ -2,9 +2,10 @@ import SwiftUI
 
 /// Tapping a day in the 10-day list, as on the prototype's AppDay screen: a 10-day strip, metric tabs
 /// (기온 · 비 · 바람 · 자외선 · 습도), the character dressed for the selected hour beside a summary bubble,
-/// one chart per tab with a marker at the selected hour (press or drag across it to read any hour),
-/// and a plain-language scale underneath. Everything comes from the stored forecast (`dayDetail`,
-/// 8 three-hourly values per day, interpolated to 24 hours); without it only the summary line is shown.
+/// one chart per tab with a marker at the selected hour (tap an hour, or drag sideways across the chart to read any hour),
+/// and a plain-language scale underneath. Everything comes from the stored forecast (`dayDetail`, 8 three-hourly
+/// rows per day: the point values are interpolated to 24 hours, the 3-hour rain amounts spread over their hours);
+/// without it only the summary line is shown.
 struct DayDetailView: View {
     @EnvironmentObject var model: AppModel
     @Environment(\.dismiss) private var dismiss
@@ -41,33 +42,37 @@ struct DayDetailView: View {
                 tabs(ctx)
                 if index == 0, let a = s.alert { alertLine(a, ctx) }
                 brief(ctx)
-                if hourly != nil {
-                    chartCard(ctx).reveal(1)
-                    if !scaleItems(ctx).items.isEmpty { scaleCard(ctx).reveal(2) }
+                if let h = hourly {
+                    chartCard(ctx, h).reveal(1)
+                    if !scaleItems(ctx, h).items.isEmpty { scaleCard(ctx, h).reveal(2) }
                 }
             }
             .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 40)
         }
-        .background(sheetBackground(s, ink).ignoresSafeArea())
+        .background(sheetBackground(s).ignoresSafeArea())
         .foregroundStyle(ink.ink)
-        .onChange(of: start) { _, _ in picked = nil }
+        .onChange(of: start) { _, _ in picked = nil; scrubbing = false }
     }
 
-    private func sheetBackground(_ s: WeatherScene, _ ink: Ink) -> some View {
+    /// Day: the outfit colour fading into #EEF1F7 over the first 420 pt · night: navy all the way down
+    private func sheetBackground(_ s: WeatherScene) -> some View {
         let top = s.isNight ? Color(hex: "#1A2046") : Color(hex: Rules.background[max(0, min(9, s.level))])
         let bottom = s.isNight ? Color(hex: "#0D1126") : Color(hex: "#EEF1F7")
-        return LinearGradient(colors: [top, bottom], startPoint: .top, endPoint: UnitPoint(x: 0.5, y: s.isNight ? 1 : 0.5))
+        return GeometryReader { g in
+            LinearGradient(colors: [top, bottom], startPoint: .top,
+                           endPoint: UnitPoint(x: 0.5, y: s.isNight ? 1 : min(1, 420 / max(1, g.size.height))))
+        }
     }
 
     // MARK: title · strip · tabs · alert
 
     private func titleRow(_ c: DayCtx) -> some View {
         ZStack {
-            Text(title(c)).font(.px(17))
+            Text(title(c)).font(.px(17)).lineLimit(1).minimumScaleFactor(0.8).padding(.horizontal, 42)
             HStack {
                 Spacer()
                 Button { Haptic.soft(); dismiss() } label: {
-                    Image(systemName: "xmark").font(.system(size: 14, weight: .bold)).foregroundStyle(c.ink.ink)
+                    DayCloseX(color: c.ink.ink).frame(width: 14, height: 14)
                         .frame(width: 36, height: 36)
                         .background(c.night ? Color.white.opacity(0.12) : Color.white.opacity(0.7)).clipShape(Circle())
                 }
@@ -109,19 +114,20 @@ struct DayDetailView: View {
         let fg = on ? c.inv : c.ink.ink
         return Button { Haptic.select(); withAnimation(Motion.snappy) { start = i } } label: {
             VStack(spacing: 5) {
-                Text(i == 0 ? L("오늘") : d.name).font(.ui(11, .medium))
+                Text(i == 0 ? L("오늘") : d.name).font(.px(11)).lineLimit(1).minimumScaleFactor(0.7)
                     .foregroundStyle(on ? c.inv : (i == 0 ? c.ink.blue : c.ink.sub))
                 PixelIcon(name: d.icon, size: 28)
                     .frame(width: 40, height: 40)
                     .background(c.night ? Color.white.opacity(0.1) : Color.white.opacity(0.75))
                     .clipShape(DayNotch(n: 3))
                 Text(dayNumber(i)).font(.px(13)).foregroundStyle(fg)
-                Text("\(model.deg(d.hi))/\(model.deg(d.lo))").font(.px(10)).foregroundStyle(fg.opacity(0.8))
+                Text("\(model.deg(d.hi))/\(model.deg(d.lo))").font(.px(10)).lineLimit(1).minimumScaleFactor(0.7).foregroundStyle(fg.opacity(0.8))
             }
             .frame(width: 52).padding(.top, 7).padding(.bottom, 8)
             .background {
                 if on { DayNotch(n: 4).fill(c.ink.ink).matchedGeometryEffect(id: "day", in: ns) }
             }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.press(0.95))
     }
@@ -132,35 +138,43 @@ struct DayDetailView: View {
             (.wind, L("바람"), "wind"), (.uv, L("자외선"), "sun_strong"), (.humidity, L("습도"), "sweat"),
         ]
         return HStack(spacing: 6) {
-            ForEach(items, id: \.0) { item in
-                let m = item.0
-                let on = m == metric || (m == .temp && metric == .feels)
-                Button { Haptic.select(); withAnimation(Motion.snappy) { metric = m } } label: {
-                    VStack(spacing: 5) { PixelIcon(name: item.2, size: 18); Text(item.1).font(.ui(11, .medium)) }
-                        .foregroundStyle(on ? c.inv : c.ink.sub)
-                        .frame(maxWidth: .infinity).padding(.top, 8).padding(.bottom, 7)
-                        .background {
-                            if on { DayNotch(n: 3).fill(c.ink.ink).matchedGeometryEffect(id: "metric", in: ns) }
-                            else { Rectangle().stroke(c.ink.line, lineWidth: 2) }
-                        }
-                }
-                .buttonStyle(.press(0.95))
-            }
+            ForEach(items, id: \.0) { item in tab(c, item) }
         }
+    }
+
+    /// One tab: 8 / 7 pt padding inside a 2 pt border (the selected one is filled to the same size)
+    private func tab(_ c: DayCtx, _ item: (DayMetric, String, String)) -> some View {
+        let m = item.0
+        let on = m == metric || (m == .temp && metric == .feels)
+        return Button { Haptic.select(); withAnimation(Motion.snappy) { metric = m } } label: {
+            VStack(spacing: 5) {
+                PixelIcon(name: item.2, size: 18)
+                Text(item.1).font(.px(11)).lineLimit(1).minimumScaleFactor(0.7)
+            }
+            .foregroundStyle(on ? c.inv : c.ink.sub)
+            .frame(maxWidth: .infinity).padding(.top, 10).padding(.bottom, 9)
+            .background {
+                if on { DayNotch(n: 3).fill(c.ink.ink).matchedGeometryEffect(id: "metric", in: ns) }
+                else { Rectangle().strokeBorder(c.line, lineWidth: 2) }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.press(0.95))
     }
 
     private func alertLine(_ a: WeatherScene.Alert, _ c: DayCtx) -> some View {
         let n = a.name
         let icon = n.contains("호우") ? "umbrella" : n.contains("폭염") ? "thermo_hot" : n.contains("한파") ? "thermo_cold"
-            : n.contains("대설") ? "snowflake" : n.contains("황사") || n.contains("미세") ? "mask" : n.contains("강풍") ? "wind" : "exclaim"
+            : n.contains("대설") ? "snowflake" : n.contains("황사") || n.contains("미세") ? "mask" : n.contains("강풍") || n.contains("태풍") ? "wind" : "exclaim"
         return HStack(spacing: 8) {
             PixelIcon(name: icon, size: 18)
-            Text(a.note.isEmpty ? n : "\(n) · \(a.note)").font(.ui(12)).lineSpacing(3).foregroundStyle(c.ink.ink)
+            Text(a.note.isEmpty ? n : "\(n) · \(model.say(a.note))").font(.px(12)).lineSpacing(3).foregroundStyle(c.ink.ink)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 10).padding(.vertical, 8)
+        .padding(.horizontal, 12).padding(.vertical, 10)
         .background(c.night ? Color(red: 1, green: 170 / 255, blue: 120 / 255).opacity(0.14) : Color(red: 1, green: 240 / 255, blue: 228 / 255).opacity(0.9))
-        .overlay(Rectangle().stroke(c.night ? Color(hex: "#FFB08A") : Color(hex: "#E8702E"), lineWidth: 2))
+        .overlay(Rectangle().strokeBorder(c.night ? Color(hex: "#FFB08A") : Color(hex: "#E8702E"), lineWidth: 2))
         .padding(.trailing, 3)
     }
 
@@ -175,89 +189,95 @@ struct DayDetailView: View {
             CharacterSprite(character: model.shownCharacter, level: Rules.level(feels: feel), rain: rain, width: 62)
                 .frame(width: 64, height: 74, alignment: .bottom).clipped()
                 .reveal(0, rise: 10)
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
-                    Text(b.value).font(.px(20)).rolling(b.value)
-                    if !b.badge.isEmpty {
-                        Text(b.badge).font(.px(11)).foregroundStyle(b.badgeInk)
-                            .padding(.horizontal, 6).padding(.vertical, 4).background(b.badgeColor)
-                    }
-                }
-                Text(model.say(b.summary)).font(.ui(14.5)).lineSpacing(6).foregroundStyle(c.ink.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(.vertical, 12).padding(.horizontal, 14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .dayBox(fill: c.bubble, border: c.ink.ink, shadow: c.shadow)
-            .overlay(alignment: .bottomLeading) { DayTail(outline: c.ink.ink, fill: c.bubble).frame(width: 10, height: 14).offset(x: -8, y: -16) }
-            .padding(.trailing, 3)
+            bubble(c, b)
         }
+    }
+
+    private func bubble(_ c: DayCtx, _ b: Brief) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Text(b.value).font(.px(20)).lineLimit(1).minimumScaleFactor(0.7).rolling(b.value)
+                if !b.badge.isEmpty {
+                    Text(b.badge).font(.px(11)).lineLimit(1).foregroundStyle(b.badgeInk)
+                        .padding(.horizontal, 6).padding(.vertical, 4).background(b.badgeColor)
+                }
+            }
+            Text(model.say(b.summary)).font(.ui(14.5)).lineSpacing(5).foregroundStyle(c.ink.ink)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        // 12 / 14 pt padding inside the 2 pt outline, as on the prototype
+        .padding(.vertical, 14).padding(.horizontal, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dayBox(fill: c.bubble, border: c.ink.ink, shadow: c.shadow)
+        .overlay(alignment: .bottomLeading) { DayTail(outline: c.ink.ink, fill: c.bubble).frame(width: 10, height: 14).offset(x: -8, y: -16) }
+        .padding(.trailing, 3)
     }
 
     // MARK: chart card
 
-    private func chartCard(_ c: DayCtx) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if metric == .wind { windsock(c) }
-            chartHeader(c)
-            GeometryReader { g in
-                let cw = max(1, (g.size.width - 36) / 24)
-                VStack(alignment: .leading, spacing: 10) {
-                    if metric == .wind { arrowsRow(c, cw: cw) } else { iconsRow(c, cw: cw) }
-                    DayChart(ctx: c, spec: spec(c), cw: cw, scrub: scrubView(c), onScrub: { h, on in
-                        if on, h != picked { Haptic.select() }
-                        picked = h; scrubbing = on
-                    })
-                    .frame(height: 140)
-                    xLabels(c, cw: cw)
-                    bands(c, cw: cw)
-                }
-            }
-            .frame(height: chartBlockHeight)
-            if metric == .uv { UVBar(uv: Int((c.hourly?.uv.max() ?? 0).rounded()), ink: c.ink) }
+    private func chartCard(_ c: DayCtx, _ h: DayHourly) -> some View {
+        let sp = spec(c, h)
+        return VStack(alignment: .leading, spacing: 10) {
+            if metric == .wind { windsock(c, h) }
+            chartHeader(c, h)
+            GeometryReader { g in chartBlock(c, h, sp, width: g.size.width) }
+                .frame(height: chartBlockHeight)
+            if metric == .uv { DayUVBar(uv: h.uvMax, ink: c.ink.ink, inv: c.inv) }
         }
-        .padding(EdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 14))
-        .background(c.ink.card)
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(c.ink.cardBorder, lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: Color(hex: "#1E2A44").opacity(c.night ? 0.22 : 0.08), radius: 9, y: 6)
+        .dayCard(c)
         .animation(Motion.gentle, value: metric)
     }
 
-    /// icons/arrows row + chart + x labels (+ the umbrella band on the rain tab), with the 10 pt gaps
-    private var chartBlockHeight: CGFloat {
-        (metric == .wind ? 18 : 22) + 10 + 140 + 10 + 12 + (metric == .rain ? 18 : 0)
+    /// icons (or arrows) · the chart · hour labels (· the umbrella band), 10 pt apart
+    private func chartBlock(_ c: DayCtx, _ h: DayHourly, _ sp: DayChartSpec, width: CGFloat) -> some View {
+        let cw = DayChart.hourWidth(width)
+        return VStack(alignment: .leading, spacing: 10) {
+            if metric == .wind { arrowsRow(c, cw: cw) } else { iconsRow(c, h, cw: cw) }
+            DayChart(ctx: c, spec: sp, cw: cw, scrub: scrubView(c, h), onScrub: { hr, on in
+                if on, hr != picked { Haptic.select() }
+                picked = hr; scrubbing = on
+            })
+            .frame(height: DayChart.H)
+            xLabels(c, cw: cw)
+            if metric == .rain { umbrellaBand(c, h, cw: cw) }
+        }
     }
 
-    private func chartHeader(_ c: DayCtx) -> some View {
-        HStack {
-            Text(chartTitle(c)).font(.px(13))
-            Spacer()
+    private var chartBlockHeight: CGFloat {
+        (metric == .wind ? 18 : 22) + 10 + DayChart.H + 10 + 12 + (metric == .rain ? 18 : 0)
+    }
+
+    private func chartHeader(_ c: DayCtx, _ h: DayHourly) -> some View {
+        HStack(spacing: 8) {
+            Text(chartTitle(c, h)).font(.px(13)).lineLimit(1).minimumScaleFactor(0.75)
+            Spacer(minLength: 4)
             if metric == .temp || metric == .feels {
-                HStack(spacing: 4) { chip(L("실제"), on: metric == .temp, c) { metric = .temp }; chip(L("체감"), on: metric == .feels, c) { metric = .feels } }
-            } else if !legend(c).isEmpty {
-                HStack(spacing: 12) {
-                    ForEach(Array(legend(c).enumerated()), id: \.offset) { _, l in
-                        HStack(spacing: 5) { l.swatch; Text(l.text).font(.ui(11)).foregroundStyle(c.ink.sub) }
-                    }
+                HStack(spacing: 4) {
+                    chip(L("실제"), on: metric == .temp, c) { metric = .temp }
+                    chip(L("체감"), on: metric == .feels, c) { metric = .feels }
                 }
+            } else {
+                legendRow(c, h)
             }
         }
     }
 
     private func chip(_ t: String, on: Bool, _ c: DayCtx, action: @escaping () -> Void) -> some View {
         Button { Haptic.select(); withAnimation(Motion.snappy, action) } label: {
-            Text(t).font(.ui(11, .medium)).foregroundStyle(on ? c.inv : c.ink.sub)
-                .padding(.horizontal, 8).padding(.vertical, 5)
-                .background { if on { Rectangle().fill(c.ink.ink) } else { Rectangle().stroke(c.ink.line, lineWidth: 2) } }
-        }.buttonStyle(.plain)
+            Text(t).font(.px(11)).lineLimit(1).foregroundStyle(on ? c.inv : c.ink.sub)
+                .padding(.horizontal, 10).padding(.vertical, 7)
+                .background { if on { Rectangle().fill(c.ink.ink) } else { Rectangle().strokeBorder(c.line, lineWidth: 2) } }
+        }
+        .buttonStyle(.plain)
     }
 
-    private func chartTitle(_ c: DayCtx) -> String {
+    private func chartTitle(_ c: DayCtx, _ h: DayHourly) -> String {
         switch metric {
         case .temp: return L("기온")
         case .feels: return L("체감온도")
-        case .rain: return c.snowy ? L("눈 올 확률") : L("비 올 확률")
+        case .rain:
+            if h.hasMM { return c.snowy ? L("눈 · 눈 올 확률") : L("빗물 · 비 올 확률") }
+            return c.snowy ? L("눈 올 확률") : L("비 올 확률")
         case .wind: return L("시간별 바람 (%@)", model.windUnit)
         case .uv: return L("시간별 자외선 지수")
         case .humidity: return L("시간별 습도")
@@ -265,22 +285,38 @@ struct DayDetailView: View {
     }
 
     private struct LegendItem { let text: String; let swatch: AnyView }
-    private func legend(_ c: DayCtx) -> [LegendItem] {
+    private func legend(_ c: DayCtx, _ h: DayHourly) -> [LegendItem] {
         switch metric {
         case .rain:
-            return [LegendItem(text: L("확률"), swatch: AnyView(Rectangle().fill(c.ink.blue).frame(width: 14, height: 3)))]
+            let line = LegendItem(text: L("확률"), swatch: AnyView(Rectangle().fill(c.ink.blue).frame(width: 14, height: 3)))
+            guard h.hasMM else { return [line] }
+            let bar = Rectangle().fill(c.barFill).frame(width: 8, height: 10)
+                .overlay(alignment: .top) { Rectangle().fill(c.ink.blue).frame(height: 3) }
+            return [LegendItem(text: c.snowy ? L("눈(cm)") : L("빗물(mm)"), swatch: AnyView(bar)), line]
         case .wind:
-            let wc = c.windColor
-            return [LegendItem(text: L("풍속"), swatch: AnyView(Rectangle().fill(wc).frame(width: 14, height: 3))),
+            return [LegendItem(text: L("풍속"), swatch: AnyView(Rectangle().fill(c.windColor).frame(width: 14, height: 3))),
                     LegendItem(text: L("돌풍"), swatch: AnyView(DayDots(color: c.gustColor).frame(width: 14, height: 3)))]
         default: return []
         }
     }
 
-    private func iconsRow(_ c: DayCtx, cw: CGFloat) -> some View {
+    @ViewBuilder private func legendRow(_ c: DayCtx, _ h: DayHourly) -> some View {
+        let items = legend(c, h)
+        if !items.isEmpty {
+            HStack(spacing: 12) {
+                ForEach(Array(items.enumerated()), id: \.offset) { _, l in
+                    HStack(spacing: 5) { l.swatch; Text(l.text).font(.px(11)).lineLimit(1).foregroundStyle(c.ink.sub) }
+                }
+            }
+            .fixedSize()
+        }
+    }
+
+    /// One weather icon per two hours (the brighter one holds the selected hour)
+    private func iconsRow(_ c: DayCtx, _ h: DayHourly, cw: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {
             ForEach(0..<12, id: \.self) { k in
-                PixelIcon(name: c.hourly?.icon(k * 2 + 1) ?? "cloud", size: 18)
+                PixelIcon(name: h.icon(k * 2 + 1), size: 18)
                     .opacity(c.sel / 2 == k ? 1 : 0.7)
                     .offset(x: CGFloat(k) * cw * 2 + cw - 9, y: 2)
             }
@@ -288,10 +324,11 @@ struct DayDetailView: View {
         .frame(maxWidth: .infinity, alignment: .topLeading).frame(height: 22)
     }
 
+    /// Where the wind blows, every two hours (from each hour's own direction)
     private func arrowsRow(_ c: DayCtx, cw: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {
             ForEach(0..<12, id: \.self) { k in
-                DayArrow(deg: c.windDeg, color: c.ink.ink).frame(width: 14, height: 14)
+                DayArrow(deg: c.dir(k * 2 + 1), color: c.ink.ink).frame(width: 14, height: 14)
                     .opacity(c.sel / 2 == k ? 1 : 0.7)
                     .offset(x: CGFloat(k) * cw * 2 + cw - 7, y: 2)
             }
@@ -302,30 +339,30 @@ struct DayDetailView: View {
     private func xLabels(_ c: DayCtx, cw: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {
             ForEach([0, 6, 12, 18], id: \.self) { h in
-                Text(HourLabel.word(h, clock12: model.clock12)).font(.ui(11)).foregroundStyle(c.ink.sub).fixedSize()
+                Text(HourLabel.word(h, clock12: model.clock12)).font(.px(11)).foregroundStyle(c.ink.sub).lineLimit(1).fixedSize()
                     .offset(x: CGFloat(h) * cw)
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).frame(height: 12)
     }
 
-    /// 우산 band: the hours with a 50 %+ chance, merged into runs
-    @ViewBuilder private func bands(_ c: DayCtx, cw: CGFloat) -> some View {
-        if metric == .rain, let h = c.hourly {
-            HStack(spacing: 8) {
-                Text(L("우산")).font(.ui(11)).foregroundStyle(c.ink.sub).frame(width: 28, alignment: .leading)
-                ZStack(alignment: .leading) {
-                    ForEach(runs(h.chance.map { $0 >= 50 }), id: \.0) { r in
-                        Rectangle().fill(c.ink.blue).frame(width: CGFloat(r.1 - r.0) * cw - 2, height: 8).offset(x: CGFloat(r.0) * cw)
-                    }
-                }
-                .frame(width: cw * 24, height: 8, alignment: .leading)
+    /// 우산 band: the hours with a 50 %+ chance, merged into runs, lined up with the chart's hours
+    /// (an umbrella marks the row in the label column on the right, where the chart has its scale)
+    private func umbrellaBand(_ c: DayCtx, _ h: DayHourly, cw: CGFloat) -> some View {
+        let wet = runs(h.chance.map { $0 >= 50 })
+        return ZStack(alignment: .topLeading) {
+            ForEach(wet, id: \.0) { r in
+                Rectangle().fill(c.ink.blue).frame(width: max(2, CGFloat(r.1 - r.0) * cw - 2), height: 8).offset(x: CGFloat(r.0) * cw)
             }
-            .frame(height: 8)
+            PixelIcon(name: "umbrella", size: 14).opacity(wet.isEmpty ? 0.45 : 1)
+                .offset(x: cw * 24 + 8, y: -3)
+                .accessibilityLabel(L("우산"))
         }
+        .frame(maxWidth: .infinity, alignment: .topLeading).frame(height: 8)
     }
 
     private func runs(_ on: [Bool]) -> [(Int, Int)] {
+        guard !on.isEmpty else { return [] }
         var out: [(Int, Int)] = []; var start = 0
         for k in 1...on.count where k == on.count || on[k] != on[start] {
             if on[start] { out.append((start, k)) }
@@ -336,31 +373,17 @@ struct DayDetailView: View {
 
     // MARK: windsock
 
-    private func windsock(_ c: DayCtx) -> some View {
-        let w = c.hourly?.wind[c.sel] ?? Double(c.scene.wind.speed)
-        let stripes = w < 2 ? 1 : w < 4 ? 2 : w < 8 ? 3 : 4
-        let droop: CGFloat = w < 2 ? 9 : w < 4 ? 6 : w < 8 ? 3 : 0
-        let pole = c.night ? Color(hex: "#C9D0F0") : Color(hex: "#22203A")
+    private func windsock(_ c: DayCtx, _ h: DayHourly) -> some View {
+        let w = h.wind[c.sel], deg = c.dir(c.sel)
         let d16 = WindCard.dirs
-        let from = L(d16[Int((Double(c.windDeg) / 22.5).rounded()) % 16]), to = L(d16[Int((Double((c.windDeg + 180) % 360) / 22.5).rounded()) % 16])
+        let from = L(d16[Int((Double(deg) / 22.5).rounded()) % 16]), to = L(d16[Int((Double((deg + 180) % 360) / 22.5).rounded()) % 16])
         return HStack(alignment: .bottom, spacing: 14) {
-            ZStack(alignment: .topLeading) {
-                Rectangle().fill(pole).frame(width: 4, height: 64).offset(x: 8, y: 6)
-                Rectangle().fill(pole).frame(width: 8, height: 6).offset(x: 6, y: 2)
-                ForEach(0..<stripes, id: \.self) { k in
-                    Rectangle().fill(k % 2 == 1 ? Color.white : Color(hex: "#E8702E"))
-                        .frame(width: 24, height: CGFloat(20 - k * 3))
-                        .overlay(DayStripeBorder(color: c.night ? Color(hex: "#F3F5FF") : Color(hex: "#22203A")))
-                        .offset(x: CGFloat(12 + k * 24), y: 8 + CGFloat(k) * droop + CGFloat(k) * 1.5)
-                        .animation(Motion.gentle, value: droop)
-                }
-            }
-            .frame(width: 112, height: 70, alignment: .topLeading)
+            sock(c, w)
             VStack(alignment: .leading, spacing: 7) {
                 Text("\(timeWord(c)) \(model.windText(Int(w.rounded())))").font(.px(13)).rolling(Int(w.rounded()))
                 HStack(spacing: 6) {
-                    DayArrow(deg: c.windDeg, color: c.ink.ink).frame(width: 14, height: 14)
-                    Text(L("%@풍 · %@쪽으로 불어요", from, to)).font(.ui(11)).foregroundStyle(c.ink.sub)
+                    DayArrow(deg: deg, color: c.ink.ink).frame(width: 14, height: 14)
+                    Text(L("%@풍 · %@쪽으로 불어요", from, to)).font(.px(11)).lineLimit(1).minimumScaleFactor(0.8).foregroundStyle(c.ink.sub)
                 }
             }
             .padding(.bottom, 4)
@@ -368,11 +391,29 @@ struct DayDetailView: View {
         .padding(.bottom, 4)
     }
 
+    /// The windsock: stripes stand out further and droop less as the wind gets stronger
+    private func sock(_ c: DayCtx, _ w: Double) -> some View {
+        let stripes = w < 2 ? 1 : w < 4 ? 2 : w < 8 ? 3 : 4
+        let droop: CGFloat = w < 2 ? 9 : w < 4 ? 6 : w < 8 ? 3 : 0
+        let pole = c.night ? Color(hex: "#C9D0F0") : Color(hex: "#22203A")
+        return ZStack(alignment: .topLeading) {
+            Rectangle().fill(pole).frame(width: 4, height: 64).offset(x: 8, y: 6)
+            Rectangle().fill(pole).frame(width: 8, height: 6).offset(x: 6, y: 2)
+            ForEach(0..<stripes, id: \.self) { k in
+                Rectangle().fill(k % 2 == 1 ? Color.white : Color(hex: "#E8702E"))
+                    .frame(width: 24, height: CGFloat(20 - k * 3))
+                    .overlay(DayStripeBorder(color: c.night ? Color(hex: "#F3F5FF") : Color(hex: "#22203A")))
+                    .offset(x: CGFloat(12 + k * 24), y: 8 + CGFloat(k) * droop + CGFloat(k) * 1.5)
+            }
+        }
+        .animation(Motion.gentle, value: droop)
+        .frame(width: 112, height: 70, alignment: .topLeading)
+    }
+
     // MARK: scale card
 
     private struct ScaleItem { let title: String; let sub: String; let big: Bool }
-    private func scaleItems(_ c: DayCtx) -> (title: String, items: [ScaleItem], cur: Int) {
-        guard let h = c.hourly else { return ("", [], 0) }
+    private func scaleItems(_ c: DayCtx, _ h: DayHourly) -> (title: String, items: [ScaleItem], cur: Int) {
         switch metric {
         case .temp:
             let parts = [L("새벽"), L("아침"), L("낮"), L("밤")]
@@ -388,13 +429,12 @@ struct DayDetailView: View {
                          ScaleItem(title: L("따뜻"), sub: degRange(23, 27), big: false), ScaleItem(title: L("더움"), sub: model.deg(28) + "+", big: false)]
             return (L("체감 단계"), items, cur)
         case .wind:
-            let wmax = Int((h.wind.max() ?? 0).rounded())
-            let cur = wmax < 4 ? 0 : wmax < 8 ? 1 : wmax < 14 ? 2 : 3
+            let cur = windLevel(h)
             let items = [ScaleItem(title: L("약함"), sub: windRange(0, 3), big: false), ScaleItem(title: L("보통"), sub: windRange(4, 7), big: false),
                          ScaleItem(title: L("강함"), sub: windRange(8, 13), big: false), ScaleItem(title: L("매우 강함"), sub: model.windNumber(14) + "+", big: false)]
             return (L("바람 단계"), items, cur)
         case .uv:
-            let m = Int((h.uv.max() ?? 0).rounded())
+            let m = h.uvMax
             let cur = m >= 8 ? 3 : m >= 6 ? 2 : m >= 3 ? 1 : 0
             let items = [ScaleItem(title: L("약함"), sub: "0~2", big: false), ScaleItem(title: L("보통"), sub: "3~5", big: false),
                          ScaleItem(title: L("강함"), sub: "6~7", big: false), ScaleItem(title: L("매우 강함"), sub: "8+", big: false)]
@@ -409,111 +449,154 @@ struct DayDetailView: View {
         }
     }
 
-    private func scaleCard(_ c: DayCtx) -> some View {
-        let sc = scaleItems(c)
+    private func scaleCard(_ c: DayCtx, _ h: DayHourly) -> some View {
+        let sc = scaleItems(c, h)
         return VStack(alignment: .leading, spacing: 10) {
             Text(sc.title).font(.px(13))
             HStack(spacing: 6) {
                 ForEach(Array(sc.items.enumerated()), id: \.offset) { i, it in
-                    let on = i == sc.cur
-                    VStack(spacing: 5) {
-                        Text(it.title).font(.ui(12, .medium)).lineLimit(1).minimumScaleFactor(0.7)
-                        Text(it.sub).font(it.big ? Font.px(16) : Font.ui(10)).opacity(it.big ? 1 : 0.85).lineLimit(1).minimumScaleFactor(0.7)
-                    }
-                    .foregroundStyle(on ? c.inv : c.ink.sub)
-                    .frame(maxWidth: .infinity).padding(.vertical, 9).padding(.horizontal, 4)
-                    .background { if on { DayNotch(n: 3).fill(c.ink.ink) } else { Rectangle().stroke(c.ink.line, lineWidth: 2) } }
-                    .animation(Motion.snappy, value: sc.cur)
+                    scaleBox(c, it, on: i == sc.cur)
                 }
             }
+            .animation(Motion.snappy, value: sc.cur)
         }
-        .padding(EdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 14))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(c.ink.card)
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(c.ink.cardBorder, lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: Color(hex: "#1E2A44").opacity(c.night ? 0.22 : 0.08), radius: 9, y: 6)
+        .dayCard(c)
+    }
+
+    /// 9 / 6 pt padding inside a 2 pt border (the current step is filled, with pixel corners)
+    private func scaleBox(_ c: DayCtx, _ it: ScaleItem, on: Bool) -> some View {
+        VStack(spacing: 5) {
+            Text(it.title).font(.px(12)).lineLimit(1).minimumScaleFactor(0.6)
+            Text(it.sub).font(.px(it.big ? 16 : 10)).opacity(it.big ? 1 : 0.85).lineLimit(1).minimumScaleFactor(0.6)
+        }
+        .foregroundStyle(on ? c.inv : c.ink.sub)
+        .frame(maxWidth: .infinity).padding(.vertical, 11).padding(.horizontal, 6)
+        .background { if on { DayNotch(n: 3).fill(c.ink.ink) } else { Rectangle().strokeBorder(c.line, lineWidth: 2) } }
     }
 
     // MARK: chart spec per tab
 
-    private func spec(_ c: DayCtx) -> DayChartSpec {
-        guard let h = c.hourly else { return DayChartSpec(vals: Array(repeating: 0, count: 24), ymin: 0, ymax: 1) }
-        var s = DayChartSpec(vals: h.temp, ymin: 0, ymax: 1)
-        /// the value between two neighbouring hours, for the colour of the curve segment that joins them
-        func mid(_ v: [Double], _ i: Int) -> Double { (v[max(0, min(23, i - 1))] + v[max(0, min(23, i))]) / 2 }
+    private func spec(_ c: DayCtx, _ h: DayHourly) -> DayChartSpec {
         switch metric {
-        case .temp, .feels:
-            let vals = metric == .feels ? h.feel : h.temp
-            let vmin = vals.min() ?? 0, vmax = vals.max() ?? 1
-            let ymin = floor((vmin - 2) / 5) * 5, ymax = max(ymin + 15, ceil((vmax + 4) / 5) * 5)
-            s.vals = vals; s.ymin = ymin; s.ymax = ymax
-            var grid: [(Double, String)] = []
-            var y = ymin
-            while y <= ymax { grid.append(((y - ymin) / (ymax - ymin), model.deg(Int(y)))); y += 5 }
-            s.grid = grid
-            s.segColors = (0..<25).map { i in DayTempColor.color(mid(vals, i)) }
-            s.areaStops = vals.enumerated().map { i, v in Gradient.Stop(color: DayTempColor.color(v), location: (Double(i) + 0.5) / 24) }
-            s.areaHorizontal = true; s.areaOpacity = c.night ? 0.38 : 0.45
-            s.showHiLo = true; s.showSel = true
-        case .rain:
-            s.vals = h.chance; s.ymin = 0; s.ymax = 100
-            s.grid = [(0, "0%"), (0.5, "50%"), (1, "100%")]
-            s.segColors = Array(repeating: c.ink.blue, count: 25)
-        case .wind:
-            let gmax = h.gust.max() ?? 1
-            let step: Double = gmax > 22 ? 8 : 4
-            let ymax = max(step, ceil((gmax + 1) / step) * step)
-            s.vals = h.wind; s.line2 = h.gust; s.ymin = 0; s.ymax = ymax
-            var grid: [(Double, String)] = []
-            var y = 0.0
-            while y <= ymax { grid.append((y / ymax, model.windNumber(Int(y)))); y += step }
-            s.grid = grid
-            s.segColors = Array(repeating: c.windColor, count: 25)
-            s.areaStops = [Gradient.Stop(color: c.windColor, location: 0), Gradient.Stop(color: .clear, location: 1)]
-            s.areaOpacity = c.night ? 0.42 : 0.35
-            s.line2Color = c.gustColor
-        case .uv:
-            let vals = h.uv
-            s.vals = vals; s.ymin = 0; s.ymax = 12
-            s.grid = [0, 3, 6, 8, 11].map { (Double($0) / 12, String($0)) }
-            s.segColors = (0..<25).map { i in Color(hex: UVScale.band(Int(mid(vals, i).rounded())).color) }
-            let top = Color(hex: UVScale.band(Int((h.uv.max() ?? 0).rounded())).color)
-            s.areaStops = [Gradient.Stop(color: top, location: 0), Gradient.Stop(color: .clear, location: 1)]
-            s.areaOpacity = 0.35
-        case .humidity:
-            s.vals = h.rh; s.ymin = 0; s.ymax = 100
-            s.grid = [(0, "0%"), (0.5, "50%"), (1, "100%")]
-            s.segColors = Array(repeating: c.humColor, count: 25)
-            s.areaStops = [Gradient.Stop(color: c.humColor, location: 0), Gradient.Stop(color: .clear, location: 1)]
-            s.areaOpacity = 0.32
+        case .temp, .feels: return tempSpec(c, h)
+        case .rain: return rainSpec(c, h)
+        case .wind: return windSpec(c, h)
+        case .uv: return uvSpec(c, h)
+        case .humidity: return humiditySpec(c, h)
         }
-        s.hiText = L("최고 %@", model.deg(Int((s.vals.max() ?? 0).rounded())))
-        s.loText = L("최저 %@", model.deg(Int((s.vals.min() ?? 0).rounded())))
-        s.selText = "\(timeWord(c)) \(model.deg(Int(s.vals[c.sel].rounded())))"
+    }
+
+    /// The value between two neighbouring hours, for the colour of the curve segment that joins them
+    private func mid(_ v: [Double], _ i: Int) -> Double { (v[max(0, min(23, i - 1))] + v[max(0, min(23, i))]) / 2 }
+
+    private func tempSpec(_ c: DayCtx, _ h: DayHourly) -> DayChartSpec {
+        let vals = metric == .feels ? h.feel : h.temp
+        let vmin = vals.min() ?? 0, vmax = vals.max() ?? 0
+        let axis = tempAxis(vmin, vmax)
+        var s = DayChartSpec(vals: vals, ymin: axis.ymin, ymax: axis.ymax)
+        s.grid = axis.grid
+        s.segColors = (0..<25).map { i in DayTempColor.color(mid(vals, i)) }
+        s.areaStops = vals.enumerated().map { i, v in Gradient.Stop(color: DayTempColor.color(v), location: (Double(i) + 0.5) / 24) }
+        s.areaHorizontal = true; s.areaOpacity = c.night ? 0.38 : 0.45
+        s.showHiLo = true; s.showSel = true
+        s.hiText = L("최고 %@", model.deg(Int(vmax.rounded())))
+        s.loText = L("최저 %@", model.deg(Int(vmin.rounded())))
+        s.selText = "\(timeWord(c)) \(model.deg(Int(vals[c.sel].rounded())))"
         return s
     }
 
-    /// The translucent readout above the chart while the finger is on it: only the key value for that hour.
-    private func scrubView(_ c: DayCtx) -> DayScrub {
-        guard let h = c.hourly else { return DayScrub(time: "", icon: nil, arrow: false, main: "", sub: "", subColor: nil, subInk: nil) }
-        let t = timeWord(c)
+    /// Grid every 5 °C (10 °F), 2° of room under the coldest hour and enough over the warmest for its 최고 tag
+    private func tempAxis(_ vmin: Double, _ vmax: Double) -> (ymin: Double, ymax: Double, grid: [(Double, String)]) {
+        let f = model.unitF
+        let step: Double = f ? 10 : 5
+        let lo = f ? vmin * 1.8 + 32 : vmin, hi = f ? vmax * 1.8 + 32 : vmax
+        let a = floor((lo - (f ? 4 : 2)) / step) * step
+        var b = max(a + 3 * step, ceil((hi + (f ? 7 : 4)) / step) * step)
+        while (b - hi) / (b - a) * Double(DayChart.plotHeight) < 32 { b += step }
+        var grid: [(Double, String)] = []
+        var y = a
+        while y <= b + 0.001 { grid.append(((y - a) / (b - a), "\(Int(y))°")); y += step }
+        return (f ? (a - 32) / 1.8 : a, f ? (b - 32) / 1.8 : b, grid)
+    }
+
+    private func rainSpec(_ c: DayCtx, _ h: DayHourly) -> DayChartSpec {
+        var s = DayChartSpec(vals: h.chance, ymin: 0, ymax: 100)
+        s.grid = [(0, "0%"), (0.5, "50%"), (1, "100%")]
+        s.segColors = [c.ink.blue]
+        if h.hasMM {
+            // bar height in three bands: up to 1 mm the lower third, 1–4 mm the middle, 4–10 mm+ the top
+            s.bars = h.mm.map { v in v <= 1 ? v / 3 : (v <= 4 ? 1 / 3 + (v - 1) / 9 : 2 / 3 + min(1, (v - 4) / 6) / 3) }
+            s.barFill = c.barFill; s.barCap = c.ink.blue
+        }
+        return s
+    }
+
+    private func windSpec(_ c: DayCtx, _ h: DayHourly) -> DayChartSpec {
+        let axis = windAxis(h.gust.max() ?? 1)
+        var s = DayChartSpec(vals: h.wind, ymin: 0, ymax: axis.ymax)
+        s.grid = axis.grid
+        s.line2 = h.gust; s.line2Color = c.gustColor
+        s.segColors = [c.windColor]
+        s.areaStops = [Gradient.Stop(color: c.windColor, location: 0), Gradient.Stop(color: .clear, location: 1)]
+        s.areaOpacity = c.night ? 0.42 : 0.35
+        return s
+    }
+
+    /// Grid in the wind unit of the settings: every 4 m/s (8 past 22 m/s gusts), round steps in km/h and mph
+    private func windAxis(_ gmax: Double) -> (ymax: Double, grid: [(Double, String)]) {
+        let f: Double = model.windUnit == "km/h" ? 3.6 : (model.windUnit == "mph" ? 2.237 : 1)
+        let top = gmax * f
+        let steps: [Double] = f == 1 ? [gmax > 22 ? 8 : 4] : (f > 3 ? [10, 20, 30, 40, 50, 100] : [5, 10, 20, 25, 50])
+        let step = steps.first { ceil((top + f) / $0) <= 5 } ?? (steps.last ?? 4)
+        let ymaxD = max(step, ceil((top + f) / step) * step)
+        var grid: [(Double, String)] = []
+        var y = 0.0
+        while y <= ymaxD + 0.001 { grid.append((y / ymaxD, "\(Int(y))")); y += step }
+        return (ymaxD / f, grid)
+    }
+
+    private func uvSpec(_ c: DayCtx, _ h: DayHourly) -> DayChartSpec {
+        let vals = h.uv
+        var s = DayChartSpec(vals: vals, ymin: 0, ymax: 12)
+        s.grid = [0, 3, 6, 8, 11].map { (Double($0) / 12, String($0)) }
+        s.segColors = (0..<25).map { i in Color(hex: UVScale.band(Int(mid(vals, i).rounded())).color) }
+        let top = Color(hex: UVScale.band(h.uvMax).color)
+        s.areaStops = [Gradient.Stop(color: top, location: 0), Gradient.Stop(color: .clear, location: 1)]
+        s.areaOpacity = 0.35
+        return s
+    }
+
+    private func humiditySpec(_ c: DayCtx, _ h: DayHourly) -> DayChartSpec {
+        var s = DayChartSpec(vals: h.rh, ymin: 0, ymax: 100)
+        s.grid = [(0, "0%"), (0.5, "50%"), (1, "100%")]
+        s.segColors = [c.humColor]
+        s.areaStops = [Gradient.Stop(color: c.humColor, location: 0), Gradient.Stop(color: .clear, location: 1)]
+        s.areaOpacity = 0.32
+        return s
+    }
+
+    /// The translucent readout above the chart while the finger moves across it: only the key value for that hour.
+    private func scrubView(_ c: DayCtx, _ h: DayHourly) -> DayScrub {
+        let t = timeWord(c), i = c.sel
         switch metric {
         case .temp:
-            return DayScrub(time: t, icon: h.icon(c.sel), arrow: false, main: model.deg(Int(h.temp[c.sel].rounded())), sub: L("체감 %@", model.deg(Int(h.feel[c.sel].rounded()))), subColor: nil, subInk: nil)
+            return DayScrub(time: t, icon: h.icon(i), main: model.deg(Int(h.temp[i].rounded())), sub: L("체감 %@", model.deg(Int(h.feel[i].rounded()))))
         case .feels:
-            return DayScrub(time: t, icon: h.icon(c.sel), arrow: false, main: L("체감 %@", model.deg(Int(h.feel[c.sel].rounded()))), sub: L("실제 %@", model.deg(Int(h.temp[c.sel].rounded()))), subColor: nil, subInk: nil)
+            return DayScrub(time: t, icon: h.icon(i), main: L("체감 %@", model.deg(Int(h.feel[i].rounded()))), sub: L("실제 %@", model.deg(Int(h.temp[i].rounded()))))
         case .rain:
-            let p = Int(h.chance[c.sel].rounded())
-            return DayScrub(time: t, icon: p >= 50 ? "umbrella" : "raindrop", arrow: false, main: "\(p)%", sub: c.snowy ? L("눈 올 확률") : L("비 올 확률"), subColor: nil, subInk: nil)
+            let p = Int(h.chance[i].rounded()), amount = (h.mm[i] * 10).rounded() / 10
+            var sub = c.snowy ? L("눈 올 확률") : L("비 올 확률")
+            if h.hasMM, amount > 0 { sub += " · " + number(amount) + (c.snowy ? "cm" : "mm") }
+            return DayScrub(time: t, icon: p >= 50 ? "umbrella" : "raindrop", main: "\(p)%", sub: sub)
         case .wind:
-            let d = L("%@풍", L(WindCard.dirs[Int((Double(c.windDeg) / 22.5).rounded()) % 16]))
-            return DayScrub(time: t, icon: nil, arrow: true, main: model.windText(Int(h.wind[c.sel].rounded())), sub: d, subColor: nil, subInk: nil)
+            let d = c.dir(i)
+            return DayScrub(time: t, arrow: d, main: model.windText(Int(h.wind[i].rounded())), sub: L("%@풍", L(WindCard.dirs[Int((Double(d) / 22.5).rounded()) % 16])))
         case .uv:
-            let v = Int(h.uv[c.sel].rounded()), b = UVScale.band(v)
-            return DayScrub(time: t, icon: "sun_strong", arrow: false, main: String(v), sub: L(b.word), subColor: Color(hex: b.color), subInk: Color(hex: b.onColor))
+            let v = Int(h.uv[i].rounded()), b = UVScale.band(v)
+            return DayScrub(time: t, icon: "sun_strong", main: String(v), sub: L(b.word), subColor: Color(hex: b.color), subInk: Color(hex: b.onColor))
         case .humidity:
-            return DayScrub(time: t, icon: "sweat", arrow: false, main: "\(Int(h.rh[c.sel].rounded()))%", sub: L("이슬점 %@", model.deg(h.dew(c.sel))), subColor: nil, subInk: nil)
+            return DayScrub(time: t, icon: "sweat", main: "\(Int(h.rh[i].rounded()))%", sub: L("이슬점 %@", model.deg(h.dew(i))))
         }
     }
 
@@ -525,12 +608,18 @@ struct DayDetailView: View {
     }
 
     private func partOfDay(_ h: Int) -> String { h < 5 ? L("밤") : h < 12 ? L("아침") : h < 17 ? L("낮") : h < 21 ? L("저녁") : L("밤") }
+    /// The same word inside an English sentence ("in the evening", not "in the Evening")
+    private func partOfDayInText(_ h: Int) -> String { Lang.current == .en ? partOfDay(h).lowercased() : partOfDay(h) }
 
     /// A difference in degrees in the unit setting (°F swings are 1.8× the °C ones)
     private func dd(_ v: Int) -> Int { model.unitF ? Int((Double(abs(v)) * 1.8).rounded()) : abs(v) }
     private func degNumber(_ v: Int) -> String { String(model.deg(v).dropLast()) }
     private func degRange(_ a: Int, _ b: Int) -> String { "\(degNumber(a))~\(model.deg(b))" }
     private func windRange(_ a: Int, _ b: Int) -> String { "\(model.windNumber(a))~\(model.windNumber(b))" }
+    /// 2.0 → "2", 0.4 → "0.4"
+    private func number(_ v: Double) -> String { v == v.rounded() ? String(Int(v)) : String(format: "%.1f", v) }
+    /// Half-up rounding, as the prototype does it (−2.5 → −2)
+    private func roundHalfUp(_ v: Double) -> Int { Int(floor(v + 0.5)) }
 
     private struct Brief { var value: String; var badge: String; var badgeColor: Color; var badgeInk: Color; var summary: String }
 
@@ -548,10 +637,10 @@ struct DayDetailView: View {
 
     private func briefNoDetail(_ c: DayCtx) -> Brief {
         let d = c.day
-        var t = d.hi - d.lo >= 6 ? L("%@ %@, %@ %@예요. 일교차가 커서 겉옷이 필요해요.", L("아침"), model.deg(d.lo), L("낮"), model.deg(d.hi))
-            : L("하루 종일 %@~%@예요.", model.deg(d.lo), model.deg(d.hi))
+        var t = d.hi - d.lo >= 6 ? L("%@ %@, %@ %@예요. 일교차가 커서 겉옷이 필요해요.", L("아침"), model.deg(d.lo), partOfDayInText(14), model.deg(d.hi))
+            : L("하루 종일 %@~%@예요.", degNumber(d.lo), model.deg(d.hi))
         if d.chance >= 60 { t += " " + (c.snowy ? L("눈 예보예요. 길이 미끄러울 수 있어요.") : L("비 예보예요. 우산을 챙겨 주세요.")) }
-        else if d.chance >= 30 { t += " " + L("비 올 가능성이 %d%%예요. 우산이 있으면 좋아요.", d.chance) }
+        else if d.chance >= 30 { t += " " + (c.snowy ? L("눈 올 가능성이 %d%%예요. 우산이 있으면 좋아요.", d.chance) : L("비 올 가능성이 %d%%예요. 우산이 있으면 좋아요.", d.chance)) }
         return Brief(value: "\(model.deg(d.hi)) / \(model.deg(d.lo))", badge: L("일교차 %d°", dd(d.hi - d.lo)), badgeColor: DayTempColor.color(Double(d.hi)), badgeInk: UI.ink, summary: t)
     }
 
@@ -561,13 +650,13 @@ struct DayDetailView: View {
         let loH = h.temp.firstIndex(of: vmin) ?? 6, hiH = h.temp.firstIndex(of: vmax) ?? 15
         var t: String
         if hi >= 30 {
-            t = L("%@에 최고 %@예요. 더우니 물을 챙겨 주세요.", partOfDay(hiH), model.deg(hi)) + (lo >= 25 ? " " + L("밤에도 %@ 이상이에요.", model.deg(lo)) : "")
+            t = L("%@에 최고 %@예요. 더우니 물을 챙겨 주세요.", partOfDayInText(hiH), model.deg(hi)) + (lo >= 25 ? " " + L("밤에도 %@ 이상이에요.", model.deg(lo)) : "")
         } else if hi <= 0 || lo <= -5 {
-            t = L("%@ %@, %@ %@예요. 많이 추워요.", partOfDay(loH), model.deg(lo), partOfDay(hiH), model.deg(hi))
+            t = L("%@ %@, %@ %@예요. 많이 추워요.", partOfDay(loH), model.deg(lo), partOfDayInText(hiH), model.deg(hi))
         } else if hi - lo >= 6 {
-            t = L("%@ %@, %@ %@예요. 일교차가 커서 겉옷이 필요해요.", partOfDay(loH), model.deg(lo), partOfDay(hiH), model.deg(hi))
+            t = L("%@ %@, %@ %@예요. 일교차가 커서 겉옷이 필요해요.", partOfDay(loH), model.deg(lo), partOfDayInText(hiH), model.deg(hi))
         } else {
-            t = L("하루 종일 %@~%@예요.", model.deg(lo), model.deg(hi))
+            t = L("하루 종일 %@~%@예요.", degNumber(lo), model.deg(hi))
         }
         if c.index > 0 {
             let dh = c.day.hi - c.scene.days[c.index - 1].hi
@@ -581,9 +670,9 @@ struct DayDetailView: View {
     private func briefFeels(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let vmin = h.feel.min() ?? 0, vmax = h.feel.max() ?? 0
         let lo = Int(vmin.rounded()), hi = Int(vmax.rounded())
-        let gap = Int((zip(h.temp, h.feel).reduce(0) { $0 + $1.0 - $1.1 } / 24).rounded())
+        let gap = roundHalfUp(zip(h.temp, h.feel).reduce(0) { $0 + $1.0 - $1.1 } / 24)
         let badge = gap > 0 ? L("실제보다 -%d°", dd(gap)) : gap < 0 ? L("실제보다 +%d°", dd(gap)) : L("실제와 비슷")
-        let mid = (lo + hi) / 2
+        let mid = roundHalfUp(Double(lo + hi) / 2)
         let word = mid <= -10 ? L("매우 추운") : mid <= 0 ? L("추운") : mid <= 8 ? L("쌀쌀한") : mid <= 16 ? L("선선한") : mid <= 22 ? L("쾌적한") : mid <= 27 ? L("따뜻한") : mid <= 32 ? L("더운") : L("매우 더운")
         var t = L("체감 %@~%@, %@ 날이에요.", degNumber(lo), model.deg(hi), word)
         let windy = (h.wind.max() ?? 0) >= 8
@@ -597,15 +686,26 @@ struct DayDetailView: View {
         return Brief(value: "\(model.deg(hi)) / \(model.deg(lo))", badge: badge, badgeColor: DayTempColor.color(vmax), badgeInk: UI.ink, summary: t)
     }
 
+    /// The day's rain (snow in cm on a snowy day): the amount, how much that is and the highest chance; the sentence
+    /// says when to take an umbrella.
     private func briefRain(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let wet = (0..<24).filter { h.chance[$0] >= 50 }
         let p = h.dayProb
-        let value = p >= 10 ? L("최대 %d%%", p) : (c.snowy ? L("눈 없음") : L("비 없음"))
-        let badge = wet.isEmpty ? L("우산 없이") : L("우산 %d시간", wet.count)
+        let value: String, badge: String
+        if h.hasMM {
+            let total = h.total, unit = c.snowy ? "cm" : "mm"
+            value = total >= 1 ? "\(roundHalfUp(total))\(unit)" : (total > 0 ? L("%@ 미만", "1\(unit)") : (c.snowy ? L("눈 없음") : L("비 없음")))
+            let word = total >= 50 ? L("매우 많음") : total >= 20 ? L("많음") : total >= 5 ? L("보통") : L("조금")
+            badge = (total >= 1 ? word + " · " : "") + L("최대 %d%%", p)
+        } else {
+            // an older forecast without amounts: the chance and the umbrella hours
+            value = p >= 10 ? L("최대 %d%%", p) : (c.snowy ? L("눈 없음") : L("비 없음"))
+            badge = wet.isEmpty ? L("우산 없이") : L("우산 %d시간", wet.count)
+        }
         var soon = false
         if c.index == 0, let first = wet.first, let now = h.now { soon = first - now >= 0 && first - now <= 1 }
         var pods: [String] = []
-        for w in wet { let s = partOfDay(w); if !pods.contains(s) { pods.append(s) } }
+        for w in wet { let s = partOfDayInText(w); if !pods.contains(s) { pods.append(s) } }
         let t: String
         if wet.isEmpty {
             t = p >= 30 ? (c.snowy ? L("눈 올 가능성이 %d%%예요. 우산이 있으면 좋아요.", p) : L("비 올 가능성이 %d%%예요. 우산이 있으면 좋아요.", p))
@@ -624,16 +724,22 @@ struct DayDetailView: View {
         return Brief(value: value, badge: badge, badgeColor: c.ink.blue, badgeInk: c.inv, summary: t)
     }
 
+    private func windLevel(_ h: DayHourly) -> Int {
+        let wmax = Int((h.wind.max() ?? 0).rounded())
+        return wmax < 4 ? 0 : wmax < 8 ? 1 : wmax < 14 ? 2 : 3
+    }
+
     private func briefWind(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let wmin = Int((h.wind.min() ?? 0).rounded()), wmax = Int((h.wind.max() ?? 0).rounded()), gmax = Int((h.gust.max() ?? 0).rounded())
-        let lvl = wmax < 4 ? 0 : wmax < 8 ? 1 : wmax < 14 ? 2 : 3
+        let lvl = windLevel(h)
         var t = [L("바람이 약해요."), L("바람이 조금 있어요."), L("바람이 강해요."), L("바람이 매우 강해요. 바깥 활동은 줄여 주세요.")][lvl]
-        if lvl >= 1, let peak = h.wind.firstIndex(of: h.wind.max() ?? 0) { t += " " + L("%@에 가장 세요.", partOfDay(peak)) }
-        return Brief(value: "\(model.windNumber(wmin))~\(model.windText(wmax))", badge: L("돌풍 %@", model.windNumber(gmax)), badgeColor: c.windColor, badgeInk: .white, summary: t)
+        if lvl >= 1, let peak = h.wind.firstIndex(of: h.wind.max() ?? 0) { t += " " + L("%@에 가장 세요.", partOfDayInText(peak)) }
+        let value = wmin == wmax ? model.windText(wmax) : "\(model.windNumber(wmin))~\(model.windText(wmax))"
+        return Brief(value: value, badge: L("돌풍 %@", model.windNumber(gmax)), badgeColor: c.windColor, badgeInk: .white, summary: t)
     }
 
     private func briefUV(_ c: DayCtx, _ h: DayHourly) -> Brief {
-        let m = Int((h.uv.max() ?? 0).rounded()), b = UVScale.band(m)
+        let m = h.uvMax, b = UVScale.band(m)
         let k = m >= 8 ? 3 : m >= 6 ? 2 : m >= 3 ? 1 : 0
         let t = [L("자외선이 약해요."), L("자외선 보통이에요. 한낮엔 선크림을 발라 주세요."), L("자외선이 강해요. 선크림과 모자를 챙겨 주세요."), L("자외선이 매우 강해요. 한낮엔 바깥 활동을 줄여 주세요.")][k]
         return Brief(value: L("최고 %@", String(m)), badge: L(b.word), badgeColor: Color(hex: b.color), badgeInk: Color(hex: b.onColor), summary: t)
@@ -659,7 +765,7 @@ struct DayDetailView: View {
 
 enum DayMetric: Int { case temp, feels, rain, wind, uv, humidity }
 
-/// Everything the subviews need for one day, resolved once per render.
+/// Everything the subviews need for one day, resolved once per render. Colours are the prototype's.
 private struct DayCtx {
     let scene: WeatherScene; let index: Int; let day: WeatherScene.DayRow; let hourly: DayHourly?
     let ink: Ink; let night: Bool; let sel: Int; let metric: DayMetric; let scrub: Bool
@@ -667,27 +773,38 @@ private struct DayCtx {
     var inv: Color { night ? Color(hex: "#141A36") : .white }
     var bubble: Color { night ? Color(hex: "#232B58") : .white }
     var shadow: Color { night ? Color.black.opacity(0.35) : Color(hex: "#1E2A44").opacity(0.18) }
+    var line: Color { night ? Color.white.opacity(0.12) : Color(hex: "#1E2A44").opacity(0.10) }
+    var cardFill: Color { night ? Color.white.opacity(0.08) : Color.white.opacity(0.66) }
+    var cardBorder: Color { night ? Color.white.opacity(0.13) : Color.white.opacity(0.85) }
     var windColor: Color { night ? Color(hex: "#4FD1BE") : Color(hex: "#1FA58F") }
     var gustColor: Color { night ? Color(hex: "#2E9E8E") : Color(hex: "#137A69") }
     var humColor: Color { night ? Color(hex: "#9AA6FF") : Color(hex: "#5B6BF0") }
-    /// The forecast has one wind direction (now); every hour shows it.
-    var windDeg: Int { scene.wind.deg }
+    var barFill: Color { night ? Color(hex: "#9CC0FF").opacity(0.55) : Color(hex: "#1F5BD0").opacity(0.35) }
+    /// The wind direction (degrees it comes from) at an hour: each hour's own, or the one direction of an older forecast
+    func dir(_ h: Int) -> Int {
+        guard let d = hourly?.dir, d.count == 24 else { return scene.wind.deg }
+        return Int(d[max(0, min(23, h))].rounded()) % 360
+    }
 }
 
-/// 24 hourly values for one day, interpolated from the 8 three-hourly points of `dayDetail`.
-/// Feels-like and gusts are not in the forecast; they are derived the way the prototype does it.
+/// 24 hourly values for one day from the 8 three-hourly rows of `dayDetail`: point values (temperature, chance, wind,
+/// gusts, UV, humidity) are interpolated, wind directions by the shorter way round, and each 3-hour rain amount is spread
+/// over its own hours. Feels-like is derived the way the prototype does it; gusts too when the forecast has none.
 private struct DayHourly {
-    var temp: [Double] = [], feel: [Double] = [], chance: [Double] = [], wind: [Double] = [], gust: [Double] = [], uv: [Double] = [], rh: [Double] = []
+    var temp: [Double] = [], feel: [Double] = [], chance: [Double] = [], wind: [Double] = [], gust: [Double] = []
+    var uv: [Double] = [], rh: [Double] = [], mm: [Double] = [], dir: [Double] = []
+    var hasMM = false       // the forecast has amounts (older answers only have the chance)
+    var total = 0.0         // the day's amount, mm (cm on a snowy day)
     var dayProb = 0; var dayIcon = "cloud"; var snowy = false; var rainy = false
     var now: Int?           // today's current hour
     var dawn = 7, dusk = 19
+    var uvMax: Int { Int((uv.max() ?? 0).rounded()) }
 
     static func make(scene s: WeatherScene, index: Int) -> DayHourly? {
-        guard let all = s.dayDetail, index < all.count, all[index].count >= 2 else { return nil }
+        guard let all = s.dayDetail, index < all.count, index < s.days.count, all[index].count >= 2 else { return nil }
         let rows = all[index]
         let next = index + 1 < all.count ? all[index + 1].first : nil
-        func hours(_ r: [WeatherScene.DayHour]) -> [Double] { r.enumerated().map { i, x in Double(HourLabel.hour(x.label) ?? i * 3) } }
-        let hs = hours(rows)
+        let hs: [Double] = rows.enumerated().map { i, x in Double(HourLabel.hour(x.label) ?? i * 3) }
         func series(_ f: (WeatherScene.DayHour) -> Double) -> [Double] {
             var pts = zip(hs, rows.map(f)).map { ($0, $1) }.sorted { $0.0 < $1.0 }
             if let n = next { pts.append((24, f(n))) }
@@ -695,24 +812,42 @@ private struct DayHourly {
         }
         let day = s.days[index]
         let rainy = day.chance >= 50
-        let temp = series { $0.temp }
-        let chance = series { max(0, min(100, $0.chance)) }
-        let wind = series { max(0, $0.wind) }
-        let uv = series { max(0, $0.uv) }
-        let rh = series { max(0, min(100, $0.rh)) }
+        var d = DayHourly()
+        d.temp = series { $0.temp }
+        d.chance = series { max(0, min(100, $0.chance)) }
+        d.wind = series { max(0, $0.wind) }
+        d.uv = series { max(0, $0.uv) }
+        d.rh = series { max(0, min(100, $0.rh)) }
+        // gusts: the strongest in each slot when the forecast has them, else 1.5 × wind + 0.5 (as the prototype); never below the wind
+        let hasGust = rows.contains { $0.gust != nil }
+        let gust = hasGust ? series { $0.gust ?? ($0.wind * 1.5 + 0.5) } : d.wind.map { $0 * 1.5 + 0.5 }
+        d.gust = zip(gust, d.wind).map { max($0, $1) }
+        // directions: the shorter way round between the rows (350° → 10° passes north)
+        let deg = Double(s.wind.deg)
+        var dpts = zip(hs, rows.map { $0.dir ?? deg }).map { ($0, $1) }.sorted { $0.0 < $1.0 }
+        if let n = next { dpts.append((24, n.dir ?? deg)) }
+        d.dir = (0..<24).map { h in interpAngle(dpts, Double(h)) }
+        // rain: every slot's amount spread over its own hours
+        d.hasMM = rows.contains { $0.mm != nil }
+        d.mm = spread(hs, rows.map { $0.mm ?? 0 })
+        d.total = rows.reduce(0) { $0 + max(0, $1.mm ?? 0) }
         // feels-like: muggy heat pushes it up (blended in from 20° to 25°), otherwise night, rain and wind pull it down
-        let feel: [Double] = (0..<24).map { h in
-            let t = temp[h], k = max(0, min(1, (t - 20) / 5))
+        d.feel = (0..<24).map { h in
+            let t = d.temp[h], k = max(0, min(1, (t - 20) / 5))
             let nightness = max(0, min(1, (abs(Double(h) - 13) - 5) / 2.5))
-            let cold = t - 1 - nightness - (rainy ? 1 : 0) - max(0, wind[h] - 3) * 0.5
-            let hot = t + max(0, (rh[h] - 40) / 15)
+            let cold = t - 1 - nightness - (rainy ? 1 : 0) - max(0, d.wind[h] - 3) * 0.5
+            let hot = t + max(0, (d.rh[h] - 40) / 15)
             return (1 - k) * cold + k * hot
         }
-        var d = DayHourly()
         d.dayProb = day.chance; d.dayIcon = day.icon; d.snowy = day.icon == "snowflake"; d.rainy = rainy
-        d.temp = temp; d.feel = feel; d.chance = chance; d.wind = wind; d.uv = uv; d.rh = rh
-        d.gust = wind.map { $0 * 1.5 + 0.5 }
         if index == 0, let m = WeatherScene.clockMinutes(s.clock) { d.now = m / 60 }
+        // night icons from the sunset / sunrise tile when there is one ("17:52" → from 18 h)
+        for t in s.tiles {
+            guard let v = t.value, let m = WeatherScene.clockMinutes(v) else { continue }
+            let h = Int((Double(m) / 60).rounded(.up))
+            if t.icon == "sunset" { d.dusk = max(16, min(21, h)) }
+            if t.icon == "sunrise" { d.dawn = max(4, min(9, h)) }
+        }
         return d
     }
 
@@ -728,10 +863,46 @@ private struct DayHourly {
         return last.1
     }
 
+    /// Angles (degrees) interpolated the shorter way round, kept in 0..<360.
+    private static func interpAngle(_ pts: [(Double, Double)], _ x: Double) -> Double {
+        func norm(_ a: Double) -> Double { (a.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360) }
+        guard let first = pts.first, let last = pts.last else { return 0 }
+        if x <= first.0 { return norm(first.1) }
+        if x >= last.0 { return norm(last.1) }
+        for i in 1..<pts.count where x <= pts[i].0 {
+            let (x0, a0) = pts[i - 1], (x1, a1) = pts[i]
+            guard x1 > x0 else { return norm(a1) }
+            var delta = (a1 - a0).truncatingRemainder(dividingBy: 360)
+            if delta > 180 { delta -= 360 } else if delta < -180 { delta += 360 }
+            return norm(a0 + delta * (x - x0) / (x1 - x0))
+        }
+        return norm(last.1)
+    }
+
+    /// Each slot's amount over its hours, leaning towards the wetter neighbour so the bars rise and fall smoothly;
+    /// every slot keeps exactly its own total (a dry slot stays dry).
+    private static func spread(_ hs: [Double], _ amounts: [Double]) -> [Double] {
+        var out = Array(repeating: 0.0, count: 24)
+        let n = min(hs.count, amounts.count)
+        guard n > 0 else { return out }
+        let order = (0..<n).sorted { hs[$0] < hs[$1] }
+        let start = order.map { hs[$0] }, amt = order.map { max(0, amounts[$0]) }
+        let len: [Double] = (0..<n).map { k in max(1, (k + 1 < n ? start[k + 1] : start[k] + 3) - start[k]) }
+        let rate: [(Double, Double)] = (0..<n).map { k in (start[k] + len[k] / 2, amt[k] / len[k]) }
+        for k in 0..<n where amt[k] > 0 {
+            let hours = (0..<24).filter { Double($0) >= start[k] && Double($0) < start[k] + len[k] }
+            guard !hours.isEmpty else { continue }
+            let raw = hours.map { interp(rate, Double($0) + 0.5) }
+            let sum = raw.reduce(0, +)
+            for (j, h) in hours.enumerated() { out[h] = sum > 0 ? raw[j] / sum * amt[k] : amt[k] / Double(hours.count) }
+        }
+        return out
+    }
+
     /// The icon for an hour: the wet icon while rain is likely, a cloud around it on a rainy day, the moon at night.
     func icon(_ h: Int) -> String {
         let wet = snowy ? "snowflake" : (dayIcon == "lightning" ? "lightning" : "raincloud")
-        if chance[h] >= 50 { return wet }
+        if chance[h] >= 50 || (hasMM && mm[h] >= 0.3) { return wet }
         if dayIcon == "raincloud" || dayIcon == "lightning" || snowy { return "cloud" }
         if h < dawn || h >= dusk { return dayIcon == "cloud" ? "cloud" : "moon" }
         return dayIcon
@@ -757,21 +928,26 @@ private enum DayTempColor {
 
 private struct DayChartSpec {
     var vals: [Double]; var ymin: Double; var ymax: Double
-    var grid: [(Double, String)] = []
-    var segColors: [Color] = []
+    var grid: [(Double, String)] = []        // (fraction of the value range, label)
+    var segColors: [Color] = []              // one colour, or one per curve segment (25)
     var areaStops: [Gradient.Stop]? = nil
     var areaHorizontal = false
     var areaOpacity = 0.35
-    var line2: [Double]? = nil
+    var line2: [Double]? = nil               // gusts, dotted
     var line2Color: Color = .clear
+    var bars: [Double]? = nil                // rain per hour, as a fraction of the plot height
+    var barFill: Color = .clear
+    var barCap: Color = .clear
     var showHiLo = false
     var showSel = false
     var hiText = "", loText = "", selText = ""
-    func y(_ v: Double, _ h: CGFloat) -> CGFloat { h - CGFloat((v - ymin) / max(0.001, ymax - ymin)) * h }
+    /// y of a value: the range fills the plot under a little headroom (`DayChart.top`), so 100 % is never cut off
+    func y(_ v: Double) -> CGFloat { DayChart.y(frac: (v - ymin) / max(0.001, ymax - ymin)) }
 }
 
 private struct DayScrub {
-    let time: String; let icon: String?; let arrow: Bool; let main: String; let sub: String; let subColor: Color?; let subInk: Color?
+    var time: String; var icon: String? = nil; var arrow: Int? = nil; var main: String; var sub: String
+    var subColor: Color? = nil; var subInk: Color? = nil
 }
 
 /// Catmull-Rom curve through the 24 hourly points (plus flat ends), as cubic segments
@@ -796,9 +972,6 @@ private enum DayCurve {
         for i in 0..<(pts.count - 1) { add(&p, pts, i) }
         return p
     }
-    static func segment(_ pts: [CGPoint], _ i: Int) -> Path {
-        var p = Path(); p.move(to: pts[i]); add(&p, pts, i); return p
-    }
     static func area(_ pts: [CGPoint], height: CGFloat) -> Path {
         var p = line(pts)
         guard let l = pts.last else { return p }
@@ -812,40 +985,51 @@ private struct DayAreaShape: Shape {
     func path(in r: CGRect) -> Path { DayCurve.area(pts, height: r.height) }
 }
 
-/// The 140 pt chart: dotted grid with labels on the right, gradient area, coloured curve, dotted gust line,
-/// the selected-hour marker and tags, and press-or-drag to pick an hour.
+/// Sizes of the chart's tags and readout, measured once they are laid out (0 최고 · 1 최저 · 2 selected hour · 3 readout)
+private struct DaySizes: PreferenceKey {
+    static var defaultValue: [Int: CGSize] = [:]
+    static func reduce(value: inout [Int: CGSize], nextValue: () -> [Int: CGSize]) { value.merge(nextValue()) { $1 } }
+}
+
+private struct DaySizeReader: View {
+    let key: Int
+    var body: some View { GeometryReader { g in Color.clear.preference(key: DaySizes.self, value: [key: g.size]) } }
+}
+
+/// The chart: dotted grid with labels on the right, rain bars, gradient area, coloured curve, dotted gust line,
+/// the selected-hour marker and tags, and the readout above it while the finger moves across.
+/// A tap picks that hour; a sideways drag from anywhere follows the finger (an up-down drag still scrolls the sheet).
 private struct DayChart: View {
+    /// plot height · headroom inside it above the top grid line · label column right of the plot (+5 pt to spare, as the 288 + 36 of 329 pt on the prototype)
+    static let H: CGFloat = 180
+    static let top: CGFloat = 10
+    static let gutter: CGFloat = 36
+    static var plotHeight: CGFloat { H - top }
+    static func y(frac: Double) -> CGFloat { top + plotHeight * CGFloat(1 - frac) }
+    static func hourWidth(_ width: CGFloat) -> CGFloat { max(1, (width - gutter - 5) / 24) }
+
     let ctx: DayCtx; let spec: DayChartSpec; let cw: CGFloat; let scrub: DayScrub
-    /// nil until a drag shows its direction; true = sideways (scrubbing the hours), false = up-down (scrolling)
-    @State var sideways: Bool? = nil
     let onScrub: (Int, Bool) -> Void
-    let H: CGFloat = 140
+    /// nil until a drag shows its direction; true = sideways (scrubbing the hours), false = up-down (scrolling)
+    @State private var sideways: Bool? = nil
+    @State private var sizes: [Int: CGSize] = [:]
     private var W: CGFloat { cw * 24 }
+    private let H = DayChart.H
 
     var body: some View {
-        let pts = DayCurve.points(spec.vals.map { spec.y($0, H) }, cw: cw)
+        let pts = DayCurve.points(spec.vals.map { spec.y($0) }, cw: cw)
         ZStack(alignment: .topLeading) {
             grid
-            if let stops = spec.areaStops {
-                Group {
-                    if spec.areaHorizontal {
-                        LinearGradient(stops: stops, startPoint: .leading, endPoint: .trailing)
-                            .mask(LinearGradient(colors: [.black, .black.opacity(0.15)], startPoint: .top, endPoint: .bottom))
-                    } else {
-                        LinearGradient(stops: stops, startPoint: .top, endPoint: .bottom)
-                    }
-                }
-                .frame(width: W, height: H).clipShape(DayAreaShape(pts: pts)).opacity(spec.areaOpacity)
-            }
+            if let bars = spec.bars { barsView(bars) }
+            if spec.areaStops != nil { area(pts) }
             curves(pts)
-            marker(pts)
+            marker
             tags
+            if ctx.scrub { scrubBox }
         }
-        .frame(maxWidth: .infinity, alignment: .topLeading).frame(height: H)
-        .overlay(alignment: .topLeading) { if ctx.scrub { scrubBox } }
+        .frame(maxWidth: .infinity, alignment: .topLeading).frame(height: H, alignment: .topLeading)
+        .onPreferenceChange(DaySizes.self) { sizes = $0 }
         .contentShape(Rectangle())
-        // as on the prototype: drag sideways over the chart and the hour follows the finger; an up-down drag still
-        // scrolls the sheet (the direction is decided by the first few points); a tap picks that hour
         .simultaneousGesture(DragGesture(minimumDistance: 4, coordinateSpace: .local)
             .onChanged { g in
                 if sideways == nil { sideways = abs(g.translation.width) >= abs(g.translation.height) }
@@ -859,27 +1043,62 @@ private struct DayChart: View {
     }
 
     private func hour(_ x: CGFloat) -> Int { max(0, min(23, Int(x / cw))) }
+    private func px(_ i: Int) -> CGFloat { CGFloat(i) * cw + cw / 2 }
+    private func clampX(_ x: CGFloat, _ w: CGFloat) -> CGFloat { max(0, min(W - w, x)) }
 
     private var grid: some View {
         ForEach(Array(spec.grid.enumerated()), id: \.offset) { _, g in
-            let y = H - CGFloat(g.0) * H
-            DayDots(color: ctx.ink.line).frame(width: W, height: 1).offset(y: y - 0.5)
-            Text(g.1).font(.ui(11)).foregroundStyle(ctx.ink.sub).fixedSize().offset(x: W + 8, y: y - 6)
+            let y = DayChart.y(frac: g.0)
+            DayDots(color: ctx.line).frame(width: W, height: 1).offset(y: y - 0.5)
+            Text(g.1).font(.px(11)).foregroundStyle(ctx.ink.sub).lineLimit(1).fixedSize()
+                .frame(height: 12).offset(x: W + 8, y: y - 6)
         }
+    }
+
+    /// Rain per hour: 8 pt bars (with a 3 pt cap) under the chance curve
+    private func barsView(_ bars: [Double]) -> some View {
+        ForEach(0..<min(24, bars.count), id: \.self) { i in
+            let h = bars[i] > 0.0001 ? max(3, CGFloat(min(1, bars[i])) * DayChart.plotHeight) : 0
+            if h > 0 {
+                Rectangle().fill(spec.barFill)
+                    .overlay(alignment: .top) { Rectangle().fill(spec.barCap).frame(height: 3) }
+                    .frame(width: max(2, cw - 4), height: h)
+                    .offset(x: CGFloat(i) * cw + 2, y: H - h)
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private func area(_ pts: [CGPoint]) -> some View {
+        let stops = spec.areaStops ?? []
+        return Group {
+            if spec.areaHorizontal {
+                LinearGradient(stops: stops, startPoint: .leading, endPoint: .trailing)
+                    .mask(LinearGradient(colors: [.black, .black.opacity(0.15)], startPoint: .top, endPoint: .bottom))
+            } else {
+                LinearGradient(stops: stops, startPoint: .top, endPoint: .bottom)
+            }
+        }
+        .frame(width: W, height: H).clipShape(DayAreaShape(pts: pts)).opacity(spec.areaOpacity)
+        .allowsHitTesting(false)
     }
 
     /// The curve as ONE path, coloured along x (hard steps between the colours of neighbouring hours), so the line has
     /// the same width everywhere — no bumps where hour segments meet. The canvas reaches a few points past the plot
-    /// so a line on 0 % / 0 UV / 100 % is not cut in half by the chart's edge.
+    /// so a line on 0 % / 0 UV / 100 % is never cut in half. Gusts: 3 on, 4 off, square ends (as on the prototype).
     private func curves(_ pts: [CGPoint]) -> some View {
         let pad: CGFloat = 4
         return Canvas { c, _ in
             guard pts.count > 1 else { return }
             c.translateBy(x: 0, y: pad)
+            if let l2 = spec.line2 {
+                let p2 = DayCurve.points(l2.map { spec.y($0) }, cw: cw)
+                c.stroke(DayCurve.line(p2), with: .color(spec.line2Color), style: StrokeStyle(lineWidth: 3, lineCap: .butt, lineJoin: .round, dash: [3, 4]))
+            }
             let style = StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
             let path = DayCurve.line(pts)
             let cols = spec.segColors
-            if cols.isEmpty || Set(cols.map { "\($0)" }).count == 1 {
+            if cols.count <= 1 {
                 c.stroke(path, with: .color(cols.first ?? ctx.ink.ink), style: style)
             } else {
                 var stops: [Gradient.Stop] = []
@@ -890,86 +1109,137 @@ private struct DayChart: View {
                 }
                 c.stroke(path, with: .linearGradient(Gradient(stops: stops), startPoint: .zero, endPoint: CGPoint(x: W, y: 0)), style: style)
             }
-            if let l2 = spec.line2 {
-                let p2 = DayCurve.points(l2.map { spec.y($0, H) }, cw: cw)
-                c.stroke(DayCurve.line(p2), with: .color(spec.line2Color), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round, dash: [3, 4]))
-            }
         }
         .frame(width: W, height: H + pad * 2)
         .offset(y: -pad)
         .allowsHitTesting(false)
     }
 
-    private var selY: CGFloat { H - spec.y(spec.vals[ctx.sel], H) }
-
-    private func marker(_ pts: [CGPoint]) -> some View {
-        let x = CGFloat(ctx.sel) * cw + cw / 2
+    /// Dotted line from above the plot (from the readout while scrubbing) and a 13 pt square on the curve
+    private var marker: some View {
+        let x = px(ctx.sel), y = spec.y(spec.vals[ctx.sel])
+        let from: CGFloat = ctx.scrub ? -6 : -24
         return ZStack(alignment: .topLeading) {
-            DayDots(color: ctx.ink.ink, vertical: true).frame(width: 2, height: H + 24).offset(x: x - 1, y: -24).opacity(0.7)
-            Rectangle().fill(ctx.inv).frame(width: 9, height: 9).overlay(Rectangle().stroke(ctx.ink.ink, lineWidth: 2))
-                .offset(x: x - 4.5, y: H - selY - 4.5)
+            DayDots(color: ctx.ink.ink, vertical: true).frame(width: 2, height: H - from).offset(x: x - 1, y: from).opacity(0.7)
+            Rectangle().fill(ctx.inv).overlay(Rectangle().strokeBorder(ctx.ink.ink, lineWidth: 2))
+                .frame(width: 13, height: 13).offset(x: x - 6.5, y: y - 6.5)
         }
         .animation(ctx.scrub ? nil : Motion.gentle, value: ctx.sel)
+        .allowsHitTesting(false)
     }
 
-    /// 최고 / 최저 tags sit centred on their point and slide aside (or hide) when the selected-hour tag is in the way
+    // MARK: tags
+
+    private func size(_ k: Int, _ text: String, _ h: CGFloat) -> CGSize { sizes[k] ?? CGSize(width: CGFloat(text.count) * 7 + 14, height: h) }
+
+    /// Where the tags go (top-left corners; nil = hidden). The selected-hour tag sits above its point (below it when
+    /// there is no room); 최고 / 최저 sit above theirs, slide sideways past the selected-hour tag (still over their
+    /// point), 최저 may drop under its point, and a tag that would touch another tag or the marker is hidden.
+    private var tagPlan: (hi: CGPoint?, lo: CGPoint?, sel: CGPoint?) {
+        let vals = spec.vals
+        guard vals.count == 24, let vmax = vals.max(), let vmin = vals.min() else { return (nil, nil, nil) }
+        let sx = px(ctx.sel), sy = spec.y(vals[ctx.sel])
+        let ss = size(2, spec.selText, 21)
+        var selRect = CGRect(x: clampX(sx - ss.width / 2, ss.width), y: sy - 8 - ss.height, width: ss.width, height: ss.height)
+        if selRect.minY < -2 { selRect.origin.y = sy + 8 }
+        // the selected-hour tag counts while it is hidden for the readout too, so 최고 / 최저 hold still under the finger
+        var taken = [CGRect(x: sx - 6.5, y: sy - 6.5, width: 13, height: 13)]
+        if spec.showSel { taken.append(selRect) }
+        var hi: CGPoint?, lo: CGPoint?
+        if spec.showHiLo {
+            let hiI = vals.firstIndex(of: vmax) ?? 0, loI = vals.firstIndex(of: vmin) ?? 0
+            if let r = place(hiI, y: spec.y(vmax), size: size(0, spec.hiText, 17), sel: selRect, taken: taken, under: false) { hi = r.origin; taken.append(r) }
+            if let r = place(loI, y: spec.y(vmin), size: size(1, spec.loText, 19), sel: selRect, taken: taken, under: true) { lo = r.origin }
+        }
+        return (hi, lo, spec.showSel && !ctx.scrub ? selRect.origin : nil)
+    }
+
+    private func place(_ i: Int, y py: CGFloat, size s: CGSize, sel: CGRect, taken: [CGRect], under: Bool) -> CGRect? {
+        let x0 = px(i)
+        func free(_ r: CGRect) -> Bool {
+            r.minY >= -2 && r.maxY <= H + 2 && !taken.contains { $0.insetBy(dx: -2, dy: -2).intersects(r) }
+        }
+        let above = CGRect(x: clampX(x0 - s.width / 2, s.width), y: py - 9 - s.height, width: s.width, height: s.height)
+        if free(above) { return above }
+        let x2 = i > ctx.sel ? sel.maxX + 3 : sel.minX - 3 - s.width
+        let side = CGRect(x: x2, y: above.minY, width: s.width, height: s.height)
+        if x2 >= 0, x2 + s.width <= W, x0 >= x2 + 4, x0 <= x2 + s.width - 4, free(side) { return side }
+        if under {
+            let below = CGRect(x: above.minX, y: py + 9, width: s.width, height: s.height)
+            if free(below) { return below }
+        }
+        return nil
+    }
+
     private var tags: some View {
-        let vmax = spec.vals.max() ?? 0, vmin = spec.vals.min() ?? 0
-        let hiI = spec.vals.firstIndex(of: vmax) ?? 0, loI = spec.vals.firstIndex(of: vmin) ?? 0
-        let selBox = CGRect(x: labX(ctx.sel, 54), y: selY + 8, width: 54, height: 21)
-        let showSel = spec.showSel && !ctx.scrub
-        let hiX = tagX(hiI, 50, selBox, showSel), loX = tagX(loI, 50, selBox, showSel)
-        return ZStack(alignment: .bottomLeading) {
-            if spec.showHiLo, hiX >= 0 {
-                Text(spec.hiText).font(.ui(11, .medium)).foregroundStyle(ctx.inv).padding(.horizontal, 5).padding(.vertical, 3).background(ctx.ink.ink).fixedSize()
-                    .offset(x: hiX, y: -(H - spec.y(vmax, H) + 9))
+        let p = tagPlan
+        return ZStack(alignment: .topLeading) {
+            if spec.showHiLo {
+                Text(spec.hiText).font(.px(11)).lineLimit(1).foregroundStyle(ctx.inv)
+                    .padding(.horizontal, 5).padding(.vertical, 3).background(ctx.ink.ink).fixedSize()
+                    .background(DaySizeReader(key: 0))
+                    .opacity(p.hi == nil ? 0 : 1).offset(x: p.hi?.x ?? 0, y: p.hi?.y ?? 0)
+                Text(spec.loText).font(.px(11)).lineLimit(1).foregroundStyle(ctx.ink.sub)
+                    .padding(.horizontal, 6).padding(.vertical, 4).overlay(Rectangle().strokeBorder(ctx.ink.sub, lineWidth: 1)).fixedSize()
+                    .background(DaySizeReader(key: 1))
+                    .opacity(p.lo == nil ? 0 : 1).offset(x: p.lo?.x ?? 0, y: p.lo?.y ?? 0)
             }
-            if spec.showHiLo, loX >= 0 {
-                Text(spec.loText).font(.ui(11, .medium)).foregroundStyle(ctx.ink.sub).padding(.horizontal, 5).padding(.vertical, 3).overlay(Rectangle().stroke(ctx.ink.sub, lineWidth: 1)).fixedSize()
-                    .offset(x: loX, y: -(H - spec.y(vmin, H) + 9))
-            }
-            if showSel {
-                Text(spec.selText).font(.ui(11, .medium)).foregroundStyle(ctx.ink.ink).padding(.horizontal, 5).padding(.vertical, 3)
-                    .background(ctx.bubble).overlay(Rectangle().stroke(ctx.ink.ink, lineWidth: 2)).fixedSize()
-                    .offset(x: selBox.minX, y: -(selY + 8))
+            if spec.showSel {
+                Text(spec.selText).font(.px(11)).lineLimit(1).foregroundStyle(ctx.ink.ink)
+                    .padding(.horizontal, 7).padding(.vertical, 5)
+                    .background(ctx.bubble).overlay(Rectangle().strokeBorder(ctx.ink.ink, lineWidth: 2)).fixedSize()
+                    .background(DaySizeReader(key: 2))
+                    .opacity(p.sel == nil ? 0 : 1).offset(x: p.sel?.x ?? 0, y: p.sel?.y ?? 0)
             }
         }
-        .frame(width: W, height: H, alignment: .bottomLeading)
+        .frame(width: W, height: H, alignment: .topLeading)
+        .animation(ctx.scrub ? nil : Motion.gentle, value: ctx.sel)
+        .allowsHitTesting(false)
     }
 
-    private func labX(_ i: Int, _ w: CGFloat) -> CGFloat { max(0, min(W - w, CGFloat(i) * cw + cw / 2 - w / 2)) }
-    private func tagX(_ i: Int, _ w: CGFloat, _ sel: CGRect, _ selOn: Bool) -> CGFloat {
-        let y = H - spec.y(spec.vals[i], H) + 9, x = labX(i, w)
-        func hits(_ x: CGFloat) -> Bool { selOn && !(x + w <= sel.minX || sel.maxX <= x || y + 17 <= sel.minY || sel.maxY <= y) }
-        if !hits(x) { return x }
-        let px = CGFloat(i) * cw + cw / 2
-        let x2 = i > ctx.sel ? sel.maxX + 3 : sel.minX - 3 - w
-        return x2 >= 0 && x2 + w <= W && px >= x2 + 4 && px <= x2 + w - 4 && !hits(x2) ? x2 : -1
-    }
+    // MARK: readout
 
+    /// Above the plot (6 pt over it, on top of the icon row), centred on the hour; at the left edge up to 5 h and at the
+    /// right edge from 19 h, and never past either edge.
     private var scrubBox: some View {
-        let sx = CGFloat(ctx.sel) * cw + cw / 2
-        return HStack(spacing: 7) {
-            Text(scrub.time).font(.ui(11)).foregroundStyle(ctx.ink.sub).padding(.trailing, 7)
+        let s = sizes[3]
+        let w = s?.width ?? 0, h = s?.height ?? 36
+        let full = W + DayChart.gutter
+        let sx = px(ctx.sel)
+        let want = ctx.sel <= 5 ? 0 : (ctx.sel >= 19 ? full - w : sx - w / 2)
+        let x = min(max(0, want), max(0, full - w))
+        return scrubContent
+            .background(DaySizeReader(key: 3))
+            .opacity(s == nil ? 0 : 1)
+            .offset(x: x, y: -(h + 6))
+            .allowsHitTesting(false)
+    }
+
+    private var scrubContent: some View {
+        HStack(spacing: 7) {
+            Text(scrub.time).font(.px(11)).lineLimit(1).foregroundStyle(ctx.ink.sub).padding(.trailing, 7)
                 .overlay(alignment: .trailing) { Rectangle().fill(ctx.ink.sub).frame(width: 1) }
             if let icon = scrub.icon { PixelIcon(name: icon, size: 18) }
-            if scrub.arrow { DayArrow(deg: ctx.windDeg, color: ctx.ink.ink).frame(width: 14, height: 14) }
-            Text(scrub.main).font(.px(16))
-            if let bg = scrub.subColor {
-                Text(scrub.sub).font(.ui(11, .medium)).foregroundStyle(scrub.subInk ?? ctx.ink.ink).padding(.horizontal, 5).padding(.vertical, 3).background(bg)
-            } else {
-                Text(scrub.sub).font(.ui(11)).foregroundStyle(ctx.ink.sub)
-            }
+            if let deg = scrub.arrow { DayArrow(deg: deg, color: ctx.ink.ink).frame(width: 14, height: 14) }
+            Text(scrub.main).font(.px(16)).lineLimit(1)
+            scrubSub
         }
         .fixedSize()
-        .padding(EdgeInsets(top: 7, leading: 9, bottom: 7, trailing: 10))
-        .background(.ultraThinMaterial)
+        // 7 / 10 / 7 / 9 pt inside the 2 pt outline
+        .padding(EdgeInsets(top: 9, leading: 11, bottom: 9, trailing: 12))
         .background(ctx.night ? Color(red: 24 / 255, green: 30 / 255, blue: 66 / 255).opacity(0.72) : Color.white.opacity(0.72))
-        .overlay(Rectangle().stroke(ctx.ink.ink, lineWidth: 2))
-        .background(Rectangle().fill(ctx.shadow).offset(x: 3, y: 3))
-        .allowsHitTesting(false)
-        .alignmentGuide(.leading) { d in ctx.sel <= 5 ? 0 : (ctx.sel >= 19 ? d.width - W : d.width / 2 - sx) }
-        .alignmentGuide(.top) { d in d.height + 6 }
+        .background(.ultraThinMaterial)
+        .overlay(Rectangle().strokeBorder(ctx.ink.ink, lineWidth: 2))
+        .background(DayDropShadow().fill(ctx.shadow))
+    }
+
+    @ViewBuilder private var scrubSub: some View {
+        if let bg = scrub.subColor {
+            Text(scrub.sub).font(.px(11)).lineLimit(1).foregroundStyle(scrub.subInk ?? ctx.ink.ink)
+                .padding(.horizontal, 5).padding(.vertical, 3).background(bg)
+        } else {
+            Text(scrub.sub).font(.px(11)).lineLimit(1).foregroundStyle(ctx.ink.sub)
+        }
     }
 }
 
@@ -985,6 +1255,17 @@ private struct DayNotch: Shape {
         p.addLine(to: CGPoint(x: r.maxX - n, y: r.maxY)); p.addLine(to: CGPoint(x: r.minX + n, y: r.maxY)); p.addLine(to: CGPoint(x: r.minX + n, y: r.maxY - n))
         p.addLine(to: CGPoint(x: r.minX, y: r.maxY - n)); p.addLine(to: CGPoint(x: r.minX, y: r.minY + n)); p.addLine(to: CGPoint(x: r.minX + n, y: r.minY + n))
         p.closeSubpath()
+        return p
+    }
+}
+
+/// The solid 3 pt offset shadow of a box, drawn only where it shows (right and bottom), so a see-through box stays clean
+private struct DayDropShadow: Shape {
+    var d: CGFloat = 3
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        p.addRect(CGRect(x: r.maxX, y: r.minY + d, width: d, height: r.height))
+        p.addRect(CGRect(x: r.minX + d, y: r.maxY, width: r.width - d, height: d))
         return p
     }
 }
@@ -1007,7 +1288,7 @@ private struct DayDots: View {
 private struct DayArrow: View {
     let deg: Int; let color: Color
     var body: some View {
-        let to = (deg + 180) % 360, idx = Int((Double(to) / 45).rounded()) % 8
+        let to = ((deg + 180) % 360 + 360) % 360, idx = Int((Double(to) / 45).rounded()) % 8
         let diagonal = idx % 2 == 1, rot = Double(idx / 2) * 90
         Canvas { c, size in
             let s = size.width / 7
@@ -1025,16 +1306,33 @@ private struct DayArrow: View {
     }
 }
 
-/// Bubble tail pointing left at the character (outline + fill)
-private struct DayTail: View {
-    let outline: Color; let fill: Color
+/// The close button's pixel ✕ (7 × 7 grid)
+private struct DayCloseX: View {
+    let color: Color
+    private static let rows: [[Int]] = [[0, 1, 5, 6], [0, 1, 2, 4, 5, 6], [1, 2, 3, 4, 5], [2, 3, 4], [1, 2, 3, 4, 5], [0, 1, 2, 4, 5, 6], [0, 1, 5, 6]]
     var body: some View {
         Canvas { c, size in
-            // 5 x 7 pixel grid: outline rows 2·3·4·5·4·3·2 wide, fill rows 1·2·3·2·1 inside, all flush right
+            let s = size.width / 7
+            var p = Path()
+            for (y, row) in Self.rows.enumerated() { for x in row { p.addRect(CGRect(x: CGFloat(x) * s, y: CGFloat(y) * s, width: s, height: s)) } }
+            c.fill(p, with: .color(color))
+        }
+    }
+}
+
+/// Bubble tail pointing left at the character (outline + fill), the prototype's 5 × 7 pixel shape, flush right
+private struct DayTail: View {
+    let outline: Color; let fill: Color
+    private static let outer: [CGFloat] = [3, 4, 5, 4, 3, 2, 1]      // widths of rows 0…6
+    private static let inner: [CGFloat] = [0, 1, 2, 3, 2, 1, 0]
+    var body: some View {
+        Canvas { c, size in
             let s = size.width / 5
             var o = Path(), i = Path()
-            for k in 0..<7 { let w = CGFloat(5 - abs(k - 3)); o.addRect(CGRect(x: size.width - w * s, y: CGFloat(k) * s, width: w * s, height: s)) }
-            for k in 1..<6 { let w = CGFloat(3 - abs(k - 3)); i.addRect(CGRect(x: size.width - w * s, y: CGFloat(k) * s, width: w * s, height: s)) }
+            for k in 0..<7 {
+                o.addRect(CGRect(x: size.width - Self.outer[k] * s, y: CGFloat(k) * s, width: Self.outer[k] * s, height: s))
+                if Self.inner[k] > 0 { i.addRect(CGRect(x: size.width - Self.inner[k] * s, y: CGFloat(k) * s, width: Self.inner[k] * s, height: s)) }
+            }
             c.fill(o, with: .color(outline)); c.fill(i, with: .color(fill))
         }
     }
@@ -1053,10 +1351,45 @@ private struct DayStripeBorder: View {
     }
 }
 
+/// The UV scale under the UV chart: five coloured segments and a square marking the day's highest index
+private struct DayUVBar: View {
+    let uv: Int; let ink: Color; let inv: Color
+    var body: some View {
+        GeometryReader { g in
+            let total = UVScale.bands.reduce(0) { $0 + $1.flex }
+            let gaps = CGFloat(UVScale.bands.count - 1) * 2
+            let pos = CGFloat((min(Double(uv), 11.5) + 0.5) / 12) * g.size.width
+            ZStack(alignment: .topLeading) {
+                HStack(spacing: 2) {
+                    ForEach(Array(UVScale.bands.enumerated()), id: \.offset) { _, b in
+                        Rectangle().fill(Color(hex: b.color)).frame(width: (g.size.width - gaps) * b.flex / total, height: 6)
+                    }
+                }
+                .offset(y: 4)
+                Rectangle().fill(inv).overlay(Rectangle().strokeBorder(ink, lineWidth: 2))
+                    .frame(width: 14, height: 14)
+                    .offset(x: pos - 7)
+                    .animation(Motion.gentle, value: uv)
+            }
+        }
+        .frame(height: 14)
+    }
+}
+
 private extension View {
-    /// Hard-edged box with a 2 pt outline and a solid 3 pt offset shadow
+    /// Hard-edged box with a 2 pt outline (inside its frame) and a solid 3 pt offset shadow
     func dayBox(fill: Color, border: Color, shadow: Color) -> some View {
-        self.background(fill).overlay(Rectangle().stroke(border, lineWidth: 2))
+        self.background(fill).overlay(Rectangle().strokeBorder(border, lineWidth: 2))
             .background(Rectangle().fill(shadow).offset(x: 3, y: 3))
+    }
+
+    /// The frosted card: 14 / 14 / 14 / 16 pt padding inside a 1 pt border, 20 pt corners, a soft shadow by day
+    func dayCard(_ c: DayCtx) -> some View {
+        self.padding(EdgeInsets(top: 15, leading: 17, bottom: 15, trailing: 15))
+            .background {
+                RoundedRectangle(cornerRadius: 20).fill(c.cardFill)
+                    .shadow(color: Color(hex: "#1E2A44").opacity(c.night ? 0 : 0.08), radius: 9, y: 6)
+            }
+            .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(c.cardBorder, lineWidth: 1))
     }
 }

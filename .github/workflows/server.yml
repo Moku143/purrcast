@@ -81,7 +81,10 @@ jobs:
           url=$(cat url.txt); mkdir -p out; echo "$url" > out/url.txt
           sleep 8
           curl -s -m 20 "$url/health?deep=1" > out/health.json || echo '{"error":"health request failed"}' > out/health.json
-          curl -s -m 25 "$url/v1/forecast?lat=37.5663&lon=126.9019&plan=plus&name=%EC%84%9C%EC%9A%B8%20%EB%A7%88%ED%8F%AC%EA%B5%AC" | head -c 4000 > out/seoul.json || true
+          curl -s -m 25 "$url/v1/forecast?lat=37.5663&lon=126.9019&region=kr&tz=Asia/Seoul&plan=plus&lang=ko&name=%EC%84%9C%EC%9A%B8%20%EB%A7%88%ED%8F%AC%EA%B5%AC" > out/seoul.json || true
+          curl -s -m 25 "$url/v1/forecast?lat=35.6938&lon=139.7034&region=jp&tz=Asia/Tokyo&plan=plus&lang=ja" > out/tokyo.json || true
+          # which sources each answer used (main + 예보 비교)
+          node -e 'for (const f of ["seoul","tokyo"]) { try { const s = require("./out/" + f + ".json"); console.log(f, "main", s.src, "· 비교", (s.cmp?.sources || []).map((x) => x.name + (x.main ? "*" : "")).join(", "), "·", s.temp + "°", s.cond); } catch (e) { console.log(f, "unreadable", e.message); } }' > out/sources.txt || true
           echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt
           cd out && git init -q && git checkout -q -b server-deploy
           git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "deploy ${{ github.run_id }}"
