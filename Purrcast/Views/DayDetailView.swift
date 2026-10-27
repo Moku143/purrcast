@@ -908,8 +908,13 @@ private struct DayHourly {
         guard n > 0 else { return out }
         let order = (0..<n).sorted { hs[$0] < hs[$1] }
         let start = order.map { hs[$0] }, amt = order.map { max(0, amounts[$0]) }
-        let len: [Double] = (0..<n).map { k in max(1, (k + 1 < n ? start[k + 1] : start[k] + 3) - start[k]) }
-        let rate: [(Double, Double)] = (0..<n).map { k in (start[k] + len[k] / 2, amt[k] / len[k]) }
+        var len: [Double] = []
+        for k in 0..<n {
+            let next: Double = k + 1 < n ? start[k + 1] : start[k] + 3.0
+            len.append(Swift.max(1.0, next - start[k]))
+        }
+        var rate: [(Double, Double)] = []
+        for k in 0..<n { rate.append((start[k] + len[k] / 2.0, amt[k] / len[k])) }
         for k in 0..<n where amt[k] > 0 {
             let hours = (0..<24).filter { Double($0) >= start[k] && Double($0) < start[k] + len[k] }
             guard !hours.isEmpty else { continue }
