@@ -515,3 +515,16 @@
 "기기 설정" = "Device";
 "이름 · 말투" = "Name · tone";
 "손목에서 지금 날씨 · 시간별 · 10일\n워치 페이스에 기온 · 비 확률 · 캐릭터" = "Now · hourly · 10 days on your wrist\nWatch face: temperature · rain · character";
+
+/* day sheet: 최고 · 최저 row */
+"최고" = "High";
+"최저" = "Low";
+"비 올 확률 최고" = "Highest rain chance";
+"눈 올 확률 최고" = "Highest snow chance";
+"하루 강수량" = "Rain today";
+"하루 적설량" = "Snow today";
+"가장 센 바람" = "Strongest wind";
+"가장 센 돌풍" = "Strongest gust";
+"가장 강할 때" = "Strongest";
+"자외선 3 이상" = "UV 3 or more";
+"없음" = "None";

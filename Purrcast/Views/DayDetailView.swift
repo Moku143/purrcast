@@ -44,6 +44,7 @@ struct DayDetailView: View {
                 brief(ctx)
                 if let h = hourly {
                     chartCard(ctx, h).reveal(1)
+                    extremesRow(ctx, h).reveal(1)
                     if !scaleItems(ctx, h).items.isEmpty { scaleCard(ctx, h).reveal(2) }
                 }
             }
@@ -461,6 +462,76 @@ struct DayDetailView: View {
         }
     }
 
+    // MARK: 최고 · 최저 (under the chart, out of its way)
+
+    private struct Extreme { var title: String; var value: String; var hour: Int? }
+
+    /// The two numbers people look for on each tab, with the hour they happen; tapping one moves the chart's marker there.
+    private func extremes(_ c: DayCtx, _ h: DayHourly) -> [Extreme] {
+        func at(_ v: [Double], max: Bool) -> (Double, Int) {
+            let i = (max ? v.indices.max { v[$0] < v[$1] } : v.indices.min { v[$0] < v[$1] }) ?? 0
+            return (v.isEmpty ? 0 : v[i], i)
+        }
+        switch metric {
+        case .temp, .feels:
+            let v = metric == .feels ? h.feel : h.temp
+            let hi = at(v, max: true), lo = at(v, max: false)
+            return [Extreme(title: L("최고"), value: model.deg(roundHalfUp(hi.0)), hour: hi.1),
+                    Extreme(title: L("최저"), value: model.deg(roundHalfUp(lo.0)), hour: lo.1)]
+        case .rain:
+            let hi = at(h.chance, max: true)
+            let unit = c.snowy ? "cm" : "mm"
+            let total = h.hasMM ? (h.total >= 0.5 ? number((h.total * 10).rounded() / 10) + unit : (h.total > 0 ? L("%@ 미만", "1" + unit) : L("없음"))) : "–"
+            return [Extreme(title: c.snowy ? L("눈 올 확률 최고") : L("비 올 확률 최고"), value: "\(Int(hi.0.rounded()))%", hour: hi.0 >= 10 ? hi.1 : nil),
+                    Extreme(title: c.snowy ? L("하루 적설량") : L("하루 강수량"), value: total, hour: nil)]
+        case .wind:
+            let w = at(h.wind, max: true), g = at(h.gust, max: true)
+            return [Extreme(title: L("가장 센 바람"), value: model.windText(Int(w.0.rounded())), hour: w.1),
+                    Extreme(title: L("가장 센 돌풍"), value: model.windText(Int(g.0.rounded())), hour: g.1)]
+        case .uv:
+            let hi = at(h.uv, max: true)
+            let strong = h.uv.indices.filter { h.uv[$0] >= 3 }
+            let span = strong.isEmpty ? L("없음") : HourLabel.window(strong.first!, strong.last! + 1, clock12: model.clock12)
+            return [Extreme(title: L("가장 강할 때"), value: "\(Int(hi.0.rounded()))", hour: hi.0 >= 1 ? hi.1 : nil),
+                    Extreme(title: L("자외선 3 이상"), value: span, hour: strong.first)]
+        case .humidity:
+            let hi = at(h.rh, max: true), lo = at(h.rh, max: false)
+            return [Extreme(title: L("최고"), value: "\(Int(hi.0.rounded()))%", hour: hi.1),
+                    Extreme(title: L("최저"), value: "\(Int(lo.0.rounded()))%", hour: lo.1)]
+        }
+    }
+
+    private func extremesRow(_ c: DayCtx, _ h: DayHourly) -> some View {
+        HStack(spacing: 10) {
+            ForEach(Array(extremes(c, h).enumerated()), id: \.offset) { _, e in extremeBox(c, e) }
+        }
+        .animation(Motion.snappy, value: metric)
+    }
+
+    private func extremeBox(_ c: DayCtx, _ e: Extreme) -> some View {
+        Button {
+            guard let hr = e.hour else { return }
+            Haptic.select(); withAnimation(Motion.snappy) { picked = hr; scrubbing = false }
+        } label: {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(e.title).font(.px(12)).foregroundStyle(c.ink.sub).lineLimit(1).minimumScaleFactor(0.7)
+                    Text(e.value).font(.px(20)).lineLimit(1).minimumScaleFactor(0.6).rolling(e.value)
+                }
+                Spacer(minLength: 0)
+                if let hr = e.hour {
+                    Text(HourLabel.word(hr, clock12: model.clock12)).font(.px(12)).foregroundStyle(c.ink.sub).lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .dayCard(c)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.press(0.97))
+        .disabled(e.hour == nil)
+        .accessibilityElement(children: .combine)
+    }
+
     private func scaleCard(_ c: DayCtx, _ h: DayHourly) -> some View {
         let sc = scaleItems(c, h)
         return VStack(alignment: .leading, spacing: 10) {
@@ -511,7 +582,7 @@ struct DayDetailView: View {
         s.segColors = (0..<25).map { i in DayTempColor.color(mid(vals, i)) }
         s.areaStops = vals.enumerated().map { i, v in Gradient.Stop(color: DayTempColor.color(v), location: (Double(i) + 0.5) / 24) }
         s.areaHorizontal = true; s.areaOpacity = c.night ? 0.38 : 0.45
-        s.showHiLo = true; s.showSel = true
+        s.showHiLo = false; s.showSel = true     // 최고 · 최저 live in their own row under the chart
         s.hiText = L("최고 %@", model.deg(Int(vmax.rounded())))
         s.loText = L("최저 %@", model.deg(Int(vmin.rounded())))
         s.selText = "\(timeWord(c)) \(model.deg(Int(vals[c.sel].rounded())))"
@@ -525,7 +596,7 @@ struct DayDetailView: View {
         let lo = f ? vmin * 1.8 + 32 : vmin, hi = f ? vmax * 1.8 + 32 : vmax
         let a = floor((lo - (f ? 4 : 2)) / step) * step
         var b = max(a + 3 * step, ceil((hi + (f ? 7 : 4)) / step) * step)
-        while (b - hi) / (b - a) * Double(DayChart.plotHeight) < 34 { b += step }   // the 22 pt 최고 tag 9 pt over its point, and a little air
+        while (b - hi) / (b - a) * Double(DayChart.plotHeight) < 20 { b += step }   // a little air over the warmest hour (최고 · 최저 sit under the chart now)
         var grid: [(Double, String)] = []
         var y = a
         while y <= b + 0.001 { grid.append(((y - a) / (b - a), "\(Int(y))°")); y += step }
