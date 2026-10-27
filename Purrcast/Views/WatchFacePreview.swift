@@ -21,7 +21,7 @@ struct WatchFacePreview: View {
                     Text(dateText).font(.system(size: 14, weight: .semibold)).foregroundStyle(accent)
                         .lineLimit(1).minimumScaleFactor(0.7)
                     Spacer(minLength: 0)
-                    Text("10:09").font(.system(size: 36, weight: .semibold, design: .rounded)).foregroundStyle(.white)
+                    Text(WatchClock.now(clock12: snap.clock12)).font(.system(size: 36, weight: .semibold, design: .rounded)).foregroundStyle(.white)
                         .lineLimit(1).fixedSize()
                 }
                 LockRectangularView(snap: snap)
@@ -40,6 +40,69 @@ struct WatchFacePreview: View {
                 }
             }
             .padding(.horizontal, 12).padding(.top, 14).padding(.bottom, 12)
+        }
+    }
+}
+
+/// The time the pictures show: now, as the watch would (12- or 24-hour).
+enum WatchClock {
+    static func now(clock12: Bool) -> String {
+        let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = clock12 ? "h:mm" : "HH:mm"
+        return f.string(from: Date())
+    }
+}
+
+/// The watch app's first page next to a watch face with the complications, each in an Apple Watch case — the Plus
+/// page and the first-run page show the person's own place and weather in them. `scale` sets the size (0.57 →
+/// 122-pt cases).
+struct WatchPairPreview: View {
+    let snap: WeatherSnapshot
+    var scale: CGFloat = 0.57
+    var body: some View {
+        HStack(spacing: 16 * scale / 0.57) {
+            WatchCase(scale: scale) { WatchAppScreen(snap: snap) }
+            WatchCase(scale: scale) { WatchFacePreview(snap: snap) }
+        }
+    }
+}
+
+/// An Apple Watch: dark case, crown and side button, the screen drawn at the watch's own size (184 × 224) and scaled.
+struct WatchCase<Content: View>: View {
+    var scale: CGFloat
+    @ViewBuilder var content: Content
+    var body: some View {
+        let k = scale / 0.57
+        ZStack {
+            RoundedRectangle(cornerRadius: 36 * k, style: .continuous).fill(Color(hex: "#111114"))
+                .frame(width: 122 * k, height: 146 * k)
+                .shadow(color: .black.opacity(0.25), radius: 8 * k, y: 5 * k)
+            content.frame(width: 184, height: 224)
+                .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                .scaleEffect(scale)
+                .frame(width: 184 * scale, height: 224 * scale)
+        }
+        .overlay(alignment: .trailing) {
+            VStack(spacing: 10 * k) {
+                Capsule().fill(Color(hex: "#3A3A40")).frame(width: 5 * k, height: 20 * k)    // crown
+                Capsule().fill(Color(hex: "#2A2A30")).frame(width: 4 * k, height: 26 * k)    // side button
+            }.offset(x: 4 * k, y: -6 * k)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// The watch app's first page as the watch shows it: the sky to the edges, the words inside the watch's safe area
+/// (under the clock, clear of the rounded corners), the time at the top right.
+struct WatchAppScreen: View {
+    let snap: WeatherSnapshot
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            WatchNow(snap: snap)
+                .safeAreaPadding(EdgeInsets(top: 32, leading: 10, bottom: 14, trailing: 12))
+            Text(WatchClock.now(clock12: snap.clock12)).font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundStyle(Color.white)
+                .shadow(color: .black.opacity(0.25), radius: 1.5)
+                .padding(.top, 9).padding(.trailing, 22)
         }
     }
 }

@@ -251,48 +251,11 @@ struct PaywallView: View {
     }
 
     /// Two watches, drawn with the real watch views: the watch app's first page, and a watch face with the complications.
+    /// The watch app and a watch face with the person's own place and weather (the example before the first forecast).
     private var watchArt: some View {
-        let snap: WeatherSnapshot = {
-            var x = WeatherSnapshot.sample; x.plus = true; x.character = model.shownCharacter; x.unitF = model.unitF; x.clock12 = model.clock12
-            return x
-        }()
-        return HStack(spacing: 16) {
-            watchBezel { watchAppScreen(snap) }
-            watchBezel { WatchFacePreview(snap: snap) }
-        }
-    }
-
-    /// The watch app's first page as the watch shows it: the sky to the edges, the words inside the watch's safe area
-    /// (under the clock, clear of the rounded corners), the time at the top right.
-    private func watchAppScreen(_ snap: WeatherSnapshot) -> some View {
-        ZStack(alignment: .topTrailing) {
-            WatchNow(snap: snap)
-                .safeAreaPadding(EdgeInsets(top: 32, leading: 10, bottom: 14, trailing: 12))
-            Text("10:09").font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(snap.scene.isNight ? Color.white : Color.white.opacity(0.95))
-                .shadow(color: .black.opacity(0.15), radius: 1)
-                .padding(.top, 9).padding(.trailing, 22)
-        }
-    }
-
-    /// An Apple Watch: dark case, side button and crown, the screen at the watch's own size scaled down.
-    private func watchBezel<C: View>(@ViewBuilder _ c: () -> C) -> some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 36, style: .continuous).fill(Color(hex: "#111114"))
-                .frame(width: 122, height: 146)
-                .shadow(color: .black.opacity(0.25), radius: 8, y: 5)
-            c().frame(width: 184, height: 224)
-                .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
-                .scaleEffect(0.57)
-                .frame(width: 105, height: 128)
-        }
-        .overlay(alignment: .trailing) {
-            VStack(spacing: 10) {
-                Capsule().fill(Color(hex: "#3A3A40")).frame(width: 5, height: 20)    // crown
-                Capsule().fill(Color(hex: "#2A2A30")).frame(width: 4, height: 26)    // side button
-            }.offset(x: 4, y: -6)
-        }
-        .accessibilityHidden(true)
+        var snap = model.hasData ? model.snapshot : WeatherSnapshot.sample
+        snap.plus = true; snap.character = model.shownCharacter; snap.unitF = model.unitF; snap.clock12 = model.clock12
+        return WatchPairPreview(snap: snap)
     }
 
     /// Three place cards fanned out: Seoul, Tokyo, New York (night)

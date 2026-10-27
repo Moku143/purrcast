@@ -66,9 +66,12 @@ struct OnboardingView: View {
             }
         case 4:
             VStack(spacing: 10) {
-                PrimaryButton(title: L("알림 켜기")) {
-                    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in
-                        Task { @MainActor in model.planNotifications() }
+                // both switched off: nothing to ask permission for
+                PrimaryButton(title: model.notifyRain || model.notifyMorning ? L("알림 켜기") : L("다음")) {
+                    if model.notifyRain || model.notifyMorning {
+                        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in
+                            Task { @MainActor in model.planNotifications() }
+                        }
                     }
                     next()
                 }
@@ -87,8 +90,11 @@ struct OnboardingView: View {
     private func next() { Haptic.soft(); step = min(count - 1, step + 1) }
 
     private var demoScene: WeatherScene { SceneLibrary.scene(Self.demoKeys[demo % Self.demoKeys.count]) }
+    /// The demo weather under the person's own place name (지금 위치 until the location step has found it).
     private var demoSnap: WeatherSnapshot {
-        WeatherSnapshot(scene: demoScene, character: .cat, plus: false, characterName: "", placeShort: L("서울"), saved: Date())
+        let place = model.hereIsLive || model.currentPlace.id != "here" ? model.currentPlace.short : L("지금 위치")
+        return WeatherSnapshot(scene: demoScene, character: .cat, plus: false, characterName: "", placeShort: place, saved: Date(),
+                               unitF: model.unitF, clock12: model.clock12)
     }
     private func rainState(_ s: WeatherScene) -> RainState { RainState(rawValue: s.rain) ?? .none }
     /// A piece of sky for the pictures: the weather's colour wash with its moving rain, snow or wind.
@@ -162,21 +168,9 @@ struct OnboardingView: View {
     private var watch: some View {
         VStack(spacing: 16) {
             HStack { Text(L("애플워치")).font(.px(22)); Spacer(); PlusTag() }.padding(.top, 30)
-            ZStack {
-                RoundedRectangle(cornerRadius: 40).fill(Color(hex: "#15161C")).frame(width: 170, height: 204)
-                let s = demoScene
-                sky(s, 150, 184).clipShape(RoundedRectangle(cornerRadius: 30)).id("ws\(demo)").transition(.opacity)
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack { Text(L("서울")).font(.px(10)); Spacer(); Text("13:46").font(.px(10)) }
-                    Text("\(s.temp)°").font(.px(36)).frame(maxWidth: .infinity, alignment: .trailing)
-                    HStack(alignment: .bottom) {
-                        CharacterSprite(character: .cat, level: s.level, rain: rainState(s), width: 60, animate: false).frame(width: 60, height: 70)
-                        VStack(alignment: .trailing, spacing: 2) { Text(s.cond).font(.px(10)); Text(L("체감 %@", "\(s.feels)°")).font(.px(9)) }
-                    }
-                }
-                .foregroundStyle(s.time == "night" ? .white : UI.ink).frame(width: 128, height: 164)
-                .id("wc\(demo)").transition(.opacity)
-            }
+            WatchPairPreview(snap: demoSnap, scale: 0.72)
+                .id("wp\(demo)").transition(.opacity)
+                .padding(.top, 10)
             Text(L("워치 앱 · 워치 페이스 · 컴플리케이션")).font(.system(size: 14)).foregroundStyle(UI.sub)
             Text(L("Plus에서 쓸 수 있어요.")).font(.system(size: 14)).foregroundStyle(UI.sub)
         }
@@ -200,9 +194,13 @@ struct OnboardingView: View {
             RowGroup {
                 SettingRow(icon: "umbrella_closed", title: L("비 오기 전")) { Toggle("", isOn: $model.notifyRain).labelsHidden().tint(UI.accent) }
                 RowDivider()
-                SettingRow(icon: "sun", title: L("아침 요약")) { Toggle("", isOn: $model.notifyMorning).labelsHidden().tint(UI.accent) }
-                DatePicker("", selection: $model.morningTime, displayedComponents: .hourAndMinute)
-                    .datePickerStyle(.wheel).labelsHidden().frame(height: 150).clipped()
+                SettingRow(icon: "sun", title: L("아침 요약")) {
+                    HStack(spacing: 8) {
+                        DatePicker("", selection: $model.morningTime, displayedComponents: .hourAndMinute).labelsHidden()
+                            .disabled(!model.notifyMorning).opacity(model.notifyMorning ? 1 : 0.4)
+                        Toggle("", isOn: $model.notifyMorning).labelsHidden().tint(UI.accent)
+                    }
+                }
             }
             .padding(.horizontal, -16)
         }

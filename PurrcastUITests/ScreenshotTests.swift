@@ -105,6 +105,15 @@ final class ScreenshotTests: XCTestCase {
             app.buttons["subscribe"].firstMatch.tap(); sleep(2)
             app.buttons["settings"].firstMatch.tap(); sleep(2)
         }
+        shot("f-onb-watch", ["-scene", "maybe", "-onboarding"]) { app in
+            for _ in 0..<2 { app.buttons["next"].firstMatch.tap(); sleep(1) }
+        }
+        shot("f-onb-alerts-off", ["-scene", "maybe", "-onboarding"]) { app in
+            for _ in 0..<3 { app.buttons["next"].firstMatch.tap(); sleep(1) }
+            app.buttons["나중에 · 서울로 볼게요"].firstMatch.tap(); sleep(1)
+            app.switches.element(boundBy: 0).tap(); sleep(1)
+            app.switches.element(boundBy: 1).tap(); sleep(1)
+        }
         shot("f-home", ["-scene", "maybe", "-plus", "-char", "abys"])
         shot("f-home-cards", ["-scene", "maybe", "-plus"]) { app in
             for _ in 0..<3 { app.swipeUp() }; sleep(1)
