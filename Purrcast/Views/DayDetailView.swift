@@ -162,12 +162,24 @@ struct DayDetailView: View {
         .buttonStyle(.press(0.95))
     }
 
+    /// The alert's icon from its name, in any language (the same words as the server's `warningKind`)
+    private func alertIcon(_ name: String) -> String {
+        let w = name.lowercased()
+        func has(_ words: [String]) -> Bool { words.contains(where: { w.contains($0) }) }
+        if has(["태풍", "typhoon", "hurricane", "tropical storm", "tropical cyclone", "台風"]) { return "exclaim" }
+        if has(["대설", "snow", "blizzard", "ice storm", "winter storm", "大雪", "暴風雪"]) { return "snowflake" }
+        if has(["호우", "rain", "flood", "大雨", "洪水"]) { return "umbrella" }
+        if has(["강풍", "풍랑", "wind", "gale", "storm", "強風", "暴風", "波浪"]) { return "wind" }
+        if has(["폭염", "heat", "高温", "猛暑"]) { return "thermo_hot" }
+        if has(["한파", "cold", "freez", "frost", "低温", "寒波", "霜"]) { return "thermo_cold" }
+        if has(["황사", "미세먼지", "dust", "smoke", "air quality", "黄砂"]) { return "mask" }
+        return "exclaim"
+    }
+
     private func alertLine(_ a: WeatherScene.Alert, _ c: DayCtx) -> some View {
         let n = a.name
-        let icon = n.contains("호우") ? "umbrella" : n.contains("폭염") ? "thermo_hot" : n.contains("한파") ? "thermo_cold"
-            : n.contains("대설") ? "snowflake" : n.contains("황사") || n.contains("미세") ? "mask" : n.contains("강풍") || n.contains("태풍") ? "wind" : "exclaim"
         return HStack(spacing: 8) {
-            PixelIcon(name: icon, size: 18)
+            PixelIcon(name: alertIcon(n), size: 18)
             Text(a.note.isEmpty ? n : "\(n) · \(model.say(a.note))").font(.px(12)).lineSpacing(3).foregroundStyle(c.ink.ink)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
@@ -525,11 +537,17 @@ struct DayDetailView: View {
         s.grid = [(0, "0%"), (0.5, "50%"), (1, "100%")]
         s.segColors = [c.ink.blue]
         if h.hasMM {
-            // bar height in three bands: up to 1 mm the lower third, 1–4 mm the middle, 4–10 mm+ the top
-            s.bars = h.mm.map { v in v <= 1 ? v / 3 : (v <= 4 ? 1 / 3 + (v - 1) / 9 : 2 / 3 + min(1, (v - 4) / 6) / 3) }
+            s.bars = h.mm.map { barHeight($0) }
             s.barFill = c.barFill; s.barCap = c.ink.blue
         }
         return s
+    }
+
+    /// A bar's height (share of the plot) in three bands: up to 1 mm/h the lower third, 1–4 the middle, 4–10+ the top
+    private func barHeight(_ v: Double) -> Double {
+        if v <= 1 { return v / 3 }
+        if v <= 4 { return 1.0 / 3 + (v - 1) / 9 }
+        return 2.0 / 3 + min(1, (v - 4) / 6) / 3
     }
 
     private func windSpec(_ c: DayCtx, _ h: DayHourly) -> DayChartSpec {
@@ -547,8 +565,10 @@ struct DayDetailView: View {
     private func windAxis(_ gmax: Double) -> (ymax: Double, grid: [(Double, String)]) {
         let f: Double = model.windUnit == "km/h" ? 3.6 : (model.windUnit == "mph" ? 2.237 : 1)
         let top = gmax * f
-        let steps: [Double] = f == 1 ? [gmax > 22 ? 8 : 4] : (f > 3 ? [10, 20, 30, 40, 50, 100] : [5, 10, 20, 25, 50])
-        let step = steps.first { ceil((top + f) / $0) <= 5 } ?? (steps.last ?? 4)
+        var steps: [Double] = [5, 10, 20, 25, 50]                  // mph
+        if f == 1 { steps = [gmax > 22 ? 8 : 4] }                   // m/s, as the prototype
+        else if f > 3 { steps = [10, 20, 30, 40, 50, 100] }         // km/h
+        let step = steps.first(where: { ceil((top + f) / $0) <= 5 }) ?? (steps.last ?? 4)
         let ymaxD = max(step, ceil((top + f) / step) * step)
         var grid: [(Double, String)] = []
         var y = 0.0
@@ -812,33 +832,34 @@ private struct DayHourly {
         }
         let day = s.days[index]
         let rainy = day.chance >= 50
-        var d = DayHourly()
-        d.temp = series { $0.temp }
-        d.chance = series { max(0, min(100, $0.chance)) }
-        d.wind = series { max(0, $0.wind) }
-        d.uv = series { max(0, $0.uv) }
-        d.rh = series { max(0, min(100, $0.rh)) }
+        let temp = series { $0.temp }
+        let chance = series { max(0, min(100, $0.chance)) }
+        let wind = series { max(0, $0.wind) }
+        let uv = series { max(0, $0.uv) }
+        let rh = series { max(0, min(100, $0.rh)) }
         // gusts: the strongest in each slot when the forecast has them, else 1.5 × wind + 0.5 (as the prototype); never below the wind
-        let hasGust = rows.contains { $0.gust != nil }
-        let gust = hasGust ? series { $0.gust ?? ($0.wind * 1.5 + 0.5) } : d.wind.map { $0 * 1.5 + 0.5 }
-        d.gust = zip(gust, d.wind).map { max($0, $1) }
+        var gust = wind.map { $0 * 1.5 + 0.5 }
+        if rows.contains(where: { $0.gust != nil }) { gust = series { $0.gust ?? ($0.wind * 1.5 + 0.5) } }
         // directions: the shorter way round between the rows (350° → 10° passes north)
         let deg = Double(s.wind.deg)
         var dpts = zip(hs, rows.map { $0.dir ?? deg }).map { ($0, $1) }.sorted { $0.0 < $1.0 }
         if let n = next { dpts.append((24, n.dir ?? deg)) }
+        // feels-like: muggy heat pushes it up (blended in from 20° to 25°), otherwise night, rain and wind pull it down
+        let feel: [Double] = (0..<24).map { h in
+            let t = temp[h], k = max(0, min(1, (t - 20) / 5))
+            let nightness = max(0, min(1, (abs(Double(h) - 13) - 5) / 2.5))
+            let cold = t - 1 - nightness - (rainy ? 1 : 0) - max(0, wind[h] - 3) * 0.5
+            let hot = t + max(0, (rh[h] - 40) / 15)
+            return (1 - k) * cold + k * hot
+        }
+        var d = DayHourly()
+        d.temp = temp; d.feel = feel; d.chance = chance; d.wind = wind; d.uv = uv; d.rh = rh
+        d.gust = zip(gust, wind).map { max($0, $1) }
         d.dir = (0..<24).map { h in interpAngle(dpts, Double(h)) }
         // rain: every slot's amount spread over its own hours
         d.hasMM = rows.contains { $0.mm != nil }
         d.mm = spread(hs, rows.map { $0.mm ?? 0 })
         d.total = rows.reduce(0) { $0 + max(0, $1.mm ?? 0) }
-        // feels-like: muggy heat pushes it up (blended in from 20° to 25°), otherwise night, rain and wind pull it down
-        d.feel = (0..<24).map { h in
-            let t = d.temp[h], k = max(0, min(1, (t - 20) / 5))
-            let nightness = max(0, min(1, (abs(Double(h) - 13) - 5) / 2.5))
-            let cold = t - 1 - nightness - (rainy ? 1 : 0) - max(0, d.wind[h] - 3) * 0.5
-            let hot = t + max(0, (d.rh[h] - 40) / 15)
-            return (1 - k) * cold + k * hot
-        }
         d.dayProb = day.chance; d.dayIcon = day.icon; d.snowy = day.icon == "snowflake"; d.rainy = rainy
         if index == 0, let m = WeatherScene.clockMinutes(s.clock) { d.now = m / 60 }
         // night icons from the sunset / sunrise tile when there is one ("17:52" → from 18 h)
@@ -1011,10 +1032,10 @@ private struct DayChart: View {
     let ctx: DayCtx; let spec: DayChartSpec; let cw: CGFloat; let scrub: DayScrub
     let onScrub: (Int, Bool) -> Void
     /// nil until a drag shows its direction; true = sideways (scrubbing the hours), false = up-down (scrolling)
-    @State private var sideways: Bool? = nil
-    @State private var sizes: [Int: CGSize] = [:]
+    @State var sideways: Bool? = nil
+    @State var sizes: [Int: CGSize] = [:]
     private var W: CGFloat { cw * 24 }
-    private let H = DayChart.H
+    private var H: CGFloat { DayChart.H }
 
     var body: some View {
         let pts = DayCurve.points(spec.vals.map { spec.y($0) }, cw: cw)
@@ -1157,7 +1178,7 @@ private struct DayChart: View {
     private func place(_ i: Int, y py: CGFloat, size s: CGSize, sel: CGRect, taken: [CGRect], under: Bool) -> CGRect? {
         let x0 = px(i)
         func free(_ r: CGRect) -> Bool {
-            r.minY >= -2 && r.maxY <= H + 2 && !taken.contains { $0.insetBy(dx: -2, dy: -2).intersects(r) }
+            r.minY >= -2 && r.maxY <= H + 2 && !taken.contains(where: { $0.insetBy(dx: -2, dy: -2).intersects(r) })
         }
         let above = CGRect(x: clampX(x0 - s.width / 2, s.width), y: py - 9 - s.height, width: s.width, height: s.height)
         if free(above) { return above }
@@ -1306,7 +1327,7 @@ private struct DayArrow: View {
     }
 }
 
-/// The close button's pixel ✕ (7 × 7 grid)
+/// The close button's pixel cross (7 × 7 grid)
 private struct DayCloseX: View {
     let color: Color
     private static let rows: [[Int]] = [[0, 1, 5, 6], [0, 1, 2, 4, 5, 6], [1, 2, 3, 4, 5], [2, 3, 4], [1, 2, 3, 4, 5], [0, 1, 2, 4, 5, 6], [0, 1, 5, 6]]
