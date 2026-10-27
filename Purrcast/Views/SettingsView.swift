@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 설정, in the order of the design: plan · 지역 · 단위 · 알림 · 가까운 비 · 화면 · 위젯 · 워치 · 정보.
+/// 설정, in the order of the design: plan · 언어 · 지역 · 단위 · 알림 · 가까운 비 · 화면 · 위젯 · 워치 · 정보.
 struct SettingsView: View {
     @EnvironmentObject var model: AppModel
     @EnvironmentObject var purchases: Purchases
@@ -13,6 +13,7 @@ struct SettingsView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     plan
+                    languageSection
                     placesSection
                     unitsSection
                     notificationsSection
@@ -38,8 +39,21 @@ struct SettingsView: View {
         return parts.joined(separator: " · ")
     }
 
+    /// " · 3일 무료" after Plus when the store offers a trial (or a test build offers its test trial).
+    private var trialSuffix: String {
+        if let t = purchases.trialText(Purchases.yearly) { return " · " + t }
+        return purchases.offersTestTrial ? " · " + L("%d일 무료", Purchases.testDays) : ""
+    }
+
     @ViewBuilder private var plan: some View {
-        if model.plus {
+        if model.plus && !purchases.active && purchases.testActive {
+            RowGroup {
+                SettingRow(icon: "sparkle", title: L("Plus 테스트 체험 중"), subtitle: purchases.statusLine) {
+                    Button { Haptic.soft(); purchases.endTestTrial() } label: { RowValue(text: L("끝내기"), chevron: false) }
+                        .accessibilityIdentifier("end-test-plus")
+                }
+            }.padding(.top, 6)
+        } else if model.plus {
             RowGroup {
                 SettingRow(icon: "sparkle", title: L("Plus 구독 중"), subtitle: purchases.statusLine) {
                     Link(destination: URL(string: "https://apps.apple.com/account/subscriptions")!) { RowValue(text: L("관리")) }
@@ -50,7 +64,7 @@ struct SettingsView: View {
                 HStack(spacing: 12) {
                     PixelIcon(name: "sparkle", size: 26)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(Brand.plus + (purchases.trialText(Purchases.yearly).map { " · \($0)" } ?? "")).font(.ui(15, .bold)).foregroundStyle(UI.ink)
+                        Text(Brand.plus + trialSuffix).font(.ui(15, .bold)).foregroundStyle(UI.ink)
                         Text(plusPitch).font(.ui(12)).foregroundStyle(Color(hex: "#6B4A33"))
                     }
                     Spacer()
@@ -64,6 +78,20 @@ struct SettingsView: View {
             .buttonStyle(.press(0.98)).padding(.horizontal, 16).padding(.top, 6)
             .accessibilityIdentifier("go-plus")
         }
+    }
+
+    // MARK: 언어
+
+    /// 언어 · Language, near the top and in two languages, so it can be found even in a language one cannot read.
+    private var languageSection: some View {
+        RowGroup {
+            Button { go(.language) } label: {
+                SettingRow(icon: "globe", title: L("언어 · Language")) {
+                    RowValue(text: model.language.isEmpty ? L("기기 설정") : (Lang(rawValue: model.language)?.nativeName ?? ""))
+                }
+            }.buttonStyle(.row).accessibilityIdentifier("language")
+        }
+        .padding(.top, 14)
     }
 
     // MARK: 지역
@@ -162,20 +190,6 @@ struct SettingsView: View {
                     }
                 }.buttonStyle(.row)
             }
-            // 언어: the app's language (not the tone — 말투 lives on the character sheet, Plus)
-            SectionLabel(text: L("언어"))
-            RowGroup { languageRow }
-        }
-    }
-
-    private var languageRow: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SettingRow(symbol: "globe", title: L("앱 언어"), subtitle: L("앱 · 위젯 · 워치 · 알림이 같이 바뀌어요")) { EmptyView() }
-            ScrollView(.horizontal, showsIndicators: false) {
-                Pills(options: [("", L("기기 설정"))] + Lang.allCases.map { ($0.rawValue, $0.nativeName) }, value: $model.language)
-            }
-            .padding(.horizontal, 14).padding(.bottom, 10)
-            .accessibilityIdentifier("language")
         }
     }
 
@@ -205,6 +219,9 @@ struct SettingsView: View {
                 Button { go(.sources) } label: {
                     SettingRow(icon: "question", title: L("데이터 출처"), subtitle: model.isSample ? L("지금은 예시 날씨") : L("Apple 날씨 · 기상청 · MET Norway")) { RowChevron() }
                 }.buttonStyle(.row)
+                RowDivider()
+                Button { go(.licenses) } label: { SettingRow(title: L("오픈소스 라이선스")) { RowChevron() } }
+                    .buttonStyle(.row).accessibilityIdentifier("licenses")
                 RowDivider()
                 Link(destination: Legal.privacy) { SettingRow(title: L("개인정보 처리방침")) { RowChevron() } }.buttonStyle(.plain)
                 if let mail = Legal.support {
@@ -337,7 +354,11 @@ struct SourcesView: View {
             Text(L("그 밖에")).font(.ui(15, .bold))
             line(L("일출 · 일몰: 위치로 폰에서 계산"))
             line(L("지역 이름: countries-states-cities-database (ODbL 1.0) · 기상청 격자 위경도"))
-            line(L("글꼴: Galmuri11 (SIL OFL 1.1) · PixelMplus12 (M+ FONT LICENSE)"))
+            line(L("글꼴: Purrcast Pixel Medium (MGalmuri10 기반 · SIL OFL 1.1)"))
+            Button {
+                Haptic.soft(); route = nil
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { route = .licenses }
+            } label: { Text(L("라이선스 전문 보기")).font(.ui(12.5, .semibold)).underline().foregroundStyle(UI.accent) }
         }
     }
 

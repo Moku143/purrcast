@@ -248,7 +248,6 @@
 "MET Norway 라이선스 (CC BY 4.0)" = "MET Norway 라이선스 (CC BY 4.0)";
 "그 밖에" = "그 밖에";
 "일출 · 일몰: 위치로 폰에서 계산" = "일출 · 일몰: 위치로 폰에서 계산";
-"글꼴: Galmuri11 (SIL OFL 1.1)" = "글꼴: Galmuri11 (SIL OFL 1.1)";
 "완료" = "완료";
 "광고 없이" = "광고 없이";
 "화면 사이 광고가 사라져요." = "화면 사이 광고가 사라져요.";
@@ -506,7 +505,6 @@
 "눈(cm)" = "눈(cm)";
 "%@ 미만" = "%@ 미만";
 "Apple 날씨 출처 안내" = "Apple 날씨 출처 안내";
-"글꼴: Galmuri11 (SIL OFL 1.1) · PixelMplus12 (M+ FONT LICENSE)" = "글꼴: Galmuri11 (SIL OFL 1.1) · PixelMplus12 (M+ FONT LICENSE)";
 
 /* 언어 · 말투 */
 "언어" = "언어";
@@ -537,3 +535,16 @@
 "지역 목록을 불러오는 중…" = "지역 목록을 불러오는 중…";
 "위치를 찾지 못했어요. 다시 시도해 주세요." = "위치를 찾지 못했어요. 다시 시도해 주세요.";
 "지역 이름: countries-states-cities-database (ODbL 1.0) · 기상청 격자 위경도" = "지역 이름: countries-states-cities-database (ODbL 1.0) · 기상청 격자 위경도";
+
+/* 언어 버튼 · 오픈소스 라이선스 · TestFlight 테스트 체험 */
+"언어 · Language" = "언어 · Language";
+"오픈소스 라이선스" = "오픈소스 라이선스";
+"글꼴: Purrcast Pixel Medium (MGalmuri10 기반 · SIL OFL 1.1)" = "글꼴: Purrcast Pixel Medium (MGalmuri10 기반 · SIL OFL 1.1)";
+"라이선스 전문 보기" = "라이선스 전문 보기";
+"MGalmuri10 기반 · SIL OFL 1.1" = "MGalmuri10 기반 · SIL OFL 1.1";
+"Plus 테스트 체험 중" = "Plus 테스트 체험 중";
+"끝내기" = "끝내기";
+"테스트 체험 · %@까지" = "테스트 체험 · %@까지";
+"M월 d일 HH:mm" = "M월 d일 HH:mm";
+"%d일 무료로 써보기 (테스트)" = "%d일 무료로 써보기 (테스트)";
+"테스트 버전이라 결제 없이 %d일 동안 Plus를 써 볼 수 있어요. 설정에서 언제든 끝낼 수 있어요." = "테스트 버전이라 결제 없이 %d일 동안 Plus를 써 볼 수 있어요. 설정에서 언제든 끝낼 수 있어요.";

@@ -1,11 +1,11 @@
-"""Every character the app can draw in ko / en / ja must be in the pixel font (Shared/Fonts/PurrcastPixel-Bold.ttf).
+"""Every character the app can draw in ko / en / ja must be in the pixel font (Shared/Fonts/PurrcastPixel-Medium.ttf).
    python3 tools/pixelfont/check.py   → exit 1 and a list when anything is missing."""
 import sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from chars import inventory, ROOT
 from fontTools.ttLib import TTFont
 
-cmap = TTFont(ROOT / 'Shared/Fonts/PurrcastPixel-Bold.ttf').getBestCmap()
+cmap = TTFont(ROOT / 'Shared/Fonts/PurrcastPixel-Medium.ttf').getBestCmap()
 # Japanese a person may meet beyond our own words: JIS X 0208 (place names, Apple's warning texts, dates)
 jis = set()
 for b1 in range(0xA1, 0xF5):

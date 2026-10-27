@@ -1,0 +1,12 @@
+Purrcast Pixel Medium
+
+Based on MGalmuri10 Regular.
+Modified by adjusting stroke weight for Purrcast.
+MGalmuri is a modified version of Galmuri by Lee Minseo (quiple).
+
+Copyright (c) 2026 Monad ABXY (https://monadabxy.com)
+Copyright (c) 2019-2025 Lee Minseo (quiple@quiple.dev)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+The full license is included in OFL.txt.
+https://openfontlicense.org

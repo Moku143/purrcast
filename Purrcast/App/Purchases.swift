@@ -20,6 +20,16 @@ final class Purchases: ObservableObject {
     @Published var busy = false
     @Published var message: String?
 
+    /// TestFlight and debug builds only, while the subscription is not set up in App Store Connect: the 3-day button
+    /// turns Plus on in this app for 3 days without a purchase, so the Plus parts can be tried. An App Store build
+    /// (production environment) never offers it.
+    @Published private(set) var testBuild = false
+    @Published private(set) var testUntil: Date? = SharedStore.defaults.object(forKey: "testPlusUntil") as? Date
+    var testActive: Bool { testBuild && (testUntil.map { $0 > Date() } ?? false) }
+    /// The store has nothing to sell here, but this is a test build: offer the test trial.
+    var offersTestTrial: Bool { testBuild && loaded && products.isEmpty }
+    static let testDays = 3
+
     private var updates: Task<Void, Never>?
 
     init() {
@@ -33,6 +43,7 @@ final class Purchases: ObservableObject {
 
     /// Entitlements first (works offline from the local receipt), then the product list.
     func load() async {
+        testBuild = await Self.isTestEnvironment()
         await refresh()
         if let p = try? await Product.products(for: Self.ids) {
             products = p.sorted { $0.id == Self.yearly && $1.id != Self.yearly }
@@ -44,6 +55,27 @@ final class Purchases: ObservableObject {
     }
 
     func product(_ id: String) -> Product? { products.first { $0.id == id } }
+
+    /// TestFlight / Xcode → true; the App Store → false.
+    private static func isTestEnvironment() async -> Bool {
+        #if DEBUG
+        return true
+        #else
+        if case .verified(let t)? = try? await AppTransaction.shared { return t.environment != .production }
+        return Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+        #endif
+    }
+
+    func startTestTrial() {
+        guard testBuild else { return }
+        testUntil = Date().addingTimeInterval(Double(Self.testDays) * 86_400)
+        SharedStore.defaults.set(testUntil, forKey: "testPlusUntil")
+    }
+
+    func endTestTrial() {
+        testUntil = nil
+        SharedStore.defaults.removeObject(forKey: "testPlusUntil")
+    }
 
     /// Store price ("₩14,900"), or nil until the products are loaded.
     func price(_ id: String) -> String? { product(id)?.displayPrice }
@@ -94,6 +126,10 @@ final class Purchases: ObservableObject {
 
     /// "연간 · 2027년 10월 21일에 자동 갱신" / "월간 · 11월 21일에 끝나요"
     var statusLine: String? {
+        if !active, testActive, let e = testUntil {
+            let f = DateFormatter(); f.locale = Lang.current.locale; f.dateFormat = L("M월 d일 HH:mm")
+            return L("테스트 체험 · %@까지", f.string(from: e))
+        }
         guard active else { return nil }
         let kind = activeProduct == Self.monthly ? L("월간") : L("연간")
         guard let e = expires else { return kind }

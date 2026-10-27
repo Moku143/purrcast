@@ -82,10 +82,11 @@ struct PaywallView: View {
 
                 PrimaryButton(title: buttonTitle, busy: purchases.busy) {
                     guard !model.plus else { dismiss(); return }
+                    if purchases.offersTestTrial { Haptic.success(); purchases.startTestTrial(); dismiss(); return }
                     Task { if await purchases.buy(pick) { dismiss() } }
                 }
-                .disabled(!model.plus && purchases.product(pick) == nil)
-                .opacity(!model.plus && purchases.product(pick) == nil ? 0.5 : 1)
+                .disabled(!model.plus && purchases.product(pick) == nil && !purchases.offersTestTrial)
+                .opacity(!model.plus && purchases.product(pick) == nil && !purchases.offersTestTrial ? 0.5 : 1)
                 .padding(.top, 14)
                 .reveal(4)
                 .accessibilityIdentifier("subscribe")
@@ -112,6 +113,7 @@ struct PaywallView: View {
 
     private var buttonTitle: String {
         if model.plus { return L("Plus 쓰는 중") }
+        if purchases.offersTestTrial { return L("%d일 무료로 써보기 (테스트)", Purchases.testDays) }
         if purchases.product(pick) == nil { return purchases.loaded ? L("지금은 구독할 수 없어요") : L("가격 불러오는 중…") }
         if let t = purchases.trialText(pick) { return L("%@로 시작하기", t) }
         return L("%@ %@ 구독하기", purchases.periodWord(pick), purchases.price(pick) ?? "")
@@ -119,6 +121,7 @@ struct PaywallView: View {
 
     /// The auto-renew terms, with the real price and period of the selected plan.
     private var disclosure: String {
+        if purchases.offersTestTrial { return L("테스트 버전이라 결제 없이 %d일 동안 Plus를 써 볼 수 있어요. 설정에서 언제든 끝낼 수 있어요.", Purchases.testDays) }
         guard let price = purchases.price(pick) else { return L("구독은 App Store 계정으로 결제되고, App Store 설정에서 언제든 해지할 수 있어요.") }
         let per = purchases.periodWord(pick)
         let lead = purchases.trialText(pick).map { L("%@ 체험이 끝나면 ", $0) } ?? ""

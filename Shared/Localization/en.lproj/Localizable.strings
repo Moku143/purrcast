@@ -248,7 +248,6 @@
 "MET Norway 라이선스 (CC BY 4.0)" = "MET Norway licence (CC BY 4.0)";
 "그 밖에" = "Also";
 "일출 · 일몰: 위치로 폰에서 계산" = "Sunrise · Sunset: computed on the phone from the location";
-"글꼴: Galmuri11 (SIL OFL 1.1)" = "Font: Galmuri11 (SIL OFL 1.1)";
 "완료" = "Done";
 "광고 없이" = "No ads";
 "화면 사이 광고가 사라져요." = "Ads between screens go away.";
@@ -506,7 +505,6 @@
 "눈(cm)" = "Snow (cm)";
 "%@ 미만" = "Under %@";
 "Apple 날씨 출처 안내" = "Apple Weather attribution";
-"글꼴: Galmuri11 (SIL OFL 1.1) · PixelMplus12 (M+ FONT LICENSE)" = "Fonts: Galmuri11 (SIL OFL 1.1) · PixelMplus12 (M+ FONT LICENSE)";
 
 /* 언어 · 말투 */
 "언어" = "Language";
@@ -537,3 +535,16 @@
 "지역 목록을 불러오는 중…" = "Loading places…";
 "위치를 찾지 못했어요. 다시 시도해 주세요." = "Couldn't find that place. Please try again.";
 "지역 이름: countries-states-cities-database (ODbL 1.0) · 기상청 격자 위경도" = "Place names: countries-states-cities-database (ODbL 1.0) · KMA grid coordinates";
+
+/* 언어 버튼 · 오픈소스 라이선스 · TestFlight 테스트 체험 */
+"언어 · Language" = "Language";
+"오픈소스 라이선스" = "Open-source licences";
+"글꼴: Purrcast Pixel Medium (MGalmuri10 기반 · SIL OFL 1.1)" = "Font: Purrcast Pixel Medium (based on MGalmuri10 · SIL OFL 1.1)";
+"라이선스 전문 보기" = "Read the full licence";
+"MGalmuri10 기반 · SIL OFL 1.1" = "Based on MGalmuri10 · SIL OFL 1.1";
+"Plus 테스트 체험 중" = "Trying Plus (test)";
+"끝내기" = "End";
+"테스트 체험 · %@까지" = "Test trial · until %@";
+"M월 d일 HH:mm" = "MMM d, HH:mm";
+"%d일 무료로 써보기 (테스트)" = "Try free for %d days (test)";
+"테스트 버전이라 결제 없이 %d일 동안 Plus를 써 볼 수 있어요. 설정에서 언제든 끝낼 수 있어요." = "This is a test build, so you can try Plus for %d days without paying. You can end it any time in Settings.";

@@ -89,6 +89,33 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    /// The new pixel font everywhere, 언어 · Language in settings, the licence page and the TestFlight test trial.
+    func test8FontLanguageTrial() {
+        shot("f-settings-top", ["-scene", "maybe", "-open", "settings"], wait: 2)
+        shot("f-language", ["-scene", "maybe", "-open", "language"], wait: 2)
+        shot("f-language-en", ["-scene", "maybe", "-open", "language"], wait: 2) { app in
+            app.buttons["lang-en"].firstMatch.tap(); sleep(2)
+        }
+        shot("f-licenses", ["-scene", "maybe", "-open", "licenses"], wait: 2)
+        shot("f-paywall-test", ["-scene", "maybe", "-open", "paywall"], wait: 3) { app in
+            app.swipeUp(); sleep(1)
+        }
+        shot("f-after-test-trial", ["-scene", "maybe", "-open", "paywall"], wait: 3) { app in
+            app.swipeUp(); sleep(1)
+            app.buttons["subscribe"].firstMatch.tap(); sleep(2)
+            app.buttons["settings"].firstMatch.tap(); sleep(2)
+        }
+        shot("f-home", ["-scene", "maybe", "-plus", "-char", "abys"])
+        shot("f-home-cards", ["-scene", "maybe", "-plus"]) { app in
+            for _ in 0..<3 { app.swipeUp() }; sleep(1)
+        }
+        shot("f-day", ["-scene", "spring_rain", "-plus", "-open", "day"], wait: 2)
+        for lang in ["en", "ja"] {
+            shot("f-\(lang)-home", ["-scene", "maybe", "-plus", "-char", "brit"], lang: lang)
+            shot("f-\(lang)-day", ["-scene", "maybe", "-plus", "-open", "day"], wait: 2, lang: lang)
+        }
+    }
+
     /// The same app on an English and a Japanese phone (strings, sample scenes, 話し方).
     func test6Languages() {
         for lang in ["en", "ja"] {

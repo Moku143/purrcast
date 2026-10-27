@@ -11,6 +11,8 @@ enum Lang: String, CaseIterable {
     static let pickKey = "appLanguage"
     private static let store = UserDefaults(suiteName: SharedStore.groupID) ?? .standard
     private static let device = detect()
+    /// The language the device asks for (what "기기 설정" means).
+    static var deviceLanguage: Lang { device }
     /// Set by tests (and previews) to pin a language.
     private static var pinned: Lang?
 

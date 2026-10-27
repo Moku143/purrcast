@@ -39,13 +39,14 @@ struct Ink {
 enum FontPref { static var pixel = true }
 
 extension Font {
-    /// Purrcast Pixel Bold, the pixel face used for numbers and headings (system rounded when the user picks plain text):
-    /// Galmuri11 Bold for Hangul and Latin + PixelMplus12 Bold for Japanese, one 12-px grid (tools/pixelfont).
+    /// Purrcast Pixel Medium, the pixel face used for numbers and headings (system rounded when the user picks plain text):
+    /// MGalmuri10 with its upright strokes made half a pixel heavier — Korean, English and Japanese on one 10-px grid.
+    /// SIL OFL 1.1; the notice and the licence text ship next to the font (Shared/Fonts) and show under 데이터 출처.
     /// Small text (≤ 13 pt) reads a notch bigger across the app; big numbers stay as designed.
     private static func bump(_ size: CGFloat) -> CGFloat { size >= 9 && size <= 13 ? size + 1 : size }
     static func px(_ size: CGFloat) -> Font {
         let s = bump(size)
-        return FontPref.pixel ? .custom("PurrcastPixel-Bold", size: s) : .system(size: s * 1.04, weight: .bold, design: .rounded)
+        return FontPref.pixel ? .custom("PurrcastPixel-Medium", size: s) : .system(size: s * 1.04, weight: .bold, design: .rounded)
     }
     static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font { .system(size: bump(size), weight: weight) }
 }

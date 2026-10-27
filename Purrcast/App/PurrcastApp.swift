@@ -29,19 +29,21 @@ struct PurrcastApp: App {
                 }
                 .onChange(of: purchases.active) { _, _ in syncPlan() }
                 .onChange(of: purchases.expires) { _, _ in syncPlan() }
+                .onChange(of: purchases.testUntil) { _, _ in syncPlan() }
+                .onChange(of: purchases.testBuild) { _, _ in syncPlan() }
         }
     }
 
-    /// StoreKit decides the plan; the debug launch flag (debug builds only) can force it on.
+    /// StoreKit decides the plan; a TestFlight test trial or the debug launch flag (debug builds only) can turn it on.
     private func syncPlan() {
-        model.plus = purchases.active || model.debugPlus
-        model.plusUntil = purchases.active ? purchases.expires : nil
+        model.plus = purchases.active || purchases.testActive || model.debugPlus
+        model.plusUntil = purchases.active ? purchases.expires : (purchases.testActive ? purchases.testUntil : nil)
     }
 }
 
 /// Sheets and full-screen pages reachable from home.
 enum Route: String, Identifiable {
-    case character, paywall, settings, places, sources, widgets
+    case character, paywall, settings, places, sources, widgets, language, licenses
     var id: String { rawValue }
 }
 
@@ -67,6 +69,8 @@ struct RootView: View {
             case .places: PlacesView().presentationCornerRadius(28)
             case .sources: SourcesView(route: $route).presentationCornerRadius(28)
             case .widgets: NavigationStack { WidgetGalleryView() }.presentationCornerRadius(28)
+            case .language: LanguageView(route: $route).presentationCornerRadius(28)
+            case .licenses: LicensesView(route: $route).presentationCornerRadius(28)
             }
         }
         .sheet(item: Binding(get: { day.map { DayIndex(value: $0) } }, set: { day = $0?.value })) { d in
@@ -75,7 +79,7 @@ struct RootView: View {
         .onAppear(perform: openFromLaunchArguments)
     }
 
-    /// UI tests open a page directly: -open character|paywall|settings|places|sources|widgets|day (debug builds only)
+    /// UI tests open a page directly: -open character|paywall|settings|places|sources|widgets|language|licenses|day (debug builds only)
     private func openFromLaunchArguments() {
         #if DEBUG
         let a = ProcessInfo.processInfo.arguments

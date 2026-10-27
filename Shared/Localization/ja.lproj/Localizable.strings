@@ -248,7 +248,6 @@
 "MET Norway 라이선스 (CC BY 4.0)" = "MET Norway ライセンス (CC BY 4.0)";
 "그 밖에" = "そのほか";
 "일출 · 일몰: 위치로 폰에서 계산" = "日の出・日の入り: 位置から端末で計算";
-"글꼴: Galmuri11 (SIL OFL 1.1)" = "フォント: Galmuri11 (SIL OFL 1.1)";
 "완료" = "完了";
 "광고 없이" = "広告なし";
 "화면 사이 광고가 사라져요." = "画面間の広告がなくなります。";
@@ -506,7 +505,6 @@
 "눈(cm)" = "降雪(cm)";
 "%@ 미만" = "%@未満";
 "Apple 날씨 출처 안내" = "Apple 天気の出典について";
-"글꼴: Galmuri11 (SIL OFL 1.1) · PixelMplus12 (M+ FONT LICENSE)" = "フォント: Galmuri11 (SIL OFL 1.1) · PixelMplus12 (M+ FONT LICENSE)";
 
 /* 언어 · 말투 */
 "언어" = "言語";
@@ -537,3 +535,16 @@
 "지역 목록을 불러오는 중…" = "地域を読み込み中…";
 "위치를 찾지 못했어요. 다시 시도해 주세요." = "場所が見つかりませんでした。もう一度お試しください。";
 "지역 이름: countries-states-cities-database (ODbL 1.0) · 기상청 격자 위경도" = "地域名: countries-states-cities-database (ODbL 1.0) · 韓国気象庁の格子座標";
+
+/* 언어 버튼 · 오픈소스 라이선스 · TestFlight 테스트 체험 */
+"언어 · Language" = "言語 · Language";
+"오픈소스 라이선스" = "オープンソースライセンス";
+"글꼴: Purrcast Pixel Medium (MGalmuri10 기반 · SIL OFL 1.1)" = "フォント: Purrcast Pixel Medium（MGalmuri10ベース · SIL OFL 1.1）";
+"라이선스 전문 보기" = "ライセンス全文を見る";
+"MGalmuri10 기반 · SIL OFL 1.1" = "MGalmuri10ベース · SIL OFL 1.1";
+"Plus 테스트 체험 중" = "Plus お試し中（テスト）";
+"끝내기" = "終了";
+"테스트 체험 · %@까지" = "テスト体験 · %@まで";
+"M월 d일 HH:mm" = "M月d日 HH:mm";
+"%d일 무료로 써보기 (테스트)" = "%d日間無料で試す（テスト）";
+"테스트 버전이라 결제 없이 %d일 동안 Plus를 써 볼 수 있어요. 설정에서 언제든 끝낼 수 있어요." = "テスト版なので、支払いなしで%d日間Plusを試せます。設定からいつでも終了できます。";
