@@ -87,6 +87,7 @@ struct SettingRow<Trailing: View>: View {
             trailing
         }
         .padding(.horizontal, 14).frame(minHeight: 54)
+        .contentShape(Rectangle())
     }
 }
 

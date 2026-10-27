@@ -44,6 +44,7 @@ struct PressStyle: ButtonStyle {
 struct RowPressStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
+            .contentShape(Rectangle())          // the whole row answers a tap, not just its words
             .background(Color.primary.opacity(configuration.isPressed ? 0.06 : 0))
             .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }

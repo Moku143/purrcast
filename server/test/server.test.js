@@ -482,7 +482,7 @@ test('Tokyo, Plus: WeatherKit with the key — bearer JWT sent, nextSource apple
   validateScene(s);
   assert.match(auth, /^Bearer [\w-]+\.[\w-]+\.[\w-]+$/);
   assert.match(wkUrl, /\/weather\/en\/35\.69\/139\.7\?.*countryCode=JP/);
-  assert.equal(s.src, 'apple'); assert.equal(s.nextSource, 'apple'); assert.equal(s.next6.length, 6); assert.equal(s.next6[0][0], '4PM');
+  assert.equal(s.src, 'apple'); assert.equal(s.nextSource, 'apple'); assert.equal(s.next6, undefined, 'minute rain stands in for the 6-hour card');
   assert.equal(s.minutes.length, 60); assert.equal(s.minutes[30], 0.8);
   assert.equal(s.temp, 21, 'currentWeather wins for now (20.7 → 21), not MET\'s 5°');
   assert.equal(s.clock, '15:00'); assert.equal(s.updated, '15:00');

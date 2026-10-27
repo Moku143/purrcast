@@ -194,9 +194,11 @@ async function apple(q, env, now, fetcher, ctx) {
   if (!w.points.length) throw new Error('WeatherKit: no hourly forecast');
   const f = { points: w.points, updated: w.updated, daily: w.daily, warnings: w.warnings, nextSource: 'apple', src: 'apple' };
   if (plus) {
-    f.next6 = w.points.filter((p) => p.t > now).slice(0, 6);
+    // where Apple has minute-by-minute rain (Japan, the US, the UK, …) the app shows the next hour by the minute;
+    // elsewhere the next 6 hours from Apple's hourly forecast
+    if (w.minutes?.length) f.minutes = w.minutes;
+    else f.next6 = w.points.filter((p) => p.t > now).slice(0, 6);
     if (w.now) f.now = w.now;
-    if (w.minutes) f.minutes = w.minutes;
   }
   return f;
 }

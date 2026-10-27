@@ -226,10 +226,17 @@ struct HomeView: View {
 
     // MARK: cards
 
+    /// Plus: rain coming soon. Korea → 기상청 초단기 next 6 hours; where Apple has minute-by-minute rain (Japan, the
+    /// US, the UK, …) → the next hour by the minute; elsewhere → the next 6 hours from the hourly forecast.
     private func nextHour(_ s: WeatherScene) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String])? {
         guard s.isPlus else { return nil }
-        let chance = s.hours.prefix(3).map { $0.chance }.max() ?? 0
         let nowMin: Int = WeatherScene.clockMinutes(s.clock) ?? 12 * 60
+        // " · 가능성 40%" from the hours the card covers, left out when it would read 0 %
+        let chanceTail = { (hours: Int) -> String in
+            let c = s.hours.prefix(hours).map { $0.chance }.max() ?? 0
+            return c >= 10 ? " · " + L("가능성 %d%%", c) : ""
+        }
+        if s.nextSource != "kma", let mm = s.minutes, !mm.isEmpty { return minutesCard(s, mm, nowMin: nowMin, chanceTail: chanceTail(2)) }
         if let six = s.next6 {
             let R = six.map { $0.mm }
             var head = L("6시간 동안 비 소식 없어요"), sub = "", icon = "cloud"
@@ -242,36 +249,39 @@ struct HomeView: View {
                                                  : L("%@ 비 예정", HourLabel.window(hr(st), hr(last), clock12: model.clock12)))
                 let stop = en == nil ? L("6시간 넘게 이어질 예보") : L("%@쯤 그칠 예보", HourLabel.word((hr(last) + 1) % 24, clock12: model.clock12))
                 let peak = R.max() ?? 0
-                sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop) · " + L("가능성 %d%%", chance)
+                sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop)" + chanceTail(7)
                 icon = st == 0 ? "umbrella" : "umbrella_closed"
             }
-            return (L("다음 6시간"), s.nextSource == "met" ? "MET Norway · Plus" : L("기상청 초단기 · Plus"), head, sub, icon, R, six.map { model.hourLabel($0.label) })
+            let legend = s.nextSource == "met" ? "MET Norway · Plus" : s.nextSource == "apple" ? L("Apple 날씨 · Plus") : L("기상청 초단기 · Plus")
+            return (L("다음 6시간"), legend, head, sub, icon, R, six.map { model.hourLabel($0.label) })
         }
-        if let mm = s.minutes {
-            var head = L("1시간 동안 비 소식 없어요"), sub = "", icon = "cloud"
-            if let st = mm.firstIndex(where: { $0 >= 0.1 }) {
-                let en = mm[st...].firstIndex(where: { $0 < 0.1 }).map { $0 - st }
-                // clock times, pulled earlier to the 10 minutes for the start (15:57 → 15:50쯤) and later for the end
-                let hhmm = { (t: Int) -> String in HourLabel.clock(t, clock12: model.clock12) }
-                let s10 = (nowMin + st) / 10 * 10
-                head = st == 0 ? L("지금 비") : (s10 > nowMin ? L("%@쯤 비 예정", hhmm(s10)) : L("%@ 전 비 예정", hhmm((nowMin + st + 9) / 10 * 10)))
-                let stop = en == nil ? L("한동안 이어질 예보") : L("%@쯤 그칠 예보", hhmm((nowMin + st + en! + 9) / 10 * 10))
-                let peak = mm.max() ?? 0
-                sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop) · " + L("가능성 %d%%", chance)
-                icon = st == 0 ? "umbrella" : "umbrella_closed"
-            }
-            let span = mm.count
-            return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) })
-        }
+        if let mm = s.minutes, !mm.isEmpty { return minutesCard(s, mm, nowMin: nowMin, chanceTail: chanceTail(2)) }
         return nil
     }
 
+    private func minutesCard(_ s: WeatherScene, _ mm: [Double], nowMin: Int, chanceTail: String) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String]) {
+        var head = L("1시간 동안 비 소식 없어요"), sub = "", icon = "cloud"
+        if let st = mm.firstIndex(where: { $0 >= 0.1 }) {
+            let en = mm[st...].firstIndex(where: { $0 < 0.1 }).map { $0 - st }
+            // clock times, pulled earlier to the 10 minutes for the start (15:57 → 15:50쯤) and later for the end
+            let hhmm = { (t: Int) -> String in HourLabel.clock(t, clock12: model.clock12) }
+            let s10 = (nowMin + st) / 10 * 10
+            head = st == 0 ? L("지금 비") : (s10 > nowMin ? L("%@쯤 비 예정", hhmm(s10)) : L("%@ 전 비 예정", hhmm((nowMin + st + 9) / 10 * 10)))
+            let stop = en == nil ? L("한동안 이어질 예보") : L("%@쯤 그칠 예보", hhmm((nowMin + st + en! + 9) / 10 * 10))
+            let peak = mm.max() ?? 0
+            sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop)" + chanceTail
+            icon = st == 0 ? "umbrella" : "umbrella_closed"
+        }
+        let span = mm.count
+        return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) })
+    }
+
     private func nextHourCard(_ s: WeatherScene, head: (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String]), ink: Ink) -> some View {
-        let six = s.next6 != nil
+        let six = head.bars.count <= 6          // hours as fat bars, minutes as thin ones
         return Card(ink: ink) {
             HStack(alignment: .firstTextBaseline) { Text(head.title).font(.px(13)); Spacer(); Text(head.legend).font(.ui(11)).foregroundStyle(ink.sub) }
             HStack(spacing: 8) { PixelIcon(name: head.icon, size: 20); Text(model.say(head.head)).font(.px(15)).id(head.head).transition(.opacity) }
-            if !head.sub.isEmpty { Text(model.say(head.sub)).font(.ui(12)).foregroundStyle(ink.sub).padding(.leading, 28).padding(.top, -9) }
+            if !head.sub.isEmpty { Text(model.say(head.sub)).font(.ui(12)).foregroundStyle(ink.sub).padding(.leading, 28).padding(.top, -9).fixedSize(horizontal: false, vertical: true) }
             ZStack(alignment: .bottomLeading) {
                 ForEach(0..<3, id: \.self) { gi in
                     let labels = [L("약"), L("보통"), L("강")], levels: [Double] = [0.5, 2.5, 6.0]
@@ -288,6 +298,7 @@ struct HomeView: View {
                 }.padding(.trailing, 26)
             }
             .frame(height: 64)
+            .padding(.top, 10)          // room for the 강 line's label above the bars, clear of the words over it
             HStack {
                 ForEach(Array(head.ticks.enumerated()), id: \.offset) { i, t in
                     Text(t).font(.ui(10)).foregroundStyle(ink.sub)

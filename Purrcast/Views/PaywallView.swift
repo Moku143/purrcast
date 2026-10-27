@@ -257,8 +257,21 @@ struct PaywallView: View {
             return x
         }()
         return HStack(spacing: 16) {
-            watchBezel { WatchNow(snap: snap) }
+            watchBezel { watchAppScreen(snap) }
             watchBezel { WatchFacePreview(snap: snap) }
+        }
+    }
+
+    /// The watch app's first page as the watch shows it: the sky to the edges, the words inside the watch's safe area
+    /// (under the clock, clear of the rounded corners), the time at the top right.
+    private func watchAppScreen(_ snap: WeatherSnapshot) -> some View {
+        ZStack(alignment: .topTrailing) {
+            WatchNow(snap: snap)
+                .safeAreaPadding(EdgeInsets(top: 32, leading: 10, bottom: 14, trailing: 12))
+            Text("10:09").font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundStyle(snap.scene.isNight ? Color.white : Color.white.opacity(0.95))
+                .shadow(color: .black.opacity(0.15), radius: 1)
+                .padding(.top, 9).padding(.trailing, 22)
         }
     }
 

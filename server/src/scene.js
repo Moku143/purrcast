@@ -194,10 +194,8 @@ export function buildScene(f, o) {
         r1(mm), r1(Math.max(gust ?? 0, best.wind ?? 0)), dir];
     });
   });
-  if (plus && f.next6?.length) {
-    scene.next6 = f.next6.slice(0, 6).map((p) => [S.hour(H(p)), r1(p.mm || 0)]);
-    scene.nextSource = f.nextSource || 'kma';
-  }
+  if (plus && f.next6?.length) scene.next6 = f.next6.slice(0, 6).map((p) => [S.hour(H(p)), r1(p.mm || 0)]);
+  if (plus && (f.next6?.length || f.minutes?.length)) scene.nextSource = f.nextSource || 'kma';   // who the rain-soon card cites
   if (f.compare?.length > 1) scene.cmp = compareBlock(f.compare, cur, nowT, tz, S);
   if (plus && f.minutes?.length) scene.minutes = f.minutes.slice(0, 60).map((v) => (Number.isFinite(v) ? Math.round(v * 100) / 100 : 0));
   return scene;
