@@ -816,6 +816,8 @@ private struct DayAreaShape: Shape {
 /// the selected-hour marker and tags, and press-or-drag to pick an hour.
 private struct DayChart: View {
     let ctx: DayCtx; let spec: DayChartSpec; let cw: CGFloat; let scrub: DayScrub
+    /// nil until a drag shows its direction; true = sideways (scrubbing the hours), false = up-down (scrolling)
+    @State var sideways: Bool? = nil
     let onScrub: (Int, Bool) -> Void
     let H: CGFloat = 140
     private var W: CGFloat { cw * 24 }
@@ -842,10 +844,18 @@ private struct DayChart: View {
         .frame(maxWidth: .infinity, alignment: .topLeading).frame(height: H)
         .overlay(alignment: .topLeading) { if ctx.scrub { scrubBox } }
         .contentShape(Rectangle())
-        // a short press first, so the sheet still scrolls over the chart; then the finger owns the hour
-        .gesture(LongPressGesture(minimumDuration: 0.12).sequenced(before: DragGesture(minimumDistance: 0))
-            .onChanged { v in if case .second(true, let g?) = v { onScrub(hour(g.location.x), true) } }
-            .onEnded { v in if case .second(true, let g?) = v { onScrub(hour(g.location.x), false) } else { onScrub(ctx.sel, false) } })
+        // as on the prototype: drag sideways over the chart and the hour follows the finger; an up-down drag still
+        // scrolls the sheet (the direction is decided by the first few points); a tap picks that hour
+        .simultaneousGesture(DragGesture(minimumDistance: 4, coordinateSpace: .local)
+            .onChanged { g in
+                if sideways == nil { sideways = abs(g.translation.width) >= abs(g.translation.height) }
+                if sideways == true { onScrub(hour(g.location.x), true) }
+            }
+            .onEnded { g in
+                if sideways == true { onScrub(hour(g.location.x), false) }
+                sideways = nil
+            })
+        .onTapGesture(coordinateSpace: .local) { p in Haptic.select(); onScrub(hour(p.x), false) }
     }
 
     private func hour(_ x: CGFloat) -> Int { max(0, min(23, Int(x / cw))) }

@@ -334,13 +334,25 @@ struct HomeView: View {
 
     /// 강수확률 · 자외선 / 바람 (full width) / 예보 비교 (full width) / 일몰 · 습도 — the prototype's order.
     private func tilesGrid(_ s: WeatherScene, ink: Ink) -> some View {
-        let cols = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
         let first = Array(s.tiles.prefix(2)), rest = Array(s.tiles.dropFirst(2))
         return VStack(spacing: 12) {
-            LazyVGrid(columns: cols, spacing: 12) { ForEach(Array(first.enumerated()), id: \.offset) { _, t in tile(t, ink: ink) } }
+            tileRows(first, ink: ink)
             WindCard(wind: s.wind, ink: ink)
             if let c = s.cmp { CompareCard(cmp: c, updated: s.updated, ink: ink) }
-            if !rest.isEmpty { LazyVGrid(columns: cols, spacing: 12) { ForEach(Array(rest.enumerated()), id: \.offset) { _, t in tile(t, ink: ink) } } }
+            if !rest.isEmpty { tileRows(rest, ink: ink) }
+        }
+    }
+
+    /// Two tiles per row, both as tall as the taller one (강수확률 next to 자외선 with its scale).
+    private func tileRows(_ ts: [WeatherScene.Tile], ink: Ink) -> some View {
+        VStack(spacing: 12) {
+            ForEach(Array(stride(from: 0, to: ts.count, by: 2)), id: \.self) { i in
+                HStack(alignment: .top, spacing: 12) {
+                    tile(ts[i], ink: ink)
+                    if i + 1 < ts.count { tile(ts[i + 1], ink: ink) } else { Color.clear.frame(maxWidth: .infinity) }
+                }
+                .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
@@ -361,9 +373,10 @@ struct HomeView: View {
                     if let u = t.unit, !u.isEmpty { Text(u).font(.px(13)) }
                 }
             }
+            Spacer(minLength: 0)
             Text(model.say(t.note)).font(.ui(12)).foregroundStyle(ink.sub).lineLimit(2).lineSpacing(2)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(14)
         .background(ink.card)
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(ink.cardBorder, lineWidth: 1))
