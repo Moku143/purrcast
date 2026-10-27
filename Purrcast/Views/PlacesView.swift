@@ -265,10 +265,15 @@ struct PlacesView: View {
         .contentShape(Rectangle())
     }
 
-    /// Apple's minute-by-minute rain: Japan and elsewhere, not Korea (기상청 has its own six hours).
+    /// Countries where Apple has next-hour (minute-by-minute) rain: support.apple.com/105038 — Australia, Ireland,
+    /// Japan, the United Kingdom, the United States. Korea has 기상청's six hours instead.
+    static let minuteRainCountries: Set<String> = ["AU", "IE", "JP", "GB", "US"]
+
     private static func minuteRain(_ r: PlaceRow) -> Bool {
         guard let p = r.place else { return false }
-        return p.region == "jp" || p.region == "other"
+        if p.region == "jp" { return true }
+        guard p.id.hasPrefix("rg:") else { return false }
+        return minuteRainCountries.contains(String(p.id.dropFirst(3).prefix(2)))
     }
 
     private var minuteChip: some View {
