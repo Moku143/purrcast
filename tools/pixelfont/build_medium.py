@@ -39,7 +39,8 @@ def medium(lit, last, stats=None):
        gap and does not swallow a short tick, else — for a stem with a tick on its right (ㅏ ㅐ) — its part moves one
        pixel right and the stroke grows left, else it grows left, else the parts to its right move over. The cell is one
        pixel wider than the thin design, so that ㅐ ㅔ fit with both stems 2 px. Tried in both orders for strokes of the
-       same length (ㄲ beside ㅐ); the version with fewer 1-px strokes left wins. Still stuck and the cell has room:
+       same length (ㄲ beside ㅐ), and with ㅏ growing left in place (쌀, so ㅆ can widen); the version with fewer 1-px
+       strokes left wins. Still stuck and the cell has room:
        the glyph widens at that column (ㅆ's shared leg, ㅐ touching ㅅ in 새). ㅃ beside a vowel shares its middle
        stroke (see share_middle).
     2. Every other pixel (diagonals, the ends of bars) lights the one to its right, unless that closes a 1-px gap to a
@@ -48,11 +49,11 @@ def medium(lit, last, stats=None):
     best = None
     for src in (lit, share_middle(lit)):
         if src is None: continue
-        for order in (1, -1):
-            res = _medium(src, last, order)
-            if best is None or res[1] < best[1]: best = res
-            if best[1] == 0: break
-        if best[1] == 0: break
+        for move_first in (True, False):
+            for order in (1, -1):
+                res = _medium(src, last, order, move_first)
+                if best is None or res[1] < best[1]: best = res
+                if best[1] == 0: return best[0]
     if stats is not None and best[1]: stats['thin'] = stats.get('thin', 0) + 1
     return best[0]
 
@@ -81,7 +82,7 @@ def share_middle(lit):
     return None
 
 
-def _medium(lit, last, order):
+def _medium(lit, last, order, move_first=True):
     comp = components(lit)
     P = dict(comp)                       # pixel -> part
     G = {}                               # grown pixel -> part
@@ -97,7 +98,8 @@ def _medium(lit, last, order):
         if x < 0 or x > last: return False
         for r in rows:
             if (x, r) in O:
-                if stub(x, r, d, O): return False
+                # a short tick halfway up (ㅏ) would be swallowed; the end of a bar at the top or bottom (ㅍ) is fine
+                if stub(x, r, d, O) and r not in (rows[0], rows[-1]): return False
             elif (x + d, r) in O: return False
         return True
 
@@ -140,7 +142,7 @@ def _medium(lit, last, order):
         for (x, _), k in P.items(): mins[k] = min(mins.get(k, 99), x)
         right = {k for k, m in mins.items() if m > c}
         plan = [(None, 0, (1,))]
-        if mins[part] == c: plan.append(({part} | right, 1, (-1, 1)))
+        if move_first and mins[part] == c: plan.append(({part} | right, 1, (-1, 1)))
         plan.append((None, 0, (-1,)))
         if right: plan.append((right, 0, (1, -1)))
         ok = False
