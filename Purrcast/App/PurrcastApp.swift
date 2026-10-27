@@ -53,7 +53,7 @@ struct RootView: View {
     var body: some View {
         Group {
             if model.onboarded {
-                HomeView(route: $route, day: $day).transition(.opacity)
+                HomeView(route: $route, day: $day).id(model.language).transition(.opacity)   // a new language rebuilds the page
             } else {
                 OnboardingView().transition(.move(edge: .leading).combined(with: .opacity))
             }
