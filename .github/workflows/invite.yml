@@ -1,0 +1,31 @@
+name: Invite a tester
+# Invites someone to test the app (App Store Connect team invitation, then TestFlight). Result → apple-output branch.
+on:
+  workflow_dispatch:
+    inputs:
+      email: { description: "The person's email (their Apple Account)", required: true }
+permissions:
+  contents: write
+jobs:
+  invite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Invite
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          EMAIL: ${{ inputs.email }}
+        run: |
+          mkdir -p out
+          node scripts/asc-invite.mjs "$EMAIL" 2>&1 | tee out/invite.txt; true
+          echo "run=${{ github.run_id }} $(date -u)" > out/RUN.txt
+      - name: Publish
+        if: always()
+        run: |
+          cd out && git init -q && git checkout -q -b apple-output
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "invite ${{ github.run_id }}"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} apple-output
