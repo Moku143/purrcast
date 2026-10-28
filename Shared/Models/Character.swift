@@ -12,7 +12,6 @@ enum PurrCharacter: String, CaseIterable, Codable, Identifiable {
     var defaultVoice: Voice { self == .brit ? .formal : self == .abys ? .casual : .polite }
     var faceImage: String { "\(rawValue)-face" }
     func stand(level: Int, rain: RainState) -> String { "\(rawValue)-stand-\(level)-\(rain.spriteKey)" }
-    func walk(level: Int, rain: RainState, frame: Int) -> String { "\(rawValue)-walk-\(level)-\(rain.spriteKey)-\(frame % 2 == 0 ? "A" : "B")" }
     func lock(level: Int) -> String { "\(rawValue)-lock-\(level)" }
 
     /// Where the head top / umbrella top / head centre sit on the 480x560 sprite, per outfit (Resources/Data/anchors.json).

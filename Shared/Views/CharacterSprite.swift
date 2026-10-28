@@ -35,21 +35,3 @@ struct CharacterSprite: View {
         .accessibilityLabel(Text(character.defaultName))
     }
 }
-
-/// Walking: frames A and B alternate every 0.15 s.
-struct WalkingSprite: View {
-    let character: PurrCharacter
-    let level: Int
-    let rain: RainState
-    var width: CGFloat = 100
-    var facingLeft = false
-    @State private var frame = 0
-    private let timer = Timer.publish(every: 0.15, on: .main, in: .common).autoconnect()
-    var body: some View {
-        Image(character.walk(level: level, rain: rain, frame: frame))
-            .resizable()
-            .frame(width: width, height: width * Sprite.height / Sprite.width)
-            .scaleEffect(x: facingLeft ? -1 : 1, y: 1)
-            .onReceive(timer) { _ in frame += 1 }
-    }
-}
