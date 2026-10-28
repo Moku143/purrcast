@@ -273,3 +273,8 @@ enum SceneLibrary {
         return s
     }
 }
+
+extension WeatherScene {
+    /// What the character wears for rain right now (see Rules.raincoat).
+    var raincoat: Rules.Raincoat { Rules.raincoat(precip: precip, rain: rain, aux: aux, level: level) }
+}

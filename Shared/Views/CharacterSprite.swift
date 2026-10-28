@@ -8,11 +8,13 @@ struct CharacterSprite: View {
     var mood: Mood = .normal
     var width: CGFloat = 176
     var animate: Bool = true
+    /// Rain gear instead of the outfit (WeatherScene.raincoat).
+    var coat: Rules.Raincoat = .off
     @State private var up = false
     @Environment(\.accessibilityReduceMotion) private var reduce
 
     var height: CGFloat { width * Sprite.height / Sprite.width }
-    private var name: String { character.stand(level: level, rain: rain) }
+    private var name: String { coat == .off ? character.stand(level: level, rain: rain) : character.raincoat(umbrella: coat == .umbrella) }
 
     var body: some View {
         ZStack {

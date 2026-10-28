@@ -54,11 +54,11 @@ struct MediumWidgetView: View {
             }
             HStack(alignment: .bottom, spacing: 4) {
                 ZStack(alignment: .bottom) {
-                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 92, animate: false)
+                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 92, animate: false, coat: s.raincoat)
                         .frame(width: 92, height: 107, alignment: .bottom)
                     if let b = s.bubble {
                         BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 9), fontSize: 10).fixedSize().scaleEffect(0.9, anchor: .bottom)
-                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 107))
+                            .padding(.bottom, bubbleBottom(snap.shownCharacter, s.raincoat == .bare ? .none : rain, spriteHeight: 107))
                     }
                 }
                 .frame(width: 110, height: 126, alignment: .bottom).offset(y: 6)
@@ -102,13 +102,13 @@ struct SmallWidgetView: View {
             }
             HStack(alignment: .bottom, spacing: 0) {
                 ZStack(alignment: .bottom) {
-                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false)
+                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false, coat: s.raincoat)
                         .frame(width: 72, height: 84, alignment: .bottom)
                     if let b = s.bubble {
                         // a word ("비", "한파", "폭염") fits above the head; longer names show just the icon here
                         BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize()
                             .scaleEffect(0.85, anchor: .bottom)
-                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 84))
+                            .padding(.bottom, bubbleBottom(snap.shownCharacter, s.raincoat == .bare ? .none : rain, spriteHeight: 84))
                     }
                 }
                 .frame(width: 80, height: 118, alignment: .bottom).offset(y: 8)
@@ -131,7 +131,7 @@ struct LockRectangularView: View {
     var body: some View {
         let s = snap.scene, lv = max(0, min(9, s.level))
         HStack(spacing: 6) {
-            Image(snap.shownCharacter.lock(level: lv)).resizable().scaledToFit().frame(width: 40, height: 52)
+            Image(s.raincoat == .off ? snap.shownCharacter.lock(level: lv) : snap.shownCharacter.lockRaincoat).resizable().scaledToFit().frame(width: 40, height: 52)
                 .opacity(0.62)     // see-through, like the system's own lock-screen glyphs
             VStack(alignment: .leading, spacing: 1) {
                 Text(snap.deg(s.temp)).font(.system(size: 15, weight: .semibold)).opacity(0.92)

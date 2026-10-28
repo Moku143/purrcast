@@ -149,8 +149,10 @@ struct HomeView: View {
         let catTop = feetY - Sprite.feetY / Sprite.height * catH
         let headX: CGFloat = 100 - 16   // hero is inside the 16 pt side padding
         let a = char.anchors
-        let catLeft = headX - CGFloat(a.head_cx[level]) * catW / Sprite.width
-        let tipY = catTop + CGFloat(rain == .umbrella ? a.umb_top[level] : a.head_top[level]) / Sprite.height * catH - 4
+        let coat = s.raincoat, al = coat == .off ? level : 5   // the raincoat pictures are drawn on the outfit-5 canvas
+        let held = rain == .umbrella && coat != .bare
+        let catLeft = headX - CGFloat(a.head_cx[al]) * catW / Sprite.width
+        let tipY = catTop + CGFloat(held ? a.umb_top[al] : a.head_top[al]) / Sprite.height * catH - 4
 
         return ZStack(alignment: .topLeading) {
             // top row: place + buttons
@@ -192,7 +194,7 @@ struct HomeView: View {
             .reveal(0, rise: 10)
 
             // the character, feet on the first card (slides up into place on first show)
-            CharacterSprite(character: char, level: level, rain: rain, mood: Mood(rawValue: s.mood ?? "normal") ?? .normal, width: catW)
+            CharacterSprite(character: char, level: level, rain: rain, mood: Mood(rawValue: s.mood ?? "normal") ?? .normal, width: catW, coat: coat)
                 .offset(x: catLeft, y: catTop)
                 .reveal(0, rise: 28)
                 .animation(Motion.gentle, value: catLeft)

@@ -378,7 +378,7 @@ private struct PlaceCard: View {
     private var rain: RainState { RainState(rawValue: scene?.rain ?? "none") ?? .none }
 
     private var sprite: some View {
-        CharacterSprite(character: model.shownCharacter, level: level, rain: rain, width: 70, animate: false)
+        CharacterSprite(character: model.shownCharacter, level: level, rain: rain, width: 70, animate: false, coat: scene?.raincoat ?? .off)
             .frame(width: 70, height: 82).clipped()
     }
 

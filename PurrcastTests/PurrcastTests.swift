@@ -100,6 +100,12 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Rules.level(feels: 10), 6); XCTAssertEqual(Rules.level(feels: 9), 7); XCTAssertEqual(Rules.level(feels: 6), 7); XCTAssertEqual(Rules.level(feels: 0), 8)
         XCTAssertEqual(Rules.level(feels: -12), 9)
         XCTAssertEqual(Rules.level(feels: 19.8, previous: 4), 4)
+        // raincoat: raining now (not snow), outfits 1…7; no umbrella in strong wind
+        XCTAssertEqual(Rules.raincoat(precip: "rain", rain: "umbrella", aux: "none", level: 6), .umbrella)
+        XCTAssertEqual(Rules.raincoat(precip: "heavy", rain: "umbrella", aux: "wind", level: 1), .bare)
+        XCTAssertEqual(Rules.raincoat(precip: "snow", rain: "umbrella", aux: "none", level: 8), .off)
+        XCTAssertEqual(Rules.raincoat(precip: "rain", rain: "umbrella", aux: "none", level: 9), .off)
+        XCTAssertEqual(Rules.raincoat(precip: "none", rain: "bag", aux: "none", level: 5), .off)
         XCTAssertEqual(Rules.level(feels: 20.6, previous: 4), 3)
     }
 

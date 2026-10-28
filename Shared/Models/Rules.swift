@@ -33,6 +33,14 @@ enum Rules {
         }
     }
 
+    /// Rain gear instead of the outfit: a raincoat while it rains now (not snow or sleet) at T-shirt-to-coat
+    /// temperatures (outfits 1–7); without the umbrella when the wind would turn it inside out.
+    enum Raincoat { case off, umbrella, bare }
+    static func raincoat(precip: String, rain: String, aux: String, level: Int) -> Raincoat {
+        guard rain == "umbrella", precip == "rain" || precip == "heavy", (1...7).contains(level) else { return .off }
+        return aux == "wind" ? .bare : .umbrella
+    }
+
     /// Background colour per outfit level (the hero gradient starts from it).
     static let background = ["#FFC2A8", "#FFD3B5", "#FFE8A3", "#F3F0B5", "#D9EFCF", "#D3E6F4", "#CDDCEF", "#C8D4F0", "#B7C6EA", "#A9B6E2"]
 

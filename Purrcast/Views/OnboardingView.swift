@@ -124,7 +124,7 @@ struct OnboardingView: View {
                         .foregroundStyle(s.time == "night" ? .white : UI.ink)
                         .padding(.top, 22)
                     Spacer()
-                    CharacterSprite(character: .cat, level: s.level, rain: rainState(s), mood: Mood(rawValue: s.mood ?? "normal") ?? .normal, width: 190)
+                    CharacterSprite(character: .cat, level: s.level, rain: rainState(s), mood: Mood(rawValue: s.mood ?? "normal") ?? .normal, width: 190, coat: s.raincoat)
                         .padding(.bottom, 14)
                 }
                 .id("cat\(demo)").transition(.opacity)

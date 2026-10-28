@@ -19,12 +19,12 @@ struct WatchNow: View {
                 Spacer(minLength: 0)
                 HStack(alignment: .bottom, spacing: 2) {
                     ZStack(alignment: .bottom) {
-                        CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 74, animate: !dimmed)
+                        CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 74, animate: !dimmed, coat: s.raincoat)
                             .frame(width: 74, height: 86, alignment: .bottom)
                         if let b = s.bubble {
                             BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize()
                                 .scaleEffect(0.85, anchor: .bottom)
-                                .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 86))
+                                .padding(.bottom, bubbleBottom(snap.shownCharacter, s.raincoat == .bare ? .none : rain, spriteHeight: 86))
                         }
                     }
                     .frame(width: 80, height: 86, alignment: .bottom)
