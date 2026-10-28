@@ -80,7 +80,8 @@ struct WatchCatDisc: View {
             let d = min(g.size.width, g.size.height), k = d / 54
             ZStack {
                 Circle().fill(Color(hex: Rules.background[f.level]))
-                Image(f.sprite).resizable().interpolation(.high)
+                // without the umbrella or bag: only the head and shoulders show here
+                Image(snap.shownCharacter.stand(level: f.level, rain: .none)).resizable().interpolation(.high)
                     .frame(width: 96 * k, height: 112 * k)
                     .position(x: d / 2, y: 112 * k / 2 - 5 * k)
             }
@@ -89,22 +90,39 @@ struct WatchCatDisc: View {
     }
 }
 
-/// Today's low → high as an arc coloured by temperature, the temperature now in the middle.
+/// Today's low → high as a 240° arc coloured from the low's colour to the high's, a dot at now, the temperature in
+/// the middle and "low · high" under it (the design's gauge; drawn by hand so every part shows at every size).
 struct WatchTempGauge: View {
     let snap: WeatherSnapshot
     var body: some View {
         let s = snap.scene, u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
-        Gauge(value: Double(s.temp), in: Double(min(s.lo, s.temp))...Double(max(s.hi, s.temp, s.lo + 1))) {
-            Text("°")
-        } currentValueLabel: {
-            Text("\(u(s.temp))°").font(.px(15))
-        } minimumValueLabel: {
-            Text("\(u(s.lo))").font(.system(size: 9, weight: .semibold)).foregroundStyle(Color(hex: "#9EA3B5"))
-        } maximumValueLabel: {
-            Text("\(u(s.hi))").font(.system(size: 9, weight: .semibold)).foregroundStyle(Color(hex: "#9EA3B5"))
+        let frac = max(0, min(1, Double(s.temp - s.lo) / Double(max(1, s.hi - s.lo))))
+        GeometryReader { g in
+            let d = min(g.size.width, g.size.height), k = d / 54, lw = 5 * k, r = 22 * k
+            let c = CGPoint(x: g.size.width / 2, y: g.size.height / 2)
+            let a = (-120 + 240 * frac) * .pi / 180
+            ZStack {
+                GaugeArc(radius: r).stroke(Color.white.opacity(0.18), style: StrokeStyle(lineWidth: lw, lineCap: .round))
+                GaugeArc(radius: r).stroke(LinearGradient(colors: [TempColor.of(s.lo), TempColor.of(s.hi)], startPoint: .leading, endPoint: .trailing),
+                                          style: StrokeStyle(lineWidth: lw, lineCap: .round))
+                Circle().fill(Color.black).overlay(Circle().stroke(Color.white, lineWidth: 2 * k))
+                    .frame(width: 7.2 * k, height: 7.2 * k)
+                    .position(x: c.x + r * CGFloat(sin(a)), y: c.y - r * CGFloat(cos(a)))
+                Text("\(u(s.temp))°").font(.px(15 * k)).foregroundStyle(.white).position(x: c.x, y: c.y + 1 * k)
+                Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 8 * k, weight: .semibold)).foregroundStyle(Color(hex: "#9EA3B5"))
+                    .position(x: c.x, y: c.y + 19 * k)
+            }
         }
-        .gaugeStyle(.accessoryCircular)
-        .tint(Gradient(colors: [TempColor.of(s.lo), TempColor.of(s.hi)]))
+    }
+}
+
+/// The gauge's track: 240° around the centre, open at the bottom.
+struct GaugeArc: Shape {
+    let radius: CGFloat
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.addArc(center: CGPoint(x: rect.midX, y: rect.midY), radius: radius, startAngle: .degrees(-210), endAngle: .degrees(30), clockwise: false)
+        return p
     }
 }
 
