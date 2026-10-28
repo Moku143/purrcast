@@ -98,11 +98,13 @@ enum Sky {
         return all
     }()
 
-    /// How much falls, from the amount: the drawn layers are "보통 비" (3–15 mm/h) and "눈" (1–3 cm/h) at 1.0;
-    /// a drizzle shows a third of the streaks, a downpour twice as many. Breakpoints follow Rules.rainKind.
+    /// How much falls, from the amount: the drawn layers are "보통 비" (3 mm/h) and "눈" (1 cm/h) at 1.0;
+    /// a drizzle shows a quarter of the streaks, a downpour nearly three times as many. Each step of the
+    /// amount (0.3 · 1 · 3 · 6 · 12 · 25 · 40 mm, 0.3 · 1 · 2 · 4 · 8 cm) should look different.
     static func density(precip p: String, mm: Double) -> Double {
         let snowy = p.contains("snow") || p == "flurries"
-        let t: [(Double, Double)] = snowy ? [(0, 0.35), (0.5, 0.6), (1, 1.0), (3, 1.6), (6, 2.0)] : [(0, 0.3), (1, 0.6), (3, 1.0), (15, 1.6), (30, 2.0)]
+        let t: [(Double, Double)] = snowy ? [(0, 0.3), (0.5, 0.5), (1, 1.0), (2, 1.4), (4, 2.0), (8, 2.6)]
+                                          : [(0, 0.25), (1, 0.55), (3, 1.0), (6, 1.4), (12, 1.8), (25, 2.3), (40, 2.8)]
         if mm <= 0 { return 1 }                       // no amount known: the layer as drawn
         var prev = t[0]
         for q in t.dropFirst() {
@@ -125,12 +127,52 @@ enum Sky {
             let extra = Int((Double(falling.count) * (f - 1)).rounded())
             out = falling + (0..<extra).map { i in var it = falling[i % falling.count]; it.x = (it.x + 7 + Double(i / falling.count) * 11).truncatingRemainder(dividingBy: 268); it.dl -= it.d * 0.37; return it }
         }
-        out = out.map { var it = $0; if it.a == "fall" { it.h = max(5, min(14, it.h * (0.75 + 0.3 * f))) }; return it }
+        out = out.map { var it = $0
+            if it.a == "fall" {
+                it.h = max(4, min(16, it.h * (0.6 + 0.4 * f)))
+                it.c = Sky.withAlpha(it.c, factor: min(1.3, 0.7 + 0.3 * f))      // a drizzle is faint, a downpour solid
+            } else if it.a == "snow" && f < 0.8 {
+                it.w = max(2, it.w - 1); it.h = it.w                               // light snow: smaller flakes
+            }
+            return it }
         return out + rest
     }
 
-    /// Stack the layers for one forecast (the design's "layered mode"). `mm`: this hour's amount (mm/h, cm/h for snow).
-    static func compose(time: String, cover: String, precip p: String, thunder: Bool, aux: [String], mm: Double = 0) -> (tints: [String], items: [SkyItem]) {
+    /// Clouds for a cloud amount (0–100 %): how many, how big and how far down they reach — a few small ones near
+    /// the top at 20 %, a layer of big ones down past the temperature at 100 %. White on a fair day, light grey when
+    /// it is overcast, dark (먹구름) when rain is on its way (`gloom` 1 maybe · 2 later today) or falling.
+    static func cloudItems(pct: Int, night: Bool, gloom: Int, wet: Bool) -> [SkyItem] {
+        // (from %, clouds, sizes, lowest top in sky units — the tile is 127 units tall)
+        let steps: [(min: Int, n: Int, ks: [Double], bottom: Double)] = [
+            (90, 12, [2.6, 3.0, 2.2, 2.8], 104), (75, 10, [2.3, 2.7, 2.0, 2.5], 96), (60, 8, [2.0, 2.4, 1.8, 2.2], 88),
+            (45, 6, [1.7, 2.0, 1.5, 1.9], 76), (30, 4, [1.5, 1.8, 1.3], 62), (15, 2, [1.3, 1.6], 44), (0, 0, [1], 0)]
+        guard let st = steps.first(where: { pct >= $0.min }), st.n > 0 else { return [] }
+        let fair = pct >= 75 ? ["rgba(226,231,242,0.97)", "rgba(214,220,234,0.97)"] : ["rgba(255,255,255,0.96)", "rgba(244,247,252,0.96)"]
+        let dark = ["rgba(150,158,182,0.97)", "rgba(128,136,162,0.97)", "rgba(170,178,200,0.97)"]
+        let nightC = ["#525C86", "#4A5480", "#5C6690"], nightDark = ["#3A4166", "#333A5C", "#434B72"]
+        return (0..<st.n).map { i in
+            let row = Double((i * 7) % st.n) / Double(max(1, st.n - 1))     // heights shuffled so neighbours differ
+            let y = -6 + row * (st.bottom + 6)
+            let k = st.ks[i % st.ks.count] * (1 - 0.18 * row)                 // the lower ones a little smaller
+            let d = 30 + Double(i % 3) * 6                                    // three speeds: a little depth
+            let gloomy = wet || gloom >= 2 || (gloom == 1 && i % 3 == 0)
+            let c = night ? (gloomy ? nightDark[i % 3] : nightC[i % 3]) : (gloomy ? dark[i % 3] : fair[i % 2])
+            return SkyItem(t: "cloud", x: -40, y: y, w: 36, h: 13, c: c, a: "cloud", d: d, dl: -Double(i) / Double(st.n) * d - 0.37 * d, k: k)
+        }
+    }
+
+    /// "rgba(58,92,168,0.55)" with its alpha times `factor` (other colours as they are).
+    static func withAlpha(_ c: String?, factor: Double) -> String? {
+        guard let c, c.hasPrefix("rgba(") else { return c }
+        let n = c.dropFirst(5).dropLast().split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard n.count == 4, let a = Double(n[3]) else { return c }
+        return "rgba(\(n[0]),\(n[1]),\(n[2]),\(String(format: "%.2f", min(1, a * factor))))"
+    }
+
+    /// Stack the layers for one forecast (the design's "layered mode"). `mm`: this hour's amount (mm/h, cm/h for snow);
+    /// `clouds`: cloud amount in % (nil: from `cover`); `fog`: 0–3 how thick; `gloom`: rain on its way (1 maybe, 2 later today).
+    static func compose(time: String, cover: String, precip p: String, thunder: Bool, aux: [String], mm: Double = 0,
+                        clouds: Int? = nil, fog: Int = 0, gloom: Int = 0) -> (tints: [String], items: [SkyItem]) {
         var tints: [String] = [], list: [SkyItem] = []
         let f = density(precip: p, mm: mm)
         func add(_ key: String, tint: Bool = true, only: ((SkyItem) -> Bool)? = nil, half: Bool = false, keep: Int = 0) {
@@ -146,10 +188,13 @@ enum Sky {
         let precip = ["drizzle", "rain", "heavy", "freezing", "sleet", "flurries", "snow", "heavysnow", "hail"].contains(p) ? p : "none"
         let wet = precip != "none"
         let sunny = cover == "clear" && ["drizzle", "rain", "flurries", "snow"].contains(precip)
-        if night { add("night", only: { _ in (cover == "clear" || cover == "partly") && !wet }) }
+        let pct = clouds ?? (cover == "clear" ? 10 : cover == "partly" ? 50 : 90)
+        if night { add("night", only: { _ in pct < 75 && !wet }) }
         if cover == "clear" && !night { add("clear") }
-        if cover == "partly" { if night { add("partly", only: { $0.t == "cloud" }) } else { add("partly") } }
-        if cover == "overcast" { add("overcast", tint: !wet) }
+        if cover == "partly" && !night { add("partly", only: { $0.t == "static" }) }     // the sun glow; clouds below
+        if cover == "overcast" && !wet, let t = data["overcast"]?.tint { tints.append(t) }
+        list += cloudItems(pct: pct, night: night, gloom: gloom, wet: wet)
+        if gloom > 0 && !wet { tints.append(gloom >= 2 ? "rgba(60,70,104,0.16)" : "rgba(60,70,104,0.08)") }   // it darkens before rain
         let before = list.count
         if thunder && (precip == "rain" || precip == "heavy") && !sunny { add("storm") }
         else {
@@ -157,11 +202,22 @@ enum Sky {
             if thunder { add("storm", tint: false, only: { $0.a == "flash" }) }
         }
         if wet { list = Array(list[..<before]) + scaled(Array(list[before...]), by: f) }
-        let pri = ["fog", "dust", "wind", "haze", "heat", "frost"]
+        // fog by how thick it is (mist · fog · thick fog), drawn whether or not it is the bubble's subject
+        let fogL = max(fog, aux.contains("fog") ? 2 : 0)
+        if fogL > 0, let fl = data["fog"] {
+            let lv = wet ? max(1, fogL - 1) : fogL
+            var its = fl.items
+            if lv == 1 { its = its.enumerated().filter { $0.offset % 2 == 0 }.map { $0.element } }
+            if lv == 3 { its += fl.items.map { var i = $0; i.y += 28; i.x += 40; i.dl -= 5; i.fdl = (i.fdl ?? 0) - 1.7; return i } }
+            let a = [0, 0.20, 0.38, 0.58][lv]
+            tints.append(night ? "rgba(176,184,210,\(a * 0.7))" : "rgba(238,241,247,\(a))")
+            list += its
+        }
+        let pri = ["dust", "wind", "haze", "heat", "frost"]
         var ax: [String] = []
         for a in aux where pri.contains(a) && !ax.contains(a) { ax.append(a) }
         if ax.contains("heat") { ax.removeAll { $0 == "frost" } }
-        if ax.contains("fog") || ax.contains("dust") { ax.removeAll { $0 == "haze" } }
+        if fogL > 0 || ax.contains("dust") { ax.removeAll { $0 == "haze" } }
         ax.sort { pri.firstIndex(of: $0)! < pri.firstIndex(of: $1)! }
         for (k, a) in ax.prefix(2).enumerated() {
             let only: ((SkyItem) -> Bool)? = (a == "heat" && night) ? { $0.t != "static" } : nil
@@ -170,18 +226,14 @@ enum Sky {
             else { add(a, only: only) }
         }
         if !night && (precip == "rain" || precip == "drizzle") && !(thunder && !sunny) {
-            list = list.map { var i = $0; if i.a == "fall" { i.c = "rgba(58,92,168,0.55)" }; return i }
+            let blue = wet ? Sky.withAlpha("rgba(58,92,168,0.55)", factor: min(1.3, 0.7 + 0.3 * f)) : "rgba(58,92,168,0.55)"
+            list = list.map { var i = $0; if i.a == "fall" { i.c = blue }; return i }
         }
         if !night {
             list = list.map { var i = $0; if i.a == "wind" && i.h <= 2 { i.c = "rgba(88,108,158,0.55)" }; return i }
         }
-        if !night && wet && cover == "overcast" {      // rain clouds are grey
-            list = list.map { var i = $0; if i.t == "cloud" { i.c = "rgba(186,194,212,0.97)" }; return i }
-        }
         if night {
-            list = list.map { var i = $0
-                if i.t == "cloud" { i.c = "#525C86" } else if i.a == "wind" { i.c = "rgba(196,206,240,0.6)" }
-                return i }
+            list = list.map { var i = $0; if i.a == "wind" { i.c = "rgba(196,206,240,0.6)" }; return i }
         }
         return (tints, list)
     }
@@ -232,6 +284,12 @@ enum Sky {
         }
     }
 
+    /// The layers for a forecast.
+    static func compose(_ s: WeatherScene) -> (tints: [String], items: [SkyItem]) {
+        compose(time: s.time, cover: s.cover, precip: s.precip, thunder: s.thunder == "on", aux: [s.aux], mm: s.hours.first?.mm ?? 0,
+                clouds: s.clouds, fog: s.fog, gloom: s.gloom)
+    }
+
     /// "rgba(255,236,150,0.16)" / "#525C86" → Color
     static func color(_ s: String?) -> Color {
         guard let s else { return .clear }
@@ -246,7 +304,7 @@ enum Sky {
 struct SkyTint: View {
     let scene: WeatherScene
     var body: some View {
-        let c = Sky.compose(time: scene.time, cover: scene.cover, precip: scene.precip, thunder: scene.thunder == "on", aux: [scene.aux], mm: scene.hours.first?.mm ?? 0)
+        let c = Sky.compose(scene)
         ZStack { ForEach(Array(c.tints.enumerated()), id: \.offset) { _, t in Sky.color(t) } }
     }
 }
@@ -260,7 +318,7 @@ struct SkyParticles: View {
     var animate = true
 
     var body: some View {
-        let c = Sky.compose(time: scene.time, cover: scene.cover, precip: scene.precip, thunder: scene.thunder == "on", aux: [scene.aux], mm: scene.hours.first?.mm ?? 0)
+        let c = Sky.compose(scene)
         let scale = width / Sky.tile.width
         let upper = c.items
         let lower = c.items.filter { $0.t != "cloud" && $0.t != "static" }
@@ -283,12 +341,27 @@ struct SkyParticles: View {
         Canvas { ctx, _ in
             let resolved = fogs.map { ctx.resolve($0) }
             let falling = { (it: SkyItem) in it.a == "fall" || it.a == "snow" }
+            let backdrop = { (it: SkyItem) in it.t == "static" || it.a == "twinkle" }
+            // sun glow and stars first, then the clouds — allowed down past the first strip so a low cloud is
+            // never cut straight across — then wind, fog, dust and the rest, strip by strip
+            do {
+                var g = ctx
+                g.scaleBy(x: scale, y: scale)
+                g.clip(to: Path(CGRect(origin: .zero, size: Sky.tile)))
+                for it in upper where backdrop(it) { draw(it, in: &g, t: t, fogs: resolved) }
+            }
+            do {
+                var g = ctx
+                g.scaleBy(x: scale, y: scale)
+                g.clip(to: Path(CGRect(x: 0, y: 0, width: Sky.tile.width, height: Sky.tile.height * CGFloat(tiles))))
+                for it in upper where it.t == "cloud" { draw(it, in: &g, t: t, fogs: resolved) }
+            }
             for tile in 0..<tiles {
                 var g = ctx
                 g.translateBy(x: 0, y: CGFloat(tile) * Sky.tile.height * scale)
                 g.scaleBy(x: scale, y: scale)
                 g.clip(to: Path(CGRect(origin: .zero, size: Sky.tile)))
-                for it in (tile == 0 ? upper : lower) where !falling(it) { draw(it, in: &g, t: t, fogs: resolved) }
+                for it in (tile == 0 ? upper : lower) where !falling(it) && it.t != "cloud" && (tile > 0 || !backdrop(it)) { draw(it, in: &g, t: t, fogs: resolved) }
             }
             // rain and snow fall the whole height in one go, from the top edge to the bottom edge
             var g = ctx
@@ -330,4 +403,9 @@ struct SkyParticles: View {
         }
         g.opacity = 1
     }
+}
+
+extension WeatherScene {
+    /// Rain on its way, for the sky: 2 when it is due later today (umbrella packed), 1 when it may come, else 0.
+    var gloom: Int { rain == "bag" ? 2 : rain == "think" ? 1 : 0 }
 }

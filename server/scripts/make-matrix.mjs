@@ -20,12 +20,12 @@ function series(start, now, later) {
     const sym = cur.thunder ? 'rainandthunder'
       : cur.precip === 'snow' ? 'snow' : cur.precip === 'heavysnow' ? 'heavysnow' : cur.precip === 'sleet' ? 'sleet' : cur.precip === 'heavy' ? 'heavyrain' : cur.precip === 'rain' ? 'rain'
       : cur.fog ? 'fog' : cur.cloud >= 70 ? 'cloudy' : cur.cloud >= 30 ? 'partlycloudy_day' : 'clearsky_day';
-    const mm = cur.precip === 'heavy' ? 8 : cur.precip === 'heavysnow' ? 4 : cur.precip === 'none' ? 0 : (cur.mm ?? 1.5);
+    const mm = cur.mm != null && cur.precip !== 'none' ? cur.mm : cur.precip === 'heavy' ? 8 : cur.precip === 'heavysnow' ? 4 : cur.precip === 'none' ? 0 : 1.5;
     ts.push({
       time: new Date(start.getTime() + i * 3600000).toISOString(),
       data: {
         instant: { details: { air_temperature: t, relative_humidity: cur.temp >= 30 ? 40 : 70, wind_speed: cur.wind, wind_speed_of_gust: cur.wind * 1.5,
-          wind_from_direction: 225, cloud_area_fraction: cur.cloud, fog_area_fraction: cur.fog ? 80 : 0,
+          wind_from_direction: 225, cloud_area_fraction: cur.cloud, fog_area_fraction: cur.fogPct ?? (cur.fog ? 80 : 0),
           ultraviolet_index_clear_sky: 4, dew_point_temperature: t - 6 } },
         next_1_hours: { summary: { symbol_code: sym }, details: { precipitation_amount: mm, probability_of_precipitation: mm > 0 ? 90 : 5 } },
       },
@@ -35,11 +35,11 @@ function series(start, now, later) {
 }
 
 const out = [];
-function add({ time, cover, precip = 'none', thunder = false, aux = 'none', later = null, char = 'cat', label }) {
+function add({ time, cover, precip = 'none', thunder = false, aux = 'none', later = null, char = 'cat', label, group, key: keyX, cloud, mm, fogPct }) {
   const day = time === 'day';
   const start = instant(2026, 10, 21, day ? 14 : 22, 0, TZ);
   const temp = aux === 'heat' ? (day ? 35 : 29) : aux === 'frost' ? -13 : /snow/.test(precip) || later?.type === 'snow' ? -1 : precip === 'sleet' ? 1 : 15;
-  const now = { temp, cloud: COVER[cover], precip, thunder, fog: aux === 'fog', wind: aux === 'wind' ? 11 : 2 };
+  const now = { temp, cloud: cloud ?? COVER[cover], precip, thunder, fog: aux === 'fog' || fogPct >= 50, fogPct, mm, wind: aux === 'wind' ? 11 : 2 };
   const m = parseMet({ properties: { meta: { updated_at: start.toISOString() }, timeseries: series(start, now, later) } });
   const s = buildScene({ points: m.points, updated: start, next6: m.points.slice(1, 7), nextSource: 'met' },
     { lat: 37.57, lon: 126.9, tz: TZ, plan: 'free', now: new Date(start.getTime() + 10 * 60000) });
@@ -48,8 +48,8 @@ function add({ time, cover, precip = 'none', thunder = false, aux = 'none', late
     s.aux = 'dust'; s.cond = s.cond.replace(/^(맑음|구름 조금|흐림)/, '$1 · 황사');
     if (!s.bubble) s.bubble = { kind: 'speech', tone: 'white', icon: 'mask', text: '황사!' };
   }
-  const key = [time, cover, precip, thunder ? 'thunder' : '', aux !== 'none' ? aux : '', later ? 'later-' + later.type + later.from : '', char !== 'cat' ? char : ''].filter(Boolean).join('-');
-  out.push({ key, group: label ? '캐릭터별 말풍선' : (time === 'day' ? '낮' : '밤') + ' · ' + COVER_KO[cover], label: label || describe({ precip, thunder, aux, later }), scene: s, char });
+  const key = keyX ?? [time, cover, precip, thunder ? 'thunder' : '', aux !== 'none' ? aux : '', later ? 'later-' + later.type + later.from : '', char !== 'cat' ? char : ''].filter(Boolean).join('-');
+  out.push({ key, group: group ?? (label ? '캐릭터별 말풍선' : (time === 'day' ? '낮' : '밤') + ' · ' + COVER_KO[cover]), label: label || describe({ precip, thunder, aux, later }), scene: s, char });
 }
 function describe({ precip, thunder, aux, later }) {
   const p = { none: '', rain: '비', heavy: '강한 비', snow: '눈', heavysnow: '많은 눈', sleet: '진눈깨비' }[precip];
@@ -74,6 +74,23 @@ for (const char of ['cat', 'abys', 'brit']) {
   add({ time: 'day', cover: 'partly', later: { type: 'rain', from: 2 }, char, label: char + ' · 곧 비 (긴 말풍선)' });
   add({ time: 'day', cover: 'clear', aux: 'frost', char, label: char + ' · 한파' });
   add({ time: 'day', cover: 'clear', aux: 'heat', char, label: char + ' · 폭염' });
+}
+// how much: clouds by %, rain by mm/h, snow by cm/h, fog by thickness — each step should look different
+for (const time of ['day', 'night']) for (const c of [10, 25, 40, 55, 70, 85, 100]) {
+  add({ time, cover: c >= 70 ? 'overcast' : c >= 30 ? 'partly' : 'clear', cloud: c, group: '구름 양', key: `${time}-clouds-${c}`, label: `${time === 'day' ? '낮' : '밤'} · 구름 ${c}%` });
+}
+for (const mm of [0.3, 1, 3, 6, 12, 25, 40]) {
+  add({ time: 'day', cover: 'overcast', precip: mm >= 6 ? 'heavy' : 'rain', mm, group: '비 양', key: `day-rain-mm-${mm}`, label: `비 ${mm}mm` });
+}
+for (const mm of [0.3, 1, 2, 4, 8]) {
+  add({ time: 'day', cover: 'overcast', precip: mm >= 3 ? 'heavysnow' : 'snow', mm, group: '눈 양', key: `day-snow-cm-${mm}`, label: `눈 ${mm}cm` });
+}
+for (const [f, name] of [[30, '옅은 안개'], [60, '안개'], [90, '짙은 안개']]) for (const time of ['day', 'night']) {
+  add({ time, cover: 'partly', fogPct: f, aux: f >= 50 ? 'fog' : 'none', group: '안개 농도', key: `${time}-fog-${f}`, label: `${time === 'day' ? '낮' : '밤'} · ${name} (${f}%)` });
+}
+// rain on the way: the clouds turn dark before it rains
+for (const [cover, from] of [['clear', 2], ['partly', 2], ['partly', 5], ['overcast', 2]]) {
+  add({ time: 'day', cover, later: { type: 'rain', from }, group: '비 예보 (먹구름)', key: `day-${cover}-gloom-${from}`, label: `${COVER_KO[cover]} · ${from <= 3 ? '곧 비' : '저녁에 비'}` });
 }
 writeFileSync(new URL('../../PurrcastTests/Fixtures/matrix.json', import.meta.url), JSON.stringify(out));
 console.log(out.length, 'cases');

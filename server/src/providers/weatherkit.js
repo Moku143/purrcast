@@ -110,6 +110,7 @@ export function parseWeatherKit(json, tz = 'UTC') {
       dir: h.windDirection ?? null,
       cloud: pct(h.cloudCover),
       fog: (h.visibility != null && h.visibility < 1000) || /Fog|Haze/.test(code),
+      vis: h.visibility ?? null,
       uvClear: uvClearFrom(h.uvIndex, pct(h.cloudCover)),
       mm,
       pop: chance ?? (mm > 0 ? 70 : 0),

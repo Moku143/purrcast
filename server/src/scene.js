@@ -133,12 +133,14 @@ export function buildScene(f, o) {
 
   const bub = R.bubble({
     warnings: f.warnings, nowWet, nowPr: pr, nowMm: cur.mm, thunder, startIn, when,
-    wind: auxKind === 'wind', fog: auxKind === 'fog', feels, night, swing: hi - lo, maxPop, plus, rain, snowNext,
+    wind: auxKind === 'wind', fog: auxKind === 'fog' ? Math.max(2, R.fogLevel(cur)) : 0, feels, night, swing: hi - lo, maxPop, plus, rain, snowNext,
   }, S);
 
   const scene = {
     time: night ? 'night' : 'day',
     cover: cov,
+    clouds: cur.cloud == null ? null : ri(cur.cloud),   // 0–100 %, how many clouds the sky draws
+    fog: R.fogLevel(cur),                                // 0–3, how thick the fog is drawn
     precip: pr,
     thunder: thunder ? 'on' : 'off',
     aux: auxKind,

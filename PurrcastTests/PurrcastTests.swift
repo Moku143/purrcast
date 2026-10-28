@@ -161,6 +161,15 @@ final class PurrcastTests: XCTestCase {
         XCTAssertTrue(clearNight.items.contains { $0.a == "twinkle" }, "stars on a clear night")
         let rainyNight = Sky.compose(time: "night", cover: "overcast", precip: "rain", thunder: false, aux: ["none"])
         XCTAssertFalse(rainyNight.items.contains { $0.a == "twinkle" }, "no stars when it rains")
+        // more cloud, more clouds, reaching further down; dark ones before rain; fog as thick as it is
+        let n = [10, 25, 40, 55, 70, 85, 100].map { Sky.cloudItems(pct: $0, night: false, gloom: 0, wet: false).count }
+        XCTAssertEqual(n, n.sorted()); XCTAssertEqual(n.first, 0)
+        let low = { (p: Int) in Sky.cloudItems(pct: p, night: false, gloom: 0, wet: false).map { $0.y }.max() ?? 0 }
+        XCTAssertLessThan(low(25), low(100))
+        let fair = Sky.cloudItems(pct: 50, night: false, gloom: 0, wet: false), gloomy = Sky.cloudItems(pct: 50, night: false, gloom: 2, wet: false)
+        XCTAssertNotEqual(fair.map { $0.c }, gloomy.map { $0.c })
+        let fogs = (1...3).map { f in Sky.compose(time: "day", cover: "partly", precip: "none", thunder: false, aux: [], fog: f).items.filter { $0.t == "img" }.count }
+        XCTAssertEqual(fogs, fogs.sorted()); XCTAssertLessThan(fogs[0], fogs[2])
     }
 
     func testPlaceCatalogIDsAreUnique() {
@@ -206,11 +215,15 @@ final class PurrcastTests: XCTestCase {
 
     /// The sky draws as much as falls: a drizzle thins the streaks, a downpour doubles them.
     func testSkyDensityFollowsAmount() {
-        XCTAssertEqual(Sky.density(precip: "rain", mm: 0.5), 0.45, accuracy: 0.01)
+        XCTAssertEqual(Sky.density(precip: "rain", mm: 0.5), 0.40, accuracy: 0.01)
         XCTAssertEqual(Sky.density(precip: "rain", mm: 3), 1.0, accuracy: 0.01)
-        XCTAssertEqual(Sky.density(precip: "heavy", mm: 30), 2.0, accuracy: 0.01)
-        XCTAssertEqual(Sky.density(precip: "snow", mm: 0.2), 0.45, accuracy: 0.01)
-        XCTAssertEqual(Sky.density(precip: "heavysnow", mm: 6), 2.0, accuracy: 0.01)
+        XCTAssertEqual(Sky.density(precip: "heavy", mm: 40), 2.8, accuracy: 0.01)
+        XCTAssertEqual(Sky.density(precip: "snow", mm: 0.2), 0.38, accuracy: 0.01)
+        XCTAssertEqual(Sky.density(precip: "heavysnow", mm: 8), 2.6, accuracy: 0.01)
+        // every step of the amount draws more than the one before
+        let steps = [0.3, 1, 3, 6, 12, 25, 40].map { mm in
+            Sky.compose(time: "day", cover: "overcast", precip: mm >= 6 ? "heavy" : "rain", thunder: false, aux: [], mm: mm).items.filter { $0.a == "fall" }.count }
+        XCTAssertEqual(steps, steps.sorted()); XCTAssertEqual(Set(steps).count, steps.count, "\(steps)")
         let light = Sky.compose(time: "day", cover: "overcast", precip: "rain", thunder: false, aux: [], mm: 0.5).items.filter { $0.a == "fall" }.count
         let normal = Sky.compose(time: "day", cover: "overcast", precip: "rain", thunder: false, aux: [], mm: 5).items.filter { $0.a == "fall" }.count
         let pour = Sky.compose(time: "day", cover: "overcast", precip: "heavy", thunder: false, aux: [], mm: 30).items.filter { $0.a == "fall" }.count

@@ -125,7 +125,7 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch 
     f.points = f.points.map((p) => {
       while (j + 1 < mp.length && Math.abs(mp[j + 1].t - p.t) <= Math.abs(mp[j].t - p.t)) j++;   // both lists are sorted
       const m = mp.length && Math.abs(mp[j].t - p.t) <= 3 * 3600000 ? mp[j] : null;
-      return m ? { ...p, uvClear: m.uvClear, gust: p.gust ?? m.gust, fog: m.fog, dew: p.dew ?? m.dew } : p;
+      return m ? { ...p, uvClear: m.uvClear, gust: p.gust ?? m.gust, fog: m.fog, fogPct: m.fogPct, dew: p.dew ?? m.dew } : p;
     }).concat(mp.filter((p) => p.t > lastKma));
   }
 

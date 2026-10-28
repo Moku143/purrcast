@@ -91,14 +91,13 @@ struct WatchCase<Content: View>: View {
     }
 }
 
-/// The watch app's first page as the watch shows it: the sky to the edges, the words inside the watch's safe area
-/// (under the clock, clear of the rounded corners), the time at the top right.
+/// The watch app's first page as the watch shows it: the sky to the edges, the place in the clock's row, the time
+/// at the top right.
 struct WatchAppScreen: View {
     let snap: WeatherSnapshot
     var body: some View {
         ZStack(alignment: .topTrailing) {
             WatchNow(snap: snap)
-                .safeAreaPadding(EdgeInsets(top: 32, leading: 10, bottom: 14, trailing: 12))
             Text(WatchClock.now(clock12: snap.clock12)).font(.system(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color.white)
                 .shadow(color: .black.opacity(0.25), radius: 1.5)

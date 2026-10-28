@@ -46,6 +46,7 @@ export function parseMet(json) {
       dir: det.wind_from_direction ?? null,
       cloud: det.cloud_area_fraction ?? null,
       fog: (det.fog_area_fraction ?? 0) >= 50 || /fog/.test(sym),
+      fogPct: det.fog_area_fraction ?? null,
       uvClear: det.ultraviolet_index_clear_sky ?? null,
       mm: Math.round(mm * 10) / 10,
       pop: chance,

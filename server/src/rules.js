@@ -48,6 +48,16 @@ export function precip(p) {
   return p.mm >= 6 ? 'heavy' : 'rain';
 }
 
+/** How thick the fog is, for the picture: 0 none · 1 mist (옅은 안개) · 2 fog · 3 thick fog (짙은 안개).
+ * From visibility (Apple: < 3 km · < 1 km · < 200 m) or MET's fog area (≥ 25 · 50 · 80 %); a fog symbol alone is 2. */
+export function fogLevel(p) {
+  let l = 0;
+  if (p.vis != null) l = Math.max(l, p.vis < 200 ? 3 : p.vis < 1000 ? 2 : p.vis < 3000 ? 1 : 0);
+  if (p.fogPct != null) l = Math.max(l, p.fogPct >= 80 ? 3 : p.fogPct >= 50 ? 2 : p.fogPct >= 25 ? 1 : 0);
+  if (p.fog && l < 2) l = 2;
+  return l;
+}
+
 /** One auxiliary effect (the design shows at most one): fog › wind › heat › frost. */
 export function aux({ now, feels, night }) {
   if (now.fog) return 'fog';
@@ -103,7 +113,7 @@ export function bubble(c, lang = c.lang ?? 'ko') {
     return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', S.expect(c.when, what));
   }
   if (wind) return B('speech', 'sky', 'wind', nowWet ? (nowPr === 'snow' || nowPr === 'heavysnow' ? T.blizzard : T.windrain) : T.windy);
-  if (fog) return B('speech', 'white', 'cloud', T.fog);
+  if (fog) return B('speech', 'white', 'cloud', fog >= 3 ? T.fog : T.fogMid);   // fog: its thickness (fogLevel)
   if (!night && feels >= 33) return B('shout', 'coral', 'thermo_hot', T.heat);
   if (night && feels >= 25) return B('speech', 'night', 'sweat', T.tropical);
   if (feels <= -10) return B('shout', 'sky', 'thermo_cold', T.cold);

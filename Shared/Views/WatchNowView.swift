@@ -1,8 +1,13 @@
 import SwiftUI
 
-/// The watch app's first page (also rendered on the phone for the widget matrix).
+/// The watch app's first page (also rendered on the phone for the widget matrix and the Plus page).
+/// Laid out like the small (2×2) home-screen widget: place and weather icon on the top row — in the watch's clock
+/// row, left of the time — the character standing at the bottom left with its bubble clear above the head, and on
+/// the right the temperature, sunset / sunrise, feels-like and chance of rain.
 struct WatchNow: View {
     let snap: WeatherSnapshot
+    /// How far down the top row sits: level with the watch's clock (the system draws the time at the top right).
+    var headerTop: CGFloat = 11
     #if os(watchOS)
     @Environment(\.isLuminanceReduced) private var dimmed     // always-on (wrist down): hold still to save battery
     #else
@@ -11,37 +16,42 @@ struct WatchNow: View {
     var body: some View {
         let s = snap.scene, ink = Ink(night: s.isNight), lv = max(0, min(9, s.level))
         let rain = RainState(rawValue: s.rain) ?? .none
+        let catW: CGFloat = 80, catH = catW * Sprite.height / Sprite.width
         ZStack(alignment: .topLeading) {
-            WidgetBackground(level: lv, night: s.isNight, scene: s, animate: !dimmed).ignoresSafeArea()
+            WidgetBackground(level: lv, night: s.isNight, scene: s, animate: !dimmed)
             VStack(alignment: .leading, spacing: 0) {
-                Text(snap.placeShort).font(.px(12)).opacity(0.85)
-                Text(snap.deg(s.temp)).font(.px(46)).frame(maxWidth: .infinity, alignment: .trailing).rolling(s.temp)
+                HStack(spacing: 4) {
+                    Text(snap.placeShort).font(.px(12)).lineLimit(1).minimumScaleFactor(0.7)
+                    PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 14)
+                }
+                .frame(maxWidth: 112, alignment: .leading)
+                .padding(.top, headerTop).padding(.leading, 16)
                 Spacer(minLength: 0)
-                HStack(alignment: .bottom, spacing: 2) {
+                HStack(alignment: .bottom, spacing: 0) {
                     ZStack(alignment: .bottom) {
-                        CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 74, animate: !dimmed)
-                            .frame(width: 74, height: 86, alignment: .bottom)
+                        CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: !dimmed)
+                            .frame(width: catW, height: catH, alignment: .bottom)
                         if let b = s.bubble {
                             BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize()
                                 .scaleEffect(0.85, anchor: .bottom)
-                                .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 86))
+                                .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: catH))
                         }
                     }
-                    .frame(width: 80, height: 86, alignment: .bottom)
+                    .frame(width: 90, height: 150, alignment: .bottom)
                     Spacer(minLength: 0)
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text(Compact.head(s)).font(.px(11))
+                    VStack(alignment: .trailing, spacing: 3) {
+                        Text(snap.deg(s.temp)).font(.px(34)).rolling(s.temp)
+                        if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 12); Text(t).font(.px(10)) } }
                         Text(L("체감 %@", snap.deg(s.feels))).font(.px(10))
-                        Text(L("최고 %@ 최저 %@", snap.deg(s.hi), snap.deg(s.lo))).font(.px(9))
+                        Text(L("강수 %d%%", s.hours.prefix(6).map { $0.chance }.max() ?? 0)).font(.px(10))
                     }
-                    .lineLimit(1).minimumScaleFactor(0.6)      // each on one line, even "최고 -13° 최저 -14°"
-                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(1).minimumScaleFactor(0.7)
+                    .padding(.bottom, 14)
                 }
+                .padding(.leading, 10).padding(.trailing, 14).padding(.bottom, 4)
             }
             .foregroundStyle(ink.ink)
-            .padding(.horizontal, 6)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
+        .ignoresSafeArea()
     }
 }
-

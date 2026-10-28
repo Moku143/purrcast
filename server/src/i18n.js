@@ -43,7 +43,7 @@ const DICT = {
     expect: (when, what) => `${when} ${what} 예정`,                       // 15~17시 비 예정
     cond: { thunder: '뇌우', heavy: '강한 비', rain: '비', snow: '눈', heavysnow: '많은 눈', sleet: '진눈깨비', clear: '맑음', partly: '구름 조금', overcast: '흐림',
       wind: '바람', windStrong: '바람 강함', fog: '안개', heat: '폭염', night: '열대야', frost: '한파' },
-    bubble: { thunder: '천둥번개!', downpour: '폭우!', heavysnow: '폭설!', blizzard: '눈보라!', windrain: '비바람!', windy: '바람 세요!', fog: '안개 짙어요!',
+    bubble: { thunder: '천둥번개!', downpour: '폭우!', heavysnow: '폭설!', blizzard: '눈보라!', windrain: '비바람!', windy: '바람 세요!', fog: '안개 짙어요!', fogMid: '안개 꼈어요',
       heat: '폭염!', tropical: '열대야!', cold: '한파!', snow: '눈!', sleet: '진눈깨비!', rain: '비!', swing: '일교차 커요!', umbrella: '우산 챙겨요' },
     rainKind: ['이슬비', '약한 비', '보통 비', '강한 비', '매우 강한 비'],
     rainKindNote: ['우산 없이도 괜찮아요', '우산이 필요해요', '우산이 꼭 필요해요', '바닥에 물이 고여요', '우산으로 막기 어려워요'],
@@ -83,7 +83,7 @@ const DICT = {
     expect: (when, what) => `${what} ${when}`,                             // Rain 3–5PM
     cond: { thunder: 'Thunderstorm', heavy: 'Heavy rain', rain: 'Rain', snow: 'Snow', heavysnow: 'Heavy snow', sleet: 'Sleet', clear: 'Clear', partly: 'Partly cloudy', overcast: 'Cloudy',
       wind: 'Windy', windStrong: 'Strong wind', fog: 'Fog', heat: 'Heat wave', night: 'Tropical night', frost: 'Cold wave' },
-    bubble: { thunder: 'Lightning!', downpour: 'Downpour!', heavysnow: 'Heavy snow!', blizzard: 'Blizzard!', windrain: 'Wind and rain!', windy: 'Windy!', fog: 'Thick fog!',
+    bubble: { thunder: 'Lightning!', downpour: 'Downpour!', heavysnow: 'Heavy snow!', blizzard: 'Blizzard!', windrain: 'Wind and rain!', windy: 'Windy!', fog: 'Thick fog!', fogMid: 'Foggy',
       heat: 'Heat wave!', tropical: 'Tropical night!', cold: 'Cold wave!', snow: 'Snow!', sleet: 'Sleet!', rain: 'Rain!', swing: 'Big temp swing!', umbrella: 'Take an umbrella' },
     rainKind: ['Drizzle', 'Light rain', 'Moderate rain', 'Heavy rain', 'Very heavy rain'],
     rainKindNote: ['Fine without an umbrella', 'Take an umbrella', "You'll really need an umbrella", 'Puddles on the ground', "An umbrella won't be enough"],
@@ -120,7 +120,7 @@ const DICT = {
     expect: (when, what) => `${when} ${what}`,                             // 15〜17時 雨
     cond: { thunder: '雷雨', heavy: '強い雨', rain: '雨', snow: '雪', heavysnow: '大雪', sleet: 'みぞれ', clear: '晴れ', partly: '晴れ時々曇り', overcast: '曇り',
       wind: '風', windStrong: '強風', fog: '霧', heat: '猛暑', night: '熱帯夜', frost: '寒波' },
-    bubble: { thunder: '雷!', downpour: '豪雨!', heavysnow: '大雪!', blizzard: '吹雪!', windrain: '雨風!', windy: '強風!', fog: '濃霧!',
+    bubble: { thunder: '雷!', downpour: '豪雨!', heavysnow: '大雪!', blizzard: '吹雪!', windrain: '雨風!', windy: '強風!', fog: '濃霧!', fogMid: '霧が出てる',
       heat: '猛暑!', tropical: '熱帯夜!', cold: '寒波!', snow: '雪!', sleet: 'みぞれ!', rain: '雨!', swing: '寒暖差大!', umbrella: '傘を持って' },
     rainKind: ['霧雨', '弱い雨', 'やや強い雨', '強い雨', '激しい雨'],
     rainKindNote: ['傘なしでも大丈夫です', '傘が必要です', '傘が必須です', '地面に水がたまります', '傘では防ぎきれません'],

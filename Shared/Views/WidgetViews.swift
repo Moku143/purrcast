@@ -3,15 +3,45 @@ import SwiftUI
 // The widget faces, shared by the widget extension, the in-app preview page and onboarding.
 // Sizes follow the iPhone 16 widget grid: small 170 x 170, medium 364 x 170.
 
+/// The sky behind everything (app and widgets): the outfit colour as a see-through wash over a pale sky by day
+/// (a deep one by night), thinning towards the bottom, with soft light from above — so it reads as air and depth
+/// rather than one flat sheet of colour.
+struct SkyBase: View {
+    let level: Int
+    let night: Bool
+    var body: some View {
+        let bg = Rules.background[max(0, min(9, level))]
+        GeometryReader { g in
+            let r = max(g.size.width, g.size.height)
+            ZStack {
+                Color(hex: night ? "#0B0F24" : "#F2F5FB")
+                if night {
+                    LinearGradient(stops: [.init(color: Color(hex: bg).opacity(0.92), location: 0), .init(color: Color(hex: bg).opacity(0.78), location: 0.35),
+                                           .init(color: Color.mix(bg, "#0B0F24", 0.78), location: 0.66), .init(color: Color(hex: "#0B0F22"), location: 1)],
+                                   startPoint: .top, endPoint: .bottom)
+                } else {
+                    LinearGradient(stops: [.init(color: Color(hex: bg).opacity(0.96), location: 0), .init(color: Color(hex: bg).opacity(0.84), location: 0.45),
+                                           .init(color: Color.mix(bg, "#8E9CC4", 0.30).opacity(0.78), location: 1)],
+                                   startPoint: .top, endPoint: .bottom)
+                }
+                // light from above, and a thin bright haze low in the sky
+                RadialGradient(colors: [Color.white.opacity(night ? 0.07 : 0.40), Color.white.opacity(0)],
+                               center: UnitPoint(x: 0.85, y: -0.05), startRadius: 0, endRadius: r * 0.95)
+                LinearGradient(stops: [.init(color: .white.opacity(0), location: 0.45), .init(color: .white.opacity(night ? 0.03 : 0.16), location: 0.7),
+                                       .init(color: .white.opacity(0), location: 0.95)], startPoint: .top, endPoint: .bottom)
+            }
+        }
+    }
+}
+
 struct WidgetBackground: View {
     let level: Int
     let night: Bool
     var scene: WeatherScene? = nil
     var animate = false        // widgets draw one still frame; the app's previews can move
     var body: some View {
-        let bg = Rules.background[max(0, min(9, level))]
         ZStack {
-            LinearGradient(colors: [Color(hex: bg), Color.mix(bg, "#8E9CC4", 0.28)], startPoint: .top, endPoint: .bottom)
+            SkyBase(level: level, night: false)      // night comes from the sky's own night wash (or the veil below)
             if let scene {
                 SkyTint(scene: scene)
                 GeometryReader { g in
@@ -27,14 +57,15 @@ struct WidgetBackground: View {
     }
 }
 
-private func sunsetTile(_ s: WeatherScene) -> String? {
+func sunsetTile(_ s: WeatherScene) -> String? {
     s.tiles.first { $0.icon == "sunset" || $0.icon == "sunrise" }?.value
 }
-/// Where a bubble's tail should sit: just above the character's head, or above the open umbrella
-/// (measured from the sprites: the head starts a quarter down the picture, the umbrella near the top).
-func bubbleBottom(_ c: PurrCharacter, _ rain: RainState, spriteHeight h: CGFloat) -> CGFloat {
-    let top: CGFloat = rain == .umbrella ? (c == .abys ? 0.10 : 0.04) : 0.25
-    return h * (1 - top) - 3
+/// Where a bubble's tail should sit: `gap` points above the character's head (ears included), or above the open
+/// umbrella — measured per outfit from the sprites (anchors.json), so a hood or a hat never touches the bubble.
+func bubbleBottom(_ c: PurrCharacter, _ rain: RainState, level: Int, spriteHeight h: CGFloat, gap: CGFloat = 5) -> CGFloat {
+    let a = c.anchors, lv = max(0, min(9, level))
+    let top = CGFloat(rain == .umbrella ? a.umb_top[lv] : a.head_top[lv]) / Sprite.height
+    return h * (1 - top) + gap
 }
 private func chanceNow(_ s: WeatherScene) -> Int { s.hours.prefix(6).map { $0.chance }.max() ?? 0 }
 
@@ -58,7 +89,7 @@ struct MediumWidgetView: View {
                         .frame(width: 92, height: 107, alignment: .bottom)
                     if let b = s.bubble {
                         BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 9), fontSize: 10).fixedSize().scaleEffect(0.9, anchor: .bottom)
-                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 107))
+                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 107))
                     }
                 }
                 .frame(width: 110, height: 126, alignment: .bottom).offset(y: 6)
@@ -108,7 +139,7 @@ struct SmallWidgetView: View {
                         // a word ("비", "한파", "폭염") fits above the head; longer names show just the icon here
                         BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize()
                             .scaleEffect(0.85, anchor: .bottom)
-                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, spriteHeight: 84))
+                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 84))
                     }
                 }
                 .frame(width: 80, height: 118, alignment: .bottom).offset(y: 8)

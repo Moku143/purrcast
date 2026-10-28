@@ -10,7 +10,7 @@ struct HomeView: View {
     @State private var scrolled = false
 
     /// What the sky is made of; when it changes the whole sky cross-fades
-    private func skyKey(_ s: WeatherScene) -> String { "\(s.time)|\(s.cover)|\(s.precip)|\(s.thunder)|\(s.aux)" }
+    private func skyKey(_ s: WeatherScene) -> String { "\(s.time)|\(s.cover)|\(s.precip)|\(s.thunder)|\(s.aux)|\(s.clouds ?? -1)|\(s.fog)|\(s.gloom)" }
 
     var body: some View {
         let s = model.scene
@@ -123,11 +123,7 @@ struct HomeView: View {
     // MARK: hero
 
     private func background(level: Int, night: Bool) -> some View {
-        let bg = Rules.background[level]
-        return LinearGradient(stops: night
-            ? [.init(color: Color(hex: bg), location: 0), .init(color: Color(hex: bg), location: 0.35), .init(color: .mix(bg, "#0B0F24", 0.78), location: 0.66), .init(color: Color(hex: "#0B0F22"), location: 1)]
-            : [.init(color: Color(hex: bg), location: 0), .init(color: Color(hex: bg), location: 0.4), .init(color: .mix(bg, "#8E9CC4", 0.32), location: 1)],
-            startPoint: .top, endPoint: .bottom)
+        SkyBase(level: level, night: night)
     }
 
     private func feelsPart(_ s: WeatherScene) -> some View {

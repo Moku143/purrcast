@@ -13,6 +13,8 @@ struct WeatherScene: Codable, Identifiable {
     var precip: String = "none"         // none | rain | heavy | snow
     var thunder: String = "off"         // on | off
     var aux: String = "none"            // none | wind | fog | heat | frost | dust
+    var clouds: Int?                    // 0–100 % cloud now: how many clouds the sky draws (nil: from `cover`)
+    var fog: Int = 0                    // 0 none · 1 mist · 2 fog · 3 thick fog: how thick the fog is drawn
     var level: Int = 4                  // outfit 0...9
     var rain: String = "none"           // none | think | bag | umbrella
     var temp: Int = 0
@@ -41,7 +43,7 @@ struct WeatherScene: Codable, Identifiable {
     var src: String?                    // kma | apple | met — the source behind everything else
 
     enum CodingKeys: String, CodingKey {
-        case time, cover, precip, thunder, aux, level, rain, temp, feels, hi, lo, yday, cond, clock, updated, bubble, hours, tiles, wind, days, place, plus, snow, mood, minutes, next6, nextSource, dayDetail, alert, cmp, src
+        case time, cover, precip, thunder, aux, clouds, fog, level, rain, temp, feels, hi, lo, yday, cond, clock, updated, bubble, hours, tiles, wind, days, place, plus, snow, mood, minutes, next6, nextSource, dayDetail, alert, cmp, src
     }
 
     init() {}
@@ -52,6 +54,8 @@ struct WeatherScene: Codable, Identifiable {
         func n(_ k: CodingKeys, _ d: Int) -> Int { ((try? c.decodeIfPresent(Double.self, forKey: k)) ?? nil).map { Int($0.rounded()) } ?? d }
         time = s(.time, "day"); cover = s(.cover, "partly"); precip = s(.precip, "none"); thunder = s(.thunder, "off")
         aux = s(.aux, "none"); rain = s(.rain, "none")
+        clouds = ((try? c.decodeIfPresent(Double.self, forKey: .clouds)) ?? nil).map { max(0, min(100, Int($0.rounded()))) }
+        fog = max(0, min(3, n(.fog, aux == "fog" ? 2 : 0)))
         level = max(0, min(9, n(.level, 4)))
         temp = n(.temp, 0); feels = n(.feels, temp)
         let a = n(.hi, temp), b = n(.lo, temp)

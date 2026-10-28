@@ -33,6 +33,8 @@ Accept: application/json
   "precip": "none",         // none | rain | heavy | snow | heavysnow | sleet│
   "thunder": "off",         // on | off                         │
   "aux": "none",            // none | wind | fog | heat | frost | dust ─┘
+  "clouds": 92,             // 0–100 % cloud now (null when unknown): how many clouds are drawn, how far down
+  "fog": 0,                 // 0 none · 1 mist · 2 fog · 3 thick fog (visibility / MET fog area): how thick it is drawn
   "level": 4,               // outfit 0…9 from the feels-like temperature (rules below)
   "rain": "bag",            // none | think | bag | umbrella  (rules below)
   "temp": 18, "feels": 17, "hi": 19, "lo": 13,

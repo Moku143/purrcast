@@ -37,7 +37,7 @@ final class WidgetMatrixTests: XCTestCase {
     }
 }
 
-/// One weather, side by side: home small · home medium · lock screen · watch.
+/// One weather, side by side: home small · home medium · lock screen · watch app · watch face.
 private struct MatrixRow: View {
     let snap: WeatherSnapshot
     var body: some View {
@@ -56,12 +56,16 @@ private struct MatrixRow: View {
             .foregroundStyle(.white).padding(12).frame(width: 220, height: 170)
             .background(LinearGradient(colors: [Color(hex: "#5B5FA8"), Color(hex: "#2E2F66")], startPoint: .top, endPoint: .bottom))
             .clipShape(RoundedRectangle(cornerRadius: 22))
-            // watch app (45 mm screen), still frame
-            WatchNow(snap: snap).safeAreaPadding(EdgeInsets(top: 22, leading: 10, bottom: 14, trailing: 10)).frame(width: 198, height: 242).clipShape(RoundedRectangle(cornerRadius: 36))
-                .padding(8).background(Color(hex: "#15161C")).clipShape(RoundedRectangle(cornerRadius: 44))
+            // watch app (45 mm screen, with the clock) and a watch face with the complications, still frames
+            watch { WatchAppScreen(snap: snap) }
+            watch { WatchFacePreview(snap: snap) }
         }
         .padding(16).background(Color(hex: "#EEF1F6"))
         .environment(\.locale, Locale(identifier: "ko_KR"))
+    }
+    private func watch<C: View>(@ViewBuilder _ c: () -> C) -> some View {
+        c().frame(width: 198, height: 242).clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+            .padding(8).background(Color(hex: "#15161C")).clipShape(RoundedRectangle(cornerRadius: 44, style: .continuous))
     }
     private func widget<C: View>(_ w: CGFloat, _ h: CGFloat, @ViewBuilder _ c: () -> C) -> some View {
         c().padding(14).frame(width: w, height: h)
