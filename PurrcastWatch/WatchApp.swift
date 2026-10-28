@@ -16,6 +16,8 @@ struct PurrcastWatchApp: App {
 
 final class WatchLink: NSObject, ObservableObject, WCSessionDelegate {
     @Published var snap: WeatherSnapshot
+    /// The page the app opens on (screenshots only; 0 = now).
+    var startPage = 0
 
     override init() {
         #if DEBUG
@@ -23,11 +25,14 @@ final class WatchLink: NSObject, ObservableObject, WCSessionDelegate {
         #else
         let args: [String] = []
         #endif
+        // screenshots: -lang ko|en|ja pins the language, -page 0|1|2 opens a page, -locked shows the free screen
+        if let i = args.firstIndex(of: "-lang"), i + 1 < args.count, let l = Lang(rawValue: args[i + 1]) { Lang.current = l }
+        if let i = args.firstIndex(of: "-page"), i + 1 < args.count { startPage = Int(args[i + 1]) ?? 0 }
         if let i = args.firstIndex(of: "-scene"), i + 1 < args.count {
             // screenshots: a fixed example, Plus on
             var s = SceneLibrary.scene(args[i + 1]); s.place = Place.here.name
             let c = args.firstIndex(of: "-char").flatMap { $0 + 1 < args.count ? PurrCharacter(rawValue: args[$0 + 1]) : nil } ?? .cat
-            snap = WeatherSnapshot(scene: s, character: c, plus: true, characterName: c.defaultName, placeShort: Place.here.short, saved: Date())
+            snap = WeatherSnapshot(scene: s, character: c, plus: !args.contains("-locked"), characterName: c.defaultName, placeShort: Place.here.short, saved: Date())
         } else {
             snap = SharedStore.load() ?? .waiting
         }
@@ -53,12 +58,13 @@ final class WatchLink: NSObject, ObservableObject, WCSessionDelegate {
 
 struct WatchRoot: View {
     @EnvironmentObject var link: WatchLink
+    @State private var page: Int?
     var body: some View {
         if link.snap.plusActive {
-            TabView {
-                WatchNow(snap: link.snap)
-                WatchHours(snap: link.snap)
-                WatchDays(snap: link.snap)
+            TabView(selection: Binding(get: { page ?? link.startPage }, set: { page = $0 })) {
+                WatchNow(snap: link.snap).tag(0)
+                WatchHours(snap: link.snap).tag(1)
+                WatchDays(snap: link.snap).tag(2)
             }
             .tabViewStyle(.verticalPage)
         } else {

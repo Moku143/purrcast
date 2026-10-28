@@ -77,6 +77,15 @@ jobs:
             sleep 8
             xcrun simctl io "$DEV" screenshot "shots/watch-$sc.png" || true
           done
+          # in Korean: every page (now · hours · 10 days) and the free (locked) screen
+          shot() { xcrun simctl launch --terminate-running-process "$DEV" app.purrcast.ios.watchkitapp "${@:2}" || true; sleep 8; xcrun simctl io "$DEV" screenshot "shots/$1.png" || true; }
+          shot watch-ko-now -lang ko -scene maybe -char cat -page 0
+          shot watch-ko-rain -lang ko -scene seoul_soon -char cat -page 0
+          shot watch-ko-night -lang ko -scene summer_night -char abys -page 0
+          shot watch-ko-snow -lang ko -scene winter_snow -char brit -page 0
+          shot watch-ko-hours -lang ko -scene maybe -char cat -page 1
+          shot watch-ko-days -lang ko -scene maybe -char cat -page 2
+          shot watch-ko-locked -lang ko -scene maybe -char cat -locked
       - name: Publish results to the ci-output branch
         if: always()
         run: |
