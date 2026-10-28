@@ -3,10 +3,11 @@ import Foundation
 /// The judgement rules from the design kit (README §1): outfit from the feels-like temperature,
 /// umbrella from rain now / rain coming, one bubble at a time.
 enum Rules {
-    /// Outfit level 0...9 from feels-like °C. Boundaries are the upper edge of each level.
-    static let levelUpper: [Double] = [.infinity, 32.5, 27.5, 22.5, 19.5, 16.5, 11.5, 8.5, 4.5, -9.5]
+    /// Outfit level 0...9 from feels-like °C. Boundaries are the upper edge of each level (same table as the server:
+    /// the usual 기온별 옷차림 bands — 12–16° is jacket / trench weather, a knit alone is for 16–17°).
+    static let levelUpper: [Double] = [.infinity, 32.5, 27.5, 22.5, 19.5, 17.5, 15.5, 9.5, 4.5, -9.5]
     static func level(feels: Double, previous: Int? = nil) -> Int {
-        // 0: 33+, 1: 28-32, 2: 23-27, 3: 20-22, 4: 17-19, 5: 12-16, 6: 9-11, 7: 5-8, 8: -9...4, 9: <= -10
+        // 0: 33+, 1: 28-32, 2: 23-27, 3: 20-22, 4: 18-19, 5: 16-17, 6: 10-15, 7: 5-9, 8: -9...4, 9: <= -10
         var lv = 9
         for i in 1..<levelUpper.count where feels > levelUpper[i] { lv = i - 1; break }
         if feels > 32.5 { lv = 0 }

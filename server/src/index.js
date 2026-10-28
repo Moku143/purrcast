@@ -10,10 +10,10 @@
 // HISTORY (optional KV namespace: yesterday-at-this-hour temperatures for "전일 대비").
 
 import { metUrl, parseMet } from './providers/met.js';
-import { toGrid, vilageBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError } from './providers/kma.js';
+import { toGrid, vilageBase, eveBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError } from './providers/kma.js';
 import { hasWeatherKit, weatherKitUrl, weatherKitToken, parseWeatherKit } from './providers/weatherkit.js';
 import { buildScene, validateScene } from './scene.js';
-import { local, pad2 } from './time.js';
+import { local, pad2, dayKey } from './time.js';
 import { normLang } from './i18n.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' };
@@ -147,9 +147,28 @@ async function korea(q, env, now, fetcher, ctx) {
   const plus = q.plan === 'plus';
   const get = (op, params, ttl) => getJSON(kmaUrl(op, key, { ...params, nx, ny }), { ttl, fetcher, ok: kmaOK, ctx, kma: true });
   const vb = vilageBase(now, plus ? null : 5);       // free: the 05 h run ("06:00 기준")
-  const vil = parseForecast(await get('getVilageFcst', { base_date: vb.date, base_time: vb.time }, plus ? 1800 : 6 * 3600), 'kma');
+  // earlier runs for today's morning: the run in use starts an hour after it was made, and runs after 06 h leave out
+  // today's low (TMN), after 15 h today's high (TMX) — so the 05 h run and yesterday's 23 h run fill in the hours since
+  // midnight (the day sheet) and today's low / high. They never change, so they are cached for hours (and shared).
+  const same = (a, b) => a.date === b.date && a.time === b.time;
+  const earlier = [vilageBase(now, 5), eveBase(now)].filter((b, i, all) => !same(b, vb) && all.findIndex((x) => same(x, b)) === i);
+  const [vilRaw, ...early] = await Promise.allSettled([
+    get('getVilageFcst', { base_date: vb.date, base_time: vb.time }, plus ? 1800 : 6 * 3600),
+    ...earlier.map((b) => get('getVilageFcst', { base_date: b.date, base_time: b.time }, 12 * 3600)),
+  ]);
+  if (vilRaw.status === 'rejected') throw vilRaw.reason;
+  const vil = parseForecast(vilRaw.value, 'kma');
   if (vil.total != null && vil.total > vil.got) console.log(`KMA 단기예보 cut: ${vil.got} of ${vil.total} rows`);
-  const f = { points: vil.points, daily: vil.daily, updated: vb.at, nextSource: 'kma', src: 'kma' };
+  const f = { points: vil.points, daily: { ...vil.daily }, updated: vb.at, nextSource: 'kma', src: 'kma' };
+  const today = dayKey(now, 'Asia/Seoul');
+  for (const r of early) {   // newest first
+    if (r.status !== 'fulfilled') continue;
+    let e;
+    try { e = parseForecast(r.value, 'kma'); } catch { continue; }
+    const first = f.points[0]?.t ?? Infinity;
+    f.points = e.points.filter((p) => p.t < first && dayKey(p.t, 'Asia/Seoul') >= today).concat(f.points);
+    for (const [k, d] of Object.entries(e.daily)) if (k >= today) f.daily[k] = { lo: f.daily[k]?.lo ?? d.lo, hi: f.daily[k]?.hi ?? d.hi };
+  }
   if (plus) {
     const [ultra, ncst, warn] = await Promise.allSettled([
       (async () => { const b = ultraBase(now); return { b, d: parseForecast(await get('getUltraSrtFcst', { base_date: b.date, base_time: b.time }, 600), 'kma-ultra') }; })(),

@@ -49,7 +49,8 @@ test('sunrise / sunset in Seoul on 21 Oct 2026 (about 06:43 / 17:49 KST)', () =>
 
 test('outfit level boundaries and ±1° hysteresis', () => {
   assert.equal(level(35), 0); assert.equal(level(30), 1); assert.equal(level(25), 2); assert.equal(level(21), 3);
-  assert.equal(level(18), 4); assert.equal(level(14), 5); assert.equal(level(10), 6); assert.equal(level(6), 7);
+  assert.equal(level(18), 4); assert.equal(level(17), 5); assert.equal(level(16), 5); assert.equal(level(13), 6, '13°: a jacket, not a knit alone');
+  assert.equal(level(10), 6); assert.equal(level(9), 7); assert.equal(level(6), 7);
   assert.equal(level(0), 8); assert.equal(level(-12), 9);
   assert.equal(level(19.8, 4), 4, 'just over the 19.5 edge stays in 4 from 4');
   assert.equal(level(20.6, 4), 3, 'a full degree past the edge changes');
@@ -354,6 +355,39 @@ test('Korea, Plus: KMA + MET merged, next six hours from 초단기예보, valid'
   assert.equal(s.next6.length, 6); assert.equal(s.nextSource, 'kma');
   assert.equal(s.rain, 'bag');
   assert.ok(s.days.length >= 7, `days ${s.days.length} (KMA 3 days + MET after)`);
+});
+
+test('Korea, Plus in the afternoon: today\'s low and the morning hours come from the earlier runs', async () => {
+  const now = at(13, 50);
+  const hours = (from, n, temp) => {   // a 단기예보 answer: n hours from `from`, plus TMN / TMX when given
+    const items = [];
+    for (let i = 0; i < n; i++) {
+      const p = local(new Date(from.getTime() + i * 3600000), TZ);
+      const date = `${p.y}${String(p.m).padStart(2, '0')}${String(p.d).padStart(2, '0')}`, time = `${String(p.h).padStart(2, '0')}00`;
+      for (const [c, v] of [['TMP', String(temp(p.h))], ['POP', '0'], ['PCP', '강수없음'], ['PTY', '0'], ['SKY', '1'], ['REH', '40'], ['WSD', '1.0'], ['VEC', '200']]) items.push({ fcstDate: date, fcstTime: time, category: c, fcstValue: v });
+    }
+    return items;
+  };
+  const day = (h) => (h < 7 ? 2 + h * 0.2 : h <= 15 ? 3 + h * 0.65 : 22 - h * 0.6);   // 2° at dawn, 13° mid-afternoon
+  const today = '20261021';
+  const ok = (item) => ({ response: { header: { resultCode: '00' }, body: { items: { item } } } });
+  const latest = ok(hours(at(12, 0), 36, day));                                                     // 11 h run: no TMN / TMX for today
+  const five = ok([...hours(at(6, 0), 40, day), { fcstDate: today, fcstTime: '0600', category: 'TMN', fcstValue: '2.0' }, { fcstDate: today, fcstTime: '1500', category: 'TMX', fcstValue: '13.0' }]);
+  const eve = ok([...hours(at(0, 0), 46, day), { fcstDate: today, fcstTime: '0600', category: 'TMN', fcstValue: '1.0' }]);
+  const fetcher = fakeFetch([
+    ['getVilageFcst', (url) => (url.includes('base_time=0500') ? five : url.includes('base_time=2300') ? eve : latest)],
+    ['getUltraSrtFcst', new Error('down')], ['getUltraSrtNcst', new Error('down')],
+    ['getPwnStatus', { response: { header: { resultCode: '00' }, body: { items: { item: [] } } } }],
+    ['api.met.no', met(now, flat(240, { temp: 12 }))],
+  ]);
+  const q = readQuery(new URLSearchParams('lat=37.5663&lon=126.9019&region=kr&tz=Asia/Seoul&plan=plus&name=서울 마포구'));
+  const s = await forecast(q, { KMA_SERVICE_KEY: 'k' }, null, { now, fetcher });
+  validateScene(s);
+  assert.equal(s.lo, 2, 'today\'s low is the 05 h run\'s TMN, not the lowest hour still ahead');
+  assert.equal(s.hi, 13);
+  assert.equal(s.days[0][3], 2);
+  assert.equal(Math.round(s.dayDetail[0][0][1]), 2, '0시 from yesterday\'s 23 h run, not the first hour of the 11 h run');
+  assert.equal(Math.round(s.dayDetail[0][3][1]), Math.round(day(9)), '9시 from the 05 h run');
 });
 
 test('Korea, KMA down → MET carries on', async () => {

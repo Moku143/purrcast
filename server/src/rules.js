@@ -3,8 +3,9 @@
 
 import { strings } from './i18n.js';
 
-/** Outfit level 0…9 from the feels-like °C, with ±1° hysteresis against the previous level. */
-const UPPER = [Infinity, 32.5, 27.5, 22.5, 19.5, 16.5, 11.5, 8.5, 4.5, -9.5];
+/** Outfit level 0…9 from the feels-like °C, with ±1° hysteresis against the previous level.
+ *  The usual Korean 기온별 옷차림 bands: 12–16° is jacket / trench weather (a knit alone is for 16–17°), 5–9° a coat. */
+const UPPER = [Infinity, 32.5, 27.5, 22.5, 19.5, 17.5, 15.5, 9.5, 4.5, -9.5];
 export function level(feels, prev = null) {
   let lv = 9;
   for (let i = 1; i < UPPER.length; i++) if (feels > UPPER[i]) { lv = i - 1; break; }

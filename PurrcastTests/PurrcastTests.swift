@@ -95,8 +95,9 @@ final class PurrcastTests: XCTestCase {
 
     func testOutfitLevels() {
         XCTAssertEqual(Rules.level(feels: 35), 0); XCTAssertEqual(Rules.level(feels: 30), 1); XCTAssertEqual(Rules.level(feels: 25), 2)
-        XCTAssertEqual(Rules.level(feels: 21), 3); XCTAssertEqual(Rules.level(feels: 18), 4); XCTAssertEqual(Rules.level(feels: 14), 5)
-        XCTAssertEqual(Rules.level(feels: 10), 6); XCTAssertEqual(Rules.level(feels: 6), 7); XCTAssertEqual(Rules.level(feels: 0), 8)
+        XCTAssertEqual(Rules.level(feels: 21), 3); XCTAssertEqual(Rules.level(feels: 18), 4); XCTAssertEqual(Rules.level(feels: 16), 5)
+        XCTAssertEqual(Rules.level(feels: 13), 6)
+        XCTAssertEqual(Rules.level(feels: 10), 6); XCTAssertEqual(Rules.level(feels: 9), 7); XCTAssertEqual(Rules.level(feels: 6), 7); XCTAssertEqual(Rules.level(feels: 0), 8)
         XCTAssertEqual(Rules.level(feels: -12), 9)
         XCTAssertEqual(Rules.level(feels: 19.8, previous: 4), 4)
         XCTAssertEqual(Rules.level(feels: 20.6, previous: 4), 3)

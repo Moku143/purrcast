@@ -76,7 +76,7 @@ dust moon umbrella umbrella_closed raindrop thermo_hot thermo_cold sunrise sunse
 
 | level | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| feels °C | ≥33 | 28–32 | 23–27 | 20–22 | 17–19 | 12–16 | 9–11 | 5–8 | −9–4 | ≤−10 |
+| feels °C | ≥33 | 28–32 | 23–27 | 20–22 | 18–19 | 16–17 | 10–15 | 5–9 | −9–4 | ≤−10 |
 
 **Umbrella** (`rain`): raining now → `umbrella`; rain starts within 12 h or chance ≥ 30 % → `bag`;
 chance 10–29 % → `think`; otherwise `none`.

@@ -46,6 +46,13 @@ export function vilageBase(now, fixed = null) {
   return { date: ymd(y), time: '2300', at: instant(y.y, y.m, y.d, 23, 0, TZ) };
 }
 
+/** Yesterday's 23 h 단기예보 run: it starts at today's 00 h and carries today's TMN / TMX (later runs leave out today's
+ *  low after 06 h and today's high after 15 h). */
+export function eveBase(now) {
+  const y = local(back(now, 24 * 60), TZ);
+  return { date: ymd(y), time: '2300', at: instant(y.y, y.m, y.d, 23, 0, TZ) };
+}
+
 /** 초단기예보 base: HH30, published ~HH45. */
 export function ultraBase(now) {
   const t = back(now, 45);
