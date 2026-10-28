@@ -14,7 +14,7 @@ enum PurrCharacter: String, CaseIterable, Codable, Identifiable {
     func stand(level: Int, rain: RainState) -> String { "\(rawValue)-stand-\(level)-\(rain.spriteKey)" }
     func walk(level: Int, rain: RainState, frame: Int) -> String { "\(rawValue)-walk-\(level)-\(rain.spriteKey)-\(frame % 2 == 0 ? "A" : "B")" }
     func lock(level: Int) -> String { "\(rawValue)-lock-\(level)" }
-    /// Rain gear (drawn on the outfit-5 canvas): the raincoat with the umbrella, or the raincoat alone.
+    /// Rain gear (the outfit-6 coat pictures re-dressed in a hooded raincoat and boots): with the umbrella, or alone.
     func raincoat(umbrella: Bool) -> String { "\(rawValue)-rain-\(umbrella ? "umbrella" : "none")" }
     /// The lock screen's raincoat (white, like the other lock pictures — no umbrella there).
     var lockRaincoat: String { "\(rawValue)-lock-rain" }
