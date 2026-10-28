@@ -373,7 +373,7 @@ final class PurrcastTests: XCTestCase {
         Lang.current = .ja
         XCTAssertEqual(index.renamed(p)?.name, "ソウル マポ区"); XCTAssertEqual(index.renamed(p)?.short, "マポ区")
         XCTAssertEqual(index.renamed(p)?.serverName, "서울 마포구")
-        XCTAssertEqual(index.search("オリュ").rows.first?.title, "ソウル クロ区 オリュ1ドン", "katakana finds Korean places")
+        XCTAssertEqual(index.search("オリュ").rows.first?.title, "ソウル クロ区 オリュジェ1ドン", "katakana finds Korean places (the index has 오류제1동)")
         XCTAssertEqual(index.search("まぽ").rows.first?.title, "ソウル マポ区")
         XCTAssertNil(index.renamed(Place.catalog[0]), "catalog and Apple Maps places are not the index's")
     }
