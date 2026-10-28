@@ -66,6 +66,20 @@ jobs:
               echo "$r" | grep -q '"success":true' && { echo "registered workers.dev subdomain: $name"; break; }
             done
           else echo "workers.dev subdomain already set: $have"; fi
+          # the free plan's one Apple forecast a day (KV namespace FREE_DAY): find it or create it, then bind it for this deploy
+          kv="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces"
+          pick='let s="";process.stdin.on("data",(d)=>s+=d).on("end",()=>{try{const j=JSON.parse(s);const r=j.result;const n=Array.isArray(r)?r.find((x)=>x.title==="purrcast-free-day"):r;console.log(n&&n.id?n.id:"")}catch{console.log("")}})'
+          kvid=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$kv?per_page=100" | node -e "$pick")
+          if [ -z "$kvid" ]; then
+            kvid=$(curl -s -X POST -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" "$kv" -d '{"title":"purrcast-free-day"}' | node -e "$pick")
+          fi
+          if [ -n "$kvid" ]; then
+            printf '\n[[kv_namespaces]]\nbinding = "FREE_DAY"\nid = "%s"\n' "$kvid" >> wrangler.toml
+            echo "FREE_DAY: bound" > ../kv.txt
+          else
+            echo "::warning::No FREE_DAY KV namespace (the Cloudflare API token needs Workers KV Storage: Edit) — free outside Korea refreshes every 30 min"
+            echo "FREE_DAY: could not create (token needs Workers KV Storage: Edit)" > ../kv.txt
+          fi
           npx --yes wrangler@4 deploy 2>&1 | tee deploy.txt
           test "${PIPESTATUS[0]}" -eq 0
           if [ -n "$KMA_SERVICE_KEY" ]; then echo "$KMA_SERVICE_KEY" | npx --yes wrangler@4 secret put KMA_SERVICE_KEY; fi
@@ -79,10 +93,12 @@ jobs:
       - name: Smoke test the live server (URL + /health + one Seoul scene, published to the server-deploy branch)
         run: |
           url=$(cat url.txt); mkdir -p out; echo "$url" > out/url.txt
+          cp kv.txt out/kv.txt 2>/dev/null || true
           sleep 8
           curl -s -m 20 "$url/health?deep=1" > out/health.json || echo '{"error":"health request failed"}' > out/health.json
           curl -s -m 25 "$url/v1/forecast?lat=37.5663&lon=126.9019&region=kr&tz=Asia/Seoul&plan=plus&lang=ko&name=%EC%84%9C%EC%9A%B8%20%EB%A7%88%ED%8F%AC%EA%B5%AC" > out/seoul.json || true
           curl -s -m 25 "$url/v1/forecast?lat=35.6938&lon=139.7034&region=jp&tz=Asia/Tokyo&plan=plus&lang=ja" > out/tokyo.json || true
+          curl -s -m 25 "$url/v1/forecast?lat=35.6938&lon=139.7034&region=jp&tz=Asia/Tokyo&plan=free&lang=ja" > out/tokyo-free.json || true
           # which sources each answer used (main + 예보 비교)
           node -e 'for (const f of ["seoul","tokyo"]) { try { const s = require("./out/" + f + ".json"); console.log(f, "main", s.src, "· 비교", (s.cmp?.sources || []).map((x) => x.name + (x.main ? "*" : "")).join(", "), "·", s.temp + "°", s.cond); } catch (e) { console.log(f, "unreadable", e.message); } }' > out/sources.txt || true
           echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt

@@ -7,11 +7,12 @@
 //
 // Bindings (wrangler.toml / secrets): KMA_SERVICE_KEY (secret), WEATHERKIT_KEY_ID · WEATHERKIT_KEY_P8 · APPLE_TEAM_ID
 // (secrets), WEATHERKIT_SERVICE_ID (var), CONTACT (var, for MET's User-Agent),
-// HISTORY (optional KV namespace: yesterday-at-this-hour temperatures for "전일 대비").
+// HISTORY (optional KV namespace: yesterday-at-this-hour temperatures for "전일 대비"),
+// FREE_DAY (KV namespace: the free plan's one Apple forecast a day per ~1 km cell; the Server workflow creates it).
 
 import { metUrl, parseMet } from './providers/met.js';
 import { toGrid, vilageBase, eveBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError } from './providers/kma.js';
-import { hasWeatherKit, weatherKitUrl, weatherKitToken, parseWeatherKit } from './providers/weatherkit.js';
+import { hasWeatherKit, weatherKitUrl, weatherKitToken, parseWeatherKit, packWeatherKit, unpackWeatherKit } from './providers/weatherkit.js';
 import { buildScene, validateScene } from './scene.js';
 import { local, pad2, dayKey } from './time.js';
 import { normLang } from './i18n.js';
@@ -22,7 +23,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, weatherkit: hasWeatherKit(env), time: new Date().toISOString() };
+      const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, weatherkit: hasWeatherKit(env), freeDay: !!env.FREE_DAY, time: new Date().toISOString() };
       if (url.searchParams.get('deep') === '1') out.check = await deepCheck(env);   // first-deploy check: can we reach both sources?
       return json(out);
     }
@@ -204,14 +205,37 @@ async function korea(q, env, now, fetcher, ctx) {
 
 const COUNTRY = { kr: 'KR', jp: 'JP' };   // WeatherKit wants a country code for weatherAlerts; 'other' has none
 
-/** Apple WeatherKit: one call gives everything. Plus refreshes every 10 min, free every 30. */
+/** The free plan's day: from 06:00 to 06:00 the next morning (local), as in Korea where free keeps the 05 h run. */
+export const freeDay = (now, tz) => dayKey(new Date(now.getTime() - 6 * 3600000), tz);
+
+/**
+ * Apple WeatherKit: one call gives everything. Plus refreshes every 10 min.
+ * Free gets one forecast a day, like Korea's 06:00 forecast: the first answer after 06:00 for this ~1 km cell is kept
+ * (KV namespace FREE_DAY) and the day is told from it — the hours, the rain, today's low and high. Without the namespace
+ * (or when it fails) free falls back to a 30-minute cache.
+ */
 async function apple(q, env, now, fetcher, ctx) {
   const plus = q.plan === 'plus';
-  const jwt = await weatherKitToken(env, { now });
-  const url = weatherKitUrl(q.lat, q.lon, { lang: q.lang, tz: q.tz, country: COUNTRY[q.region] ?? null });
-  const w = parseWeatherKit(await getJSON(url, { ttl: plus ? 600 : 1800, headers: { authorization: `Bearer ${jwt}` }, fetcher, ok: (d) => !!d?.forecastHourly?.hours?.length, ctx }), q.tz);
-  if (!w.points.length) throw new Error('WeatherKit: no hourly forecast');
-  const f = { points: w.points, updated: w.updated, daily: w.daily, warnings: w.warnings, nextSource: 'apple', src: 'apple' };
+  const store = !plus && env.FREE_DAY ? env.FREE_DAY : null;
+  const key = `wk:${q.lat.toFixed(2)},${q.lon.toFixed(2)}:${freeDay(now, q.tz)}:${q.lang}`;
+  let w = null;
+  if (store) {
+    try { w = unpackWeatherKit(await store.get(key, 'json')); } catch (e) { console.log('FREE_DAY read failed:', e.message); }
+  }
+  if (!w) {
+    const jwt = await weatherKitToken(env, { now });
+    const url = weatherKitUrl(q.lat, q.lon, { lang: q.lang, tz: q.tz, country: COUNTRY[q.region] ?? null });
+    w = parseWeatherKit(await getJSON(url, { ttl: plus ? 600 : 1800, headers: { authorization: `Bearer ${jwt}` }, fetcher, ok: (d) => !!d?.forecastHourly?.hours?.length, ctx }), q.tz);
+    if (!w.points.length) throw new Error('WeatherKit: no hourly forecast');
+    if (store) {
+      w.updated = now;   // "오늘 09:12 기준": when this day's forecast was taken
+      const put = store.put(key, packWeatherKit(w), { expirationTtl: 30 * 3600 }).catch((e) => console.log('FREE_DAY write failed:', e.message));
+      if (ctx?.waitUntil) ctx.waitUntil(put); else await put;
+    }
+  }
+  const warnings = (w.warnings || []).filter((a) => !a.until || new Date(a.until) > now);
+  const f = { points: w.points, updated: w.updated, daily: w.daily, warnings, nextSource: 'apple', src: 'apple' };
+  if (store) f.freeAt = w.updated;   // free: the time this day's forecast was taken
   if (plus) {
     // where Apple has minute-by-minute rain (Japan, the US, the UK, …) the app shows the next hour by the minute;
     // elsewhere the next 6 hours from Apple's hourly forecast

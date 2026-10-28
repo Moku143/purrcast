@@ -19,7 +19,7 @@ Accept: application/json
 | lat, lon | place, rounded to 2 decimals (~1 km) by the app and again by the server |
 | region | `kr` (기상청 + MET Norway, six-hour rain), `jp` / `other` (Apple WeatherKit: minute rain where Apple has it, MET Norway without a key) |
 | tz     | IANA time zone of the place; every clock time in the answer is local to it |
-| plan   | `free` → the 06:00 forecast only, no `minutes` / `next6`; `plus` → latest run, with them |
+| plan   | `free` → one forecast a day (Korea: the 06:00 forecast; Apple countries: the first answer after 06:00, kept for the day), no `minutes` / `next6`; `plus` → latest run, with them |
 | lang   | `ko` (default) · `en` · `ja`; any other value → `en`. Changes the words in the answer only — see [Languages](#languages) |
 | prev   | optional, the outfit level the app showed last for this place (±1° hysteresis) |
 | name   | optional, the place name ("서울 마포구"); used to match 기상특보 areas |
@@ -132,8 +132,10 @@ the rules and the contract against fake upstreams; `scripts/live-check.mjs` agai
 
 ## Caching
 
-Cache per (rounded lat/lon to 0.01°, plan) until the source's next issue time; free answers can be served from the
-06:00 run all day.
+Cache per (rounded lat/lon to 0.01°, plan) until the source's next issue time; free answers are told from one
+forecast a day: Korea's 06:00 run, and in Apple countries the first WeatherKit answer after 06:00 local for the cell,
+kept in the `FREE_DAY` KV namespace (06:00 → 06:00; the label `updated` is when it was taken). Today's low / high in
+Korea always cover 00–24 h: the earlier runs (05 h, yesterday 23 h) fill what later runs leave out.
 
 ## 판단 기준 (사람이 느끼는 대로)
 

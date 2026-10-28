@@ -21,6 +21,7 @@ const ri = (v) => (v == null || Number.isNaN(v) ? 0 : Math.round(v));
  *   nextSource 'kma' | 'met' | 'apple'
  *   src      'kma' | 'met' | 'apple' — the main forecast's source (nextSource when missing)
  *   updated  Date of the forecast run used
+ *   freeAt   free, Apple: when this day's kept forecast was taken (the label; Korea's free label is 06:00)
  * @param {object} o  { lat, lon, tz, plan: 'free'|'plus', prev, yday, now: Date, lang: 'ko'|'en'|'ja' (ko) }
  */
 export function buildScene(f, o) {
@@ -149,7 +150,7 @@ export function buildScene(f, o) {
     yday: o.yday == null ? 0 : ri(cur.temp - o.yday),
     cond: R.condition({ pr, cov, thunder, auxKind, night, feels }, S),
     clock: hhmm(nowT, tz),
-    updated: plus ? hhmm0(f.updated ?? nowT, tz) : '06:00',
+    updated: plus ? hhmm0(f.updated ?? nowT, tz) : f.freeAt ? hhmm0(f.freeAt, tz) : '06:00',   // free: Korea's 06:00 forecast, or when Apple's day was taken
     bubble: bub,
     mood: feels <= -10 ? 'cold' : 'normal',
     snow: pr === 'snow' || pr === 'heavysnow',               // amounts in cm (sleet counts as water, mm)

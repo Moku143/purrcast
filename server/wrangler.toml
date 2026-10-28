@@ -11,6 +11,8 @@ workers_dev = true
 CONTACT = "oo0785@daum.net github.com/Moku143/purrcast"
 WEATHERKIT_SERVICE_ID = "app.purrcast.ios"   # the WeatherKit service id = the app's bundle id (JWT `sub`)
 
+# FREE_DAY (the free plan's one Apple forecast a day) is a KV namespace the Server workflow finds or creates and binds
+# at deploy time, so no id is kept here.
 # Optional "전일 대비" memory. Create once with:  npx wrangler kv namespace create HISTORY
 # then uncomment and paste the id.
 # [[kv_namespaces]]

@@ -149,9 +149,20 @@ export function parseWeatherKit(json, tz = 'UTC') {
   const warnings = (json?.weatherAlerts?.alerts ?? []).map((a) => ({
     name: a.description || [a.eventSource, a.severity].filter(Boolean).join(' ') || 'Weather alert',
     severity: SEVERITY[a.severity] ?? 0,
+    until: a.expireTime ?? null,   // a kept (free) forecast drops an alert once it has expired
   })).sort((a, b) => b.severity - a.severity);
 
   const meta = c?.metadata ?? json?.forecastHourly?.metadata;
   const updated = meta?.readTime ? new Date(meta.readTime) : c?.asOf ? new Date(c.asOf) : null;
   return { points, updated, now, daily, minutes, warnings, minutesStart: nh?.forecastStart ? new Date(nh.forecastStart) : null };
+}
+
+/** A parsed forecast as JSON for storage (KV), and back. Dates travel as ISO strings. */
+export function packWeatherKit(w) {
+  return JSON.stringify({ ...w, points: w.points.map((p) => ({ ...p, t: p.t.toISOString() })), updated: w.updated?.toISOString() ?? null,
+    now: null, minutes: null, minutesStart: null });
+}
+export function unpackWeatherKit(json) {
+  if (!json?.points?.length) return null;
+  return { ...json, points: json.points.map((p) => ({ ...p, t: new Date(p.t) })), updated: json.updated ? new Date(json.updated) : null };
 }

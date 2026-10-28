@@ -464,7 +464,7 @@ test('WeatherKit: URL (lang, 4 decimals, tz, country) and the parsed shapes in o
   assert.deepEqual(w.now, { t: start, temp: 20.7, rh: 60, wind: 4, dir: 190, mm: 0, type: 'none' });
   assert.deepEqual(w.daily['20261021'], { lo: 15, hi: 25 }); assert.equal(Object.keys(w.daily).length, 10);
   assert.equal(w.minutes.length, 60); assert.equal(w.minutes[0], 0); assert.equal(w.minutes[20], 0.7); assert.equal(w.minutesStart.getTime(), start.getTime());
-  assert.deepEqual(w.warnings, [{ name: 'Heavy Rain Warning', severity: 2 }]);
+  assert.deepEqual(w.warnings, [{ name: 'Heavy Rain Warning', severity: 2, until: new Date(start.getTime() + 6 * 3600000).toISOString() }]);
   assert.equal(w.updated.getTime(), start.getTime());
   // thunder, snow, sleet, fog, missing fields
   const j = weatherKit(start, { alert: false });
@@ -529,6 +529,43 @@ test('Tokyo, Plus: WeatherKit with the key — bearer JWT sent, nextSource apple
   const free = await forecast(readQuery(new URLSearchParams('lat=35.69&lon=139.70&region=jp&tz=Asia/Tokyo&plan=free')), wkEnv(pem), null, { now, fetcher });
   validateScene(free);
   assert.equal(free.src, 'apple'); assert.equal(free.minutes, undefined); assert.equal(free.next6, undefined); assert.equal(free.temp, 20);
+});
+
+test('Tokyo, free: one Apple forecast a day (the first after 06:00 is kept), Plus stays live', async () => {
+  const { pem } = await testP8();
+  const kv = new Map();
+  const FREE_DAY = { get: async (k, type) => (kv.has(k) ? (type === 'json' ? JSON.parse(kv.get(k)) : kv.get(k)) : null), put: async (k, v) => { kv.set(k, v); } };
+  const env = { ...wkEnv(pem), FREE_DAY };
+  let calls = 0, temp = 20;
+  const fetcher = async (url) => {
+    if (url.includes('weatherkit.apple.com')) {
+      calls++;
+      const json = weatherKit(start, { temp });
+      return new Response(JSON.stringify(json), { status: 200 });
+    }
+    return fakeFetch([['api.met.no', met(start, flat(72, { temp: 5 }))]])(url);
+  };
+  const tk = (d, h, mi = 0) => instant(2026, 10, d, h, mi, 'Asia/Tokyo');
+  let start = tk(21, 9);
+  const q = (plan) => readQuery(new URLSearchParams(`lat=35.69&lon=139.70&region=jp&tz=Asia/Tokyo&plan=${plan}&lang=en`));
+  const morning = await forecast(q('free'), env, null, { now: tk(21, 9, 12), fetcher });
+  assert.equal(calls, 1); assert.equal(morning.updated, '09:12', 'the label says when the day\'s forecast was taken');
+  assert.equal(kv.size, 1);
+  // the afternoon: Apple has moved on (25°), free still tells the day from the morning forecast
+  resetCache(); temp = 25; start = tk(21, 15);
+  const afternoon = await forecast(q('free'), env, null, { now: tk(21, 15, 30), fetcher });
+  validateScene(afternoon);
+  assert.equal(calls, 1, 'no new Apple call for free'); assert.equal(afternoon.temp, 20); assert.equal(afternoon.updated, '09:12');
+  assert.equal(afternoon.alert, undefined, 'the morning\'s alert expired at 15:00 (6 h after it was issued)');
+  const plus = await forecast(q('plus'), env, null, { now: tk(21, 15, 30), fetcher });
+  assert.equal(calls, 2); assert.equal(plus.temp, 26, 'Plus: Apple now (25.7)');
+  // before 06:00 the next morning: still yesterday's day; after 06:00: a new one
+  resetCache();
+  const dawn = await forecast(q('free'), env, null, { now: tk(22, 5, 30), fetcher });
+  assert.equal(dawn.updated, '09:12'); assert.equal(calls, 2);
+  resetCache(); start = tk(22, 7);
+  const next = await forecast(q('free'), env, null, { now: tk(22, 7, 5), fetcher });
+  assert.equal(calls, 3); assert.equal(next.updated, '07:05'); assert.equal(next.temp, 25);
 });
 
 test('WeatherKit 401 (or no key) → MET carries on; Korea still uses KMA with the key set', async () => {
