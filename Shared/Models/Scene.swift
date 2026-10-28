@@ -15,7 +15,7 @@ struct WeatherScene: Codable, Identifiable {
     var aux: String = "none"            // none | wind | fog | heat | frost | dust
     var clouds: Int?                    // 0–100 % cloud now: how many clouds the sky draws (nil: from `cover`)
     var fog: Int = 0                    // 0 none · 1 mist · 2 fog · 3 thick fog: how thick the fog is drawn
-    var level: Int = 4                  // outfit 0...9
+    var level: Int = 5                  // outfit 0...14 (JSON "outfit")
     var rain: String = "none"           // none | think | bag | umbrella
     var temp: Int = 0
     var feels: Int = 0
@@ -43,8 +43,11 @@ struct WeatherScene: Codable, Identifiable {
     var src: String?                    // kma | apple | met — the source behind everything else
 
     enum CodingKeys: String, CodingKey {
-        case time, cover, precip, thunder, aux, clouds, fog, level, rain, temp, feels, hi, lo, yday, cond, clock, updated, bubble, hours, tiles, wind, days, place, plus, snow, mood, minutes, next6, nextSource, dayDetail, alert, cmp, src
+        // `level` travels as "outfit" (0…14, fifteen outfits); the old ten-outfit "level" is only read (LegacyKeys)
+        case level = "outfit"
+        case time, cover, precip, thunder, aux, clouds, fog, rain, temp, feels, hi, lo, yday, cond, clock, updated, bubble, hours, tiles, wind, days, place, plus, snow, mood, minutes, next6, nextSource, dayDetail, alert, cmp, src
     }
+    private enum LegacyKeys: String, CodingKey { case level }
 
     init() {}
 
@@ -56,8 +59,17 @@ struct WeatherScene: Codable, Identifiable {
         aux = s(.aux, "none"); rain = s(.rain, "none")
         clouds = ((try? c.decodeIfPresent(Double.self, forKey: .clouds)) ?? nil).map { max(0, min(100, Int($0.rounded()))) }
         fog = max(0, min(3, n(.fog, aux == "fog" ? 2 : 0)))
-        level = max(0, min(9, n(.level, 4)))
         temp = n(.temp, 0); feels = n(.feels, temp)
+        // the outfit: the server's own (with its hysteresis) when it sends one; from a server of the ten-outfit days
+        // it is worked out here from the feels-like temperature (its old level number means other clothes now)
+        if let o = (try? c.decodeIfPresent(Double.self, forKey: .level)) ?? nil {
+            level = Rules.clamp(Int(o.rounded()))
+        } else if c.contains(.feels) || c.contains(.temp) {
+            level = Rules.level(feels: Double(feels))
+        } else {
+            let old = ((try? decoder.container(keyedBy: LegacyKeys.self).decodeIfPresent(Double.self, forKey: .level)) ?? nil) ?? 4
+            level = Rules.level(fromLegacy: Int(old.rounded()))
+        }
         let a = n(.hi, temp), b = n(.lo, temp)
         hi = max(a, b, temp); lo = min(a, b, temp)
         yday = n(.yday, 0)

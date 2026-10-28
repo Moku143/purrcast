@@ -10,7 +10,7 @@ struct SkyBase: View {
     let level: Int
     let night: Bool
     var body: some View {
-        let bg = Rules.background[max(0, min(9, level))]
+        let bg = Rules.background[Rules.clamp(level)]
         GeometryReader { g in
             let r = max(g.size.width, g.size.height)
             ZStack {
@@ -63,7 +63,7 @@ func sunsetTile(_ s: WeatherScene) -> String? {
 /// Where a bubble's tail should sit: `gap` points above the character's head (ears included), or above the open
 /// umbrella — measured per outfit from the sprites (anchors.json), so a hood or a hat never touches the bubble.
 func bubbleBottom(_ c: PurrCharacter, _ rain: RainState, level: Int, spriteHeight h: CGFloat, gap: CGFloat = 5) -> CGFloat {
-    let a = c.anchors, lv = max(0, min(9, level))
+    let a = c.anchors, lv = Rules.clamp(level)
     let top = CGFloat(rain == .umbrella ? a.umb_top[lv] : a.head_top[lv]) / Sprite.height
     return h * (1 - top) + gap
 }
@@ -73,7 +73,7 @@ private func chanceNow(_ s: WeatherScene) -> Int { s.hours.prefix(6).map { $0.ch
 struct MediumWidgetView: View {
     let snap: WeatherSnapshot
     var body: some View {
-        let s = snap.scene, ink = Ink(night: s.isNight), lv = max(0, min(9, s.level))
+        let s = snap.scene, ink = Ink(night: s.isNight), lv = Rules.clamp(s.level)
         let rain = RainState(rawValue: s.rain) ?? .none
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
@@ -124,7 +124,7 @@ struct MediumWidgetView: View {
 struct SmallWidgetView: View {
     let snap: WeatherSnapshot
     var body: some View {
-        let s = snap.scene, ink = Ink(night: s.isNight), lv = max(0, min(9, s.level))
+        let s = snap.scene, ink = Ink(night: s.isNight), lv = Rules.clamp(s.level)
         let rain = RainState(rawValue: s.rain) ?? .none
         VStack(alignment: .leading, spacing: 0) {
             HStack {
@@ -161,7 +161,7 @@ struct SmallWidgetView: View {
 struct LockRectangularView: View {
     let snap: WeatherSnapshot
     var body: some View {
-        let s = snap.scene, lv = max(0, min(9, s.level))
+        let s = snap.scene, lv = Rules.clamp(s.level)
         HStack(spacing: 6) {
             Image(snap.shownCharacter.lock(level: lv)).resizable().scaledToFit().frame(width: 40, height: 52)
                 .opacity(0.62)     // see-through, like the system's own lock-screen glyphs

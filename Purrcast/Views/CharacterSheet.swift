@@ -16,7 +16,7 @@ struct CharacterSheet: View {
     private static let maxName = 8
 
     /// The tiles wear today's outfit (the home scene's level), like the design.
-    private var level: Int { max(0, min(9, model.scene.level)) }
+    private var level: Int { Rules.clamp(model.scene.level) }
 
     var body: some View {
         VStack(spacing: 0) {

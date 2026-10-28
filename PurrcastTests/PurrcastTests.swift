@@ -45,13 +45,14 @@ final class PurrcastTests: XCTestCase {
             let s = SceneLibrary.scene(k)
             XCTAssertEqual(s.id, k)
             XCTAssertFalse(s.hours.isEmpty, k); XCTAssertFalse(s.days.isEmpty, k)
-            XCTAssert((0...9).contains(s.level), k)
+            XCTAssert((0...Rules.maxLevel).contains(s.level), k)
+            XCTAssertEqual(s.level, Rules.level(feels: Double(s.feels)), "\(k): the example's outfit fits its feels-like")
         }
     }
 
     func testLenientDecodingRepairsBadValues() throws {
         let json = #"""
-        {"temp": 18.6, "hi": 12, "lo": 20, "level": 14, "clock": "1346",
+        {"temp": 18.6, "hi": 12, "lo": 20, "outfit": 22, "clock": "1346",
          "wind": {"speed": 3.4, "gust": 1, "deg": -12},
          "hours": [["지금", "cloud", 18, 10, 0], ["bad"], ["15시", "rain", 17.5, null, 1.25]],
          "days": [["오늘", "sun", 0, 20, 12]],
@@ -60,7 +61,7 @@ final class PurrcastTests: XCTestCase {
         """#
         let s = try JSONDecoder().decode(WeatherScene.self, from: Data(json.utf8))
         XCTAssertEqual(s.temp, 19)
-        XCTAssertEqual(s.level, 9)
+        XCTAssertEqual(s.level, 14, "an outfit past the last one is the last one")
         XCTAssertLessThanOrEqual(s.lo, s.hi)
         XCTAssertEqual(s.clock, "12:00", "a clock without ':' is replaced")
         XCTAssertEqual(s.wind.deg, 348)
@@ -94,13 +95,35 @@ final class PurrcastTests: XCTestCase {
     // MARK: rules (must match server/src/rules.js)
 
     func testOutfitLevels() {
-        XCTAssertEqual(Rules.level(feels: 35), 0); XCTAssertEqual(Rules.level(feels: 30), 1); XCTAssertEqual(Rules.level(feels: 25), 2)
-        XCTAssertEqual(Rules.level(feels: 21), 3); XCTAssertEqual(Rules.level(feels: 18), 4); XCTAssertEqual(Rules.level(feels: 16), 5)
-        XCTAssertEqual(Rules.level(feels: 13), 6)
-        XCTAssertEqual(Rules.level(feels: 10), 6); XCTAssertEqual(Rules.level(feels: 9), 7); XCTAssertEqual(Rules.level(feels: 6), 7); XCTAssertEqual(Rules.level(feels: 0), 8)
-        XCTAssertEqual(Rules.level(feels: -12), 9)
-        XCTAssertEqual(Rules.level(feels: 19.8, previous: 4), 4)
-        XCTAssertEqual(Rules.level(feels: 20.6, previous: 4), 3)
+        // fifteen outfits: 35+ · 33–34 · 28–32 · 23–27 · 20–22 · 18–19 · 16–17 · 12–15 · 9–11 · 6–8 · 3–5 · 0–2 · −4…−1 · −9…−5 · −10−
+        let at: [(Double, Int)] = [(36, 0), (35, 0), (34, 1), (33, 1), (32, 2), (28, 2), (27, 3), (23, 3), (22, 4), (20, 4),
+                                   (19, 5), (18, 5), (17, 6), (16, 6), (15, 7), (12, 7), (11, 8), (9, 8), (8, 9), (6, 9),
+                                   (5, 10), (3, 10), (2, 11), (0, 11), (-1, 12), (-4, 12), (-5, 13), (-9, 13), (-10, 14), (-20, 14)]
+        for (c, lv) in at { XCTAssertEqual(Rules.level(feels: c), lv, "\(c)°") }
+        XCTAssertEqual(Rules.level(feels: 11.9, previous: 8), 8)
+        XCTAssertEqual(Rules.level(feels: 12.6, previous: 8), 7)
+        XCTAssertEqual(Rules.levelUpper.count, Rules.levels)
+        XCTAssertEqual(Rules.background.count, Rules.levels)
+        XCTAssertEqual(Rules.clamp(-3), 0); XCTAssertEqual(Rules.clamp(99), Rules.maxLevel)
+    }
+
+    /// Every character has every outfit in every state, and an anchor for each.
+    func testFifteenOutfitsPerCharacter() {
+        for c in PurrCharacter.allCases {
+            XCTAssertEqual(c.anchors.head_top.count, Rules.levels, c.rawValue)
+            XCTAssertEqual(c.anchors.umb_top.count, Rules.levels, c.rawValue)
+            XCTAssertEqual(c.anchors.head_cx.count, Rules.levels, c.rawValue)
+        }
+    }
+
+    /// A server from the ten-outfit days sends only "level": the outfit comes from the feels-like temperature instead.
+    func testOldServerLevelIsReadFromFeels() throws {
+        let s = try JSONDecoder().decode(WeatherScene.self, from: Data(#"{"level": 8, "temp": -3, "feels": -6}"#.utf8))
+        XCTAssertEqual(s.level, 13)
+        let t = try JSONDecoder().decode(WeatherScene.self, from: Data(#"{"level": 9}"#.utf8))
+        XCTAssertEqual(t.level, 14, "no temperature at all: the old number is translated (old 9 = −10° and below)")
+        let again = try JSONDecoder().decode(WeatherScene.self, from: JSONEncoder().encode(s))
+        XCTAssertEqual(again.level, 13, "the outfit round-trips")
     }
 
     func testFreePlanHidesPlusData() {

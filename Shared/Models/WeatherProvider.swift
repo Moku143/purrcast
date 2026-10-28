@@ -40,7 +40,7 @@ struct SampleWeatherProvider: WeatherProvider {
     }
 }
 
-/// Our forecast server. GET {base}/v1/forecast?lat=..&lon=..&region=..&tz=..&plan=free|plus&lang=ko|en|ja&prev=..&name=..
+/// Our forecast server. GET {base}/v1/forecast?lat=..&lon=..&region=..&tz=..&plan=free|plus&lang=ko|en|ja&outfitPrev=..&name=..
 /// → 200 with one `WeatherScene` as JSON. Coordinates are sent rounded to ~1 km.
 struct ServerWeatherProvider: WeatherProvider {
     let baseURL: URL
@@ -59,7 +59,8 @@ struct ServerWeatherProvider: WeatherProvider {
             URLQueryItem(name: "lang", value: Lang.current.code),
             URLQueryItem(name: "name", value: place.serverName),   // Korean for Korean places: 기상청 warnings go by it
         ]
-        if let p = previousLevel { q.append(URLQueryItem(name: "prev", value: String(p))) }
+        // the outfit shown last time (0…14) for the server's ±1° hysteresis ("prev" was the old ten-outfit number)
+        if let p = previousLevel { q.append(URLQueryItem(name: "outfitPrev", value: String(p))) }
         c.queryItems = q
         var req = URLRequest(url: c.url!, timeoutInterval: 15)
         req.setValue("application/json", forHTTPHeaderField: "Accept")

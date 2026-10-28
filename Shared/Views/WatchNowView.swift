@@ -14,7 +14,7 @@ struct WatchNow: View {
     var dimmed = true                                         // previews on the phone (widget matrix): one still frame
     #endif
     var body: some View {
-        let s = snap.scene, ink = Ink(night: s.isNight), lv = max(0, min(9, s.level))
+        let s = snap.scene, ink = Ink(night: s.isNight), lv = Rules.clamp(s.level)
         let rain = RainState(rawValue: s.rain) ?? .none
         let catW: CGFloat = 80, catH = catW * Sprite.height / Sprite.width
         ZStack(alignment: .topLeading) {

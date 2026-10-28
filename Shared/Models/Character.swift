@@ -22,7 +22,7 @@ struct Anchors: Decodable {
     var head_top: [Int]
     var umb_top: [Int]
     var head_cx: [Double]
-    static let fallback = Anchors(head_top: Array(repeating: 140, count: 10), umb_top: Array(repeating: 17, count: 10), head_cx: Array(repeating: 244, count: 10))
+    static let fallback = Anchors(head_top: Array(repeating: 140, count: Rules.levels), umb_top: Array(repeating: 4, count: Rules.levels), head_cx: Array(repeating: 244, count: Rules.levels))
     static let all: [String: Anchors] = {
         guard let url = Bundle.main.url(forResource: "anchors", withExtension: "json"),
               let data = try? Data(contentsOf: url) else { return [:] }

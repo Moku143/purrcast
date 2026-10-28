@@ -15,7 +15,7 @@ struct HomeView: View {
     var body: some View {
         let s = model.scene
         let ink = Ink(night: s.isNight)
-        let lv = max(0, min(9, s.level))
+        let lv = Rules.clamp(s.level)
         ZStack(alignment: .top) {
             background(level: lv, night: s.isNight).ignoresSafeArea()
                 .animation(Motion.fade, value: lv).animation(Motion.fade, value: s.isNight)
@@ -73,7 +73,7 @@ struct HomeView: View {
     private func waiting(ink: Ink) -> some View {
         VStack(spacing: 18) {
             Spacer()
-            CharacterSprite(character: model.shownCharacter, level: 4, rain: .none, width: 150)
+            CharacterSprite(character: model.shownCharacter, level: 5, rain: .none, width: 150)
             if model.lastError == nil {
                 ProgressView().tint(ink.ink)
                 Text(L("날씨를 받아 오는 중이에요")).font(.px(15))

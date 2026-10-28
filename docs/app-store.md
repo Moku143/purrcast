@@ -40,7 +40,7 @@ App Store Connect → 앱 → 각 칸에 그대로 넣으면 돼요. 글자 수�
 
 그르릉날씨는 픽셀 고양이가 체감온도에 맞춰 옷을 갈아입고, 비가 오면 우산을 펴서 날씨를 보여 주는 날씨 앱이에요. 숫자를 읽지 않아도 한눈에 오늘 날씨가 보여요.
 
-• 옷 10단계: 민소매부터 롱패딩까지, 체감온도에 맞춰 갈아입어요
+• 옷 15단계: 민소매부터 롱패딩·털 후드까지, 체감온도에 맞춰 갈아입어요
 • 우산 3단계: 지금 비가 오면 우산을 펴고, 곧 올 비는 가방에 챙기고, 애매하면 고민해요
 • 비 오는 시간을 미리: "15~17시 비 예정"처럼 알려 주고 우산을 챙겨요
 • 날씨 그림: 구름, 비, 눈, 바람, 안개, 별, 번개가 화면에서 움직여요
@@ -75,7 +75,7 @@ What should I wear today? Ask the cat.
 
 Purrcast shows the weather through a pixel pet: it changes clothes with the feels-like temperature and opens its umbrella when rain comes. No numbers to read — one look and you know.
 
-• 10 outfits, from tank top to long puffer
+• 15 outfits, from tank top to fur-hooded puffer
 • Umbrella states: raining now, rain later (packed in the bag), maybe
 • Rain ahead: "Rain 3–5PM" — and the umbrella goes in the bag
 • Living sky: clouds, rain, snow, wind, fog, stars and lightning move on screen
@@ -112,7 +112,7 @@ Privacy Policy: https://moku143.github.io/purrcast/privacy.html
 
 ゴロゴロ天気は、ドット絵の猫が体感温度に合わせて着替え、雨が降ると傘をさして天気を伝える天気アプリです。数字を読まなくても、ひと目で今日の天気がわかります。
 
-• 服装10段階: タンクトップからロングダウンまで、体感温度に合わせて着替えます
+• 服装15段階: タンクトップからファー付きフードのダウンまで、体感温度に合わせて着替えます
 • 傘の3段階: 今降っていれば傘をさし、これから降るならかばんに入れ、微妙なときは迷います
 • 雨の時間を前もって: 「15〜17時に雨の予報です」のように伝え、傘を準備します
 • 動く空: 雲、雨、雪、風、霧、星、雷が画面で動きます

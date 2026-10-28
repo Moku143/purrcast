@@ -10,7 +10,7 @@ the widget extension and the watch). Nothing else changes in the app.
 ## Request
 
 ```
-GET {base}/v1/forecast?lat=37.57&lon=126.90&region=kr&tz=Asia/Seoul&plan=plus&lang=ko&prev=4&name=서울 마포구
+GET {base}/v1/forecast?lat=37.57&lon=126.90&region=kr&tz=Asia/Seoul&plan=plus&lang=ko&outfitPrev=5&name=서울 마포구
 Accept: application/json
 ```
 
@@ -21,7 +21,8 @@ Accept: application/json
 | tz     | IANA time zone of the place; every clock time in the answer is local to it |
 | plan   | `free` → one forecast a day (Korea: the 06:00 forecast; Apple countries: the first answer after 06:00, kept for the day), no `minutes` / `next6`; `plus` → latest run, with them |
 | lang   | `ko` (default) · `en` · `ja`; any other value → `en`. Changes the words in the answer only — see [Languages](#languages) |
-| prev   | optional, the outfit level the app showed last for this place (±1° hysteresis) |
+| outfitPrev | optional, the outfit (0…14) the app showed last for this place (±1° hysteresis) |
+| prev   | optional, the old ten-outfit level (0…9) — sent by app builds from before the fifteen outfits |
 | name   | optional, the place name ("서울 마포구"); used to match 기상특보 areas |
 
 ## Response — one `WeatherScene` (200, JSON)
@@ -35,7 +36,8 @@ Accept: application/json
   "aux": "none",            // none | wind | fog | heat | frost | dust ─┘
   "clouds": 92,             // 0–100 % cloud now (null when unknown): how many clouds are drawn, how far down
   "fog": 0,                 // 0 none · 1 mist · 2 fog · 3 thick fog (visibility / MET fog area): how thick it is drawn
-  "level": 4,               // outfit 0…9 from the feels-like temperature (rules below)
+  "outfit": 5,              // outfit 0…14 from the feels-like temperature (rules below) — what the app draws
+  "level": 4,               // the old ten-outfit number 0…9, kept for app builds from before the fifteen outfits
   "rain": "bag",            // none | think | bag | umbrella  (rules below)
   "temp": 18, "feels": 17, "hi": 19, "lo": 13,
   "yday": -1,               // temp now minus temp at the same hour yesterday
@@ -74,11 +76,14 @@ dust moon umbrella umbrella_closed raindrop thermo_hot thermo_cold sunrise sunse
 
 ## Rules the server applies (same as the design kit)
 
-**Outfit level** from the feels-like °C, ±1° hysteresis against the previous answer for the same place:
+**Outfit** (`outfit`) from the feels-like °C, ±1° hysteresis against the outfit the app showed last (`outfitPrev`):
 
-| level | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| feels °C | ≥33 | 28–32 | 23–27 | 20–22 | 18–19 | 16–17 | 10–15 | 5–9 | −9–4 | ≤−10 |
+| outfit | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| feels °C | ≥35 | 33–34 | 28–32 | 23–27 | 20–22 | 18–19 | 16–17 | 12–15 | 9–11 | 6–8 | 3–5 | 0–2 | −4…−1 | −9…−5 | ≤−10 |
+
+The old `level` (still sent, against `prev`) uses the ten bands ≥33 · 28–32 · 23–27 · 20–22 · 18–19 · 16–17 · 10–15 · 5–9 · −9…4 · ≤−10.
+An app that gets no `outfit` (an older server) works it out from `feels` itself.
 
 **Umbrella** (`rain`): raining now → `umbrella`; rain starts within 12 h or chance ≥ 30 % → `bag`;
 chance 10–29 % → `think`; otherwise `none`.

@@ -3,14 +3,19 @@ import Foundation
 /// The judgement rules from the design kit (README §1): outfit from the feels-like temperature,
 /// umbrella from rain now / rain coming, one bubble at a time.
 enum Rules {
-    /// Outfit level 0...9 from feels-like °C. Boundaries are the upper edge of each level (same table as the server:
-    /// the usual 기온별 옷차림 bands — 12–16° is jacket / trench weather, a knit alone is for 16–17°).
-    static let levelUpper: [Double] = [.infinity, 32.5, 27.5, 22.5, 19.5, 17.5, 15.5, 9.5, 4.5, -9.5]
+    /// How many outfits each character has (sprites `<char>-stand-0…14-*`, `<char>-lock-0…14`).
+    static let levels = 15
+    static let maxLevel = levels - 1
+    /// Any level number made safe for the sprite and colour tables.
+    static func clamp(_ level: Int) -> Int { max(0, min(maxLevel, level)) }
+
+    /// Outfit level 0...14 from feels-like °C. Boundaries are the upper edge of each level (same table as the server):
+    ///  0: 35°+ 민소매·모자 · 1: 33–34 · 2: 28–32 · 3: 23–27 · 4: 20–22 · 5: 18–19 · 6: 16–17 · 7: 12–15 · 8: 9–11
+    ///  9: 6–8 · 10: 3–5 · 11: 0–2 · 12: −4…−1 · 13: −9…−5 · 14: −10° and below
+    static let levelUpper: [Double] = [.infinity, 34.5, 32.5, 27.5, 22.5, 19.5, 17.5, 15.5, 11.5, 8.5, 5.5, 2.5, -0.5, -4.5, -9.5]
     static func level(feels: Double, previous: Int? = nil) -> Int {
-        // 0: 33+, 1: 28-32, 2: 23-27, 3: 20-22, 4: 18-19, 5: 16-17, 6: 10-15, 7: 5-9, 8: -9...4, 9: <= -10
-        var lv = 9
+        var lv = maxLevel
         for i in 1..<levelUpper.count where feels > levelUpper[i] { lv = i - 1; break }
-        if feels > 32.5 { lv = 0 }
         // ±1° hysteresis: stay on the previous level unless we are a full degree past its edge
         if let p = previous, abs(p - lv) == 1 {
             let edge = levelUpper[max(p, lv)]
@@ -18,6 +23,8 @@ enum Rules {
         }
         return lv
     }
+    /// The outfit level of the old ten-outfit table (servers before `outfit` existed sent only this) → today's level.
+    static func level(fromLegacy old: Int) -> Int { [1, 2, 3, 4, 5, 6, 7, 9, 11, 14][max(0, min(9, old))] }
 
     /// Wind as people feel it (same words as the server: Beaufort + KMA everyday guidance).
     static func windWord(ms: Int) -> String {
@@ -33,8 +40,10 @@ enum Rules {
         }
     }
 
-    /// Background colour per outfit level (the hero gradient starts from it).
-    static let background = ["#FFC2A8", "#FFD3B5", "#FFE8A3", "#F3F0B5", "#D9EFCF", "#D3E6F4", "#CDDCEF", "#C8D4F0", "#B7C6EA", "#A9B6E2"]
+    /// Background colour per outfit level (the hero gradient starts from it): the design's ten colours spread over the
+    /// fifteen outfits by temperature (the new in-between bands sit between their neighbours).
+    static let background = ["#FFC2A8", "#FFC2A8", "#FFD3B5", "#FFE8A3", "#F3F0B5", "#D9EFCF", "#D3E6F4", "#CDDCEF",
+                             "#CBD8EF", "#C8D4F0", "#C0CDED", "#B7C6EA", "#B3C1E8", "#AEBCE5", "#A9B6E2"]
 
     /// Umbrella state from precipitation now and the next 12 hours.
     static func rainState(nowMM: Double, startsInHours: Int?, maxChance12h: Int) -> RainState {

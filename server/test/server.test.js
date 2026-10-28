@@ -5,7 +5,7 @@ import { toGrid, amount, num, parseForecast, parseNow, parseWarnings, splitAreas
 import { parseMet, metUrl } from '../src/providers/met.js';
 import { parseWeatherKit, weatherKitUrl, weatherKitToken, hasWeatherKit, resetWeatherKitTokens } from '../src/providers/weatherkit.js';
 import { buildScene, validateScene } from '../src/scene.js';
-import { level, bubble, uvNote, whenWord, alertNote, condition, rainKind, feelsWord, warningKind } from '../src/rules.js';
+import { level, outfit, bubble, uvNote, whenWord, alertNote, condition, rainKind, feelsWord, warningKind } from '../src/rules.js';
 import { strings, normLang, warningName, hourLabel } from '../src/i18n.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike, humidityWord, windWord } from '../src/physics.js';
@@ -54,6 +54,15 @@ test('outfit level boundaries and ±1° hysteresis', () => {
   assert.equal(level(0), 8); assert.equal(level(-12), 9);
   assert.equal(level(19.8, 4), 4, 'just over the 19.5 edge stays in 4 from 4');
   assert.equal(level(20.6, 4), 3, 'a full degree past the edge changes');
+});
+
+test('fifteen outfits: the bands and ±1° hysteresis', () => {
+  const at = { 36: 0, 35: 0, 34: 1, 33: 1, 32: 2, 28: 2, 27: 3, 23: 3, 22: 4, 20: 4, 19: 5, 18: 5, 17: 6, 16: 6, 15: 7, 12: 7,
+    11: 8, 9: 8, 8: 9, 6: 9, 5: 10, 3: 10, 2: 11, 0: 11, '-1': 12, '-4': 12, '-5': 13, '-9': 13, '-10': 14, '-20': 14 };
+  for (const [c, o] of Object.entries(at)) assert.equal(outfit(Number(c)), o, `${c}°`);
+  assert.equal(outfit(11.9, 8), 8, 'just over the 11.5 edge stays in 8 from 8');
+  assert.equal(outfit(12.6, 8), 7, 'a full degree past the edge changes');
+  assert.equal(outfit(-9.8, 13), 13); assert.equal(outfit(-10.6, 13), 14);
 });
 
 test('feels-like: KMA wind chill when cold, KMA summer formula (humidity counts) when warm', () => {
@@ -133,7 +142,7 @@ test('scene: clear dry day — no umbrella, no bubble, sun tile, valid for the a
   const s = buildScene({ points: m.points, updated: at(13) }, { ...SEOUL, plan: 'free', now: at(13, 40) });
   validateScene(s);
   assert.equal(s.time, 'day'); assert.equal(s.cover, 'clear'); assert.equal(s.rain, 'none'); assert.equal(s.bubble, null);
-  assert.equal(s.level, 4); assert.equal(s.temp, 18); assert.equal(s.hours.length, 13); assert.equal(s.hours[0][0], '지금');
+  assert.equal(s.level, 4); assert.equal(s.outfit, outfit(s.feels)); assert.equal(s.temp, 18); assert.equal(s.hours.length, 13); assert.equal(s.hours[0][0], '지금');
   assert.equal(s.hours[1][0], '14시'); assert.equal(s.tiles[2].label, '일몰'); assert.equal(s.updated, '06:00');
   assert.equal(s.cond, '맑음');
   assert.equal(s.dayDetail.length, s.days.length); assert.equal(s.dayDetail[1].length, 8); assert.equal(s.dayDetail[1][4][0], '12시');
@@ -200,7 +209,7 @@ test('scene: cold windy night → level 9, 한파 or wind, night tile = 일출',
   const m = parseMet(met(at(21), flat(30, { temp: -8, wind: 6, cloud: 0, sym: 'clearsky_night' })));
   const s = buildScene({ points: m.points }, { ...SEOUL, plan: 'free', now: at(21, 30) });
   validateScene(s);
-  assert.equal(s.time, 'night'); assert.equal(s.level, 9); assert.ok(s.feels <= -10);
+  assert.equal(s.time, 'night'); assert.equal(s.level, 9); assert.equal(s.outfit, 14); assert.ok(s.feels <= -10);
   assert.equal(s.bubble.text, '한파!'); assert.equal(s.mood, 'cold'); assert.equal(s.tiles[2].label, '일출');
 });
 

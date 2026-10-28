@@ -22,7 +22,7 @@ const ri = (v) => (v == null || Number.isNaN(v) ? 0 : Math.round(v));
  *   src      'kma' | 'met' | 'apple' — the main forecast's source (nextSource when missing)
  *   updated  Date of the forecast run used
  *   freeAt   free, Apple: when this day's kept forecast was taken (the label; Korea's free label is 06:00)
- * @param {object} o  { lat, lon, tz, plan: 'free'|'plus', prev, yday, now: Date, lang: 'ko'|'en'|'ja' (ko) }
+ * @param {object} o  { lat, lon, tz, plan: 'free'|'plus', prev (old 0…9), outfitPrev (0…14), yday, now: Date, lang: 'ko'|'en'|'ja' (ko) }
  */
 export function buildScene(f, o) {
   const { lat, lon, tz } = o;
@@ -47,7 +47,8 @@ export function buildScene(f, o) {
   const night = isNight(nowT, lat, lon, tz);
   const feelsRaw = feelsLike(cur.temp, cur.rh, cur.wind);
   const feels = Math.round(feelsRaw);
-  const lv = R.level(feelsRaw, o.prev ?? null);
+  const lv = R.level(feelsRaw, o.prev ?? null);                   // old ten-outfit number (older app builds)
+  const outfit = R.outfit(feelsRaw, o.outfitPrev ?? null);       // the fifteen outfits
 
   // rain timing
   const wet = (p) => p.mm >= 0.1 || p.type !== 'none';
@@ -145,6 +146,7 @@ export function buildScene(f, o) {
     thunder: thunder ? 'on' : 'off',
     aux: auxKind,
     level: lv,
+    outfit,
     rain,
     temp: ri(cur.temp),
     feels,
@@ -230,8 +232,9 @@ export function validateScene(s) {
   const int = (k) => { if (!Number.isInteger(s[k])) bad.push(`${k} not an integer`); };
   str('time', ['day', 'night']); str('cover', ['clear', 'partly', 'overcast']); str('precip', ['none', 'rain', 'heavy', 'snow', 'heavysnow', 'sleet']);
   str('thunder', ['on', 'off']); str('aux', ['none', 'wind', 'fog', 'heat', 'frost', 'dust']); str('rain', ['none', 'think', 'bag', 'umbrella']);
-  for (const k of ['level', 'temp', 'feels', 'hi', 'lo', 'yday']) int(k);
+  for (const k of ['level', 'outfit', 'temp', 'feels', 'hi', 'lo', 'yday']) int(k);
   if (!(s.level >= 0 && s.level <= 9)) bad.push('level out of 0…9');
+  if (!(s.outfit >= 0 && s.outfit <= 14)) bad.push('outfit out of 0…14');
   for (const k of ['cond', 'clock', 'updated']) str(k);
   if (s.cmp != null) {
     if (!Number.isInteger(s.cmp.start) || !Array.isArray(s.cmp.sources) || s.cmp.sources.length < 2) bad.push('cmp');

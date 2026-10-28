@@ -21,7 +21,7 @@ enum TempColor {
 struct WatchFacts {
     let snap: WeatherSnapshot
     var s: WeatherScene { snap.scene }
-    var level: Int { max(0, min(9, s.level)) }
+    var level: Int { Rules.clamp(s.level) }
     var rain: RainState { RainState(rawValue: s.rain) ?? .none }
     var icon: String { s.hours.first?.icon ?? "cloud" }
     var temp: String { snap.deg(s.temp) }
@@ -227,6 +227,6 @@ struct WatchSummaryPlate: View {
     let snap: WeatherSnapshot
     var body: some View {
         let s = snap.scene
-        s.isNight ? Color(hex: "#1B2142") : Color(hex: Rules.background[max(0, min(9, s.level))])
+        s.isNight ? Color(hex: "#1B2142") : Color(hex: Rules.background[Rules.clamp(s.level)])
     }
 }

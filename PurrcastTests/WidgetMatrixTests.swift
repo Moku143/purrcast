@@ -48,7 +48,7 @@ final class WidgetMatrixTests: XCTestCase {
         let c = try XCTUnwrap(cases.first { $0.key == "day-overcast-rain" })
         let snap = WeatherSnapshot(scene: c.scene, character: PurrCharacter(rawValue: c.char) ?? .cat, plus: true,
                                    characterName: "", placeShort: "서울", saved: Date())
-        let s = snap.scene, lv = max(0, min(9, s.level))
+        let s = snap.scene, lv = Rules.clamp(s.level)
         var frames: [String: [String: [Double]]] = [:]
 
         func shoot<V: View>(_ name: String, _ w: CGFloat?, _ h: CGFloat?, probe: Bool = false, @ViewBuilder _ v: () -> V) {

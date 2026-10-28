@@ -113,7 +113,7 @@ struct WatchDays: View {
 struct WatchLocked: View {
     var body: some View {
         VStack(spacing: 8) {
-            CharacterSprite(character: .cat, level: 4, rain: .none, width: 70, animate: false).frame(height: 80)
+            CharacterSprite(character: .cat, level: 5, rain: .none, width: 70, animate: false).frame(height: 80)
             Text(L("애플워치는 Plus에서\n쓸 수 있어요")).font(.px(13)).multilineTextAlignment(.center)
             Text(L("아이폰에서 %@를 열어 주세요", Brand.name)).font(.system(size: 11)).foregroundStyle(.secondary).multilineTextAlignment(.center)
         }

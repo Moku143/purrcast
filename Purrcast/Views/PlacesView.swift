@@ -119,7 +119,7 @@ struct PlacesView: View {
 
     private func card(_ p: Place, current: Bool) -> some View {
         let s: WeatherScene? = model.previews[p.id].map { AppModel.planView($0, plus: model.plus) }
-        let lv: Int = max(0, min(9, s?.level ?? 4))
+        let lv: Int = Rules.clamp(s?.level ?? 5)
         return PlaceCard(place: p, scene: s, level: lv, current: current)
     }
 

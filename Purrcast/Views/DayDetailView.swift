@@ -57,7 +57,7 @@ struct DayDetailView: View {
 
     /// Day: the outfit colour fading into #EEF1F7 over the first 420 pt · night: navy all the way down
     private func sheetBackground(_ s: WeatherScene) -> some View {
-        let top = s.isNight ? Color(hex: "#1A2046") : Color(hex: Rules.background[max(0, min(9, s.level))])
+        let top = s.isNight ? Color(hex: "#1A2046") : Color(hex: Rules.background[Rules.clamp(s.level)])
         let bottom = s.isNight ? Color(hex: "#0D1126") : Color(hex: "#EEF1F7")
         return GeometryReader { g in
             LinearGradient(colors: [top, bottom], startPoint: .top,

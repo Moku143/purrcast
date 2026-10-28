@@ -3,15 +3,24 @@
 
 import { strings } from './i18n.js';
 
-/** Outfit level 0…9 from the feels-like °C, with ±1° hysteresis against the previous level.
- *  The usual Korean 기온별 옷차림 bands: 12–16° is jacket / trench weather (a knit alone is for 16–17°), 5–9° a coat. */
+/** Outfit 0…14 from the feels-like °C (the app's fifteen outfits, scene field `outfit`), with ±1° hysteresis
+ *  against the outfit shown last time. The usual Korean 기온별 옷차림 bands, split finer:
+ *  0: 35°+ · 1: 33–34 · 2: 28–32 · 3: 23–27 · 4: 20–22 · 5: 18–19 · 6: 16–17 · 7: 12–15 · 8: 9–11 · 9: 6–8
+ *  10: 3–5 · 11: 0–2 · 12: −4…−1 · 13: −9…−5 · 14: −10° and below */
+export const OUTFITS = 15;
+const OUTFIT_UPPER = [Infinity, 34.5, 32.5, 27.5, 22.5, 19.5, 17.5, 15.5, 11.5, 8.5, 5.5, 2.5, -0.5, -4.5, -9.5];
+export function outfit(feels, prev = null) { return banded(OUTFIT_UPPER, feels, prev); }
+
+/** The old ten-outfit level 0…9 (scene field `level`), still sent for app builds from before the fifteen outfits.
+ *  12–16° is jacket / trench weather (a knit alone is for 16–17°), 5–9° a coat. */
 const UPPER = [Infinity, 32.5, 27.5, 22.5, 19.5, 17.5, 15.5, 9.5, 4.5, -9.5];
-export function level(feels, prev = null) {
-  let lv = 9;
-  for (let i = 1; i < UPPER.length; i++) if (feels > UPPER[i]) { lv = i - 1; break; }
-  if (feels > 32.5) lv = 0;
+export function level(feels, prev = null) { return banded(UPPER, feels, prev); }
+
+function banded(upper, feels, prev) {
+  let lv = upper.length - 1;
+  for (let i = 1; i < upper.length; i++) if (feels > upper[i]) { lv = i - 1; break; }
   if (prev != null && Math.abs(prev - lv) === 1) {
-    const edge = UPPER[Math.max(prev, lv)];
+    const edge = upper[Math.max(prev, lv)];
     if (Math.abs(feels - edge) < 1.0) return prev;
   }
   return lv;

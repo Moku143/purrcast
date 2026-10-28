@@ -260,7 +260,7 @@ struct PaywallView: View {
 
     /// Three place cards fanned out: Seoul, Tokyo, New York (night)
     private var placesArt: some View {
-        let rows: [(String, Int, Int, Bool, CGFloat)] = [(L("서울"), 18, 4, false, -56), (L("도쿄"), 19, 4, false, 0), (L("뉴욕"), 12, 5, true, 56)]
+        let rows: [(String, Int, Int, Bool, CGFloat)] = [(L("서울"), 18, 5, false, -56), (L("도쿄"), 19, 5, false, 0), (L("뉴욕"), 12, 7, true, 56)]
         return ZStack {
             ForEach(Array(rows.enumerated()), id: \.offset) { i, r in
                 HStack(spacing: 8) {
@@ -283,7 +283,7 @@ struct PaywallView: View {
     private var charsArt: some View {
         HStack(spacing: 12) {
             ForEach(Array(PurrCharacter.allCases.enumerated()), id: \.offset) { i, c in
-                CharacterSprite(character: c, level: 4, rain: .none, width: 72, animate: false)
+                CharacterSprite(character: c, level: 5, rain: .none, width: 72, animate: false)
                     .frame(width: 92, height: 132)
                     .background(i == 0 ? Color(hex: "#D9EFCF") : Color.white)
                     .overlay(RoundedRectangle(cornerRadius: 16).stroke(i == 0 ? UI.accent : Color.white, lineWidth: 3))

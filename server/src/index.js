@@ -1,5 +1,5 @@
 // Purrcast forecast server — Cloudflare Worker.
-//   GET /v1/forecast?lat=&lon=&region=kr|jp|other&tz=&plan=free|plus&lang=ko[&prev=0..9][&name=서울 마포구]
+//   GET /v1/forecast?lat=&lon=&region=kr|jp|other&tz=&plan=free|plus&lang=ko[&outfitPrev=0..14][&prev=0..9][&name=서울 마포구]
 //   GET /health
 // Korea: 기상청 단기예보 (+ Plus: 초단기실황 · 초단기예보 · 특보), days 4–10 and UV from MET Norway.
 // Elsewhere: Apple WeatherKit (current, hourly, daily, next-hour minutes, alerts) when its key is set.
@@ -48,11 +48,13 @@ export function readQuery(sp) {
   const tz = sp.get('tz') || 'Asia/Seoul';
   try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); } catch { throw Object.assign(new Error('bad tz'), { status: 400 }); }
   const prev = sp.get('prev') == null ? null : parseInt(sp.get('prev'), 10);
+  const outfitPrev = sp.get('outfitPrev') == null ? null : parseInt(sp.get('outfitPrev'), 10);
   return {
     lat, lon, tz,
     region: ['kr', 'jp', 'other'].includes(sp.get('region')) ? sp.get('region') : 'other',
     plan: sp.get('plan') === 'plus' ? 'plus' : 'free',
     prev: Number.isInteger(prev) && prev >= 0 && prev <= 9 ? prev : null,
+    outfitPrev: Number.isInteger(outfitPrev) && outfitPrev >= 0 && outfitPrev <= 14 ? outfitPrev : null,
     name: sp.get('name') || '',
     lang: normLang(sp.get('lang')),   // ko (default) | en | ja; anything else → en
   };
@@ -139,7 +141,7 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch 
   if (compare.length > 1) f.compare = compare;
 
   const yday = await history(env, q, now, f, ctx);
-  return buildScene(f, { lat: q.lat, lon: q.lon, tz: q.tz, plan: q.plan, prev: q.prev, yday, now, lang: q.lang });
+  return buildScene(f, { lat: q.lat, lon: q.lon, tz: q.tz, plan: q.plan, prev: q.prev, outfitPrev: q.outfitPrev, yday, now, lang: q.lang });
 }
 
 async function korea(q, env, now, fetcher, ctx) {
