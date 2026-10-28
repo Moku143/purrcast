@@ -20,14 +20,14 @@ struct SkyBase: View {
                                            .init(color: Color.mix(bg, "#0B0F24", 0.78), location: 0.66), .init(color: Color(hex: "#0B0F22"), location: 1)],
                                    startPoint: .top, endPoint: .bottom)
                 } else {
-                    LinearGradient(stops: [.init(color: Color(hex: bg).opacity(0.96), location: 0), .init(color: Color(hex: bg).opacity(0.84), location: 0.45),
-                                           .init(color: Color.mix(bg, "#8E9CC4", 0.30).opacity(0.78), location: 1)],
+                    LinearGradient(stops: [.init(color: Color(hex: bg).opacity(0.92), location: 0), .init(color: Color(hex: bg).opacity(0.76), location: 0.5),
+                                           .init(color: Color.mix(bg, "#8E9CC4", 0.34).opacity(0.72), location: 1)],
                                    startPoint: .top, endPoint: .bottom)
                 }
                 // light from above, and a thin bright haze low in the sky
-                RadialGradient(colors: [Color.white.opacity(night ? 0.07 : 0.40), Color.white.opacity(0)],
-                               center: UnitPoint(x: 0.85, y: -0.05), startRadius: 0, endRadius: r * 0.95)
-                LinearGradient(stops: [.init(color: .white.opacity(0), location: 0.45), .init(color: .white.opacity(night ? 0.03 : 0.16), location: 0.7),
+                RadialGradient(colors: [Color.white.opacity(night ? 0.08 : 0.50), Color.white.opacity(0)],
+                               center: UnitPoint(x: 0.85, y: -0.05), startRadius: 0, endRadius: r * 0.9)
+                LinearGradient(stops: [.init(color: .white.opacity(0), location: 0.45), .init(color: .white.opacity(night ? 0.04 : 0.22), location: 0.7),
                                        .init(color: .white.opacity(0), location: 0.95)], startPoint: .top, endPoint: .bottom)
             }
         }
@@ -85,14 +85,15 @@ struct MediumWidgetView: View {
             }
             HStack(alignment: .bottom, spacing: 4) {
                 ZStack(alignment: .bottom) {
-                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 92, animate: false)
-                        .frame(width: 92, height: 107, alignment: .bottom)
+                    // 86 pt wide so a bubble over the open umbrella still clears the top row
+                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 86, animate: false)
+                        .frame(width: 86, height: 100, alignment: .bottom)
                     if let b = s.bubble {
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 9), fontSize: 10).fixedSize().scaleEffect(0.9, anchor: .bottom)
-                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 107))
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 9), fontSize: 10).fixedSize().scaleEffect(0.85, anchor: .bottom)
+                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 100, gap: 4))
                     }
                 }
-                .frame(width: 110, height: 126, alignment: .bottom).offset(y: 6)
+                .frame(width: 110, height: 126, alignment: .bottom).offset(y: 9)
                 VStack(alignment: .trailing, spacing: 6) {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         VStack(alignment: .trailing, spacing: 2) {

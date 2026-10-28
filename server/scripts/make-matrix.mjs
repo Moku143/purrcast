@@ -80,10 +80,10 @@ for (const time of ['day', 'night']) for (const c of [10, 25, 40, 55, 70, 85, 10
   add({ time, cover: c >= 70 ? 'overcast' : c >= 30 ? 'partly' : 'clear', cloud: c, group: '구름 양', key: `${time}-clouds-${c}`, label: `${time === 'day' ? '낮' : '밤'} · 구름 ${c}%` });
 }
 for (const mm of [0.3, 1, 3, 6, 12, 25, 40]) {
-  add({ time: 'day', cover: 'overcast', precip: mm >= 6 ? 'heavy' : 'rain', mm, group: '비 양', key: `day-rain-mm-${mm}`, label: `비 ${mm}mm` });
+  add({ time: 'day', cover: 'overcast', precip: mm >= 6 ? 'heavy' : 'rain', mm, group: '비 양', key: `day-rain-mm-${String(mm).replace(".", "p")}`, label: `비 ${mm}mm` });
 }
 for (const mm of [0.3, 1, 2, 4, 8]) {
-  add({ time: 'day', cover: 'overcast', precip: mm >= 3 ? 'heavysnow' : 'snow', mm, group: '눈 양', key: `day-snow-cm-${mm}`, label: `눈 ${mm}cm` });
+  add({ time: 'day', cover: 'overcast', precip: mm >= 3 ? 'heavysnow' : 'snow', mm, group: '눈 양', key: `day-snow-cm-${String(mm).replace(".", "p")}`, label: `눈 ${mm}cm` });
 }
 for (const [f, name] of [[30, '옅은 안개'], [60, '안개'], [90, '짙은 안개']]) for (const time of ['day', 'night']) {
   add({ time, cover: 'partly', fogPct: f, aux: f >= 50 ? 'fog' : 'none', group: '안개 농도', key: `${time}-fog-${f}`, label: `${time === 'day' ? '낮' : '밤'} · ${name} (${f}%)` });
