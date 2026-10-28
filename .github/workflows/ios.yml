@@ -86,9 +86,6 @@ jobs:
           shot watch-ko-hours -lang ko -scene maybe -char cat -page 1
           shot watch-ko-days -lang ko -scene maybe -char cat -page 2
           shot watch-ko-locked -lang ko -scene maybe -char cat -locked
-          # the walk when the outfit changes: open with 맑음 (clear) as the last-seen weather, now rain (umbrella); a burst of frames
-          xcrun simctl launch --terminate-running-process "$DEV" app.purrcast.ios.watchkitapp -lang ko -scene spring_rain -char cat -page 0 -walkFrom clear || true
-          for i in $(seq -w 1 24); do xcrun simctl io "$DEV" screenshot "shots/walk-$i.png" >/dev/null 2>&1 || true; done
       - name: Publish results to the ci-output branch
         if: always()
         run: |

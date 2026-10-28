@@ -8,11 +8,6 @@ struct WatchNow: View {
     let snap: WeatherSnapshot
     /// How far down the top row sits: level with the watch's clock (the system draws the time at the top right).
     var headerTop: CGFloat = 11
-    /// The walk when the weather changes (`WatchNowWalking` drives it): how far the cat has walked sideways, which way
-    /// it is walking (nil: standing), and whether the bubble shows.
-    var catX: CGFloat = 0
-    var walk: WalkDirection? = nil
-    var bubbleOn = true
     #if os(watchOS)
     @Environment(\.isLuminanceReduced) private var dimmed     // always-on (wrist down): hold still to save battery
     #else
@@ -34,19 +29,11 @@ struct WatchNow: View {
                 Spacer(minLength: 0)
                 HStack(alignment: .bottom, spacing: 0) {
                     ZStack(alignment: .bottom) {
-                        Group {
-                            if let w = walk {
-                                WalkingSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, facingLeft: w == .left)
-                            } else {
-                                CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: !dimmed).probe("cat")
-                            }
-                        }
-                        .offset(x: catX)
-                        .frame(width: catW, height: catH, alignment: .bottom)
+                        CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: !dimmed).probe("cat")
+                            .frame(width: catW, height: catH, alignment: .bottom)
                         if let b = s.bubble {
                             BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize().probe("bubble")
                                 .scaleEffect(0.85, anchor: .bottom)
-                                .scaleEffect(bubbleOn ? 1 : 0.8, anchor: .bottom).opacity(bubbleOn ? 1 : 0)
                                 .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: catH))
                         }
                     }
@@ -68,5 +55,3 @@ struct WatchNow: View {
         .ignoresSafeArea()
     }
 }
-
-enum WalkDirection { case left, right }

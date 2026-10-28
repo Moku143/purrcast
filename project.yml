@@ -22,7 +22,6 @@ targets:
     sources:
       - path: Purrcast
       - path: Shared
-      - path: WalkSprites      # the walking frames: the phone app and the watch app (not the widgets)
     info:
       path: Purrcast/Info.plist
       properties:
@@ -82,7 +81,6 @@ targets:
     sources:
       - path: PurrcastWatch
       - path: Shared
-      - path: WalkSprites
     info:
       path: PurrcastWatch/Info.plist
       properties:
