@@ -260,13 +260,39 @@ final class AppModel: ObservableObject {
     }
 
     /// A saved place named in the current language: "here" (when not live) and catalog places from their tables,
-    /// index places ("kr:" · "rg:") from the search index. Apple Maps picks ("mk:") keep the name they were added with.
+    /// index places ("kr:" · "rg:") from the search index. Apple Maps picks ("mk:") keep the name they were added with,
+    /// except Korean ones, which read in katakana in Japanese and go back to their Korean name in Korean.
     private func renamed(_ p: Place) -> Place {
         if p.id == "here" && !hereIsLive { return Place.here }
         if let c = Place.catalog.first(where: { $0.id == p.id }) {
-            var q = p; q.name = c.name; q.short = c.short; return q
+            var q = p; q.name = c.name; q.short = c.short; q.ko = c.ko; return q
         }
-        return PlaceIndex.shared.renamed(p) ?? p
+        if let q = PlaceIndex.shared.renamed(p) { return q }
+        return Self.koreanNamed(p, Lang.current)
+    }
+
+    /// A Korean place outside the index and the catalog ("here" while live, Apple Maps picks): Japanese reads its Korean
+    /// name in katakana, Korean gets the Korean name back, English keeps the name it has.
+    nonisolated static func koreanNamed(_ p: Place, _ lang: Lang) -> Place {
+        guard p.region == "kr" else { return p }
+        var q = p
+        if q.ko == nil, KoreanKana.hasHangul(p.name) { q.ko = p.name }
+        guard let ko = q.ko else { return p }
+        let koShort = ko.split(separator: " ").last.map(String.init) ?? ko
+        switch lang {
+        case .ja:
+            let words = ko.split(separator: " ").map(String.init)
+            let head = words.first.flatMap { KoreanKana.province($0) }
+            q.name = ([head ?? KoreanKana.place(words.first ?? "")] + words.dropFirst().map { KoreanKana.place($0) })
+                .filter { !$0.isEmpty }.joined(separator: " ")
+            q.short = words.count == 1 ? (head ?? KoreanKana.place(koShort)) : KoreanKana.place(koShort)
+        case .ko:
+            q.name = ko
+            q.short = koShort
+        case .en:
+            break
+        }
+        return q
     }
 
     /// Hand the current forecast to the widgets and the watch, and re-plan notifications from it.

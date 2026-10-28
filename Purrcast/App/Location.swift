@@ -22,19 +22,43 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     func ask() { if undecided { manager.requestWhenInUseAuthorization() } }
 
     /// The current place, or nil when location is off / unavailable.
+    /// In Korea the place also gets its Korean name ("서울 구로구 오류동"): the server reads the 기상청 warnings by it, and
+    /// Japanese shows it in katakana ("ソウル オリュドン") — Apple answers Korean addresses in Hangul even in Japanese.
     func currentPlace() async -> Place? {
         guard allowed, let loc = await fix() else { return nil }
-        let marks = try? await CLGeocoder().reverseGeocodeLocation(loc, preferredLocale: Lang.current.locale)
-        let m = marks?.first
-        let city = m?.administrativeArea ?? m?.locality ?? ""
-        let district = m?.subLocality ?? m?.locality ?? m?.subAdministrativeArea ?? ""
+        let lang = Lang.current
+        let m = await mark(loc, lang.locale)
+        let (city, district) = Self.parts(m)
         var name = [Self.shortCity(city), district].filter { !$0.isEmpty }.joined(separator: " ")
         if name.isEmpty { name = L("지금 위치") }
         let country = m?.isoCountryCode ?? ""
-        return Place(id: "here", name: name, short: district.isEmpty ? (Self.shortCity(city).isEmpty ? L("지금 위치") : Self.shortCity(city)) : district,
-                     lat: loc.coordinate.latitude, lon: loc.coordinate.longitude,
-                     region: country == "KR" ? "kr" : (country == "JP" ? "jp" : "other"),
-                     timeZone: (m?.timeZone ?? TimeZone.current).identifier, sample: Place.here.sample)
+        var ko: String?
+        if country == "KR" {
+            let k = lang == .ko ? m : await mark(loc, Lang.ko.locale)
+            let (kc, kd) = Self.parts(k)
+            let n = [Self.shortCity(kc), kd].filter { !$0.isEmpty }.joined(separator: " ")
+            ko = KoreanKana.hasHangul(n) ? n : nil
+        }
+        let place = Place(id: "here", name: name, short: district.isEmpty ? (Self.shortCity(city).isEmpty ? L("지금 위치") : Self.shortCity(city)) : district,
+                          lat: loc.coordinate.latitude, lon: loc.coordinate.longitude,
+                          region: country == "KR" ? "kr" : (country == "JP" ? "jp" : "other"),
+                          timeZone: (m?.timeZone ?? TimeZone.current).identifier, sample: Place.here.sample, ko: ko)
+        return lang == .ja ? AppModel.koreanNamed(place, .ja) : place
+    }
+
+    /// (시도 / state, district) from a placemark.
+    private static func parts(_ m: CLPlacemark?) -> (String, String) {
+        (m?.administrativeArea ?? m?.locality ?? "", m?.subLocality ?? m?.locality ?? m?.subAdministrativeArea ?? "")
+    }
+
+    /// Reverse geocoding, remembered per ~100 m and language so a refresh does not ask Apple again for the same spot.
+    private var marks: [String: CLPlacemark] = [:]
+    private func mark(_ loc: CLLocation, _ locale: Locale) async -> CLPlacemark? {
+        let key = String(format: "%.3f,%.3f,%@", loc.coordinate.latitude, loc.coordinate.longitude, locale.identifier)
+        if let m = marks[key] { return m }
+        let m = (try? await CLGeocoder().reverseGeocodeLocation(loc, preferredLocale: locale))?.first
+        if let m { if marks.count > 20 { marks = [:] }; marks[key] = m }
+        return m
     }
 
     /// "서울특별시" → "서울", "경기도" → "경기"

@@ -78,6 +78,7 @@ final class PlaceIndex {
         var q = p
         q.name = s.placeName(i, Lang.current)
         q.short = s.shortName(i, Lang.current)
+        q.ko = s.koreanName(i)
         return q
     }
 
@@ -171,7 +172,7 @@ final class PlaceStore: @unchecked Sendable {
         var kr: KR? = nil
     }
 
-    /// A Korean row's levels, for "서울 마포구 아현동" · "Ahyeon-dong, Mapo-gu, Seoul" · "ソウル Mapo-gu Ahyeon-dong".
+    /// A Korean row's levels, for "서울 마포구 아현동" · "Ahyeon-dong, Mapo-gu, Seoul" · "ソウル マポ区 アヒョンドン".
     struct KR {
         var sido: String          // 서울특별시
         var short: String         // 서울
@@ -181,6 +182,8 @@ final class PlaceStore: @unchecked Sendable {
         var l3: String            // 아현동 · ""
         var r2: String            // Mapo-gu
         var r3: String            // Ahyeon-dong
+        var k2 = ""               // マポ区 (KoreanKana)
+        var k3 = ""               // アヒョンドン
     }
 
     private struct Hit {
@@ -277,10 +280,12 @@ final class PlaceStore: @unchecked Sendable {
         var sigungu: [String: Int] = [:]
         for level in 1...3 {
             for r in rows {
-                let n = KR(sido: Self.str(r, 1), short: Self.str(r, 6), en1: Self.str(r, 7), ja1: Self.str(r, 8),
+                var n = KR(sido: Self.str(r, 1), short: Self.str(r, 6), en1: Self.str(r, 7), ja1: Self.str(r, 8),
                            l2: Self.str(r, 2), l3: Self.str(r, 3), r2: Self.str(r, 9), r3: Self.str(r, 10))
                 let rowLevel = !n.l3.isEmpty ? 3 : (!n.l2.isEmpty ? 2 : 1)
                 guard rowLevel == level else { continue }
+                n.k2 = KoreanKana.place(n.l2)
+                n.k3 = KoreanKana.place(n.l3)
                 let parent: Int?
                 switch level {
                 case 1: parent = sido[n.sido] == nil ? korea : nil          // 세종 repeats itself once: keep the first
@@ -301,12 +306,12 @@ final class PlaceStore: @unchecked Sendable {
     private static func ownNames(_ n: KR, _ level: Int) -> [String] {
         switch level {
         case 1: return [n.sido, n.en1, n.ja1]
-        case 2: return [n.l2, n.r2, n.r2]
-        default: return [n.l3, n.r3, n.r3]
+        case 2: return [n.l2, n.r2, n.k2]
+        default: return [n.l3, n.r3, n.k3]
         }
     }
 
-    /// Own names plus the composed ones, so "서울 마포", "Mapo-gu, Seoul" and "ソウル Mapo" all match.
+    /// Own names plus the composed ones, so "서울 마포", "Mapo-gu, Seoul", "ソウル Mapo" and "ソウル マポ" all match.
     private static func koreanKeys(_ n: KR, _ level: Int) -> [String] {
         let full = PlaceKey.norm(n.sido), short = PlaceKey.norm(n.short)
         let en1 = PlaceKey.norm(n.en1), ja1 = PlaceKey.norm(n.ja1)
@@ -315,7 +320,7 @@ final class PlaceStore: @unchecked Sendable {
             out += (sidoAliases[n.sido] ?? []).map(PlaceKey.norm)
             return out
         }
-        let k2 = PlaceKey.norm(n.l2), r2 = PlaceKey.norm(n.r2)
+        let k2 = PlaceKey.norm(n.l2), r2 = PlaceKey.norm(n.r2), j2 = PlaceKey.norm(n.k2)
         let w2: [String] = n.l2.split(separator: " ").map { PlaceKey.norm(String($0)) }
         let rw2: [String] = n.r2.split(separator: " ").map { PlaceKey.norm(String($0)) }
         let up2: String = rw2.reversed().joined()                       // small → big: bundanggu + seongnamsi
@@ -327,14 +332,18 @@ final class PlaceStore: @unchecked Sendable {
             out.append(up2 + en1)
             out.append(en1 + r2)
             out.append(ja1 + r2)
+            out.append(j2)
+            out += n.k2.split(separator: " ").map { PlaceKey.norm(String($0)) }
+            out.append(ja1 + j2)
             return out
         }
-        let k3 = PlaceKey.norm(n.l3), r3 = PlaceKey.norm(n.r3)
-        var out = [k3, r3]
+        let k3 = PlaceKey.norm(n.l3), r3 = PlaceKey.norm(n.r3), j3 = PlaceKey.norm(n.k3)
+        var out = [k3, r3, j3]
         out.append(short + k2 + k3)
         out.append(r3 + up2 + en1)
         out.append(en1 + r2 + r3)
         out.append(ja1 + r2 + r3)
+        out.append(ja1 + j2 + j3)
         return out
     }
 
@@ -443,7 +452,7 @@ final class PlaceStore: @unchecked Sendable {
     }
 
     /// ko "서울 마포구 아현동" (short 시도, big → small) · en "Ahyeon-dong, Mapo-gu, Seoul" (small → big) ·
-    /// ja "ソウル Mapo-gu Ahyeon-dong". A 시도 alone by its full name ("서울특별시" · "Seoul" · "ソウル").
+    /// ja "ソウル マポ区 アヒョンドン" (katakana, KoreanKana). A 시도 alone by its full name ("서울특별시" · "Seoul" · "ソウル").
     private static func koreanTitle(_ n: KR, _ level: Int, _ lang: Lang) -> String {
         if level == 1 { return lang == .ko ? n.sido : (lang == .en ? n.en1 : n.ja1) }
         let dong = level == 3
@@ -456,7 +465,7 @@ final class PlaceStore: @unchecked Sendable {
             parts.append(n.en1)
             return joined(parts, ", ")
         case .ja:
-            return joined([n.ja1, n.r2, dong ? n.r3 : ""], " ")
+            return joined([n.ja1, n.k2, dong ? n.k3 : ""], " ")
         }
     }
 
@@ -477,13 +486,18 @@ final class PlaceStore: @unchecked Sendable {
         guard e.kind == .kr, let n = e.kr else { return title(i, lang) }
         switch e.level {
         case 1: return lang == .ko ? n.short : (lang == .en ? n.en1 : n.ja1)
-        case 2: return Self.lastWord(lang == .ko ? n.l2 : n.r2)
-        default: return lang == .ko ? n.l3 : n.r3
+        case 2: return Self.lastWord(lang == .ko ? n.l2 : (lang == .en ? n.r2 : n.k2))
+        default: return lang == .ko ? n.l3 : (lang == .en ? n.r3 : n.k3)
         }
     }
 
     private static func lastWord(_ s: String) -> String {
         s.split(separator: " ").last.map { String($0) } ?? s
+    }
+
+    /// A Korean row's Korean name, for the server (기상청 warnings go by it); nil for other rows.
+    func koreanName(_ i: Int) -> String? {
+        entries[i].kind == .kr ? placeName(i, .ko) : nil
     }
 
     func subtitle(_ i: Int, _ lang: Lang) -> String {
@@ -521,7 +535,7 @@ final class PlaceStore: @unchecked Sendable {
         if e.kind == .country && !children[i].isEmpty { return nil }
         let region = Self.region(for: e.cc)
         return Place(id: id(i), name: placeName(i, lang), short: shortName(i, lang), lat: e.lat, lon: e.lon,
-                     region: region, timeZone: timeZone(i), sample: Self.sample(for: region))
+                     region: region, timeZone: timeZone(i), sample: Self.sample(for: region), ko: koreanName(i))
     }
 
     func row(_ i: Int, _ lang: Lang) -> PlaceRow {

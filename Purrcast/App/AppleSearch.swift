@@ -90,9 +90,11 @@ final class AppleSearch: NSObject, ObservableObject, MKLocalSearchCompleterDeleg
         guard let response = try? await search.start(), let item = response.mapItems.first else { return nil }
         let mark = item.placemark
         let cc = mark.isoCountryCode ?? ""
-        return PlaceIndex.shared.mapKitPlace(name: row.title, short: Self.shortName(row.title, korean: cc == "KR"),
-                                             lat: mark.coordinate.latitude, lon: mark.coordinate.longitude,
-                                             country: cc, timeZone: item.timeZone)
+        let p = PlaceIndex.shared.mapKitPlace(name: row.title, short: Self.shortName(row.title, korean: cc == "KR"),
+                                              lat: mark.coordinate.latitude, lon: mark.coordinate.longitude,
+                                              country: cc, timeZone: item.timeZone)
+        // Korean addresses come in Hangul: keep that for the server, and read it in katakana in Japanese
+        return AppModel.koreanNamed(p, Lang.current)
     }
 
     /// Widgets get the first part of the title ("Shibuya, Tokyo" → "Shibuya"); a Korean address its last word

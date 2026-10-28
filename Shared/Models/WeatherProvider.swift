@@ -57,7 +57,7 @@ struct ServerWeatherProvider: WeatherProvider {
             URLQueryItem(name: "tz", value: place.timeZone),
             URLQueryItem(name: "plan", value: plus ? "plus" : "free"),
             URLQueryItem(name: "lang", value: Lang.current.code),
-            URLQueryItem(name: "name", value: place.name),
+            URLQueryItem(name: "name", value: place.serverName),   // Korean for Korean places: 기상청 warnings go by it
         ]
         if let p = previousLevel { q.append(URLQueryItem(name: "prev", value: String(p))) }
         c.queryItems = q

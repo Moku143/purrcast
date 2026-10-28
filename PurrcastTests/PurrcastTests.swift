@@ -369,9 +369,41 @@ final class PurrcastTests: XCTestCase {
         Lang.current = .en
         XCTAssertEqual(index.search("Mapo").rows.first?.title, "Mapo-gu, Seoul")
         XCTAssertEqual(index.renamed(p)?.name, "Mapo-gu, Seoul"); XCTAssertEqual(index.renamed(p)?.short, "Mapo-gu")
+        XCTAssertEqual(index.renamed(p)?.ko, "서울 마포구", "the server gets the Korean name in every language")
         Lang.current = .ja
-        XCTAssertEqual(index.renamed(p)?.name, "ソウル Mapo-gu")
+        XCTAssertEqual(index.renamed(p)?.name, "ソウル マポ区"); XCTAssertEqual(index.renamed(p)?.short, "マポ区")
+        XCTAssertEqual(index.renamed(p)?.serverName, "서울 마포구")
+        XCTAssertEqual(index.search("オリュ").rows.first?.title, "ソウル クロ区 オリュ1ドン", "katakana finds Korean places")
+        XCTAssertEqual(index.search("まぽ").rows.first?.title, "ソウル マポ区")
         XCTAssertNil(index.renamed(Place.catalog[0]), "catalog and Apple Maps places are not the index's")
+    }
+
+    /// Korean place names read in katakana for Japanese (Apple answers Korean addresses in Hangul).
+    func testKoreanKana() {
+        let cases: [(String, String)] = [
+            ("서울", "ソウル"), ("오류동", "オリュドン"), ("구로구", "クロ区"), ("마포구", "マポ区"), ("종로구", "チョンノ区"),
+            ("강남구", "カンナム区"), ("영등포구", "ヨンドゥンポ区"), ("관악구", "クァナク区"), ("신림동", "シルリムドン"),
+            ("왕십리", "ワンシムニ"), ("해운대구", "ヘウンデ区"), ("성남시 분당구", "ソンナム市 プンダン区"), ("판교동", "パンギョドン"),
+            ("여의도동", "ヨウィドドン"), ("역삼1동", "ヨクサム1ドン"), ("목동", "モクトン"), ("안양시", "アニャン市"),
+            ("수원시", "スウォン市"), ("신월동", "シンウォルドン"), ("강릉시", "カンヌン市"), ("압구정동", "アプクジョンドン"),
+            ("제주시", "チェジュ市"), ("의정부시", "ウィジョンブ市"), ("청주시", "チョンジュ市"), ("대구", "大邱"), ("중구", "チュン区"), ("오류1동", "オリュ1ドン"),
+            ("Seoul", "Seoul"),
+        ]
+        for (ko, ja) in cases { XCTAssertEqual(KoreanKana.place(ko), ja, ko) }
+        XCTAssertEqual(KoreanKana.province("서울특별시"), "ソウル")
+        XCTAssertEqual(KoreanKana.province("충청북도"), "忠清北道")
+        XCTAssertEqual(KoreanKana.province("충청북"), "忠清北道")
+        XCTAssertNil(KoreanKana.province("Tokyo"))
+
+        // "here" in Korea: the Korean name kept for the server, katakana in Japanese, Korean back in Korean
+        let here = Place(id: "here", name: "서울 오류동", short: "오류동", lat: 37.49, lon: 126.84, region: "kr",
+                         timeZone: "Asia/Seoul", sample: "maybe", ko: "서울 오류동")
+        let ja = AppModel.koreanNamed(here, .ja)
+        XCTAssertEqual(ja.name, "ソウル オリュドン"); XCTAssertEqual(ja.short, "オリュドン"); XCTAssertEqual(ja.serverName, "서울 오류동")
+        XCTAssertEqual(AppModel.koreanNamed(ja, .ko).name, "서울 오류동")
+        let tokyo = Place(id: "mk:35.662,139.704", name: "渋谷区", short: "渋谷区", lat: 35.66, lon: 139.70, region: "jp",
+                          timeZone: "Asia/Tokyo", sample: "tokyo_soon")
+        XCTAssertEqual(AppModel.koreanNamed(tokyo, .ja), tokyo, "only Korean places change")
     }
 
     func testSearchKeys() {
