@@ -107,28 +107,28 @@ struct PieceComplication: View {
     }
 }
 
-struct PieceWidget: Widget {
-    let piece: WatchPiece
-    var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "PurrcastWatch-\(piece.rawValue)", provider: WatchProvider()) { e in
-            PieceComplication(piece: piece, entry: e).containerBackground(for: .widget) { Color.clear }
-        }
-        .configurationDisplayName(name)
-        .description(note)
-        .supportedFamilies([.accessoryCorner, .accessoryCircular])
-    }
-    private var name: String {
-        switch piece { case .temp: return L("기온"); case .rain: return L("비 올 확률"); case .feels: return L("체감온도"); case .sun: return L("일몰 · 일출") }
-    }
-    private var note: String {
+/// One widget per piece, so each corner can hold a different one (a Widget needs a plain init()).
+private func pieceConfiguration(_ piece: WatchPiece) -> some WidgetConfiguration {
+    let (name, note): (String, String) = {
         switch piece {
-        case .temp: return L("지금 기온과 날씨")
-        case .rain: return L("앞으로 6시간 비 올 확률")
-        case .feels: return L("체감온도를 색으로")
-        case .sun: return L("다음 일몰이나 일출 시각")
+        case .temp: return (L("기온"), L("지금 기온과 날씨"))
+        case .rain: return (L("비 올 확률"), L("앞으로 6시간 비 올 확률"))
+        case .feels: return (L("체감온도"), L("체감온도를 색으로"))
+        case .sun: return (L("일몰 · 일출"), L("다음 일몰이나 일출 시각"))
         }
+    }()
+    return StaticConfiguration(kind: "PurrcastWatch-\(piece.rawValue)", provider: WatchProvider()) { e in
+        PieceComplication(piece: piece, entry: e).containerBackground(for: .widget) { Color.clear }
     }
+    .configurationDisplayName(name)
+    .description(note)
+    .supportedFamilies([.accessoryCorner, .accessoryCircular])
 }
+
+struct TempWidget: Widget { var body: some WidgetConfiguration { pieceConfiguration(.temp) } }
+struct RainWidget: Widget { var body: some WidgetConfiguration { pieceConfiguration(.rain) } }
+struct FeelsWidget: Widget { var body: some WidgetConfiguration { pieceConfiguration(.feels) } }
+struct SunWidget: Widget { var body: some WidgetConfiguration { pieceConfiguration(.sun) } }
 
 // MARK: 고양이
 
@@ -164,9 +164,9 @@ struct PurrcastWatchBundle: WidgetBundle {
     var body: some Widget {
         SummaryWidget()
         CatWidget()
-        PieceWidget(piece: .temp)
-        PieceWidget(piece: .rain)
-        PieceWidget(piece: .feels)
-        PieceWidget(piece: .sun)
+        TempWidget()
+        RainWidget()
+        FeelsWidget()
+        SunWidget()
     }
 }
