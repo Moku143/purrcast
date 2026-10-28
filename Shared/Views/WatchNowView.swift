@@ -35,13 +35,10 @@ struct WatchNow: View {
                 HStack(alignment: .bottom, spacing: 0) {
                     ZStack(alignment: .bottom) {
                         Group {
-                            // standing ↔ walking swaps on the spot (no fade): the walk itself is the movement
                             if let w = walk {
                                 WalkingSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, facingLeft: w == .left)
-                                    .transition(.identity)
                             } else {
                                 CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: !dimmed).probe("cat")
-                                    .transition(.identity)
                             }
                         }
                         .offset(x: catX)

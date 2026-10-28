@@ -131,26 +131,19 @@ struct WatchNowWalking: View {
 
     @MainActor private func play(after delay: Double) async {
         playing = true
-        var k = 1.0                                         // timing scale (screenshots slow it down: -walkSlow 4)
-        #if DEBUG
-        let args = ProcessInfo.processInfo.arguments
-        if let i = args.firstIndex(of: "-walkSlow"), i + 1 < args.count { k = Double(args[i + 1]) ?? 1 }
-        #endif
-        func pause(_ s: Double) async { try? await Task.sleep(for: .seconds(s * k)) }
-        func still(_ change: () -> Void) { var t = Transaction(); t.disablesAnimations = true; withTransaction(t, change) }
-        if delay > 0 { await pause(delay) }                 // a beat to see the old outfit first
-        withAnimation(.easeOut(duration: 0.2 * k)) { bubbleOn = false }
-        await pause(0.3)
-        still { walk = .left }                              // turns to the left on the spot
-        withAnimation(.linear(duration: 1.0 * k)) { catX = -Self.offstage }
-        await pause(1.0)
-        withAnimation(.easeInOut(duration: 0.4 * k)) { shown = target; gen += 1 }
-        await pause(0.4)
-        still { walk = .right }                             // the new outfit, facing in, just past the edge
-        withAnimation(.linear(duration: 1.0 * k)) { catX = 0 }
-        await pause(1.0)
-        still { walk = nil }
-        await pause(0.1)
+        if delay > 0 { try? await Task.sleep(for: .seconds(delay)) }      // a beat to see the old outfit first
+        withAnimation(.easeOut(duration: 0.2)) { bubbleOn = false }
+        try? await Task.sleep(for: .milliseconds(300))
+        walk = .left
+        withAnimation(.linear(duration: 1.0)) { catX = -Self.offstage }
+        try? await Task.sleep(for: .seconds(1.0))
+        withAnimation(.easeInOut(duration: 0.4)) { shown = target; gen += 1 }
+        try? await Task.sleep(for: .milliseconds(400))
+        walk = .right
+        withAnimation(.linear(duration: 1.0)) { catX = 0 }
+        try? await Task.sleep(for: .seconds(1.0))
+        walk = nil
+        try? await Task.sleep(for: .milliseconds(100))
         withAnimation(Motion.bouncy) { bubbleOn = true }
         if let s = shown { remember(s) }
         playing = false

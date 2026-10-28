@@ -50,7 +50,6 @@ struct WalkingSprite: View {
             .resizable()
             .frame(width: width, height: width * Sprite.height / Sprite.width)
             .scaleEffect(x: facingLeft ? -1 : 1, y: 1)
-            .transaction { $0.animation = nil }      // turning round is instant (never a squeeze), frames just swap
             .onReceive(timer) { _ in frame += 1 }
     }
 }
