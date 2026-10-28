@@ -12,6 +12,8 @@ final class WidgetMatrixTests: XCTestCase {
 
     func testRenderMatrix() throws {
         guard ProcessInfo.processInfo.environment["MATRIX"] == "1" else { throw XCTSkip("run by the Widget matrix workflow") }
+        // the fixtures' sentences are Korean: draw the app's own words in Korean too (the simulator runs in English)
+        Lang.current = .ko
         let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "matrix", withExtension: "json"))
         let cases = try JSONDecoder().decode([Case].self, from: Data(contentsOf: url))
         var index: [[String: String]] = []
