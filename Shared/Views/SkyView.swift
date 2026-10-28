@@ -31,12 +31,12 @@ enum Sky {
         func ev(_ a: [SkyItem]) -> [SkyItem] { a.enumerated().filter { $0.offset % 2 == 0 }.map { $0.element } }
         func od(_ a: [SkyItem]) -> [SkyItem] { a.enumerated().filter { $0.offset % 2 == 1 }.map { $0.element } }
         let rain = all["rain"]?.items ?? [], snow = all["snow"]?.items ?? [], frost = all["frost"]?.items ?? [], dust = all["dust"]?.items ?? []
-        all["drizzle"] = SkyLayerData(tint: "rgba(84,104,150,0.14)", items: ev(rain).map { var i = $0; i.h = 4; i.c = "rgba(238,245,255,0.75)"; i.d *= 1.35; return i })
+        all["drizzle"] = SkyLayerData(tint: "rgba(56,96,170,0.14)", items: ev(rain).map { var i = $0; i.h = 4; i.c = "rgba(238,245,255,0.75)"; i.d *= 1.35; return i })
         all["freezing"] = SkyLayerData(tint: "rgba(170,200,240,0.28)", items: rain.map { var i = $0; i.c = "rgba(225,242,255,0.98)"; return i } + frost.filter { $0.t == "static" })
-        all["sleet"] = SkyLayerData(tint: "rgba(120,138,178,0.22)", items: ev(rain) + od(snow).map { var i = $0; i.w = 3; i.h = 3; return i })
+        all["sleet"] = SkyLayerData(tint: "rgba(96,126,190,0.20)", items: ev(rain) + od(snow).map { var i = $0; i.w = 3; i.h = 3; return i })
         all["flurries"] = SkyLayerData(tint: "rgba(225,235,255,0.10)", items: ev(snow))
         all["heavysnow"] = SkyLayerData(tint: "rgba(232,240,255,0.32)", items: snow + snow.map { var i = $0; i.x = (i.x + 17).truncatingRemainder(dividingBy: 268); i.w = 3; i.h = 3; i.d *= 0.85; i.dl -= 1.3; return i })
-        all["hail"] = SkyLayerData(tint: "rgba(96,112,150,0.30)", items: ev(rain).map { var i = $0; i.w = 3; i.h = 3; i.c = "rgba(245,250,255,0.98)"; i.d *= 0.9; return i })
+        all["hail"] = SkyLayerData(tint: "rgba(64,96,160,0.26)", items: ev(rain).map { var i = $0; i.w = 3; i.h = 3; i.c = "rgba(245,250,255,0.98)"; i.d *= 0.9; return i })
         // clearer weather (review of the widget matrix): clouds spread evenly over the width so a still frame always
         // shows them, more and bigger clouds when overcast, thicker and more rain, bigger snow
         func clouds(_ n: Int, ks: [Double], ys: [Double], c: String, d: Double) -> [SkyItem] {
@@ -45,7 +45,7 @@ enum Sky {
         }
         let sunGlow = (all["partly"]?.items ?? []).filter { $0.t == "static" }
         all["partly"] = SkyLayerData(tint: nil, items: sunGlow + clouds(3, ks: [1.6, 1.2, 1.8], ys: [6, 40, 22], c: "rgba(255,255,255,0.96)", d: 26))
-        all["overcast"] = SkyLayerData(tint: "rgba(96,106,132,0.34)",
+        all["overcast"] = SkyLayerData(tint: "rgba(82,108,158,0.22)",
                                        items: clouds(8, ks: [2.4, 1.8, 2.8, 2.0], ys: [-4, 30, 8, 46, 18, 60, 0, 36], c: "rgba(226,231,242,0.97)", d: 30))
         func thick(_ a: [SkyItem], h: Double, double: Bool) -> [SkyItem] {
             a.flatMap { i -> [SkyItem] in

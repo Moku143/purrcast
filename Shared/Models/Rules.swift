@@ -34,7 +34,7 @@ enum Rules {
     }
 
     /// Background colour per outfit level (the hero gradient starts from it).
-    static let background = ["#FFC2A8", "#FFD3B5", "#FFE8A3", "#F3F0B5", "#D9EFCF", "#D3E6F4", "#CDDCEF", "#C8D4F0", "#B7C6EA", "#A9B6E2"]
+    static let background = ["#FFB899", "#FFCAA6", "#FFE38C", "#EDF0A4", "#CDEFC0", "#C4E2F8", "#BDD5F4", "#B9CAF3", "#A8BCEE", "#9AAEE8"]
 
     /// Umbrella state from precipitation now and the next 12 hours.
     static func rainState(nowMM: Double, startsInHours: Int?, maxChance12h: Int) -> RainState {

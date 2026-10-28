@@ -11,7 +11,7 @@ struct WidgetBackground: View {
     var body: some View {
         let bg = Rules.background[max(0, min(9, level))]
         ZStack {
-            LinearGradient(colors: [Color(hex: bg), Color.mix(bg, "#8E9CC4", 0.28)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [Color(hex: bg), Color.deeper(bg)], startPoint: .top, endPoint: .bottom)
             if let scene {
                 SkyTint(scene: scene)
                 GeometryReader { g in

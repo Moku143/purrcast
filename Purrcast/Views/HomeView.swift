@@ -126,7 +126,7 @@ struct HomeView: View {
         let bg = Rules.background[level]
         return LinearGradient(stops: night
             ? [.init(color: Color(hex: bg), location: 0), .init(color: Color(hex: bg), location: 0.35), .init(color: .mix(bg, "#0B0F24", 0.78), location: 0.66), .init(color: Color(hex: "#0B0F22"), location: 1)]
-            : [.init(color: Color(hex: bg), location: 0), .init(color: Color(hex: bg), location: 0.4), .init(color: .mix(bg, "#8E9CC4", 0.32), location: 1)],
+            : [.init(color: Color(hex: bg), location: 0), .init(color: Color(hex: bg), location: 0.4), .init(color: .deeper(bg), location: 1)],
             startPoint: .top, endPoint: .bottom)
     }
 

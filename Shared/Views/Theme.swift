@@ -12,6 +12,18 @@ extension Color {
         let r = Double((v >> 16) & 0xFF) / 255, g = Double((v >> 8) & 0xFF) / 255, b = Double(v & 0xFF) / 255
         self.init(red: r, green: g, blue: b)
     }
+    /// The same hue a little deeper and clearer (more saturated, a bit darker) — the bottom of the sky gradients.
+    /// Mixing toward grey-lavender made every sky muddy.
+    static func deeper(_ hex: String, _ t: Double = 1) -> Color {
+        let s = hex.hasPrefix("#") ? String(hex.dropFirst()) : hex
+        let v = UInt64(s, radix: 16) ?? 0
+        let r = Double((v >> 16) & 0xFF) / 255, g = Double((v >> 8) & 0xFF) / 255, b = Double(v & 0xFF) / 255
+        let mx = max(r, g, b), mn = min(r, g, b), d = mx - mn
+        var h = 0.0
+        if d > 0 { h = mx == r ? (g - b) / d : mx == g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h / 6).truncatingRemainder(dividingBy: 1); if h < 0 { h += 1 } }
+        let sat = mx == 0 ? 0 : d / mx
+        return Color(hue: h, saturation: min(1, sat + 0.16 * t), brightness: max(0, mx - 0.07 * t))
+    }
     static func mix(_ a: String, _ b: String, _ t: Double) -> Color {
         func h(_ x: String) -> [Double] { let s = x.dropFirst(); return stride(from: 0, to: 6, by: 2).map { i in
             let st = s.index(s.startIndex, offsetBy: i); return Double(UInt8(s[st..<s.index(st, offsetBy: 2)], radix: 16) ?? 0) / 255 } }
@@ -28,8 +40,8 @@ struct Ink {
     var blue: Color { night ? Color(hex: "#9CC0FF") : Color(hex: "#1F5BD0") }
     var line: Color { night ? Color.white.opacity(0.10) : Color(hex: "#1E2A44").opacity(0.08) }
     var track: Color { night ? Color.white.opacity(0.16) : Color(hex: "#1E2A44").opacity(0.12) }
-    var card: Color { night ? Color.white.opacity(0.09) : Color.white.opacity(0.62) }
-    var cardBorder: Color { night ? Color.white.opacity(0.14) : Color.white.opacity(0.8) }
+    var card: Color { night ? Color.white.opacity(0.13) : Color.white.opacity(0.86) }
+    var cardBorder: Color { night ? Color.white.opacity(0.18) : Color.white }
     var btn: Color { night ? Color.white.opacity(0.16) : Color.white.opacity(0.6) }
     var faint: Color { night ? Color.white.opacity(0.28) : Color(hex: "#1E2A44").opacity(0.28) }
     var hot: Color { night ? Color(hex: "#FFB08A") : Color(hex: "#C2452D") }
