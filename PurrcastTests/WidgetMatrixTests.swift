@@ -81,6 +81,7 @@ final class WidgetMatrixTests: XCTestCase {
         shoot("watch", 198, 242, probe: true) { WatchAppScreen(snap: snap) }
         shoot("watch-bg", 198, 242) { bg() }
         shoot("face", 198, 242, probe: true) { WatchFacePreview(snap: snap) }
+        shoot("analog", 198, 242, probe: true) { WatchAnalogPreview(snap: snap) }
         shoot("face-gauge", 50, 50) { LockCircularView(snap: snap) }
         shoot("face-rain", 50, 50) { LockRainCircularView(snap: snap).foregroundStyle(.white) }
         // the bubbles exactly as each surface draws them (before the 0.85 scale)
@@ -113,7 +114,7 @@ final class WidgetMatrixTests: XCTestCase {
     }
 }
 
-/// One weather, side by side: home small · home medium · lock screen · watch app · watch face.
+/// One weather, side by side: home small · home medium · lock screen · watch app · modular face · analog face.
 private struct MatrixRow: View {
     let snap: WeatherSnapshot
     var body: some View {
@@ -135,6 +136,7 @@ private struct MatrixRow: View {
             // watch app (45 mm screen, with the clock) and a watch face with the complications, still frames
             watch { WatchAppScreen(snap: snap) }
             watch { WatchFacePreview(snap: snap) }
+            watch { WatchAnalogPreview(snap: snap) }
         }
         .padding(16).background(Color(hex: "#EEF1F6"))
         .environment(\.locale, Locale(identifier: "ko_KR"))

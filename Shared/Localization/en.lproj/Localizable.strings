@@ -551,3 +551,11 @@
 "Apple 날씨 · Plus" = "Apple Weather · Plus";
 "시간별 예보로는 %@쯤 비 · 가능성 %d%%" = "Hourly forecast: rain around %@ · %d%% chance";
 "시간별 예보로는 %@쯤 비" = "Hourly forecast: rain around %@";
+
+/* 워치 컴플리케이션 */
+"일몰 · 일출" = "Sunset · Sunrise";
+"지금 기온과 날씨" = "Temperature and weather now";
+"앞으로 6시간 비 올 확률" = "Chance of rain, next 6 hours";
+"체감온도를 색으로" = "Feels-like, in colour";
+"다음 일몰이나 일출 시각" = "Next sunset or sunrise";
+"고양이와 오늘 날씨" = "Your cat, dressed for today";
