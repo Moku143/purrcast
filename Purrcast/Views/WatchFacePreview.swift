@@ -19,24 +19,24 @@ struct WatchFacePreview: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(dateText).font(.system(size: 14, weight: .semibold)).foregroundStyle(accent)
-                        .lineLimit(1).minimumScaleFactor(0.7)
+                        .lineLimit(1).minimumScaleFactor(0.7).probe("date")
                     Spacer(minLength: 0)
                     Text(WatchClock.now(clock12: snap.clock12)).font(.system(size: 36, weight: .semibold, design: .rounded)).foregroundStyle(.white)
-                        .lineLimit(1).fixedSize()
+                        .lineLimit(1).fixedSize().probe("time")
                 }
                 LockRectangularView(snap: snap)
                     .foregroundStyle(.white)
-                    .frame(height: 56)
+                    .frame(height: 56).probe("rect")
                 HStack(spacing: 0) {
-                    LockCircularView(snap: snap).frame(width: 50, height: 50)
+                    LockCircularView(snap: snap).frame(width: 50, height: 50).probe("gauge")
                     Spacer(minLength: 0)
-                    LockRainCircularView(snap: snap).foregroundStyle(.white).frame(width: 50, height: 50)
+                    LockRainCircularView(snap: snap).foregroundStyle(.white).frame(width: 50, height: 50).probe("rainCircle")
                     Spacer(minLength: 0)
                     ZStack {
                         AccessoryWidgetBackgroundCompat()
                         Image(snap.shownCharacter.faceImage).resizable().interpolation(.none).scaledToFit().frame(width: 32, height: 32)
                     }
-                    .frame(width: 50, height: 50)
+                    .frame(width: 50, height: 50).probe("faceCircle")
                 }
             }
             .padding(.horizontal, 12).padding(.top, 14).padding(.bottom, 12)
@@ -100,7 +100,7 @@ struct WatchAppScreen: View {
             WatchNow(snap: snap)
             Text(WatchClock.now(clock12: snap.clock12)).font(.system(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color.white)
-                .shadow(color: .black.opacity(0.25), radius: 1.5)
+                .shadow(color: .black.opacity(0.25), radius: 1.5).probe("clock")
                 .padding(.top, 9).padding(.trailing, 22)
         }
     }

@@ -77,19 +77,19 @@ struct MediumWidgetView: View {
         let rain = RainState(rawValue: s.rain) ?? .none
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
-                Text(snap.placeShort).font(.px(11))
-                if let t = sunsetTile(s) { PixelIcon(name: "sunset", size: 12); Text(t).font(.px(11)) }
+                Text(snap.placeShort).font(.px(11)).probe("place")
+                if let t = sunsetTile(s) { PixelIcon(name: "sunset", size: 12).probe("sunsetIcon"); Text(t).font(.px(11)).probe("sunsetText") }
                 Spacer()
-                Text(s.isPlus ? L("%@ 받음", s.updated) : L("%@ 기준", s.updated)).font(.px(10)).opacity(0.75)
-                PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16)
+                Text(s.isPlus ? L("%@ 받음", s.updated) : L("%@ 기준", s.updated)).font(.px(10)).opacity(0.75).probe("issued")
+                PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16).probe("icon")
             }
             HStack(alignment: .bottom, spacing: 4) {
                 ZStack(alignment: .bottom) {
                     // 86 pt wide so a bubble over the open umbrella still clears the top row
-                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 86, animate: false)
+                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 86, animate: false).probe("cat")
                         .frame(width: 86, height: 100, alignment: .bottom)
                     if let b = s.bubble {
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 9), fontSize: 10).fixedSize().scaleEffect(0.85, anchor: .bottom)
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 9), fontSize: 10).fixedSize().probe("bubble").scaleEffect(0.85, anchor: .bottom)
                             .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 100, gap: 4))
                     }
                 }
@@ -97,20 +97,20 @@ struct MediumWidgetView: View {
                 VStack(alignment: .trailing, spacing: 6) {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         VStack(alignment: .trailing, spacing: 2) {
-                            Text(L("강수확률 %d%%", chanceNow(s))).font(.px(10))
-                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(10))
+                            Text(L("강수확률 %d%%", chanceNow(s))).font(.px(10)).probe("chance")
+                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(10)).probe("feels")
                         }
-                        Text(snap.deg(s.temp)).font(.px(34))
+                        Text(snap.deg(s.temp)).font(.px(34)).probe("temp")
                     }
                     HStack(spacing: 0) {
-                        ForEach(Array(s.hours.dropFirst().prefix(5).enumerated()), id: \.offset) { _, h in
+                        ForEach(Array(s.hours.dropFirst().prefix(5).enumerated()), id: \.offset) { i, h in
                             VStack(spacing: 2) {
-                                Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 7 : 9)).opacity(0.8)
-                                PixelIcon(name: h.icon, size: 16)
-                                Text(snap.deg(h.temp)).font(.px(10))
+                                Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 7 : 9)).opacity(0.8).probe("h\(i)label")
+                                PixelIcon(name: h.icon, size: 16).probe("h\(i)icon")
+                                Text(snap.deg(h.temp)).font(.px(10)).probe("h\(i)temp")
                                 Text(h.mm > 0 ? (h.mm == h.mm.rounded() ? "\(Int(h.mm))mm" : String(format: "%.1fmm", h.mm)) : "–")
-                                    .font(.px(8)).foregroundStyle(h.mm > 0 ? ink.blue : ink.faint)
-                            }.frame(maxWidth: .infinity)
+                                    .font(.px(8)).foregroundStyle(h.mm > 0 ? ink.blue : ink.faint).probe("h\(i)mm")
+                            }.frame(maxWidth: .infinity).probe("h\(i)")
                         }
                     }
                 }
@@ -128,17 +128,17 @@ struct SmallWidgetView: View {
         let rain = RainState(rawValue: s.rain) ?? .none
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text(snap.placeShort).font(.px(11))
+                Text(snap.placeShort).font(.px(11)).probe("place")
                 Spacer()
-                PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16)
+                PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16).probe("icon")
             }
             HStack(alignment: .bottom, spacing: 0) {
                 ZStack(alignment: .bottom) {
-                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false)
+                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false).probe("cat")
                         .frame(width: 72, height: 84, alignment: .bottom)
                     if let b = s.bubble {
                         // a word ("비", "한파", "폭염") fits above the head; longer names show just the icon here
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize()
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize().probe("bubble")
                             .scaleEffect(0.85, anchor: .bottom)
                             .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 84))
                     }
@@ -146,10 +146,10 @@ struct SmallWidgetView: View {
                 .frame(width: 80, height: 118, alignment: .bottom).offset(y: 8)
                 Spacer(minLength: 0)
                 VStack(alignment: .trailing, spacing: 3) {
-                    Text(snap.deg(s.temp)).font(.px(30))
-                    if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11); Text(t).font(.px(9)) } }
-                    Text(L("체감 %@", snap.deg(s.feels))).font(.px(9))
-                    Text(L("강수 %d%%", chanceNow(s))).font(.px(9))
+                    Text(snap.deg(s.temp)).font(.px(30)).probe("temp")
+                    if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") } }
+                    Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
+                    Text(L("강수 %d%%", chanceNow(s))).font(.px(9)).probe("chance")
                 }
             }
         }
@@ -165,10 +165,11 @@ struct LockRectangularView: View {
         HStack(spacing: 6) {
             Image(snap.shownCharacter.lock(level: lv)).resizable().scaledToFit().frame(width: 40, height: 52)
                 .opacity(0.62)     // see-through, like the system's own lock-screen glyphs
+                .probe("lockCat")
             VStack(alignment: .leading, spacing: 1) {
-                Text(snap.deg(s.temp)).font(.system(size: 15, weight: .semibold)).opacity(0.92)
-                Text(LockText.line(s)).font(.ui(12, .medium)).lineLimit(1).opacity(0.85)
-                Text("\(Compact.tail(s, deg: snap.deg)) · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.ui(11)).opacity(0.65)
+                Text(snap.deg(s.temp)).font(.system(size: 15, weight: .semibold)).opacity(0.92).probe("lockTemp")
+                Text(LockText.line(s)).font(.ui(12, .medium)).lineLimit(1).opacity(0.85).probe("lockLine")
+                Text("\(Compact.tail(s, deg: snap.deg)) · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.ui(11)).opacity(0.65).probe("lockTail")
             }
             Spacer(minLength: 0)
         }
