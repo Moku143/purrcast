@@ -201,7 +201,7 @@ private struct SmallFace: View {
                 if let b = s.bubble {
                     // a word ("비", "한파", "폭염") fits above the head; longer names show just the icon here
                     BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize().probe("bubble")
-                        .scaleEffect(0.85, anchor: .bottom)
+                        .scaleEffect(0.66, anchor: .bottom)      // small enough that a warning name clears "-12°"
                         .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 84))
                 }
             }
@@ -277,7 +277,7 @@ struct LockRectangularView: View {
                 .probe("lockCat")
             VStack(alignment: .leading, spacing: 1) {
                 Text(snap.deg(s.temp)).font(.system(size: 15, weight: .semibold)).opacity(0.92).probe("lockTemp")
-                Text(LockText.line(s)).font(.ui(12, .medium)).lineLimit(1).opacity(0.85).probe("lockLine")
+                Text(LockText.line(s)).font(.ui(12, .medium)).lineLimit(1).minimumScaleFactor(0.7).opacity(0.85).probe("lockLine")
                 Text("\(Compact.tail(s, deg: snap.deg)) · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.ui(11)).opacity(0.65).probe("lockTail")
             }
             Spacer(minLength: 0)

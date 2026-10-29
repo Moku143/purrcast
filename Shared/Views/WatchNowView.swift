@@ -30,16 +30,17 @@ struct WatchNow: View {
                 .frame(maxWidth: 112, alignment: .leading)
                 .padding(.top, headerTop).padding(.leading, 16)
                 // the temperature high on the right, under the clock
-                Text(snap.deg(s.temp)).font(.px(52 * k)).lineLimit(1).rolling(s.temp).probe("temp")
+                // four characters ("-12°") a size smaller, so a warning bubble beside it still clears it
+                Text(snap.deg(s.temp)).font(.px((snap.deg(s.temp).count >= 4 ? 46 : 52) * k)).lineLimit(1).rolling(s.temp).probe("temp")
                     .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.top, 64 * k).padding(.trailing, 16)
+                    .padding(.top, 64 * k).padding(.trailing, 12)
                 // the character at the bottom left; its bubble rides on it (above the head, or above the umbrella)
                 ZStack(alignment: .bottom) {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: !dimmed).probe("cat")
                         .frame(width: catW, height: catH, alignment: .bottom)
                     if let b = s.bubble {
                         BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9.5 * k).fixedSize().probe("bubble")
-                            .scaleEffect(0.85, anchor: .bottom)
+                            .scaleEffect(0.66, anchor: .bottom)
                             .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: catH))
                     }
                 }
