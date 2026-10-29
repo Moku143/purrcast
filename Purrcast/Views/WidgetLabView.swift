@@ -9,9 +9,11 @@ struct WidgetLabView: View {
 
     /// -labPage2: the widgets that do not fit on the first page (the hourly 2×4)
     private var second: Bool { ProcessInfo.processInfo.arguments.contains("-labPage2") }
+    /// -labStress: the longest words each language can put on a widget, to see what still fits
+    private var stress: Bool { ProcessInfo.processInfo.arguments.contains("-labStress") }
 
     var body: some View {
-        let snap = model.snapshot
+        let snap = stress ? Self.stressed(model.snapshot) : model.snapshot
         if second {
             VStack(spacing: 16) {
                 home("lab-hours", 364, 170, snap) { HoursWidgetView(snap: snap) }
@@ -45,6 +47,30 @@ struct WidgetLabView: View {
         .padding(.top, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color(hex: "#ECEAF4"))
+    }
+
+    /// The widest content each language can produce: a long place, minus temperatures, 12-hour clocks, 100 %,
+    /// the longest weather word and warning name, rain amounts with a decimal.
+    static func stressed(_ base: WeatherSnapshot) -> WeatherSnapshot {
+        var n = base, s = n.scene
+        let lang = Lang.current
+        n.placeShort = lang == .en ? "Rancho Cucamonga" : lang == .ja ? "南アルプス市" : "종로1·2·3·4가동"
+        n.clock12 = true; n.unitF = false
+        s.temp = -12; s.feels = -19; s.hi = -5; s.lo = -15; s.level = 13; s.rain = "umbrella"
+        s.cond = lang == .en ? "Very heavy rain" : lang == .ja ? "晴れ時々曇り" : "매우 강한 비"
+        s.bubble = WeatherScene.Bubble(kind: "shout", tone: "coral", icon: "exclaim",
+                                       text: lang == .en ? "Winter Weather Advisory" : lang == .ja ? "大雨注意報" : "호우주의보")
+        s.updated = "23:59"
+        for i in s.tiles.indices where s.tiles[i].icon == "sunset" || s.tiles[i].icon == "sunrise" {
+            s.tiles[i].value = HourLabel.clock(22 * 60 + 58, clock12: true)
+        }
+        for i in s.hours.indices {
+            s.hours[i].label = i == 0 ? L("지금") : HourLabel.word(9 + i, clock12: false)   // 10 … → 오전 10시 · 10AM · 午前10時
+            s.hours[i].temp = -10 - i % 5; s.hours[i].chance = 100; s.hours[i].mm = 9.9; s.hours[i].icon = "raincloud"
+        }
+        for i in s.days.indices { s.days[i].chance = 100; s.days[i].lo = -15; s.days[i].hi = -5 }
+        n.scene = s
+        return n
     }
 
     private func home<C: View>(_ id: String, _ w: CGFloat, _ h: CGFloat, _ snap: WeatherSnapshot, @ViewBuilder _ c: () -> C) -> some View {

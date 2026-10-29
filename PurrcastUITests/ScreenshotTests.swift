@@ -170,7 +170,7 @@ final class ScreenshotTests: XCTestCase {
     /// The layout board: each screen's screenshot and every element on it with its frame (points), as
     /// layout-<screen>.png + layout-<screen>.json. Scrolling screens are taken at a few scroll positions.
     func test10Layout() {
-        let screens: [(String, [String], Int)] = [
+        var screens: [(String, [String], Int)] = [
             ("home-1", ["-scene", "maybe", "-plus", "-char", "cat"], 0),
             ("home-2", ["-scene", "maybe", "-plus", "-char", "cat"], 1),
             ("home-3", ["-scene", "maybe", "-plus", "-char", "cat"], 3),
@@ -188,9 +188,21 @@ final class ScreenshotTests: XCTestCase {
             ("widgetlab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab"], 0),
             ("widgetlab-2", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage2"], 0),
         ]
+        // the widgets in English and Japanese, and with the longest words each language can produce
+        let lab = ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab"]
+        let langs = [("ko", ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]), ("en", ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]),
+                     ("ja", ["-AppleLanguages", "(ja)", "-AppleLocale", "ja_JP"])]
+        for (code, la) in langs {
+            if code != "ko" {
+                screens.append(("widgetlab-\(code)", lab + la, 0))
+                screens.append(("widgetlab-2-\(code)", lab + ["-labPage2"] + la, 0))
+            }
+            screens.append(("widgetlab-stress-\(code)", lab + ["-labStress"] + la, 0))
+            screens.append(("widgetlab-2-stress-\(code)", lab + ["-labPage2", "-labStress"] + la, 0))
+        }
         for (name, args, swipes) in screens {
             let app = XCUIApplication()
-            app.launchArguments = args + ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+            app.launchArguments = args.contains("-AppleLanguages") ? args : args + ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
             app.launch()
             sleep(2)
             for _ in 0..<swipes { app.swipeUp() }
