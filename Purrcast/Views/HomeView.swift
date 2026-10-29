@@ -141,9 +141,11 @@ struct HomeView: View {
         let char = model.shownCharacter
         let rain = RainState(rawValue: s.rain) ?? .none
         let catW: CGFloat = 176, catH = catW * Sprite.height / Sprite.width
-        let feetY: CGFloat = 368
+        // positions from the layout board (2026-10-29): the character a little lower and to the right, the temperature
+        // a little lower, the weather words down beside the character's body
+        let feetY: CGFloat = 379
         let catTop = feetY - Sprite.feetY / Sprite.height * catH
-        let headX: CGFloat = 100 - 16   // hero is inside the 16 pt side padding
+        let headX: CGFloat = 100 - 16 + 3.3   // hero is inside the 16 pt side padding
         let a = char.anchors
         let catLeft = headX - CGFloat(a.head_cx[level]) * catW / Sprite.width
         let tipY = catTop + CGFloat(rain == .umbrella ? a.umb_top[level] : a.head_top[level]) / Sprite.height * catH - 4
@@ -169,9 +171,14 @@ struct HomeView: View {
             }
             .padding(.horizontal, 4).padding(.top, 8)
 
-            // temperature block, right
+            // the temperature, right
+            Text(deg(s.temp)).font(.px(88)).rolling(s.temp)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, 12).padding(.top, 91)
+                .reveal(0, rise: 10)
+
+            // the weather in words, right, beside the character's body
             VStack(alignment: .trailing, spacing: 10) {
-                Text(deg(s.temp)).font(.px(88)).rolling(s.temp)
                 Text(s.cond).font(.px(17)).id(s.cond).transition(.opacity.combined(with: .move(edge: .trailing)))
                 Text(L("최고 %@ · 최저 %@", deg(s.hi), deg(s.lo))).font(.px(12)).rolling(s.hi * 1000 + s.lo)
                 // one line when it fits beside the character's head, else two ("Feels 17° Pleasant" / "vs yesterday -1°")
@@ -183,7 +190,7 @@ struct HomeView: View {
                 .frame(maxWidth: 230, alignment: .trailing)
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
-            .padding(.trailing, 6).padding(.top, 64)
+            .padding(.trailing, 6).padding(.top, 303)
             .animation(Motion.gentle, value: s.cond)
             .reveal(0, rise: 10)
 

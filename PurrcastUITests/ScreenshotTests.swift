@@ -174,7 +174,6 @@ final class ScreenshotTests: XCTestCase {
             ("home-1", ["-scene", "maybe", "-plus", "-char", "cat"], 0),
             ("home-2", ["-scene", "maybe", "-plus", "-char", "cat"], 1),
             ("home-3", ["-scene", "maybe", "-plus", "-char", "cat"], 3),
-            ("home-4", ["-scene", "maybe", "-plus", "-char", "cat"], 6),
             ("home-rain", ["-scene", "spring_rain", "-plus", "-char", "cat"], 0),
             ("day", ["-scene", "maybe", "-plus", "-open", "day"], 0),
             ("day-2", ["-scene", "maybe", "-plus", "-open", "day"], 1),
@@ -186,6 +185,7 @@ final class ScreenshotTests: XCTestCase {
             ("paywall", ["-scene", "maybe", "-open", "paywall"], 0),
             ("appicon", ["-scene", "maybe", "-open", "appIcon"], 0),
             ("sources", ["-scene", "maybe", "-open", "sources"], 0),
+            ("widgetlab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab"], 0),
         ]
         for (name, args, swipes) in screens {
             let app = XCUIApplication()

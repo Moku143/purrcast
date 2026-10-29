@@ -38,7 +38,7 @@ struct WidgetGalleryView: View {
                     .foregroundStyle(.white).padding(.vertical, 18)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 26))
-                Text(L("잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 %@를 골라요.", Brand.name)).font(.ui(12)).foregroundStyle(UI.sub)
+                Text(L("잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 %@를 골라요. 시계 위 한 줄은 시계 위 날짜를 눌러 %@를 골라요.", Brand.name, Brand.name)).font(.ui(12)).foregroundStyle(UI.sub)
             }
             .padding(16)
         }

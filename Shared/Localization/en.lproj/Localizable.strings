@@ -336,7 +336,7 @@
 "왼쪽 위 ‘편집’ → ‘위젯 추가’" = "Top left ‘Edit’ → ‘Add Widget’";
 "%@를 찾아 크기를 골라요" = "Find %@ and pick a size";
 "잠금 화면" = "Lock Screen";
-"잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 %@를 골라요." = "Touch and hold the Lock Screen, tap ‘Customize’ → Lock Screen → pick %@ in the widget area.";
+"잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 %@를 골라요. 시계 위 한 줄은 시계 위 날짜를 눌러 %@를 골라요." = "Touch and hold the Lock Screen, tap Customize → Lock Screen, then pick %@ in the widget area. For the line above the clock, tap the date above the clock and pick %@.";
 "%@ 받음" = "updated %@";
 "%@ 기준" = "as of %@";
 "강수확률 %d%%" = "Rain chance %d%%";

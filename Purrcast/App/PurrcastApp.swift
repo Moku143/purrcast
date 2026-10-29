@@ -55,7 +55,7 @@ struct PurrcastApp: App {
 
 /// Sheets and full-screen pages reachable from home.
 enum Route: String, Identifiable {
-    case character, paywall, settings, places, sources, widgets, language, licenses, appIcon
+    case character, paywall, settings, places, sources, widgets, language, licenses, appIcon, widgetLab
     var id: String { rawValue }
 }
 
@@ -81,6 +81,7 @@ struct RootView: View {
             case .places: PlacesView().presentationCornerRadius(28)
             case .sources: SourcesView(route: $route).presentationCornerRadius(28)
             case .widgets: NavigationStack { WidgetGalleryView() }.presentationCornerRadius(28)
+            case .widgetLab: WidgetLabView()          // the layout board's widget page (UI tests only)
             case .language: LanguageView(route: $route).presentationCornerRadius(28)
             case .licenses: LicensesView(route: $route).presentationCornerRadius(28)
             case .appIcon: AppIconView(route: $route).presentationCornerRadius(28)
