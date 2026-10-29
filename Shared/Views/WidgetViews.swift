@@ -191,8 +191,10 @@ private struct SmallFace: View {
             .frame(width: 80, height: 118, alignment: .bottom)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             .padding(.leading, 13).padding(.bottom, 8)
-            VStack(alignment: .trailing, spacing: 2) {        // close together, down by the rain chance
-                if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") } }
+            // close together, down by the rain chance; the sunset row gets 1 pt more because its icon stands taller
+            // than the letters, so the three gaps look the same
+            VStack(alignment: .trailing, spacing: 0) {
+                if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }.padding(.bottom, 1) }
                 Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
                 Text(L("강수 %d%%", chanceNow(s))).font(.px(9)).probe("chance")
             }
