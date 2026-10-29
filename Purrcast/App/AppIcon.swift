@@ -1,19 +1,123 @@
 import SwiftUI
 
-/// The home-screen icon follows the character shown: its face as the sun on the weather-app sky. The cat is the primary icon,
-/// 아비시니안 and 브리티시숏헤어 are alternate icons (asset catalog AppIcon-abys · AppIcon-brit, listed in project.yml).
-/// iOS itself tells the person the icon changed (a short system note), so it only changes when the character does.
-@MainActor
+/// The home-screen icon, picked in 설정 › 앱 아이콘: the cat-ear cloud in every weather (구름 조금 is the app's own icon)
+/// or one of the characters under its umbrella in the rain. The others are alternate icons in the asset catalog
+/// (AppIcon-<id>, listed in project.yml); `iconpick-<id>` is each one's small picture for the picker.
 enum AppIcon {
-    static func name(for c: PurrCharacter) -> String? { c == .cat ? nil : "AppIcon-\(c.rawValue)" }
+    struct Choice: Identifiable, Hashable {
+        let id: String
+        let title: String
+        /// a Plus character's icon (아비시니안 · 브리티시숏헤어)
+        var plus = false
+        /// nil = the app's own icon
+        var iconName: String? { id == AppIcon.primary ? nil : "AppIcon-\(id)" }
+        var preview: String { "iconpick-\(id)" }
+    }
 
-    static func follow(_ c: PurrCharacter) {
-        let args = ProcessInfo.processInfo.arguments
-        if args.contains("-scene") || args.contains("-reset") { return }      // screenshots and UI tests keep the cat
+    static let primary = "partly"
+
+    static var weather: [Choice] {
+        [Choice(id: "partly", title: L("구름 조금")), Choice(id: "clear", title: L("맑음")), Choice(id: "cloudy", title: L("흐림")),
+         Choice(id: "rain", title: L("비")), Choice(id: "thunder", title: L("천둥번개")), Choice(id: "snow", title: L("눈")),
+         Choice(id: "night", title: L("맑은 밤")), Choice(id: "fog", title: L("안개")), Choice(id: "rainbow", title: L("무지개")),
+         Choice(id: "wind", title: L("바람")), Choice(id: "heavyrain", title: L("폭우")), Choice(id: "sleet", title: L("진눈깨비")),
+         Choice(id: "heat", title: L("폭염")), Choice(id: "cold", title: L("한파")), Choice(id: "dust", title: L("황사")),
+         Choice(id: "cloudynight", title: L("흐린 밤"))]
+    }
+
+    static var characters: [Choice] {
+        PurrCharacter.allCases.map { Choice(id: "rain-\($0.rawValue)", title: $0.defaultName, plus: $0.isPlus) }
+    }
+
+    /// The icon on the home screen now (its id).
+    @MainActor static var current: String {
+        guard let n = UIApplication.shared.alternateIconName, n.hasPrefix("AppIcon-") else { return primary }
+        return String(n.dropFirst("AppIcon-".count))
+    }
+
+    /// iOS shows its own short note when the icon changes; nothing else is needed.
+    @MainActor static func set(_ c: Choice, done: @escaping (Bool) -> Void = { _ in }) {
         let app = UIApplication.shared
-        guard app.supportsAlternateIcons, app.applicationState == .active else { return }
-        let want = name(for: c)
-        guard app.alternateIconName != want else { return }
-        app.setAlternateIconName(want) { _ in }
+        guard app.supportsAlternateIcons, app.alternateIconName != c.iconName else { return done(false) }
+        app.setAlternateIconName(c.iconName) { err in DispatchQueue.main.async { done(err == nil) } }
+    }
+
+    /// The Plus characters' icons go back to the app's own icon when Plus ends.
+    @MainActor static func dropPlusIcon(plus: Bool) {
+        guard !plus, characters.contains(where: { $0.plus && $0.id == current }) else { return }
+        UIApplication.shared.setAlternateIconName(nil) { _ in }
+    }
+}
+
+/// 설정 › 앱 아이콘: every icon as a tile, the one in use ticked.
+struct AppIconView: View {
+    @EnvironmentObject var model: AppModel
+    @Binding var route: Route?
+    @Environment(\.dismiss) private var dismiss
+    @State private var current = AppIcon.primary
+
+    private let cols = [GridItem(.adaptive(minimum: 74, maximum: 96), spacing: 14)]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            BackToSettings(route: $route) { dismiss() }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(L("앱 아이콘")).font(.px(24)).foregroundStyle(UI.ink)
+                    Text(L("홈 화면에 보일 아이콘을 골라요")).font(.ui(13)).foregroundStyle(UI.sub)
+                    label(L("날씨"))
+                    grid(AppIcon.weather)
+                    label(L("우산 쓴 캐릭터"))
+                    grid(AppIcon.characters)
+                }
+                .padding(.horizontal, 16).padding(.bottom, 30)
+            }
+        }
+        .background(UI.bg)
+        .onAppear { current = AppIcon.current }
+    }
+
+    private func label(_ t: String) -> some View {
+        Text(t).font(.ui(13, .medium)).foregroundStyle(UI.sub).padding(.top, 8)
+    }
+
+    private func grid(_ items: [AppIcon.Choice]) -> some View {
+        LazyVGrid(columns: cols, alignment: .leading, spacing: 14) {
+            ForEach(items) { c in tile(c) }
+        }
+    }
+
+    private func tile(_ c: AppIcon.Choice) -> some View {
+        let on = current == c.id
+        let locked = c.plus && !model.plus
+        return Button {
+            Haptic.select()
+            if locked {
+                route = nil
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { route = .paywall }
+                return
+            }
+            AppIcon.set(c) { ok in if ok { current = c.id } }
+        } label: {
+            VStack(spacing: 6) {
+                Image(c.preview).resizable().interpolation(.high).aspectRatio(1, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(on ? UI.accent : Color.black.opacity(0.06), lineWidth: on ? 3 : 1))
+                    .overlay(alignment: .topTrailing) {
+                        if on {
+                            Image(systemName: "checkmark.circle.fill").font(.system(size: 20, weight: .bold))
+                                .foregroundStyle(.white, UI.accent).offset(x: 6, y: -6)
+                        } else if locked {
+                            PlusTag().scaleEffect(0.8).offset(x: 6, y: -6)
+                        }
+                    }
+                    .opacity(locked ? 0.55 : 1)
+                Text(c.title).font(.ui(11.5)).foregroundStyle(on ? UI.ink : UI.sub).lineLimit(1).minimumScaleFactor(0.7)
+            }
+        }
+        .buttonStyle(.press(0.95))
+        .accessibilityIdentifier("appicon-\(c.id)")
+        .accessibilityLabel(Text(c.title))
+        .accessibilityAddTraits(on ? .isSelected : [])
     }
 }

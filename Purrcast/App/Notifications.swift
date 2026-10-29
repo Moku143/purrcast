@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import UserNotifications
 
 /// Local notifications planned from the latest forecast, re-planned after every refresh and whenever a
@@ -6,7 +7,7 @@ import UserNotifications
 /// computed in that time zone and scheduled as an interval (correct wherever the phone is).
 /// (기상특보 push needs the server to send it; until then warnings show in the bubble only.)
 enum Notifications {
-    static func plan(scene s: WeatherScene, place: Place, rain: Bool, morning: Bool, change: Bool, morningTime: Date, unitF: Bool, voice: Voice = .polite, clock12: Bool = false) {
+    static func plan(scene s: WeatherScene, place: Place, rain: Bool, morning: Bool, change: Bool, morningTime: Date, unitF: Bool, voice: Voice = .polite, clock12: Bool = false, character: PurrCharacter = .cat) {
         let deg = { (v: Int) -> String in "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)°" }
         let c = UNUserNotificationCenter.current()
         c.getNotificationSettings { settings in
@@ -25,6 +26,8 @@ enum Notifications {
                     n.title = voice.say(L("%@쯤 비 예정 · 우산 챙기세요", HourLabel.word(h, clock12: clock12)))
                     n.body = voice.say(L("%@ · 30분 안에 비가 올 수 있어요", place.short))
                     n.sound = .default
+                    // the chosen character under its umbrella in the rain, beside the text
+                    if let a = rainPicture(character) { n.attachments = [a] }
                     c.add(UNNotificationRequest(identifier: "rain", content: n,
                                                 trigger: UNTimeIntervalNotificationTrigger(timeInterval: at.timeIntervalSinceNow, repeats: false)))
                 }
@@ -55,6 +58,17 @@ enum Notifications {
                 c.add(UNNotificationRequest(identifier: "change", content: n, trigger: UNCalendarNotificationTrigger(dateMatching: cc, repeats: false)))
             }
         }
+    }
+
+    /// The rain notification's picture (notify-rain-<character>): written to a file of its own each time, since iOS
+    /// moves an attachment's file into its own store.
+    static func rainPicture(_ c: PurrCharacter) -> UNNotificationAttachment? {
+        guard let img = UIImage(named: "notify-rain-\(c.rawValue)"), let data = img.pngData() else { return nil }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("rain-\(c.rawValue)-\(UUID().uuidString).png")
+        do {
+            try data.write(to: url)
+            return try UNNotificationAttachment(identifier: "rain-\(c.rawValue)", url: url, options: nil)
+        } catch { return nil }
     }
 
     static func morningBody(_ d: WeatherScene.DayRow) -> String {

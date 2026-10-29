@@ -24,12 +24,11 @@ struct PurrcastApp: App {
                     Task {
                         await purchases.refresh()
                         syncPlan()
-                        AppIcon.follow(model.shownCharacter)
                         await model.refresh()
                     }
                 }
-                // the home-screen icon is the character shown (a Plus character goes back to the cat when Plus ends)
-                .onChange(of: model.shownCharacter) { _, c in AppIcon.follow(c) }
+                // a Plus character's icon goes back to the app's own icon when Plus ends
+                .onChange(of: model.plus) { _, p in AppIcon.dropPlusIcon(plus: p) }
                 .onChange(of: purchases.active) { _, _ in syncPlan() }
                 .onChange(of: purchases.expires) { _, _ in syncPlan() }
                 .onChange(of: purchases.testUntil) { _, _ in syncPlan() }
@@ -46,7 +45,7 @@ struct PurrcastApp: App {
 
 /// Sheets and full-screen pages reachable from home.
 enum Route: String, Identifiable {
-    case character, paywall, settings, places, sources, widgets, language, licenses
+    case character, paywall, settings, places, sources, widgets, language, licenses, appIcon
     var id: String { rawValue }
 }
 
@@ -74,6 +73,7 @@ struct RootView: View {
             case .widgets: NavigationStack { WidgetGalleryView() }.presentationCornerRadius(28)
             case .language: LanguageView(route: $route).presentationCornerRadius(28)
             case .licenses: LicensesView(route: $route).presentationCornerRadius(28)
+            case .appIcon: AppIconView(route: $route).presentationCornerRadius(28)
             }
         }
         .sheet(item: Binding(get: { day.map { DayIndex(value: $0) } }, set: { day = $0?.value })) { d in

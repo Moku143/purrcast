@@ -97,6 +97,8 @@ final class ScreenshotTests: XCTestCase {
             app.buttons["lang-en"].firstMatch.tap(); sleep(2)
         }
         shot("f-licenses", ["-scene", "maybe", "-open", "licenses"], wait: 2)
+        shot("f-app-icon", ["-scene", "maybe", "-open", "appIcon"], wait: 2)
+        shot("f-app-icon-plus", ["-scene", "maybe", "-plus", "-open", "appIcon"], wait: 2)
         shot("f-paywall-test", ["-scene", "maybe", "-open", "paywall"], wait: 3) { app in
             app.swipeUp(); sleep(1)
         }

@@ -308,7 +308,8 @@ final class AppModel: ObservableObject {
         guard pinnedScene == nil, hasData else { return }
         // example weather must never turn into a real-looking alert
         Notifications.plan(scene: scene, place: currentPlace, rain: notifyRain && !isSample, morning: notifyMorning && !isSample,
-                           change: notifyChange && !isSample, morningTime: morningTime, unitF: unitF, voice: voice, clock12: clock12)
+                           change: notifyChange && !isSample, morningTime: morningTime, unitF: unitF, voice: voice, clock12: clock12,
+                           character: shownCharacter)
     }
 
     /// A toggle went on: ask for permission if nobody asked yet, then plan.

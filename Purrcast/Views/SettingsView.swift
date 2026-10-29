@@ -189,6 +189,16 @@ struct SettingsView: View {
                         if model.plus { RowValue(text: model.name(of: model.shownCharacter)) } else { PlusTag() }
                     }
                 }.buttonStyle(.row)
+                RowDivider()
+                Button { go(.appIcon) } label: {
+                    SettingRow(icon: "partly_cloudy", title: L("앱 아이콘")) {
+                        HStack(spacing: 8) {
+                            Image("iconpick-\(AppIcon.current)").resizable().interpolation(.high).frame(width: 28, height: 28)
+                                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                            RowChevron()
+                        }
+                    }
+                }.buttonStyle(.row).accessibilityIdentifier("app-icon")
             }
         }
     }
