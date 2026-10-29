@@ -194,7 +194,7 @@ private struct SmallFace: View {
             .padding(.top, 9).padding(.horizontal, 12)
             Text(snap.deg(s.temp)).font(.px(35)).lineLimit(1).minimumScaleFactor(0.7).probe("temp").halo(ink)
                 .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.top, 44).padding(.trailing, 10)
+                .padding(.top, 44).padding(.trailing, 6)
             ZStack(alignment: .bottom) {
                 CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false).probe("cat")
                     .frame(width: 72, height: 84, alignment: .bottom)
