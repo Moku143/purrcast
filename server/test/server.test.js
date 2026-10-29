@@ -9,7 +9,7 @@ import { level, outfit, bubble, uvNote, whenWord, alertNote, condition, rainKind
 import { strings, normLang, warningName, hourLabel } from '../src/i18n.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike, humidityWord, windWord } from '../src/physics.js';
-import worker, { forecast, readQuery, resetCache } from '../src/index.js';
+import worker, { forecast, readQuery, resetCache, setUpstreamTimeout } from '../src/index.js';
 import { beforeEach } from 'node:test';
 beforeEach(() => { resetCache(); resetWeatherKitTokens(); });
 
@@ -419,6 +419,21 @@ test('Korea, Plus in the afternoon: today\'s low and the morning hours come from
   assert.equal(s.days[0][3], 2);
   assert.equal(Math.round(s.dayDetail[0][0][1]), 2, '0시 from yesterday\'s 23 h run, not the first hour of the 11 h run');
   assert.equal(Math.round(s.dayDetail[0][3][1]), Math.round(day(9)), '9시 from the 05 h run');
+});
+
+test('Korea, KMA hanging → the answer comes from MET within the upstream time limit', async () => {
+  const now = at(9, 0);
+  setUpstreamTimeout(300);
+  const base = fakeFetch([['api.met.no', met(now, flat(48))]]);
+  const fetcher = (url, opts) => (url.includes('apis.data.go.kr') ? new Promise(() => {}) : base(url, opts));   // never answers
+  const q = readQuery(new URLSearchParams('lat=37.5663&lon=126.9019&region=kr&tz=Asia/Seoul&plan=plus'));
+  const t0 = Date.now();
+  try {
+    const s = await forecast(q, { KMA_SERVICE_KEY: 'k' }, null, { now, fetcher });
+    validateScene(s);
+    assert.equal(s.src, 'met');
+    assert.ok(Date.now() - t0 < 2000, `answered in ${Date.now() - t0} ms`);
+  } finally { setUpstreamTimeout(); }
 });
 
 test('Korea, KMA down → MET carries on', async () => {

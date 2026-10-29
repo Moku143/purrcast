@@ -62,7 +62,7 @@ struct ServerWeatherProvider: WeatherProvider {
         // the outfit shown last time (0…14) for the server's ±1° hysteresis ("prev" was the old ten-outfit number)
         if let p = previousLevel { q.append(URLQueryItem(name: "outfitPrev", value: String(p))) }
         c.queryItems = q
-        var req = URLRequest(url: c.url!, timeoutInterval: 15)
+        var req = URLRequest(url: c.url!, timeoutInterval: 20)   // the server gives up on a slow source after ~5 s
         req.setValue("application/json", forHTTPHeaderField: "Accept")
         let (data, resp) = try await session.data(for: req)
         guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else { throw URLError(.badServerResponse) }

@@ -70,8 +70,15 @@ const MEM = new Map();
 const MEM_MAX = 400;
 export function resetCache() { MEM.clear(); }
 
+/** How long one upstream call may take: the app gives up after 15–20 s, so a slow source is dropped (and another
+ * source or the cache is used) well before that. */
+export const UPSTREAM_TIMEOUT_MS = 4500;
+let upstreamTimeout = UPSTREAM_TIMEOUT_MS;
+/** tests: a shorter wait */
+export function setUpstreamTimeout(ms) { upstreamTimeout = ms ?? UPSTREAM_TIMEOUT_MS; }
+
 /** fetch → JSON. `ok(data)` decides whether it may be cached; `ttl` seconds (MET: from its Expires header). */
-async function getJSON(url, { ttl, headers = {}, fetcher = fetch, ok = () => true, ctx = null, kma = false }) {
+async function getJSON(url, { ttl, headers = {}, fetcher = fetch, ok = () => true, ctx = null, kma = false, timeout = upstreamTimeout }) {
   const now = Date.now();
   const m = MEM.get(url);
   if (m && m.until > now) return m.data;
@@ -81,8 +88,18 @@ async function getJSON(url, { ttl, headers = {}, fetcher = fetch, ok = () => tru
     const hit = await cache.match(key).catch(() => null);
     if (hit) { const data = await hit.json(); MEM.set(url, { data, until: now + ttl * 1000 }); return data; }
   }
-  const res = await fetcher(url, { headers });
-  const text = await res.text();
+  const ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  let timer = null;
+  const late = new Promise((_, reject) => {
+    timer = setTimeout(() => { ac?.abort(); reject(new Error(`${new URL(url).host} took over ${timeout} ms`)); }, timeout);
+  });
+  let res, text;
+  try {
+    [res, text] = await Promise.race([
+      (async () => { const r = await fetcher(url, ac ? { headers, signal: ac.signal } : { headers }); return [r, await r.text()]; })(),
+      late,
+    ]);
+  } finally { clearTimeout(timer); }
   if (kma && text.trimStart().startsWith('<')) throw kmaXmlError(text);
   if (!res.ok) throw new Error(`${new URL(url).host} ${res.status}`);
   const data = JSON.parse(text);
@@ -105,12 +122,16 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch 
   const metP = getJSON(metUrl(q.lat, q.lon), { ttl: 1800, headers: { 'user-agent': ua }, fetcher, ctx })
     .then(parseMet).catch((e) => ({ error: e }));
 
+  // Apple WeatherKit starts at once beside KMA and MET: the main source abroad, Korea's fallback when KMA is down
+  // or slow, and the comparison card's second opinion — never waited for one after another
+  const appleP = hasWeatherKit(env) ? apple(q, env, now, fetcher, ctx).catch((e) => ({ error: e })) : null;
   let f = null;
   if (q.region === 'kr' && env.KMA_SERVICE_KEY) {
-    try { f = await korea(q, env, now, fetcher, ctx); } catch (e) { console.log('KMA failed, using MET:', e.message); f = null; }
+    try { f = await korea(q, env, now, fetcher, ctx); } catch (e) { console.log('KMA failed, using WeatherKit / MET:', e.message); f = null; }
   }
-  if (!f && hasWeatherKit(env)) {   // everywhere else (and Korea when KMA is down): Apple WeatherKit
-    try { f = await apple(q, env, now, fetcher, ctx); } catch (e) { console.log('WeatherKit failed, using MET:', e.message); f = null; }
+  if (!f && appleP) {   // everywhere else (and Korea when KMA is down): Apple WeatherKit
+    const a = await appleP;
+    if (a.error) console.log('WeatherKit failed, using MET:', a.error.message); else f = a;
   }
   const met = await metP;
   if (!f) {
@@ -133,9 +154,9 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch 
 
   // 예보 비교: the other sources' next 24 h go to the comparison card only (the main source drives everything else)
   const compare = [{ key: f.src, points: f.points, main: true }];
-  if (f.src !== 'apple' && hasWeatherKit(env)) {
-    try { const a = await apple(q, env, now, fetcher, ctx); compare.push({ key: 'apple', points: a.points }); }
-    catch (e) { console.log('WeatherKit (compare) failed:', e.message); }
+  if (f.src !== 'apple' && appleP) {
+    const a = await appleP;
+    if (a.error) console.log('WeatherKit (compare) failed:', a.error.message); else compare.push({ key: 'apple', points: a.points });
   }
   if (f.src !== 'met' && !met.error) compare.push({ key: 'met', points: met.points });
   if (compare.length > 1) f.compare = compare;
@@ -178,7 +199,8 @@ async function korea(q, env, now, fetcher, ctx) {
       (async () => {
         const b = ncstBase(now);
         try { return parseNow(await get('getUltraSrtNcst', { base_date: b.date, base_time: b.time }, 600)); }
-        catch (e) {   // at the edge of the hour the newest run may not be out yet: the hour before
+        catch (e) {   // at the edge of the hour the newest run may not be out yet: the hour before (not when KMA is just slow)
+          if (/took over/.test(e.message)) throw e;
           const p = ncstBase(new Date(now.getTime() - 3600000));
           return parseNow(await get('getUltraSrtNcst', { base_date: p.date, base_time: p.time }, 600));
         }

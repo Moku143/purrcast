@@ -132,16 +132,29 @@ final class AppModel: ObservableObject {
 
         await updateHere()
         let place = currentPlace
-        do {
-            let s = try await provider.forecast(for: place, plus: plus, previousLevel: lastLevel[place.id])
-            guard mine == generation else { return }
-            raw = s; hasData = true; lastError = nil; lastRefresh = Date()
-            lastLevel[place.id] = s.level
-            publish()
-        } catch {
-            guard mine == generation else { return }
-            lastError = hasData ? L("새 날씨를 못 받았어요. 마지막으로 받은 날씨예요.") : L("날씨를 못 받았어요. 아래로 당겨 다시 시도해 주세요.")
+        // one quiet retry before saying anything: a dropped connection or a slow moment upstream usually passes
+        for attempt in 0..<2 {
+            do {
+                let s = try await provider.forecast(for: place, plus: plus, previousLevel: lastLevel[place.id])
+                guard mine == generation else { return }
+                raw = s; hasData = true; lastError = nil; lastRefresh = Date()
+                lastLevel[place.id] = s.level
+                publish()
+                return
+            } catch {
+                guard mine == generation else { return }
+                // the request was called off (the app went to the background, a newer refresh): not a failure
+                if Self.isCancel(error) { return }
+                if attempt == 0 { try? await Task.sleep(nanoseconds: 1_500_000_000); guard mine == generation else { return }; continue }
+                lastError = hasData ? L("새 날씨를 못 받았어요. 마지막으로 받은 날씨예요.") : L("날씨를 못 받았어요. 아래로 당겨 다시 시도해 주세요.")
+            }
         }
+    }
+
+    static func isCancel(_ e: Error) -> Bool {
+        if e is CancellationError { return true }
+        if let u = e as? URLError, u.code == .cancelled { return true }
+        return false
     }
 
     /// Keep the "here" place on the phone's location (when allowed), else a fixed default city.
