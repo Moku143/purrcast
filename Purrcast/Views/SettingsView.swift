@@ -42,7 +42,7 @@ struct SettingsView: View {
     /// " · 3일 무료" after Plus when the store offers a trial (or a test build offers its test trial).
     private var trialSuffix: String {
         if let t = purchases.trialText(Purchases.yearly) { return " · " + t }
-        return purchases.offersTestTrial ? " · " + L("%d일 무료", Purchases.testDays) : ""
+        return purchases.offersTestTrial ? " · " + L("테스트") : ""
     }
 
     @ViewBuilder private var plan: some View {

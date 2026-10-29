@@ -37,8 +37,10 @@ struct PaywallView: View {
                 .padding(.top, 18)
 
                 HStack(spacing: 12) {
-                    Image(PurrCharacter.cat.faceImage).resizable().scaledToFit().frame(width: 40, height: 40)
-                        .frame(width: 56, height: 56).background(Color(hex: "#D9EFCF")).clipShape(Circle()).reveal(0, rise: 8)
+                    // the app's icon as it is on the home screen
+                    Image(AppIcon.currentPreview(model.shownCharacter)).resizable().interpolation(.high).scaledToFit()
+                        .frame(width: 56, height: 56).clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+                        .shadow(color: .black.opacity(0.12), radius: 4, y: 2).reveal(0, rise: 8)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(Brand.plus).font(.px(24)).foregroundStyle(UI.ink)
                         Text(L("옆으로 넘겨 보세요")).font(.ui(13)).foregroundStyle(UI.sub)
@@ -113,7 +115,7 @@ struct PaywallView: View {
 
     private var buttonTitle: String {
         if model.plus { return L("Plus 쓰는 중") }
-        if purchases.offersTestTrial { return L("%d일 무료로 써보기 (테스트)", Purchases.testDays) }
+        if purchases.offersTestTrial { return L("Plus 켜기 (테스트 · 기간 제한 없음)") }
         if purchases.product(pick) == nil { return purchases.loaded ? L("지금은 구독할 수 없어요") : L("가격 불러오는 중…") }
         if let t = purchases.trialText(pick) { return L("%@로 시작하기", t) }
         return L("%@ %@ 구독하기", purchases.periodWord(pick), purchases.price(pick) ?? "")
@@ -121,7 +123,7 @@ struct PaywallView: View {
 
     /// The auto-renew terms, with the real price and period of the selected plan.
     private var disclosure: String {
-        if purchases.offersTestTrial { return L("테스트 버전이라 결제 없이 %d일 동안 Plus를 써 볼 수 있어요. 설정에서 언제든 끝낼 수 있어요.", Purchases.testDays) }
+        if purchases.offersTestTrial { return L("테스트 버전이라 결제 없이 기간 제한 없이 Plus를 쓸 수 있어요. 설정에서 언제든 끌 수 있어요.") }
         guard let price = purchases.price(pick) else { return L("구독은 App Store 계정으로 결제되고, App Store 설정에서 언제든 해지할 수 있어요.") }
         let per = purchases.periodWord(pick)
         let lead = purchases.trialText(pick).map { L("%@ 체험이 끝나면 ", $0) } ?? ""

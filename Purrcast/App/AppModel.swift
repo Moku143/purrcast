@@ -22,7 +22,12 @@ final class AppModel: ObservableObject {
     let location = LocationService()
 
     // plan · character
-    @Published var plus: Bool { didSet { persist(); if plus != oldValue { publish(); Task { await refresh(force: true) } } } }
+    @Published var plus: Bool { didSet {
+        persist()
+        // Plus over: back to a place the free plan has (extra places stay saved, locked until Plus comes back)
+        if !plus, !placeOpen(currentIndex) { currentIndex = 0 }
+        if plus != oldValue { publish(); Task { await refresh(force: true) } }
+    } }
     @Published var plusUntil: Date? { didSet { publish() } }
     @Published var character: PurrCharacter { didSet { persist(); publish() } }
     @Published var names: [String: String] { didSet { persist(); publish() } }
@@ -197,6 +202,8 @@ final class AppModel: ObservableObject {
     // MARK: places
 
     var canAddPlace: Bool { plus || places.count < 1 + Self.freeExtraPlaces }
+    /// The free plan opens the first places only ("here" and one more); the rest wait for Plus.
+    func placeOpen(_ i: Int) -> Bool { plus || i < 1 + Self.freeExtraPlaces }
     func add(_ p: Place) { guard !places.contains(where: { $0.id == p.id }) else { return }; places.append(p) }
     func remove(at offsets: IndexSet) {
         let removable = IndexSet(offsets.filter { places[$0].id != "here" })

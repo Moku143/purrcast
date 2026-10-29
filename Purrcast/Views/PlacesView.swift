@@ -77,7 +77,14 @@ struct PlacesView: View {
     private var list: some View {
         List {
             ForEach(Array(model.places.enumerated()), id: \.element.id) { i, p in
-                Button { Haptic.tap(); model.currentIndex = i; dismiss() } label: { card(p, current: i == model.currentIndex) }
+                Button {
+                    Haptic.tap()
+                    if model.placeOpen(i) { model.currentIndex = i; dismiss() } else { showPaywall = true }
+                } label: {
+                    card(p, current: i == model.currentIndex)
+                        .opacity(model.placeOpen(i) ? 1 : 0.55)
+                        .overlay(alignment: .topTrailing) { if !model.placeOpen(i) { PlusTag().padding(10) } }
+                }
                     .buttonStyle(.press(0.98))
                     .reveal(i)
                     .listRowBackground(Color.clear).listRowSeparator(.hidden)

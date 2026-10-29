@@ -20,15 +20,17 @@ final class Purchases: ObservableObject {
     @Published var busy = false
     @Published var message: String?
 
-    /// TestFlight and debug builds only, while the subscription is not set up in App Store Connect: the 3-day button
-    /// turns Plus on in this app for 3 days without a purchase, so the Plus parts can be tried. An App Store build
-    /// (production environment) never offers it.
+    /// TestFlight and debug builds only (the developer and testers): Plus with no time limit and no purchase, on
+    /// from the first launch. 설정 turns it off (to see the free app, and that everything Plus goes away); the Plus
+    /// page turns it back on. An App Store build (production environment) never has it.
     @Published private(set) var testBuild = false
     @Published private(set) var testUntil: Date? = SharedStore.defaults.object(forKey: "testPlusUntil") as? Date
     var testActive: Bool { testBuild && (testUntil.map { $0 > Date() } ?? false) }
-    /// The store has nothing to sell here, but this is a test build: offer the test trial.
+    /// The store has nothing to sell here, but this is a test build: offer the test Plus.
     var offersTestTrial: Bool { testBuild && loaded && products.isEmpty }
-    static let testDays = 3
+    /// turned off in 설정 on purpose: stays off until the Plus page turns it on again
+    private var testOff: Bool { SharedStore.defaults.bool(forKey: "testPlusOff") }
+    private static let unlimited = Date(timeIntervalSince1970: 4_102_444_800)    // 2100-01-01: no time limit
 
     private var updates: Task<Void, Never>?
 
@@ -44,6 +46,11 @@ final class Purchases: ObservableObject {
     /// Entitlements first (works offline from the local receipt), then the product list.
     func load() async {
         testBuild = await Self.isTestEnvironment()
+        // developers and testers: Plus on, without a time limit (not in screenshots and UI tests, which set the plan)
+        let args = ProcessInfo.processInfo.arguments
+        if testBuild, !testOff, !args.contains("-scene"), !args.contains("-reset"), (testUntil ?? .distantPast) < Self.unlimited {
+            startTestTrial()
+        }
         await refresh()
         if let p = try? await Product.products(for: Self.ids) {
             products = p.sorted { $0.id == Self.yearly && $1.id != Self.yearly }
@@ -68,13 +75,15 @@ final class Purchases: ObservableObject {
 
     func startTestTrial() {
         guard testBuild else { return }
-        testUntil = Date().addingTimeInterval(Double(Self.testDays) * 86_400)
+        testUntil = Self.unlimited
         SharedStore.defaults.set(testUntil, forKey: "testPlusUntil")
+        SharedStore.defaults.set(false, forKey: "testPlusOff")
     }
 
     func endTestTrial() {
         testUntil = nil
         SharedStore.defaults.removeObject(forKey: "testPlusUntil")
+        SharedStore.defaults.set(true, forKey: "testPlusOff")
     }
 
     /// Store price ("₩14,900"), or nil until the products are loaded.
@@ -126,10 +135,7 @@ final class Purchases: ObservableObject {
 
     /// "연간 · 2027년 10월 21일에 자동 갱신" / "월간 · 11월 21일에 끝나요"
     var statusLine: String? {
-        if !active, testActive, let e = testUntil {
-            let f = DateFormatter(); f.locale = Lang.current.locale; f.dateFormat = L("M월 d일 HH:mm")
-            return L("테스트 체험 · %@까지", f.string(from: e))
-        }
+        if !active, testActive { return L("테스트 Plus · 기간 제한 없음") }
         guard active else { return nil }
         let kind = activeProduct == Self.monthly ? L("월간") : L("연간")
         guard let e = expires else { return kind }
