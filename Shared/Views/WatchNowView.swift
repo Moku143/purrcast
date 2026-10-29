@@ -32,7 +32,7 @@ struct WatchNow: View {
                 // the temperature high on the right, under the clock
                 Text(snap.deg(s.temp)).font(.px(52 * k)).lineLimit(1).rolling(s.temp).probe("temp")
                     .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.top, 64 * k).padding(.trailing, 20)
+                    .padding(.top, 64 * k).padding(.trailing, 16)
                 // the character at the bottom left; its bubble rides on it (above the head, or above the umbrella)
                 ZStack(alignment: .bottom) {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: !dimmed).probe("cat")
