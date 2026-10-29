@@ -1,23 +1,27 @@
 import SwiftUI
 
 /// The layout board's widget page (UI tests: -open widgetLab). Every widget at its real size on a 393-pt-wide iPhone,
-/// home-screen ones on their own background, lock-screen ones on a lock-screen-like wallpaper, each in a box named
-/// lab-<widget> so the board can cut it out and let its parts be moved.
+/// home-screen ones on their own background, lock-screen ones on a lock-screen-like wallpaper, the watch app's first
+/// page at the 46-mm screen's size, each in a box named lab-<widget> so the board can cut it out and let its parts
+/// be moved.
 struct WidgetLabView: View {
     @EnvironmentObject var model: AppModel
 
     var body: some View {
         let snap = model.snapshot
         VStack(spacing: 16) {
-            HStack(alignment: .top, spacing: 16) {
+            HStack(alignment: .top, spacing: 12) {
                 home("lab-small", 170, 170, snap) { SmallWidgetView(snap: snap) }
-                VStack(spacing: 14) {
-                    lock("lab-circle", 76, 76, circle: true) { LockCircularView(snap: snap) }
-                    lock("lab-rain", 76, 76, circle: true) { LockRainCircularView(snap: snap) }
-                }
+                WatchAppScreen(snap: snap).frame(width: 208, height: 248)
+                    .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                    .accessibilityElement(children: .contain).accessibilityIdentifier("lab-watch")
             }
             home("lab-medium", 364, 170, snap) { MediumWidgetView(snap: snap) }
-            lock("lab-rect", 172, 76) { LockRectangularView(snap: snap) }
+            HStack(alignment: .top, spacing: 12) {
+                lock("lab-rect", 172, 76) { LockRectangularView(snap: snap) }
+                lock("lab-circle", 76, 76, circle: true) { LockCircularView(snap: snap) }
+                lock("lab-rain", 76, 76, circle: true) { LockRainCircularView(snap: snap) }
+            }
             lock("lab-inline", 257, 26) {
                 Text(LockText.inline(snap)).font(.system(size: 15, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.8)
             }

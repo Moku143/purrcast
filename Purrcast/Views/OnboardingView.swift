@@ -140,7 +140,7 @@ struct OnboardingView: View {
     private var widgets: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(spacing: 12) {
-                MediumWidgetView(snap: demoSnap).padding(14).frame(width: 330, height: 160)
+                MediumWidgetView(snap: demoSnap).padding(16).frame(width: 330, height: 160)
                     .background(WidgetBackground(level: demoScene.level, night: demoScene.time == "night", scene: demoScene, animate: !reduceMotion))
                     .clipShape(RoundedRectangle(cornerRadius: 22))
                     .id("w\(demo)").transition(.opacity)

@@ -69,91 +69,118 @@ func bubbleBottom(_ c: PurrCharacter, _ rain: RainState, level: Int, spriteHeigh
 }
 private func chanceNow(_ s: WeatherScene) -> Int { s.hours.prefix(6).map { $0.chance }.max() ?? 0 }
 
-/// Medium: place · sunset · issue time, character with its bubble on the left, temperature and five hours on the right.
+/// Medium (2×4): the 2×2 face on the left, as wide as the widget is tall, and the next five days on the right —
+/// day, weather, chance of rain, low, the range bar (the app's 10-day colours) and high.
 struct MediumWidgetView: View {
     let snap: WeatherSnapshot
     var body: some View {
-        let s = snap.scene, ink = Ink(night: s.isNight), lv = Rules.clamp(s.level)
-        let rain = RainState(rawValue: s.rain) ?? .none
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 6) {
-                Text(snap.placeShort).font(.px(11)).probe("place")
-                if let t = sunsetTile(s) { PixelIcon(name: "sunset", size: 12).probe("sunsetIcon"); Text(t).font(.px(11)).probe("sunsetText") }
-                Spacer()
-                Text(s.isPlus ? L("%@ 업데이트", s.updated) : L("%@ 기준", s.updated)).font(.px(10)).opacity(0.75).probe("issued")
-                PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16).probe("icon")
-            }
-            HStack(alignment: .bottom, spacing: 4) {
-                ZStack(alignment: .bottom) {
-                    // 86 pt wide so a bubble over the open umbrella still clears the top row
-                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 86, animate: false).probe("cat")
-                        .frame(width: 86, height: 100, alignment: .bottom)
-                    if let b = s.bubble {
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 9), fontSize: 10).fixedSize().probe("bubble").scaleEffect(0.85, anchor: .bottom)
-                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 100, gap: 4))
-                    }
-                }
-                .frame(width: 110, height: 126, alignment: .bottom).offset(y: 9)
-                VStack(alignment: .trailing, spacing: 6) {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text(L("강수확률 %d%%", chanceNow(s))).font(.px(10)).probe("chance")
-                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(10)).probe("feels")
-                        }
-                        Text(snap.deg(s.temp)).font(.px(34)).probe("temp")
-                    }
-                    HStack(spacing: 0) {
-                        ForEach(Array(s.hours.dropFirst().prefix(5).enumerated()), id: \.offset) { i, h in
-                            VStack(spacing: 2) {
-                                Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 7 : 9)).opacity(0.8).probe("h\(i)label")
-                                PixelIcon(name: h.icon, size: 16).probe("h\(i)icon")
-                                Text(snap.deg(h.temp)).font(.px(10)).probe("h\(i)temp")
-                                Text(h.mm > 0 ? (h.mm == h.mm.rounded() ? "\(Int(h.mm))mm" : String(format: "%.1fmm", h.mm)) : "–")
-                                    .font(.px(8)).foregroundStyle(h.mm > 0 ? ink.blue : ink.faint).probe("h\(i)mm")
-                            }.frame(maxWidth: .infinity).probe("h\(i)")
-                        }
-                    }
-                }
+        let ink = Ink(night: snap.scene.isNight)
+        GeometryReader { g in
+            HStack(spacing: 0) {
+                SmallFace(snap: snap).frame(width: min(g.size.height, g.size.width / 2))
+                WidgetDayList(snap: snap, ink: ink).padding(.leading, 4).padding(.trailing, 14).padding(.vertical, 10)
             }
         }
         .foregroundStyle(ink.ink)
+        .padding(-16)          // laid out from the widget's own edges (the hosts keep iOS's 16-pt margin)
     }
 }
 
-/// Small: place, icon; the character (bubble as an icon only) and the temperature.
+/// Small (2×2): place and weather icon on top, the temperature under the icon, the character at the bottom left,
+/// sunset · feels · rain at the bottom right — as placed on the layout board.
 struct SmallWidgetView: View {
+    let snap: WeatherSnapshot
+    var body: some View {
+        SmallFace(snap: snap)
+            .foregroundStyle(Ink(night: snap.scene.isNight).ink)
+            .padding(-16)      // laid out from the widget's own edges (the hosts keep iOS's 16-pt margin)
+    }
+}
+
+/// The 2×2 face, measured from the widget's edges (170 × 170 on the board; anchored to the edges, so smaller
+/// widgets keep the same margins).
+private struct SmallFace: View {
     let snap: WeatherSnapshot
     var body: some View {
         let s = snap.scene, ink = Ink(night: s.isNight), lv = Rules.clamp(s.level)
         let rain = RainState(rawValue: s.rain) ?? .none
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Text(snap.placeShort).font(.px(11)).probe("place")
-                Spacer()
+        ZStack(alignment: .topLeading) {
+            HStack(spacing: 4) {
+                Text(snap.placeShort).font(.px(11)).lineLimit(1).minimumScaleFactor(0.7).probe("place")
+                Spacer(minLength: 0)
                 PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16).probe("icon")
             }
-            HStack(alignment: .bottom, spacing: 0) {
-                ZStack(alignment: .bottom) {
-                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false).probe("cat")
-                        .frame(width: 72, height: 84, alignment: .bottom)
-                    if let b = s.bubble {
-                        // a word ("비", "한파", "폭염") fits above the head; longer names show just the icon here
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize().probe("bubble")
-                            .scaleEffect(0.85, anchor: .bottom)
-                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 84))
-                    }
-                }
-                .frame(width: 80, height: 118, alignment: .bottom).offset(y: 8)
-                Spacer(minLength: 0)
-                VStack(alignment: .trailing, spacing: 3) {
-                    Text(snap.deg(s.temp)).font(.px(30)).probe("temp")
-                    if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") } }
-                    Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
-                    Text(L("강수 %d%%", chanceNow(s))).font(.px(9)).probe("chance")
+            .halo(ink)
+            .padding(.top, 9).padding(.horizontal, 12)
+            Text(snap.deg(s.temp)).font(.px(30)).lineLimit(1).minimumScaleFactor(0.7).probe("temp").halo(ink)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.top, 40).padding(.trailing, 10)
+            ZStack(alignment: .bottom) {
+                CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false).probe("cat")
+                    .frame(width: 72, height: 84, alignment: .bottom)
+                if let b = s.bubble {
+                    // a word ("비", "한파", "폭염") fits above the head; longer names show just the icon here
+                    BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize().probe("bubble")
+                        .scaleEffect(0.85, anchor: .bottom)
+                        .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 84))
                 }
             }
+            .frame(width: 80, height: 118, alignment: .bottom)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            .padding(.leading, 13).padding(.bottom, 8)
+            VStack(alignment: .trailing, spacing: 4) {
+                if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") } }
+                Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
+                Text(L("강수 %d%%", chanceNow(s))).font(.px(9)).probe("chance")
+            }
+            .lineLimit(1).minimumScaleFactor(0.8)
+            .halo(ink)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            .padding(.trailing, 13).padding(.bottom, 9)
         }
-        .foregroundStyle(ink.ink)
+    }
+}
+
+/// The next five days for the medium widget, like the app's 10-day card.
+private struct WidgetDayList: View {
+    let snap: WeatherSnapshot
+    let ink: Ink
+    var body: some View {
+        let days = Array(snap.scene.days.prefix(5))
+        let wmin = days.map { $0.lo }.min() ?? 0, wmax = days.map { $0.hi }.max() ?? 1
+        let span = CGFloat(max(1, wmax - wmin))
+        VStack(spacing: 0) {
+            ForEach(Array(days.enumerated()), id: \.offset) { i, d in
+                HStack(spacing: 4) {
+                    Text(d.name).font(.px(10)).frame(width: Lang.current == .en ? 34 : 22, alignment: .leading).probe("d\(i)name")
+                    PixelIcon(name: d.icon, size: 16).probe("d\(i)icon")
+                    Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(8)).foregroundStyle(ink.blue).frame(width: 22, alignment: .leading).probe("d\(i)chance")
+                    Text(snap.deg(d.lo)).font(.px(10)).foregroundStyle(ink.sub).frame(width: 24, alignment: .trailing).probe("d\(i)lo")
+                    GeometryReader { b in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(ink.track)
+                            Capsule().fill(LinearGradient(colors: [Color(hex: "#6FA8FF"), Color(hex: "#FFA94D")], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: max(5, CGFloat(d.hi - d.lo) / span * b.size.width))
+                                .offset(x: CGFloat(d.lo - wmin) / span * b.size.width)
+                        }
+                    }
+                    .frame(height: 5).probe("d\(i)bar")
+                    Text(snap.deg(d.hi)).font(.px(10)).frame(width: 24, alignment: .trailing).probe("d\(i)hi")
+                }
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .frame(maxHeight: .infinity)
+                .probe("d\(i)")
+            }
+        }
+        .halo(ink)
+    }
+}
+
+extension View {
+    /// A soft glow in the sky's own light behind widget words, so heavy rain or snow does not cut through them.
+    func halo(_ ink: Ink) -> some View {
+        let c = ink.night ? Color(hex: "#0B0F24") : Color.white
+        return shadow(color: c.opacity(ink.night ? 0.75 : 0.8), radius: 1).shadow(color: c.opacity(ink.night ? 0.55 : 0.6), radius: 3)
     }
 }
 

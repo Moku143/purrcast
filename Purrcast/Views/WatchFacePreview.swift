@@ -147,6 +147,7 @@ struct WatchAppScreen: View {
             Text(WatchClock.now(clock12: snap.clock12)).font(.system(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color.white)
                 .shadow(color: .black.opacity(0.25), radius: 1.5).probe("clock")
+                .accessibilityHidden(true)      // the system's clock: not a part to move on the layout board
                 .padding(.top, 9).padding(.trailing, 22)
         }
     }
