@@ -227,10 +227,10 @@ struct HomeView: View {
     private func nextHour(_ s: WeatherScene) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String])? {
         guard s.isPlus else { return nil }
         let nowMin: Int = WeatherScene.clockMinutes(s.clock) ?? 12 * 60
-        // " · 가능성 40%" from the hours the card covers, left out when it would read 0 %
+        // "강수확률 40% · " from the hours the card covers, left out when it would read 0 %
         let chanceTail = { (hours: Int) -> String in
             let c = s.hours.prefix(hours).map { $0.chance }.max() ?? 0
-            return c >= 10 ? " · " + L("가능성 %d%%", c) : ""
+            return c >= 10 ? L("강수확률 %d%%", c) + " · " : ""
         }
         if s.nextSource != "kma", let mm = s.minutes, !mm.isEmpty { return minutesCard(s, mm, nowMin: nowMin, chanceTail: chanceTail(2)) }
         if let six = s.next6 {
@@ -243,9 +243,9 @@ struct HomeView: View {
                 let hr = { (i: Int) -> Int in HourLabel.hour(six[i].label) ?? 0 }
                 head = st == 0 ? L("지금 비") : (st == last ? L("%@쯤 비 예정", HourLabel.word(hr(st), clock12: model.clock12))
                                                  : L("%@ 비 예정", HourLabel.window(hr(st), hr(last), clock12: model.clock12)))
-                let stop = en == nil ? L("6시간 넘게 이어질 예보") : L("%@쯤 그칠 예보", HourLabel.word((hr(last) + 1) % 24, clock12: model.clock12))
+                let stop = en == nil ? L("6시간 넘게 이어져요") : L("%@쯤 그쳐요", HourLabel.word((hr(last) + 1) % 24, clock12: model.clock12))
                 let peak = R.max() ?? 0
-                sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop)" + chanceTail(7)
+                sub = chanceTail(7) + "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop)"
                 icon = st == 0 ? "umbrella" : "umbrella_closed"
             }
             let legend = s.nextSource == "met" ? "MET Norway · Plus" : s.nextSource == "apple" ? L("Apple 날씨 · Plus") : L("기상청 초단기 · Plus")
@@ -263,15 +263,15 @@ struct HomeView: View {
             let hhmm = { (t: Int) -> String in HourLabel.clock(t, clock12: model.clock12) }
             let s10 = (nowMin + st) / 10 * 10
             head = st == 0 ? L("지금 비") : (s10 > nowMin ? L("%@쯤 비 예정", hhmm(s10)) : L("%@ 전 비 예정", hhmm((nowMin + st + 9) / 10 * 10)))
-            let stop = en == nil ? L("한동안 이어질 예보") : L("%@쯤 그칠 예보", hhmm((nowMin + st + en! + 9) / 10 * 10))
+            let stop = en == nil ? L("한동안 이어져요") : L("%@쯤 그쳐요", hhmm((nowMin + st + en! + 9) / 10 * 10))
             let peak = mm.max() ?? 0
-            sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop)" + chanceTail
+            sub = chanceTail + "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop)"
             icon = st == 0 ? "umbrella" : "umbrella_closed"
         } else if let h = s.hours.dropFirst().prefix(3).first(where: { $0.mm >= 0.1 || $0.chance >= 30 }) {
             // the minute forecast is dry for the hour, but the hourly one has rain soon after: say so, so the card
             // and the bubble ("22시쯤 비 예정") do not seem to disagree
             let at = model.hourLabel(h.label)
-            sub = h.chance >= 10 ? L("시간별 예보로는 %@쯤 비 · 가능성 %d%%", at, h.chance) : L("시간별 예보로는 %@쯤 비", at)
+            sub = h.chance >= 10 ? L("시간별 예보로는 %@쯤 비 · 강수확률 %d%%", at, h.chance) : L("시간별 예보로는 %@쯤 비", at)
         }
         let span = mm.count
         return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) })

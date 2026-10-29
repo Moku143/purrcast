@@ -13,6 +13,13 @@ struct PurrcastApp: App {
                 .environmentObject(purchases)
                 .preferredColorScheme(.light)
                 .task {
+                    #if DEBUG
+                    let args = ProcessInfo.processInfo.arguments
+                    if let i = args.firstIndex(of: "-iconTest"), i + 1 < args.count {
+                        try? await Task.sleep(nanoseconds: 1_500_000_000)
+                        AppIcon.test(quiet: args[i + 1] == "quiet")
+                    }
+                    #endif
                     WatchBridge.shared.start()
                     await purchases.load()
                     syncPlan()

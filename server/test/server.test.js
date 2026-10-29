@@ -241,7 +241,7 @@ test('bubble priority: official warning first', () => {
 });
 
 test('alert line under the character: the warning name + what it means today', () => {
-  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }), '오늘 6cm, 18시쯤 그칠 예보');
+  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }), '오늘 6cm, 18시쯤 그쳐요');
   assert.equal(alertNote('호우주의보', { total: 42, pr: 'rain', nowWet: false, when: '15~19시', endH: null, hi: 25, lo: 22 }), '오늘 42mm (많음), 15~19시 비 예정');
   assert.equal(alertNote('폭염경보', { total: 0, pr: 'none', hi: 36, lo: 27 }), '낮 최고 36°, 한낮 외출 줄여요');
   assert.equal(alertNote('한파주의보', { total: 0, pr: 'none', hi: -6, lo: -14 }), '아침 -14°, 많이 추워요');
@@ -313,8 +313,8 @@ test('warnings translate by the glossary table, unknown names pass through', () 
   assert.equal(warningName('호우주의보', 'ko'), '호우주의보'); assert.equal(warningName('황사경보', 'en'), '황사경보');
   const b = bubble({ warnings: [{ name: '대설경보', severity: 2 }], feels: 0 }, 'en');
   assert.deepEqual(b, { kind: 'shout', tone: 'coral', icon: 'snowflake', text: 'Heavy Snow Warning' });
-  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }, 'en'), '6cm today, Should stop around 6PM');
-  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }, 'ja'), '今日 6cm、18時ごろ止む見込み');
+  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }, 'en'), '6cm today, Stops around 6PM');
+  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }, 'ja'), '今日 6cm、18時ごろ止みそう');
   assert.equal(alertNote('폭염경보', { total: 0, pr: 'none', hi: 36, lo: 27 }, 'en'), 'High 36°, limit midday outings');
   const hrs = flat(40, { cloud: 95, mm: 3, pop: 90, sym: 'rain' });
   const s = buildScene({ points: parseMet(met(at(13), hrs)).points, warnings: [{ name: '호우주의보', severity: 1 }] }, { ...SEOUL, plan: 'plus', now: at(13, 40), lang: 'en' });

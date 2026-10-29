@@ -1,4 +1,6 @@
 import SwiftUI
+import UIKit
+import ObjectiveC
 
 /// The home-screen icon, picked in 설정 › 앱 아이콘. The app's own icon is the cat's face as the sun on a sky-blue sky;
 /// that sun face comes on sky blue or peach and follows the character shown (AppIcon-sun-<sky>-<character>).
@@ -73,13 +75,57 @@ enum AppIcon {
               let ch = sun.first(where: { $0.id == current }) else { return }
         let want = ch.iconName(c)
         guard app.alternateIconName != want else { return }
+        QuietIconNote.arm()                                   // the character changed; iOS's own note is not needed
         app.setAlternateIconName(want) { _ in }
     }
+
+    #if DEBUG
+    /// UI tests (-iconTest quiet|loud): switch between two icons, with or without iOS's note.
+    @MainActor static func test(quiet: Bool) {
+        let app = UIApplication.shared
+        let want: String? = app.alternateIconName == nil ? "AppIcon-sun-peach-cat" : nil
+        if quiet { QuietIconNote.arm() }
+        app.setAlternateIconName(want) { err in print("ICONTEST set \(want ?? "primary") quiet=\(quiet) error=\(String(describing: err))") }
+    }
+    #endif
 
     /// The Plus characters' umbrella icons go back to the app's own icon when Plus ends.
     @MainActor static func dropPlusIcon(plus: Bool) {
         guard !plus, characters.contains(where: { $0.plus && $0.id == current }) else { return }
         UIApplication.shared.setAlternateIconName(nil) { _ in }
+    }
+}
+
+/// iOS puts up its own note ("아이콘이 변경되었습니다") each time an alternate icon is set. When the icon only follows
+/// a character change that note is noise, so for a moment around such a change it is not shown: it is the one alert
+/// iOS presents in the app with neither a title nor a message (the icon and its text are its own content); any other
+/// alert shows as always. If a future iOS shows the note differently, it simply shows.
+@MainActor enum QuietIconNote {
+    private static var installed = false
+    static var until = Date.distantPast
+    static func arm() {
+        install()
+        until = Date().addingTimeInterval(3)
+    }
+    private static func install() {
+        guard !installed else { return }
+        installed = true
+        let cls: AnyClass = UIViewController.self
+        guard let original = class_getInstanceMethod(cls, #selector(UIViewController.present(_:animated:completion:))),
+              let quiet = class_getInstanceMethod(cls, #selector(UIViewController.purr_present(_:animated:completion:))) else { return }
+        method_exchangeImplementations(original, quiet)
+    }
+}
+
+extension UIViewController {
+    /// swapped with present(_:animated:completion:) by QuietIconNote: calling it calls the original
+    @objc func purr_present(_ vc: UIViewController, animated: Bool, completion: (() -> Void)?) {
+        if let a = vc as? UIAlertController, a.title == nil, a.message == nil, Date() < QuietIconNote.until {
+            QuietIconNote.until = .distantPast
+            completion?()
+            return
+        }
+        purr_present(vc, animated: animated, completion: completion)
     }
 }
 

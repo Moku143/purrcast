@@ -176,7 +176,7 @@ export function warningKind(name) {
 
 /**
  * The line under the character when an official warning is in force: the warning's name and what it means
- * today, in one short clause from the forecast. "대설주의보 · 오늘 6cm, 18시쯤 그칠 예보".
+ * today, in one short clause from the forecast. "대설주의보 · 오늘 6cm, 18시쯤 그쳐요".
  */
 export function alertNote(name, c, lang = c.lang ?? 'ko') {
   const S = strings(lang), A = S.alert, sep = S.sep;

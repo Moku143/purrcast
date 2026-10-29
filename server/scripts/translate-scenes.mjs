@@ -45,7 +45,7 @@ function translator(lang) {
     if (X[s]) return X[s];
     if ((m = s.match(/^(.+?) (비|눈|진눈깨비) 예정 · (.+?) \((.+)\)$/))) return `${bubble(`${m[1]} ${m[2]} 예정`)} · ${m[3]} (${amount(m[4])})`;
     if ((m = s.match(/^지금 (비|눈|진눈깨비) · 12시간 (.+?)(?: \((.+)\))?$/))) return T.nowWetNote(T.what[{ 비: 'rain', 눈: 'snow', 진눈깨비: 'sleet' }[m[1]]], m[3] ? `${m[2]} (${amount(m[3])})` : m[2]);
-    if ((m = s.match(/^(?:새벽 )?(\d+|자정)시?쯤 그칠 예보 · (.+)$/))) return `${stopAt(m[1])} · ${m[2]}`;
+    if ((m = s.match(/^(?:새벽 )?(\d+|자정)시?쯤 그쳐요 · (.+)$/))) return `${stopAt(m[1])} · ${m[2]}`;
     if ((m = s.match(/^내일 일출 (.+)$/))) return T.sunriseTomorrow(m[1]);
     if ((m = s.match(/^일몰 (.+)$/))) return T.sunsetAt(m[1]);
     if ((m = s.match(/^일출 (.+)$/))) return `${T.tile.sunrise} ${m[1]}`;
@@ -58,7 +58,7 @@ function translator(lang) {
       let m;
       if ((m = p.match(/^오늘 (.+?)cm$/))) return T.alert.todayCm(m[1]);
       if ((m = p.match(/^오늘 (.+?)mm \((.+)\)$/))) return T.alert.todayMm(m[1], amount(m[2]));
-      if ((m = p.match(/^(\d+)시쯤 그칠 예보$/))) return T.stopAt(+m[1]);
+      if ((m = p.match(/^(\d+)시쯤 그쳐요$/))) return T.stopAt(+m[1]);
       if ((m = p.match(/^돌풍 (.+) m\/s$/))) return T.alert.gust(m[1]);
       if ((m = p.match(/^낮 최고 (-?\d+)°$/))) return T.alert.heat(m[1]).split(T.sep)[0];
       if (p === '한낮 외출 줄여요') return T.alert.heat(0).split(T.sep)[1];

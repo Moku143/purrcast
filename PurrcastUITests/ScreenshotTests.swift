@@ -148,4 +148,22 @@ final class ScreenshotTests: XCTestCase {
         shot("store-5-widgets", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "widgets"], wait: 2)
         shot("store-6-day", ["-scene", "clear", "-plus", "-char", "abys", "-open", "day"], wait: 2)
     }
+
+    /// iOS's note when the icon changes: set plainly ("loud") it shows; when the icon follows a character ("quiet") it
+    /// should not. The attachment names say whether an alert was found in the app (app1) or on SpringBoard (sb1).
+    func test9IconNote() {
+        for mode in ["loud", "quiet", "loud", "quiet"].enumerated() {
+            let app = XCUIApplication()
+            app.launchArguments = ["-iconTest", mode.element, "-scene", "clear", "-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+            app.launch()
+            let inApp = app.alerts.firstMatch.waitForExistence(timeout: 5)
+            let sb = XCUIApplication(bundleIdentifier: "com.apple.springboard").alerts.firstMatch.exists
+            let a = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            a.name = "icon-note-\(mode.offset)-\(mode.element)-app\(inApp ? 1 : 0)-sb\(sb ? 1 : 0)"
+            a.lifetime = .keepAlways
+            add(a)
+            print("ICONTEST \(mode.element) app=\(inApp) springboard=\(sb)")
+            app.terminate()
+        }
+    }
 }

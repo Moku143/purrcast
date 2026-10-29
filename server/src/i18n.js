@@ -36,7 +36,7 @@ const DICT = {
     hour: (h) => `${h}시`,
     // 15~17시 · 15시쯤 · 내일 7~9시
     when: (s, e, tomorrow) => { const w = s === e || e == null ? `${s}시쯤` : `${s}~${e}시`; return tomorrow ? `내일 ${w}` : w; },
-    stopAt: (h) => `${h}시쯤 그칠 예보`,
+    stopAt: (h) => `${h}시쯤 그쳐요`,
     partOfDay: { morning: '아침', afternoon: '오후', evening: '저녁', night: '밤' },
     partTomorrow: (p) => `내일 ${p}`,
     what: { rain: '비', snow: '눈', sleet: '진눈깨비' },
@@ -76,7 +76,7 @@ const DICT = {
       const w = s === e || e == null ? `around ${h12(s)}${mer(s)}` : mer(s) === mer(e) ? `${h12(s)}–${h12(e)}${mer(e)}` : `${h12(s)}${mer(s)}–${h12(e)}${mer(e)}`;
       return tomorrow ? `tomorrow ${w}` : w;
     },
-    stopAt: (h) => `Should stop around ${h12(h)}${mer(h)}`,
+    stopAt: (h) => `Stops around ${h12(h)}${mer(h)}`,
     partOfDay: { morning: 'morning', afternoon: 'afternoon', evening: 'evening', night: 'night' },
     partTomorrow: (p) => `tomorrow ${p}`,
     what: { rain: 'Rain', snow: 'Snow', sleet: 'Sleet' },
@@ -113,7 +113,7 @@ const DICT = {
     hour: (h) => `${h}時`,
     // 15〜17時 · 15時ごろ · 明日7〜9時
     when: (s, e, tomorrow) => { const w = s === e || e == null ? `${s}時ごろ` : `${s}〜${e}時`; return tomorrow ? `明日${w}` : w; },
-    stopAt: (h) => `${h}時ごろ止む見込み`,
+    stopAt: (h) => `${h}時ごろ止みそう`,
     partOfDay: { morning: '朝', afternoon: '午後', evening: '夕方', night: '夜' },
     partTomorrow: (p) => `明日の${p}`,
     what: { rain: '雨', snow: '雪', sleet: 'みぞれ' },
