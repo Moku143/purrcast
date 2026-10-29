@@ -30,7 +30,7 @@ struct WatchNow: View {
                 .frame(maxWidth: 112, alignment: .leading)
                 .padding(.top, headerTop).padding(.leading, 16)
                 // the temperature high on the right, under the clock
-                Text(snap.deg(s.temp)).font(.px(40 * k)).lineLimit(1).rolling(s.temp).probe("temp")
+                Text(snap.deg(s.temp)).font(.px(46 * k)).lineLimit(1).rolling(s.temp).probe("temp")
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .padding(.top, 64 * k).padding(.trailing, 20)
                 // the character at the bottom left; its bubble rides on it (above the head, or above the umbrella)
@@ -47,10 +47,9 @@ struct WatchNow: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 .padding(.leading, 16.5).padding(.bottom, 14.5)
                 // sunset · feels · rain at the bottom right
-                // close together, down by the rain chance; the sunset row gets 1 pt more because its icon stands
-                // taller than the letters, so the three gaps look the same
-                VStack(alignment: .trailing, spacing: 0) {
-                    if let t = sunsetTile(s) { HStack(spacing: 3) { PixelIcon(name: "sunset", size: 14 * k).probe("sunsetIcon"); Text(t).font(.px(12 * k)).probe("sunsetText") }.padding(.bottom, 1 * k) }
+                // close together, down by the rain chance; the sunset row a little higher
+                VStack(alignment: .trailing, spacing: 1.2 * k) {
+                    if let t = sunsetTile(s) { HStack(spacing: 3) { PixelIcon(name: "sunset", size: 14 * k).probe("sunsetIcon"); Text(t).font(.px(12 * k)).probe("sunsetText") }.padding(.bottom, 2.5 * k) }
                     Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels")
                     Text(L("강수 %d%%", s.hours.prefix(6).map { $0.chance }.max() ?? 0)).font(.px(12 * k)).probe("chance")
                 }

@@ -90,49 +90,66 @@ struct MediumWidgetView: View {
     }
 }
 
-/// Medium, hourly (2×4): place and temperature on the left, the weather and today's high / low on the right, and
-/// the next six hours on a panel below — each with its time, the character dressed for that hour (an open umbrella
-/// when it rains), its sky and temperature.
+/// Medium, hourly (2×4): place and temperature top left, the weather icon top right; the character standing on the
+/// hours panel with its bubble, and beside it the weather, feels-like and today's range down to its feet; the next
+/// six hours on the panel — time, sky, temperature and rain.
 struct HoursWidgetView: View {
     let snap: WeatherSnapshot
     var body: some View {
-        let s = snap.scene, ink = Ink(night: s.isNight)
+        let s = snap.scene, ink = Ink(night: s.isNight), lv = Rules.clamp(s.level)
+        let rain = RainState(rawValue: s.rain) ?? .none
         let hours = Array(s.hours.dropFirst().prefix(6))
-        let feelsGap = Double(s.feels - s.temp)      // the hours give the temperature; dress for how it feels
-        VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 8) {
+        GeometryReader { g in
+            let catW: CGFloat = 40, catH = catW * Sprite.height / Sprite.width
+            let panelH: CGFloat = 70, panelTop = g.size.height - 8 - panelH
+            ZStack(alignment: .topLeading) {
                 VStack(alignment: .leading, spacing: 0) {
                     Text(snap.placeShort).font(.px(11)).lineLimit(1).minimumScaleFactor(0.7).probe("place")
-                    Text(snap.deg(s.temp)).font(.px(34)).lineLimit(1).probe("temp")
+                    Text(snap.deg(s.temp)).font(.px(44)).lineLimit(1).probe("temp").padding(.top, 4)
                 }
-                Spacer(minLength: 0)
-                VStack(alignment: .trailing, spacing: 3) {
-                    PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16).probe("icon")
-                    Text(Compact.condWord(s)).font(.px(11)).lineLimit(1).probe("cond")
-                    Text(L("최고 %@ · 최저 %@", snap.deg(s.hi), snap.deg(s.lo))).font(.px(9)).lineLimit(1).probe("hilo")
+                .halo(ink)
+                .padding(.leading, 14).padding(.top, 10)
+                PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16).probe("icon")
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.trailing, 14).padding(.top, 10)
+                VStack(alignment: .trailing, spacing: 2.5) {
+                    Text(Compact.condWord(s)).font(.px(11)).probe("cond")
+                    Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
+                    Text(L("최고 %@ · 최저 %@", snap.deg(s.hi), snap.deg(s.lo))).font(.px(9)).probe("hilo")
                 }
-            }
-            .halo(ink)
-            .padding(.horizontal, 14).padding(.top, 10)
-            Spacer(minLength: 2)
-            HStack(spacing: 0) {
-                ForEach(Array(hours.enumerated()), id: \.offset) { i, h in
-                    VStack(spacing: 1) {
-                        Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 7 : 9)).lineLimit(1).minimumScaleFactor(0.7).opacity(0.85).halo(ink).probe("h\(i)label")
-                        CharacterSprite(character: snap.shownCharacter, level: Rules.level(feels: Double(h.temp) + feelsGap),
-                                        rain: h.mm >= 0.1 ? .umbrella : .none, width: 34, animate: false).probe("h\(i)cat")
-                        HStack(spacing: 2) {
-                            PixelIcon(name: h.icon, size: 12).probe("h\(i)icon")
-                            Text(snap.deg(h.temp)).font(.px(10)).lineLimit(1).probe("h\(i)temp")
-                        }
-                        .halo(ink)
+                .lineLimit(1).minimumScaleFactor(0.8)
+                .halo(ink)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, 14).padding(.top, panelTop - 46.5)
+                ZStack(alignment: .bottom) {
+                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: false).probe("cat")
+                        .frame(width: catW, height: catH, alignment: .bottom)
+                    if let b = s.bubble {
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize().probe("bubble")
+                            .scaleEffect(0.64, anchor: .bottom)
+                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: catH, gap: 3))
                     }
-                    .frame(maxWidth: .infinity).probe("h\(i)")
                 }
+                .frame(width: catW + 40, height: catH + 40, alignment: .bottom)
+                .position(x: g.size.width * 0.635, y: panelTop - 1 - (catH + 40) / 2)
+                HStack(spacing: 0) {
+                    ForEach(Array(hours.enumerated()), id: \.offset) { i, h in
+                        VStack(spacing: 1.5) {
+                            Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 7 : 9)).lineLimit(1).minimumScaleFactor(0.7).opacity(0.85).probe("h\(i)label")
+                            PixelIcon(name: h.icon, size: 20).probe("h\(i)icon")
+                            Text(snap.deg(h.temp)).font(.px(11)).lineLimit(1).probe("h\(i)temp")
+                            Text(h.mm > 0 ? (h.mm >= 10 ? "\(Int(h.mm.rounded()))mm" : String(format: "%gmm", (h.mm * 10).rounded() / 10)) : "–")
+                                .font(.px(8)).lineLimit(1).foregroundStyle(h.mm > 0 ? ink.blue : ink.faint).probe("h\(i)mm")
+                        }
+                        .frame(maxWidth: .infinity).probe("h\(i)")
+                    }
+                }
+                .halo(ink)
+                .padding(.horizontal, 2)
+                .frame(height: panelH)
+                .background(WidgetPanel(ink: ink))
+                .padding(.horizontal, 8).padding(.top, panelTop)
             }
-            .padding(.vertical, 5).padding(.horizontal, 2)
-            .background(WidgetPanel(ink: ink))
-            .padding(.horizontal, 8).padding(.bottom, 8)
         }
         .foregroundStyle(ink.ink)
         .padding(-16)          // laid out from the widget's own edges (the hosts keep iOS's 16-pt margin)
@@ -175,9 +192,9 @@ private struct SmallFace: View {
             }
             .halo(ink)
             .padding(.top, 9).padding(.horizontal, 12)
-            Text(snap.deg(s.temp)).font(.px(30)).lineLimit(1).minimumScaleFactor(0.7).probe("temp").halo(ink)
+            Text(snap.deg(s.temp)).font(.px(35)).lineLimit(1).minimumScaleFactor(0.7).probe("temp").halo(ink)
                 .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.top, 40).padding(.trailing, 10)
+                .padding(.top, 44).padding(.trailing, 10)
             ZStack(alignment: .bottom) {
                 CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false).probe("cat")
                     .frame(width: 72, height: 84, alignment: .bottom)
@@ -191,10 +208,9 @@ private struct SmallFace: View {
             .frame(width: 80, height: 118, alignment: .bottom)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             .padding(.leading, 13).padding(.bottom, 8)
-            // close together, down by the rain chance; the sunset row gets 1 pt more because its icon stands taller
-            // than the letters, so the three gaps look the same
-            VStack(alignment: .trailing, spacing: 0) {
-                if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }.padding(.bottom, 1) }
+            // close together, down by the rain chance; the sunset row a little higher
+            VStack(alignment: .trailing, spacing: 0.9) {
+                if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }.padding(.bottom, 2) }
                 Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
                 Text(L("강수 %d%%", chanceNow(s))).font(.px(9)).probe("chance")
             }
