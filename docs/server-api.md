@@ -10,7 +10,7 @@ the widget extension and the watch). Nothing else changes in the app.
 ## Request
 
 ```
-GET {base}/v1/forecast?lat=37.57&lon=126.90&region=kr&tz=Asia/Seoul&plan=plus&lang=ko&outfitPrev=5&name=서울 마포구
+GET {base}/v1/forecast?lat=37.57&lon=126.90&region=kr&tz=Asia/Seoul&plan=plus&lang=ko&outfitPrev=5&name=서울 마포구&v=2
 Accept: application/json
 ```
 
@@ -24,6 +24,7 @@ Accept: application/json
 | outfitPrev | optional, the outfit (0…14) the app showed last for this place (±1° hysteresis) |
 | prev   | optional, the old ten-outfit level (0…9) — sent by app builds from before the fifteen outfits |
 | name   | optional, the place name ("서울 마포구"); used to match 기상특보 areas |
+| v      | optional, what the app knows: `2` = the `sleet` icon. Without it (older builds) `sleet` is sent as `snowflake` |
 
 ## Response — one `WeatherScene` (200, JSON)
 
@@ -71,7 +72,7 @@ Accept: application/json
 }
 ```
 
-Icon names are the pixel icons in the app: `sun sun_strong partly_cloudy cloud raincloud lightning snowflake wind
+Icon names are the pixel icons in the app: `sun sun_strong partly_cloudy cloud raincloud lightning snowflake sleet wind
 dust moon umbrella umbrella_closed raindrop thermo_hot thermo_cold sunrise sunset …` (Shared/SharedAssets.xcassets).
 
 ## Rules the server applies (same as the design kit)
@@ -89,8 +90,9 @@ An app that gets no `outfit` (an older server) works it out from `feels` itself.
 chance 10–29 % → `think`; otherwise `none`.
 
 **Bubble**: one at a time, priority: rain coming / now › warnings (특보) › big temperature drop › heat / cold › nothing.
-Rain ahead is said as the hours people plan around, never as a promise: `15~17시 비 예정` (first to last wet hour),
-`15시쯤 비 예정` (one hour), `내일 7~9시 비 예정`. The next-6-hours card says when it may stop (`18시쯤 그칠 예보`).
+Rain ahead is said as the hours people plan around, never as a promise: `15~17시 비 예보` (first to last wet hour),
+`15시쯤 비 예보` (one hour), `내일 7~9시 비 예보`; snow and sleet the same way (`15~17시 진눈깨비 예보`, with the `sleet` icon).
+The next-6-hours card says until when (`18시까지 비 예보`).
 
 ## Languages
 
@@ -100,15 +102,15 @@ Rain ahead is said as the hours people plan around, never as a promise: `15~17�
 | field | ko | en | ja |
 |---|---|---|---|
 | `cond` | `비 · 바람 강함` | `Rain · Strong wind` | `雨 · 強風` |
-| `bubble.text` (rain ahead) | `15~17시 비 예정` · `15시쯤 비 예정` · `내일 7~9시 비 예정` | `Rain 3–5PM` · `Rain around 3PM` · `Rain tomorrow 7–9AM` | `15〜17時 雨` · `15時ごろ 雨` · `明日7〜9時 雨` |
+| `bubble.text` (rain ahead) | `15~17시 비 예보` · `15시쯤 비 예보` · `내일 7~9시 비 예보` | `Rain 3–5PM` · `Rain around 3PM` · `Rain tomorrow 7–9AM` | `15〜17時 雨の予報` · `15時ごろ 雨の予報` · `明日7〜9時 雨の予報` |
 | `bubble.text` (fixed) | `비!` `폭우!` `한파!` `우산 챙겨요` | `Rain!` `Downpour!` `Cold wave!` `Take an umbrella` | `雨!` `豪雨!` `寒波!` `傘を持って` |
 | `bubble.text` / `alert.name` (특보) | `호우주의보` (KMA name) | `Heavy Rain Advisory` (glossary table; unknown names pass through) | `大雨注意報` |
-| `alert.note` | `오늘 6cm, 18시쯤 그칠 예보` | `6cm today, Should stop around 6PM` | `今日 6cm、18時ごろ止む見込み` |
+| `alert.note` | `오늘 6cm, 18시까지 눈 예보, 미끄러우니 조심하세요` | `6cm today, snow until around 6PM, watch your step` | `今日 6cm、18時ごろまで雪の予報、滑りやすいのでご注意ください` |
 | `hours[][0]`, `next6[][0]` | `지금` `14시` | `Now` `2PM` | `今` `14時` |
 | `dayDetail[][][0]` | `0시` … `21시` | `12AM` … `9PM` | `0時` … `21時` |
 | `days[][0]` | `오늘` `월`…`일` | `Today` `Mon`…`Sun` | `今日` `月`…`日` |
 | `tiles[].label` | `강수확률` `자외선` `일몰`/`일출` `습도` | `Rain chance` `UV` `Sunset`/`Sunrise` `Humidity` | `降水確率` `紫外線` `日の入り`/`日の出` `湿度` |
-| rain tile note | `15~17시 비 예정 · 7mm (보통)` · `12시간 동안 비 소식 없어요` | `Rain 3–5PM · 7mm (Moderate)` · `No rain for the next 12 hours` | `15〜17時 雨 · 7mm (普通)` · `12時間 雨の心配はありません` |
+| rain tile note | `15~17시 비 예보 · 7mm (보통)` · `12시간 동안 비 소식 없어요` | `Rain 3–5PM · 7mm (Moderate)` · `No rain for the next 12 hours` | `15〜17時 雨の予報 · 7mm (普通)` · `12時間 雨の心配はありません` |
 | UV note | `강해요 · 선크림, 모자` | `High · Sunscreen, hat` | `強い · 日焼け止め、帽子` |
 | sun tile note | `내일 일출 06:49` / `일몰 17:52` | `Sunrise tomorrow 06:49` / `Sunset 17:52` | `明日の日の出 06:49` / `日の入り 17:52` |
 | humidity note | `적당해요 · 이슬점 13°` | `Comfortable · Dew point 13°` | `ちょうどいい · 露点 13°` |
@@ -156,7 +158,7 @@ Korea always cover 00–24 h: the earlier runs (05 h, yesterday 23 h) fill what 
 
 ## 문구 규칙
 
-- **비 시각은 시간대로**: "15~17시 비 예정", "15시쯤 비 예정", "내일 7~9시 비 예정". "2시간 뒤" 같은 남은 시간이나 단정("올 듯")은 쓰지 않아요. 그치는 때는 "18시쯤 그칠 예보".
+- **비 시각은 시간대로**: "15~17시 비 예보", "15시쯤 비 예보", "내일 7~9시 비 예보". "2시간 뒤" 같은 남은 시간이나 단정("올 듯")은 쓰지 않아요. 언제까지는 "18시까지 비 예보".
 - **고유명사 알림은 그대로**: 기상청 특보 이름(호우주의보 · 태풍경보 · 대설주의보 …)과 기준 이상일 때만 나오는 이름(폭염 33° · 열대야 밤 25° · 한파 -10° · 폭우 · 폭설 · 천둥번개)은 다른 말로 바꾸지 않아요. 위젯 · 워치에서도 이 이름이 그대로 보여요.
 - **위젯 · 잠금 화면 · 워치는 문장이 아니라 단어**: `머리말 · 기온 · 꼬리말` (`Shared/Models/Compact.swift`)
   - 머리말: 특보 · 알림 이름, 없으면 날씨 한 단어 (비 · 눈 · 맑음 · 흐림 · 15~17시 비 · 강한 바람 · 짙은 안개)
@@ -166,7 +168,7 @@ Korea always cover 00–24 h: the earlier runs (05 h, yesterday 23 h) fill what 
 
 ## 특보 띠 · 눈의 종류
 
-- `alert { name, note }`: 기상청 특보가 있을 때만. 홈 화면 캐릭터 아래, 시간별 위에 띠로 보여요 — "대설주의보 · 오늘 6cm, 18시쯤 그칠 예보", "폭염경보 · 낮 최고 36°, 한낮 외출 줄여요". 위젯·워치에는 자리가 없어 이름만 (호우주의보 · 18° · 우산).
+- `alert { name, note }`: 기상청 특보가 있을 때만. 홈 화면 캐릭터 아래, 시간별 위에 띠로 보여요 — "대설주의보 · 오늘 6cm, 18시까지 눈 예보, 미끄러우니 조심하세요", "폭염경보 · 낮 최고 36°, 한낮 외출 줄여요". 위젯·워치에는 자리가 없어 이름만 (호우주의보 · 18° · 우산).
 - `precip`: `snow` (눈) · `heavysnow` (시간당 3cm 이상, 말풍선 폭설!) · `sleet` (진눈깨비: 비와 눈이 함께, 양은 mm). 하늘 그림도 따로 — 눈은 큰 눈송이(3·4·5px, 테두리 할로), 많은 눈은 더 촘촘하게, 진눈깨비는 빗줄기와 젖은 눈송이가 함께.
 - 하늘에 내리는 양은 그 시각의 mm(눈은 cm)를 따라가요 (`Sky.density`): 비 1mm 미만 0.3배 · 3mm 1배 · 15mm 1.6배 · 30mm 2배, 눈 0.5cm 0.6배 · 1cm 1배 · 3cm 1.6배 · 6cm 2배 (사이는 비례). 빗줄기 길이도 같이 달라져요.
 

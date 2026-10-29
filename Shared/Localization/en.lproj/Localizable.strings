@@ -127,6 +127,7 @@
 "%@ · 30분 안에 비가 올 수 있어요" = "%@ · Rain may start within 30 min";
 "%@ · 오늘 %@ ~ %@" = "%@ · Today %@ to %@";
 "눈 예보예요 · 미끄러우니 조심하세요" = "Snow expected · Watch your step";
+"진눈깨비 예보예요 · 미끄러우니 조심하세요" = "Sleet expected · Watch your step";
 "비 예보예요 · 우산 챙기세요" = "Rain expected · Take an umbrella";
 "강수확률 %d%% · 우산 챙기세요" = "%d%% chance of rain · Take an umbrella";
 "일교차가 커요" = "Big temperature swing";

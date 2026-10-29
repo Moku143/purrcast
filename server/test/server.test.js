@@ -9,7 +9,7 @@ import { level, outfit, bubble, uvNote, whenWord, alertNote, condition, rainKind
 import { strings, normLang, warningName, hourLabel } from '../src/i18n.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike, humidityWord, windWord } from '../src/physics.js';
-import worker, { forecast, readQuery, resetCache, setUpstreamTimeout } from '../src/index.js';
+import worker, { forecast, readQuery, resetCache, setUpstreamTimeout, legacyIcons } from '../src/index.js';
 import { beforeEach } from 'node:test';
 beforeEach(() => { resetCache(); resetWeatherKitTokens(); });
 
@@ -709,6 +709,20 @@ test('snow kinds: 눈 · 많은 눈 (3 cm/h+) · 진눈깨비', () => {
   const h3 = flat(40, { cloud: 95, mm: 2, pop: 90, sym: 'sleet' });
   const s3 = buildScene({ points: parseMet(met(at(13), h3)).points }, { ...SEOUL, plan: 'plus', now: at(13, 40) });
   validateScene(s3); assert.equal(s3.precip, 'sleet'); assert.equal(s3.cond, '진눈깨비'); assert.equal(s3.bubble.text, '진눈깨비!'); assert.match(s3.tiles[0].note, /mm/);
+  // its own icon (rain and snow together) in the hours and the days; an older app (no v=2) gets the snowflake
+  assert.equal(s3.hours[0][1], 'sleet'); assert.equal(s3.days[0][1], 'sleet');
+  const old = legacyIcons(JSON.parse(JSON.stringify(s3)));
+  assert.equal(old.hours[0][1], 'snowflake'); assert.equal(old.days[0][1], 'snowflake'); assert.equal(old.precip, 'sleet');
+  assert.equal(readQuery(new URLSearchParams('lat=37.5&lon=127')).v, 1);
+  assert.equal(readQuery(new URLSearchParams('lat=37.5&lon=127&v=2')).v, 2);
+});
+
+test('sleet on the way: "진눈깨비 예보" with the sleet icon, not snow', () => {
+  const base = { warnings: [], nowWet: false, nowPr: 'none', thunder: false, startIn: 2, when: '15~17시', wind: false, fog: 0, feels: 2, night: false, swing: 4, maxPop: 80, rain: 'bag' };
+  assert.deepEqual(bubble({ ...base, next: 'sleet' }), { kind: 'speech', tone: 'sky', icon: 'sleet', text: '15~17시 진눈깨비 예보' });
+  assert.deepEqual(bubble({ ...base, next: 'snow' }), { kind: 'speech', tone: 'sky', icon: 'snowflake', text: '15~17시 눈 예보' });
+  assert.deepEqual(bubble({ ...base, next: 'rain' }), { kind: 'speech', tone: 'sky', icon: 'umbrella_closed', text: '15~17시 비 예보' });
+  assert.match(bubble({ ...base, next: 'sleet' }, 'en').text, /^Sleet /);
 });
 
 test('KMA extended days: PCP · SNO · WSD codes become amounts (글피 from a 05 h run)', () => {

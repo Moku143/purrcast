@@ -51,12 +51,14 @@
 | 비바람! | Wind and rain! | 雨風! |
 | 눈보라! | Blizzard! | 吹雪! |
 | 바람 세요! | Windy! | 強風! |
-| 안개 짙어요! | Thick fog! | 濃霧! |
+| 안개가 짙어요! | Thick fog! | 濃霧! |
+| 안개가 옅어요 | Light fog | 霧は薄め |
 | 일교차 커요! | Big temp swing! | 寒暖差大! |
-| 우산 챙겨요 | Take an umbrella | 傘を持って |
-| 15~17시 비 예정 | Rain 3–5PM | 15〜17時 雨 |
-| 15시쯤 비 예정 | Rain around 3PM | 15時ごろ 雨 |
-| 내일 7~9시 비 예정 | Rain tomorrow 7–9AM | 明日7〜9時 雨 |
+| 우산 챙기세요 | Take an umbrella | 傘をお持ちください |
+| 15~17시 비 예보 | Rain 3–5PM | 15〜17時 雨の予報 |
+| 15시쯤 비 예보 | Rain around 3PM | 15時ごろ 雨の予報 |
+| 내일 7~9시 비 예보 | Rain tomorrow 7–9AM | 明日7〜9時 雨の予報 |
+| 15~17시 진눈깨비 예보 | Sleet 3–5PM | 15〜17時 みぞれの予報 |
 | 태풍! | Typhoon! | 台風! |
 | 황사! | Yellow dust! | 黄砂! |
 
@@ -78,7 +80,7 @@
 - 오늘/내일: 오늘·내일 / Today·Tomorrow / 今日·明日
 - 요일: 월화수목금토일 / Mon Tue Wed Thu Fri Sat Sun / 月火水木金土日
 - 비 시간대: ko `15~17시` · en `3–5PM` · ja `15〜17時`
-- 그칠 때: ko `18시쯤 그칠 예보` · en `Should stop around 6PM` · ja `18時ごろ止む見込み`
+- 언제까지: ko `18시까지 비 예보` · en `Rain until around 6PM` · ja `18時ごろまで雨の予報` ("그칠 예보"는 쓰지 않아요)
 
 ## 타일 · 라벨
 | ko | en | ja |
@@ -138,7 +140,7 @@
 ## 알림 문구
 | ko | en | ja |
 |---|---|---|
-| 15시쯤 비 예정 · 우산 챙기세요 | Rain around 3PM · Take an umbrella | 15時ごろ雨・傘をお持ちください |
+| 15시쯤 비 예보 · 우산 챙기세요 | Rain around 3PM · Take an umbrella | 15時ごろ雨の予報・傘をお持ちください |
 | 마포구 · 30분 안에 비가 올 수 있어요 | Mapo-gu · Rain may start within 30 min | 麻浦区・30分以内に雨が降るかも |
 | 마포구 · 오늘 9° ~ 19° | Mapo-gu · Today 9° to 19° | 麻浦区・今日 9°〜19° |
 | 비 예보예요 · 우산을 챙겨 주세요 | Rain expected · Take an umbrella | 雨の予報です・傘をお持ちください |

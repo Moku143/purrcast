@@ -26,7 +26,7 @@ enum Notifications {
                     n.body = voice.say(L("%@ · 30분 안에 비가 올 수 있어요", place.short))
                     n.sound = .default
                     // the chosen character in today's outfit under its open umbrella, in the rain (or snow) that is coming
-                    let icon = s.hours.dropFirst().first(where: { $0.mm > 0 || ["raincloud", "lightning", "snowflake"].contains($0.icon) })?.icon ?? "raincloud"
+                    let icon = s.hours.dropFirst().first(where: { $0.mm > 0 || ["raincloud", "lightning", "snowflake", "sleet"].contains($0.icon) })?.icon ?? "raincloud"
                     if let a = NotificationArt.attachment(character, level: s.level, rain: .umbrella, sky: NotificationArt.wetSky(icon: icon), falling: true, id: "rain") { n.attachments = [a] }
                     c.add(UNNotificationRequest(identifier: "rain", content: n,
                                                 trigger: UNTimeIntervalNotificationTrigger(timeInterval: at.timeIntervalSinceNow, repeats: false)))
@@ -89,7 +89,10 @@ enum Notifications {
     }
 
     static func morningBody(_ d: WeatherScene.DayRow) -> String {
-        if d.chance >= 60 { return d.icon == "snowflake" ? L("눈 예보예요 · 미끄러우니 조심하세요") : L("비 예보예요 · 우산 챙기세요") }
+        if d.chance >= 60 {
+            return d.icon == "snowflake" ? L("눈 예보예요 · 미끄러우니 조심하세요")
+                : d.icon == "sleet" ? L("진눈깨비 예보예요 · 미끄러우니 조심하세요") : L("비 예보예요 · 우산 챙기세요")
+        }
         if d.chance >= 30 { return L("강수확률 %d%% · 우산 챙기세요", d.chance) }
         return d.hi - d.lo >= 8 ? L("일교차가 커요") : L("옷차림은 앱에서 확인해 보세요")
     }
@@ -110,7 +113,7 @@ enum Notifications {
 
     /// Start of the first rainy hour in the hourly rows ("16시", in the place's time zone) and that hour.
     static func firstRain(_ s: WeatherScene, tz: TimeZone, now: Date = Date()) -> (Date, Int)? {
-        guard let row = s.hours.dropFirst().first(where: { $0.mm > 0 || $0.icon == "raincloud" || $0.icon == "lightning" }),
+        guard let row = s.hours.dropFirst().first(where: { $0.mm > 0 || ["raincloud", "lightning", "sleet"].contains($0.icon) }),
               let h = HourLabel.hour(row.label) else { return nil }
         var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
         guard var d = cal.date(bySettingHour: h, minute: 0, second: 0, of: now) else { return nil }

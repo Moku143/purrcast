@@ -58,6 +58,7 @@ struct ServerWeatherProvider: WeatherProvider {
             URLQueryItem(name: "plan", value: plus ? "plus" : "free"),
             URLQueryItem(name: "lang", value: Lang.current.code),
             URLQueryItem(name: "name", value: place.serverName),   // Korean for Korean places: 기상청 warnings go by it
+            URLQueryItem(name: "v", value: "2"),   // knows the 'sleet' icon (older apps get 'snowflake' in its place)
         ]
         // the outfit shown last time (0…14) for the server's ±1° hysteresis ("prev" was the old ten-outfit number)
         if let p = previousLevel { q.append(URLQueryItem(name: "outfitPrev", value: String(p))) }

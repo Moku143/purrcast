@@ -1,5 +1,6 @@
 // Purrcast forecast server — Cloudflare Worker.
-//   GET /v1/forecast?lat=&lon=&region=kr|jp|other&tz=&plan=free|plus&lang=ko[&outfitPrev=0..14][&prev=0..9][&name=서울 마포구]
+//   GET /v1/forecast?lat=&lon=&region=kr|jp|other&tz=&plan=free|plus&lang=ko[&outfitPrev=0..14][&prev=0..9][&name=서울 마포구][&v=2]
+//   v: what the app knows. 2 = the 'sleet' icon (진눈깨비); older apps (no v) get 'snowflake' in its place.
 //   GET /health
 // Korea: 기상청 단기예보 (+ Plus: 초단기실황 · 초단기예보 · 특보), days 4–10 and UV from MET Norway.
 // Elsewhere: Apple WeatherKit (current, hourly, daily, next-hour minutes, alerts) when its key is set.
@@ -32,6 +33,7 @@ export default {
       const q = readQuery(url.searchParams);
       const scene = await forecast(q, env, ctx);
       validateScene(scene);
+      if (q.v < 2) legacyIcons(scene);
       // Plus: refresh every 10 min; free: the day's stored forecast, so cache longer
       return json(scene, 200, { 'cache-control': q.plan === 'plus' ? 'public, max-age=600' : 'public, max-age=3600' });
     } catch (e) {
@@ -57,7 +59,18 @@ export function readQuery(sp) {
     outfitPrev: Number.isInteger(outfitPrev) && outfitPrev >= 0 && outfitPrev <= 14 ? outfitPrev : null,
     name: sp.get('name') || '',
     lang: normLang(sp.get('lang')),   // ko (default) | en | ja; anything else → en
+    v: parseInt(sp.get('v'), 10) || 1,
   };
+}
+
+/** Icons an older app does not have, swapped for the nearest one it has (an unknown name would show a plain cloud). */
+const LEGACY_ICON = { sleet: 'snowflake' };
+export function legacyIcons(scene) {
+  const swap = (n) => LEGACY_ICON[n] ?? n;
+  for (const row of [...(scene.hours ?? []), ...(scene.days ?? [])]) row[1] = swap(row[1]);
+  if (scene.bubble) scene.bubble.icon = swap(scene.bubble.icon);
+  for (const t of scene.tiles ?? []) t.icon = swap(t.icon);
+  return scene;
 }
 
 function json(body, status = 200, extra = {}) {

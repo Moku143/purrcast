@@ -14,14 +14,14 @@ enum NotificationArt {
         case "sun", "moon", "sun_strong": return .clear
         case "partly_cloudy": return .partly
         case "raincloud", "raindrop": return .rain
-        case "snowflake": return .snow
+        case "snowflake", "sleet": return .snow
         case "lightning": return .storm
         default: return .cloudy
         }
     }
 
     /// The sky while rain or snow is falling (an hour that is wet whatever its icon says).
-    static func wetSky(icon: String) -> Sky { icon == "snowflake" ? .snow : icon == "lightning" ? .storm : .rain }
+    static func wetSky(icon: String) -> Sky { icon == "snowflake" || icon == "sleet" ? .snow : icon == "lightning" ? .storm : .rain }
 
     static let side: CGFloat = 600
 

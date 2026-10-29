@@ -1036,9 +1036,9 @@ private struct DayHourly {
 
     /// The icon for an hour: the wet icon while rain is likely, a cloud around it on a rainy day, the moon at night.
     func icon(_ h: Int) -> String {
-        let wet = snowy ? "snowflake" : (dayIcon == "lightning" ? "lightning" : "raincloud")
+        let wet = snowy ? "snowflake" : (dayIcon == "lightning" || dayIcon == "sleet" ? dayIcon : "raincloud")
         if chance[h] >= 50 || (hasMM && mm[h] >= 0.3) { return wet }
-        if dayIcon == "raincloud" || dayIcon == "lightning" || snowy { return "cloud" }
+        if ["raincloud", "lightning", "sleet"].contains(dayIcon) || snowy { return "cloud" }
         if h < dawn || h >= dusk { return dayIcon == "cloud" ? "cloud" : "moon" }
         return dayIcon
     }

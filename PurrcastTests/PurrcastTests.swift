@@ -151,6 +151,8 @@ final class PurrcastTests: XCTestCase {
         }
         XCTAssertEqual(NotificationArt.sky(icon: "partly_cloudy"), .partly)
         XCTAssertEqual(NotificationArt.sky(icon: "snowflake"), .snow)
+        XCTAssertEqual(NotificationArt.sky(icon: "sleet"), .snow)
+        XCTAssertEqual(NotificationArt.wetSky(icon: "sleet"), .snow)
         XCTAssertEqual(NotificationArt.dayLevel(lo: 9, hi: 19), Rules.level(feels: 14))
     }
 
@@ -281,6 +283,7 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Notifications.morningBody(d), "비 예보예요 · 우산 챙기세요")
         XCTAssertEqual(Notifications.morningBody(WeatherScene.DayRow(name: "금", icon: "raincloud", chance: 40, lo: 9, hi: 19)), "강수확률 40% · 우산 챙기세요")
         XCTAssertEqual(Notifications.morningBody(WeatherScene.DayRow(name: "금", icon: "snowflake", chance: 80, lo: -3, hi: 1)), "눈 예보예요 · 미끄러우니 조심하세요")
+        XCTAssertEqual(Notifications.morningBody(WeatherScene.DayRow(name: "금", icon: "sleet", chance: 80, lo: -1, hi: 3)), "진눈깨비 예보예요 · 미끄러우니 조심하세요")
     }
 
     /// Widgets and the watch show words with the temperature between them; official names stay as they are.

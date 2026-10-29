@@ -71,7 +71,7 @@ export function buildScene(f, o) {
   const when = startP ? R.whenWord(H(startP), H(endP), tomorrow, S) : '';   // 15~17시 · 15시쯤 · 내일 7~9시
   const maxPop = Math.max(0, ...next12.map((p) => p.pop ?? (wet(p) ? 70 : 0)));
   const rain = R.rainState({ nowWet, startIn, maxPop });
-  const snowNext = startP ? startP.type === 'snow' || startP.type === 'sleet' : false;
+  const next = !startP ? null : startP.type === 'snow' || startP.type === 'sleet' ? startP.type : 'rain';   // what is coming
 
   // sky layers
   const pr = R.precip(cur);
@@ -117,7 +117,7 @@ export function buildScene(f, o) {
   const total = r1(next12.reduce((s, p) => s + (p.mm || 0), 0));
   const amt = pr === 'snow' || pr === 'heavysnow' ? `${total}cm` : `${total}mm (${R.rainAmountWord(total, S)})`;   // sleet is measured as water, like rain
   const rainNote = nowWet ? S.nowWetNote(pr === 'snow' || pr === 'heavysnow' ? S.what.snow : pr === 'sleet' ? S.what.sleet : S.what.rain, amt)
-    : startP ? `${S.expect(when, snowNext ? S.what.snow : S.what.rain)} · ${amt}` : S.noRain12h;
+    : startP ? `${S.expect(when, S.what[next])} · ${amt}` : S.noRain12h;
   const todayPts = pts.filter((p) => dayKey(p.t, tz) === dayKey(nowT, tz));
   const uvs = (todayPts.length ? todayPts : next12).map((p) => uvUnderCloud(p.uvClear, p.cloud)).filter((v) => v != null);
   const uv = uvs.length ? Math.round(Math.max(...uvs)) : null;
@@ -142,7 +142,7 @@ export function buildScene(f, o) {
 
   const bub = R.bubble({
     warnings: f.warnings, nowWet, nowPr: pr, nowMm: cur.mm, thunder, startIn, when,
-    wind: auxKind === 'wind', fog: auxKind === 'fog' ? Math.max(2, R.fogLevel(cur)) : 0, feels, night, swing: hi - lo, maxPop, plus, rain, snowNext,
+    wind: auxKind === 'wind', fog: auxKind === 'fog' ? Math.max(2, R.fogLevel(cur)) : 0, feels, night, swing: hi - lo, maxPop, plus, rain, next: next ?? 'rain',
   }, S);
 
   const scene = {

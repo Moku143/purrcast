@@ -38,14 +38,14 @@ export const feelsWord = (c, lang = 'ko') => strings(lang).feels[c <= -10 ? 0 : 
 /** Pixel icon for one hour. */
 export function icon(p, night) {
   if (p.thunder) return 'lightning';
-  if (p.mm > 0 || p.type !== 'none') return p.type === 'snow' || p.type === 'sleet' ? 'snowflake' : 'raincloud';
+  if (p.mm > 0 || p.type !== 'none') return p.type === 'snow' ? 'snowflake' : p.type === 'sleet' ? 'sleet' : 'raincloud';
   const c = p.cloud ?? 0;
   if (c >= 70) return 'cloud';
   if (c >= 30) return night ? 'cloud' : 'partly_cloudy';
   return night ? 'moon' : 'sun';
 }
 
-const ICON_RANK = { lightning: 5, snowflake: 4, raincloud: 3, cloud: 2, partly_cloudy: 1, sun: 0, moon: 0 };
+const ICON_RANK = { lightning: 6, snowflake: 5, sleet: 4, raincloud: 3, cloud: 2, partly_cloudy: 1, sun: 0, moon: 0 };
 export const worse = (a, b) => (ICON_RANK[a] >= ICON_RANK[b] ? a : b);
 
 export const cover = (cloud) => (cloud == null ? 'partly' : cloud >= 70 ? 'overcast' : cloud >= 30 ? 'partly' : 'clear');
@@ -106,7 +106,8 @@ const B = (kind, tone, icon, text) => ({ kind, tone, icon, text });
  */
 export function bubble(c, lang = c.lang ?? 'ko') {
   const S = strings(lang), T = S.bubble;
-  const { warnings, nowWet, nowPr, thunder, startIn, wind, fog, feels, night, swing, maxPop, rain, snowNext } = c;
+  const { warnings, nowWet, nowPr, thunder, startIn, wind, fog, feels, night, swing, maxPop, rain } = c;
+  const next = c.next ?? (c.snowNext ? 'snow' : 'rain');   // what is coming: rain | snow | sleet
   if (warnings?.length) {
     const w = warnings[0].name;   // the KMA name (or Apple's own description): icons are chosen from it, the text is its translation
     const k = warningKind(w);
@@ -117,9 +118,10 @@ export function bubble(c, lang = c.lang ?? 'ko') {
   if (thunder) return B('shout', 'coral', 'lightning', T.thunder);
   if (nowPr === 'heavy') return B('shout', 'sky', 'umbrella', T.downpour);
   if (nowPr === 'heavysnow') return B('speech', 'sky', 'snowflake', T.heavysnow);
-  const what = snowNext ? S.what.snow : S.what.rain;
+  const what = S.what[next] ?? S.what.rain;
+  const nextIcon = next === 'snow' ? 'snowflake' : next === 'sleet' ? 'sleet' : 'umbrella_closed';
   if (!nowWet && startIn != null && startIn <= 2) {
-    return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', S.expect(c.when, what));
+    return B('speech', 'sky', nextIcon, S.expect(c.when, what));
   }
   if (wind) return B('speech', 'sky', 'wind', nowWet ? (nowPr === 'snow' || nowPr === 'heavysnow' ? T.blizzard : T.windrain) : T.windy);
   if (fog) return B('speech', 'white', 'cloud', fog >= 3 ? T.fog : T.fogMid);   // fog: its thickness (fogLevel)
@@ -127,7 +129,7 @@ export function bubble(c, lang = c.lang ?? 'ko') {
   if (night && feels >= 25) return B('speech', 'night', 'sweat', T.tropical);
   if (feels <= -10) return B('shout', 'sky', 'thermo_cold', T.cold);
   if (nowWet) return nowPr === 'snow' || nowPr === 'heavysnow' ? B('speech', night ? 'night' : 'sky', 'snowman', T.snow) : nowPr === 'sleet' ? B('speech', 'sky', 'umbrella', T.sleet) : B('speech', 'sky', 'umbrella', T.rain);
-  if (startIn != null && startIn <= 12) return B('speech', 'sky', snowNext ? 'snowflake' : 'umbrella_closed', S.expect(c.when, what));
+  if (startIn != null && startIn <= 12) return B('speech', 'sky', nextIcon, S.expect(c.when, what));
   if (swing >= 10) return B('speech', 'night', 'daynight', T.swing);
   if (rain === 'think') return B('thought', 'sky', 'umbrella', '');
   if (rain === 'bag' && maxPop >= 30) return B('speech', 'sky', 'umbrella_closed', T.umbrella);
