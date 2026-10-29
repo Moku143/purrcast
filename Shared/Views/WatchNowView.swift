@@ -30,7 +30,7 @@ struct WatchNow: View {
                 .frame(maxWidth: 112, alignment: .leading)
                 .padding(.top, headerTop).padding(.leading, 16)
                 // the temperature high on the right, under the clock
-                Text(snap.deg(s.temp)).font(.px(46 * k)).lineLimit(1).rolling(s.temp).probe("temp")
+                Text(snap.deg(s.temp)).font(.px(52 * k)).lineLimit(1).rolling(s.temp).probe("temp")
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .padding(.top, 64 * k).padding(.trailing, 20)
                 // the character at the bottom left; its bubble rides on it (above the head, or above the umbrella)
