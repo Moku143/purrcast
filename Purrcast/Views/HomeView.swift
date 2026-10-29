@@ -318,7 +318,9 @@ struct HomeView: View {
                     }
                 }.padding(.trailing, 26)
             }
-            .frame(height: 64)
+            // bottom-aligned: with light rain the bars are only a few points tall, and a centred ZStack would
+            // float the whole chart (강 line included) up into the words above it
+            .frame(maxWidth: .infinity, minHeight: 64, maxHeight: 64, alignment: .bottomLeading)
             .padding(.top, 10)          // room for the 강 line's label above the bars, clear of the words over it
             HStack {
                 ForEach(Array(head.ticks.enumerated()), id: \.offset) { i, t in
