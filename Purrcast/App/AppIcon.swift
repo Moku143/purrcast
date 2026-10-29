@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The home-screen icon, picked in 설정 › 앱 아이콘. The app's own icon is the cat's face as the sun on a peach sky;
-/// that sun face comes on a peach or a sky-blue sky and follows the character shown (AppIcon-sun-<sky>-<character>).
+/// The home-screen icon, picked in 설정 › 앱 아이콘. The app's own icon is the cat's face as the sun on a sky-blue sky;
+/// that sun face comes on sky blue or peach and follows the character shown (AppIcon-sun-<sky>-<character>).
 /// The others are fixed: the cat-ear cloud in every weather, and each character under its umbrella in the rain.
 /// They are alternate icons in the asset catalog (AppIcon-<id>, listed in project.yml); `iconpick-<id>` is each
 /// one's small picture for the picker.
@@ -22,9 +22,9 @@ enum AppIcon {
     }
 
     /// the app's own icon (AppIcon in the catalog)
-    static let primary = "sun-peach-cat"
+    static let primary = "sun-blue-cat"
 
-    static var sun: [Choice] { [Choice(id: "sun-peach", title: L("살구빛")), Choice(id: "sun-blue", title: L("하늘빛"))] }
+    static var sun: [Choice] { [Choice(id: "sun-blue", title: L("하늘빛")), Choice(id: "sun-peach", title: L("살구빛"))] }
 
     static var weather: [Choice] {
         [Choice(id: "partly", title: L("구름 조금")), Choice(id: "clear", title: L("맑음")), Choice(id: "cloudy", title: L("흐림")),
@@ -41,7 +41,7 @@ enum AppIcon {
 
     /// The choice behind an icon name (a sun face of any character → its sky's choice).
     static func choice(of name: String?) -> String {
-        guard let n = name, n.hasPrefix("AppIcon-") else { return "sun-peach" }
+        guard let n = name, n.hasPrefix("AppIcon-") else { return "sun-blue" }
         let id = String(n.dropFirst("AppIcon-".count))
         for s in ["sun-peach", "sun-blue"] where id.hasPrefix(s + "-") { return s }
         return id
@@ -88,7 +88,7 @@ struct AppIconView: View {
     @EnvironmentObject var model: AppModel
     @Binding var route: Route?
     @Environment(\.dismiss) private var dismiss
-    @State private var current = "sun-peach"
+    @State private var current = "sun-blue"
 
     private let cols = [GridItem(.adaptive(minimum: 74, maximum: 96), spacing: 14)]
 

@@ -154,17 +154,17 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(NotificationArt.dayLevel(lo: 9, hi: 19), Rules.level(feels: 14))
     }
 
-    /// The home-screen icon names: the sun faces follow the character, the app's own icon is the peach cat.
+    /// The home-screen icon names: the sun faces follow the character, the app's own icon is the cat on sky blue.
     func testAppIconNames() {
-        XCTAssertEqual(AppIcon.choice(of: nil), "sun-peach")
+        XCTAssertEqual(AppIcon.choice(of: nil), "sun-blue")
         XCTAssertEqual(AppIcon.choice(of: "AppIcon-sun-blue-abys"), "sun-blue")
-        XCTAssertEqual(AppIcon.choice(of: "AppIcon-sun-peach-brit"), "sun-peach")
+        XCTAssertEqual(AppIcon.choice(of: "AppIcon-sun-peach-cat"), "sun-peach")
         XCTAssertEqual(AppIcon.choice(of: "AppIcon-rain-cat"), "rain-cat")
         XCTAssertEqual(AppIcon.choice(of: "AppIcon-partly"), "partly")
-        let peach = AppIcon.sun[0], blue = AppIcon.sun[1]
-        XCTAssertNil(peach.iconName(.cat))
-        XCTAssertEqual(peach.iconName(.abys), "AppIcon-sun-peach-abys")
-        XCTAssertEqual(blue.iconName(.cat), "AppIcon-sun-blue-cat")
+        let blue = AppIcon.sun[0], peach = AppIcon.sun[1]
+        XCTAssertNil(blue.iconName(.cat))
+        XCTAssertEqual(blue.iconName(.abys), "AppIcon-sun-blue-abys")
+        XCTAssertEqual(peach.iconName(.cat), "AppIcon-sun-peach-cat")
         XCTAssertEqual(AppIcon.weather[0].iconName(.brit), "AppIcon-partly")
         for c in AppIcon.sun + AppIcon.weather + AppIcon.characters {
             for ch in PurrCharacter.allCases { XCTAssertNotNil(UIImage(named: c.preview(ch)), c.preview(ch)) }
