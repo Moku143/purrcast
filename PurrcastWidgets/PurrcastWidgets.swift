@@ -66,6 +66,21 @@ struct PurrcastWidget: Widget {
     }
 }
 
+/// 2×4 with the next six hours, the character dressed for each.
+struct HoursWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "PurrcastHours", provider: Provider()) { entry in
+            HoursWidgetView(snap: entry.snap)
+                .containerBackground(for: .widget) {
+                    WidgetBackground(level: entry.snap.scene.level, night: entry.snap.scene.isNight, scene: entry.snap.scene)
+                }
+        }
+        .configurationDisplayName(L("시간별 날씨"))
+        .description(L("다음 6시간을 시간마다 옷차림으로 보여줘요"))
+        .supportedFamilies([.systemMedium])
+    }
+}
+
 struct RainWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastRain", provider: Provider()) { entry in
@@ -82,6 +97,7 @@ struct RainWidget: Widget {
 struct PurrcastWidgetBundle: WidgetBundle {
     var body: some Widget {
         PurrcastWidget()
+        HoursWidget()
         RainWidget()
     }
 }

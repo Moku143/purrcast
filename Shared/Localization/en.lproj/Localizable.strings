@@ -183,6 +183,8 @@
 "약" = "Low";
 "강" = "High";
 "시간별" = "Hourly";
+"시간별 날씨" = "Hourly";
+"다음 6시간을 시간마다 옷차림으로 보여줘요" = "The next 6 hours, each in its outfit";
 "강수확률 · 강수량" = "Rain chance · Amount";
 "10일" = "10 days";
 "돌풍 %@" = "Gusts %@";

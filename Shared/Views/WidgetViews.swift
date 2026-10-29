@@ -69,8 +69,9 @@ func bubbleBottom(_ c: PurrCharacter, _ rain: RainState, level: Int, spriteHeigh
 }
 private func chanceNow(_ s: WeatherScene) -> Int { s.hours.prefix(6).map { $0.chance }.max() ?? 0 }
 
-/// Medium (2×4): the 2×2 face on the left, as wide as the widget is tall, and the next five days on the right —
-/// day, weather, chance of rain, low, the range bar (the app's 10-day colours) and high.
+/// Medium (2×4): the 2×2 face on the left, as wide as the widget is tall, and the next five days on the right on
+/// a soft panel down to the bottom edge — day, weather, chance of rain, low, the range bar (the app's 10-day
+/// colours) and high.
 struct MediumWidgetView: View {
     let snap: WeatherSnapshot
     var body: some View {
@@ -78,11 +79,73 @@ struct MediumWidgetView: View {
         GeometryReader { g in
             HStack(spacing: 0) {
                 SmallFace(snap: snap).frame(width: min(g.size.height, g.size.width / 2))
-                WidgetDayList(snap: snap, ink: ink).padding(.leading, 4).padding(.trailing, 14).padding(.vertical, 10)
+                WidgetDayList(snap: snap, ink: ink)
+                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .background(WidgetPanel(ink: ink))
+                    .padding(.leading, 2).padding(.trailing, 8).padding(.vertical, 8)
             }
         }
         .foregroundStyle(ink.ink)
         .padding(-16)          // laid out from the widget's own edges (the hosts keep iOS's 16-pt margin)
+    }
+}
+
+/// Medium, hourly (2×4): place and temperature on the left, the weather and today's high / low on the right, and
+/// the next six hours on a panel below — each with its time, the character dressed for that hour (an open umbrella
+/// when it rains), its sky and temperature.
+struct HoursWidgetView: View {
+    let snap: WeatherSnapshot
+    var body: some View {
+        let s = snap.scene, ink = Ink(night: s.isNight)
+        let hours = Array(s.hours.dropFirst().prefix(6))
+        let feelsGap = Double(s.feels - s.temp)      // the hours give the temperature; dress for how it feels
+        VStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 8) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(snap.placeShort).font(.px(11)).lineLimit(1).minimumScaleFactor(0.7).probe("place")
+                    Text(snap.deg(s.temp)).font(.px(34)).lineLimit(1).probe("temp")
+                }
+                Spacer(minLength: 0)
+                VStack(alignment: .trailing, spacing: 3) {
+                    PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16).probe("icon")
+                    Text(Compact.condWord(s)).font(.px(11)).lineLimit(1).probe("cond")
+                    Text(L("최고 %@ · 최저 %@", snap.deg(s.hi), snap.deg(s.lo))).font(.px(9)).lineLimit(1).probe("hilo")
+                }
+            }
+            .halo(ink)
+            .padding(.horizontal, 14).padding(.top, 10)
+            Spacer(minLength: 2)
+            HStack(spacing: 0) {
+                ForEach(Array(hours.enumerated()), id: \.offset) { i, h in
+                    VStack(spacing: 1) {
+                        Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 7 : 9)).lineLimit(1).minimumScaleFactor(0.7).opacity(0.85).halo(ink).probe("h\(i)label")
+                        CharacterSprite(character: snap.shownCharacter, level: Rules.level(feels: Double(h.temp) + feelsGap),
+                                        rain: h.mm >= 0.1 ? .umbrella : .none, width: 34, animate: false).probe("h\(i)cat")
+                        HStack(spacing: 2) {
+                            PixelIcon(name: h.icon, size: 12).probe("h\(i)icon")
+                            Text(snap.deg(h.temp)).font(.px(10)).lineLimit(1).probe("h\(i)temp")
+                        }
+                        .halo(ink)
+                    }
+                    .frame(maxWidth: .infinity).probe("h\(i)")
+                }
+            }
+            .padding(.vertical, 5).padding(.horizontal, 2)
+            .background(WidgetPanel(ink: ink))
+            .padding(.horizontal, 8).padding(.bottom, 8)
+        }
+        .foregroundStyle(ink.ink)
+        .padding(-16)          // laid out from the widget's own edges (the hosts keep iOS's 16-pt margin)
+    }
+}
+
+/// The see-through panel the lists sit on: lets the sky show through while rain streaks fade behind the words.
+private struct WidgetPanel: View {
+    let ink: Ink
+    var body: some View {
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .fill(ink.night ? Color.white.opacity(0.08) : Color.white.opacity(0.42))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(ink.night ? Color.white.opacity(0.12) : Color.white.opacity(0.55), lineWidth: 1))
     }
 }
 
@@ -154,8 +217,8 @@ private struct WidgetDayList: View {
                 HStack(spacing: 4) {
                     Text(d.name).font(.px(10)).frame(width: Lang.current == .en ? 34 : 22, alignment: .leading).probe("d\(i)name")
                     PixelIcon(name: d.icon, size: 16).probe("d\(i)icon")
-                    Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(8)).foregroundStyle(ink.blue).frame(width: 22, alignment: .leading).probe("d\(i)chance")
-                    Text(snap.deg(d.lo)).font(.px(10)).foregroundStyle(ink.sub).frame(width: 24, alignment: .trailing).probe("d\(i)lo")
+                    Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(8)).foregroundStyle(ink.blue).frame(width: 20, alignment: .leading).probe("d\(i)chance")
+                    Text(snap.deg(d.lo)).font(.px(10)).foregroundStyle(ink.sub).frame(width: 22, alignment: .trailing).probe("d\(i)lo")
                     GeometryReader { b in
                         ZStack(alignment: .leading) {
                             Capsule().fill(ink.track)
@@ -165,7 +228,7 @@ private struct WidgetDayList: View {
                         }
                     }
                     .frame(height: 5).probe("d\(i)bar")
-                    Text(snap.deg(d.hi)).font(.px(10)).frame(width: 24, alignment: .trailing).probe("d\(i)hi")
+                    Text(snap.deg(d.hi)).font(.px(10)).frame(width: 22, alignment: .trailing).probe("d\(i)hi")
                 }
                 .lineLimit(1).minimumScaleFactor(0.7)
                 .frame(maxHeight: .infinity)

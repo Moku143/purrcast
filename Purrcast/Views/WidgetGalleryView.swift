@@ -22,6 +22,7 @@ struct WidgetGalleryView: View {
                     }
                 }
                 widgetBox(364, 170) { MediumWidgetView(snap: snap) }
+                widgetBox(364, 170) { HoursWidgetView(snap: snap) }
 
                 label(L("잠금 화면"))
                 ZStack {

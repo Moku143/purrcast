@@ -7,8 +7,24 @@ import SwiftUI
 struct WidgetLabView: View {
     @EnvironmentObject var model: AppModel
 
+    /// -labPage2: the widgets that do not fit on the first page (the hourly 2×4)
+    private var second: Bool { ProcessInfo.processInfo.arguments.contains("-labPage2") }
+
     var body: some View {
         let snap = model.snapshot
+        if second {
+            VStack(spacing: 16) {
+                home("lab-hours", 364, 170, snap) { HoursWidgetView(snap: snap) }
+            }
+            .padding(.top, 24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background(Color(hex: "#ECEAF4"))
+        } else {
+            first(snap)
+        }
+    }
+
+    private func first(_ snap: WeatherSnapshot) -> some View {
         VStack(spacing: 16) {
             HStack(alignment: .top, spacing: 12) {
                 home("lab-small", 170, 170, snap) { SmallWidgetView(snap: snap) }

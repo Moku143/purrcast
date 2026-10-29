@@ -86,6 +86,7 @@ struct WatchHours: View {
                     if h.chance >= 10 { Text("\(h.chance)%").font(.px(11)).foregroundStyle(Color(hex: "#9CC0FF")) }
                     Text(snap.deg(h.temp)).font(.px(15))
                 }
+                .padding(.trailing, 6)      // the numbers clear the scroll indicator by the crown
             }
         }
         .navigationTitle(L("시간별"))
@@ -104,6 +105,7 @@ struct WatchDays: View {
                     Text(snap.deg(d.lo)).font(.px(12)).opacity(0.7)
                     Text(snap.deg(d.hi)).font(.px(14))
                 }
+                .padding(.trailing, 6)      // the numbers clear the scroll indicator by the crown
             }
         }
         .navigationTitle(L("10일"))
