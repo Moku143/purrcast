@@ -50,6 +50,9 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: app.purrcast.ios
         TARGETED_DEVICE_FAMILY: "1"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        # the home-screen icon follows the character: AppIcon is the cat, these two are the alternates (AppIcon.swift)
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "AppIcon-abys AppIcon-brit"
   PurrcastWidgets:
     type: app-extension
     platform: iOS

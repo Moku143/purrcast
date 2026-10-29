@@ -24,9 +24,12 @@ struct PurrcastApp: App {
                     Task {
                         await purchases.refresh()
                         syncPlan()
+                        AppIcon.follow(model.shownCharacter)
                         await model.refresh()
                     }
                 }
+                // the home-screen icon is the character shown (a Plus character goes back to the cat when Plus ends)
+                .onChange(of: model.shownCharacter) { _, c in AppIcon.follow(c) }
                 .onChange(of: purchases.active) { _, _ in syncPlan() }
                 .onChange(of: purchases.expires) { _, _ in syncPlan() }
                 .onChange(of: purchases.testUntil) { _, _ in syncPlan() }
