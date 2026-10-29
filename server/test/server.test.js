@@ -79,7 +79,7 @@ test('how it feels: humidity, wind, UV in everyday words', () => {
   assert.equal(humidityWord({ temp: 30, rh: 70, dew: 24 }), '매우 끈적해요');
   assert.equal(humidityWord({ temp: 27, rh: 60, dew: 19 }), '꿉꿉해요');
   assert.equal(humidityWord({ temp: 20, rh: 25, dew: 0 }), '건조해요');
-  assert.equal(windWord(2), '산들바람'); assert.equal(windWord(7), '바람 꽤 강해요'); assert.equal(windWord(9), '바람 강해요'); assert.equal(windWord(15), '강풍 · 외출 주의');
+  assert.equal(windWord(2), '산들바람'); assert.equal(windWord(7), '바람 꽤 강해요'); assert.equal(windWord(9), '바람 강해요'); assert.equal(windWord(15), '강풍 · 외출 조심하세요');
   assert.equal(uvNote(1), '약해요'); assert.ok(uvNote(6).startsWith('강해요')); assert.ok(uvNote(11).startsWith('위험'));
 });
 
@@ -179,15 +179,15 @@ test('day sheet rows: + the 3-hour slot\'s rain (MET 6-hourly points spread over
   assert.throws(() => validateScene({ ...s, dayDetail: [[['0시', 1, 2, 3, 4, 5, -1, 7, 90]]] }), /dayDetail/);
 });
 
-test('scene: rain in a few hours → bag + "16~17시 비 예정" (the hours people plan around)', () => {
+test('scene: rain in a few hours → bag + "16~17시 비 예보" (the hours people plan around)', () => {
   const hrs = flat(40, { cloud: 90, sym: 'cloudy' });
   hrs[3] = { cloud: 95, mm: 1.2, pop: 70, sym: 'rain' }; hrs[4] = { cloud: 95, mm: 2.0, pop: 70, sym: 'rain' };
   const m = parseMet(met(at(13), hrs));
   const s = buildScene({ points: m.points }, { ...SEOUL, plan: 'plus', now: at(13, 40) });
   validateScene(s);
   assert.equal(s.rain, 'bag');
-  assert.equal(s.bubble.text, '16~17시 비 예정');
-  assert.match(s.tiles[0].note, /^16~17시 비 예정 · /);
+  assert.equal(s.bubble.text, '16~17시 비 예보');
+  assert.match(s.tiles[0].note, /^16~17시 비 예보 · /);
   assert.equal(s.tiles[0].value, '70%');
 });
 
@@ -200,17 +200,17 @@ test('scene: 60 % before the rain is not rain — "18~23시", not "16~23시" (�
   const s = buildScene({ points: m.points }, { ...SEOUL, plan: 'plus', now: at(15, 7) });
   validateScene(s);
   assert.equal(s.rain, 'bag');
-  assert.equal(s.bubble.text, '18~23시 비 예정');
-  assert.match(s.tiles[0].note, /^18~23시 비 예정 · /);
+  assert.equal(s.bubble.text, '18~23시 비 예보');
+  assert.match(s.tiles[0].note, /^18~23시 비 예보 · /);
   // a dry 60 % hour inside the spell still belongs to it; the 60 % hours after it do not
   hrs[5] = { cloud: 95, pop: 60, sym: 'cloudy' }; hrs[9] = { cloud: 95, pop: 60, sym: 'cloudy' };
   const t = buildScene({ points: parseMet(met(at(15), hrs)).points }, { ...SEOUL, plan: 'plus', now: at(15, 7) });
-  assert.equal(t.bubble.text, '18~23시 비 예정');
+  assert.equal(t.bubble.text, '18~23시 비 예보');
   // no amounts anywhere (only chances): a 60 % chance still says when
   const dry = flat(40, { cloud: 90, sym: 'cloudy', pop: 20 });
   dry[3] = { cloud: 95, pop: 70, sym: 'cloudy' }; dry[4] = { cloud: 95, pop: 70, sym: 'cloudy' };
   const u = buildScene({ points: parseMet(met(at(15), dry)).points }, { ...SEOUL, plan: 'plus', now: at(15, 7) });
-  assert.equal(u.bubble.text, '18~19시 비 예정');
+  assert.equal(u.bubble.text, '18~19시 비 예보');
 });
 
 test('when words: 15~17시 · 15시쯤 · 내일 7~9시', () => {
@@ -241,11 +241,23 @@ test('bubble priority: official warning first', () => {
 });
 
 test('alert line under the character: the warning name + what it means today', () => {
-  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }), '오늘 6cm, 18시쯤 그쳐요');
-  assert.equal(alertNote('호우주의보', { total: 42, pr: 'rain', nowWet: false, when: '15~19시', endH: null, hi: 25, lo: 22 }), '오늘 42mm (많음), 15~19시 비 예정');
-  assert.equal(alertNote('폭염경보', { total: 0, pr: 'none', hi: 36, lo: 27 }), '낮 최고 36°, 한낮 외출 줄여요');
-  assert.equal(alertNote('한파주의보', { total: 0, pr: 'none', hi: -6, lo: -14 }), '아침 -14°, 많이 추워요');
-  assert.equal(alertNote('강풍주의보', { gust: 18 }), '돌풍 18 m/s, 외출 주의');
+  // what it means today, then what to do
+  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }), '오늘 6cm, 18시까지 눈 예보, 미끄러우니 조심하세요');
+  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: false, when: '15~17시', endH: null, hi: 0, lo: -5 }), '오늘 6cm, 15~17시 눈 예보, 미끄러우니 조심하세요');
+  assert.equal(alertNote('대설주의보', { total: 0, pr: 'none', nowWet: false, when: '', endH: null }), '바닥이 미끄러우니 눈길 조심하세요');
+  assert.equal(alertNote('호우주의보', { total: 42, pr: 'rain', nowWet: false, when: '15~19시', endH: null, hi: 25, lo: 22 }), '오늘 42mm (많음), 15~19시 비 예보, 우산·우비 챙기세요');
+  assert.equal(alertNote('호우경보', { total: 69, pr: 'heavy', nowWet: true, when: '', endH: 18 }), '오늘 69mm (매우 많음), 18시까지 비 예보, 우산·우비 챙기세요');
+  assert.equal(alertNote('호우주의보', { total: 0, pr: 'none', nowWet: false, when: '', endH: null }), '비가 많이 와요, 우산 꼭 챙기고 우비도 있으면 좋아요');
+  assert.equal(alertNote('폭염경보', { total: 0, pr: 'none', hi: 36, lo: 27 }), '낮 최고 36°, 모자·선크림을 챙기고 물을 자주 마시는 게 좋아요');
+  assert.equal(alertNote('한파주의보', { total: 0, pr: 'none', hi: -6, lo: -14 }), '아침 -14°, 장갑·목도리·핫팩 챙기세요');
+  assert.equal(alertNote('강풍주의보', { gust: 18 }), '돌풍 18 m/s, 날리는 물건과 우산 조심하세요');
+  assert.equal(alertNote('풍랑주의보', {}), '바람이 매우 강해요, 날리는 물건과 우산 조심하세요');
+  assert.equal(alertNote('태풍경보', { gust: 26 }), '강한 비바람, 돌풍 26 m/s, 되도록 외출은 줄이는 게 좋아요');
+  assert.equal(alertNote('건조주의보', { rh: 25 }), '습도 25%, 불씨 조심하세요');
+  assert.equal(alertNote('황사경보', {}), '황사가 심해요, 마스크 챙기세요');
+  assert.equal(alertNote('미세먼지경보', {}), '미세먼지가 심해요, 마스크 챙기세요');
+  assert.equal(alertNote('해일주의보', { pr: 'snow' }), '바닥이 미끄러우니 조심하세요');
+  assert.equal(alertNote('해일주의보', { pr: 'none' }), '외출할 때 조심하세요');
   const hrs = flat(40, { cloud: 95, mm: 3, pop: 90, sym: 'rain' });
   const m = parseMet(met(at(13), hrs));
   const s = buildScene({ points: m.points, warnings: [{ name: '호우주의보', severity: 1 }] }, { ...SEOUL, plan: 'plus', now: at(13, 40) });
@@ -271,8 +283,8 @@ test('scene in en / ja: rain in a few hours → "Rain 4–5PM" · "16〜17時 �
   const ko = build('ko'), en = build('en'), ja = build('ja');
   for (const s of [en, ja]) validateScene(s);
   assert.equal(en.bubble.text, 'Rain 4–5PM'); assert.match(en.tiles[0].note, /^Rain 4–5PM · /);
-  assert.equal(ja.bubble.text, '16〜17時 雨'); assert.match(ja.tiles[0].note, /^16〜17時 雨 · /);
-  assert.equal(ko.bubble.text, '16~17시 비 예정');
+  assert.equal(ja.bubble.text, '16〜17時 雨の予報'); assert.match(ja.tiles[0].note, /^16〜17時 雨の予報 · /);
+  assert.equal(ko.bubble.text, '16~17시 비 예보');
   assert.deepEqual([en.bubble.kind, en.bubble.tone, en.bubble.icon], [ko.bubble.kind, ko.bubble.tone, ko.bubble.icon]);
   assert.equal(en.cond, 'Cloudy'); assert.equal(ja.cond, '曇り');
   assert.deepEqual(en.hours.slice(0, 3).map((h) => h[0]), ['Now', '2PM', '3PM']); assert.deepEqual(ja.hours.slice(0, 3).map((h) => h[0]), ['今', '14時', '15時']);
@@ -300,9 +312,9 @@ test('words per language: condition, when, hour, rain kind, feels, humidity, win
   assert.equal(whenWord(15, 17, false, 'ja'), '15〜17時'); assert.equal(whenWord(15, 15, false, 'ja'), '15時ごろ'); assert.equal(whenWord(7, 9, true, 'ja'), '明日7〜9時');
   assert.equal(hourLabel(0, 'en'), '12AM'); assert.equal(hourLabel(12, 'en'), '12PM'); assert.equal(hourLabel(14, 'ko'), '14시'); assert.equal(hourLabel(14, 'ja'), '14時');
   assert.equal(rainKind(5, 'en'), 'Moderate rain'); assert.equal(rainKind(5, 'ja'), 'やや強い雨'); assert.equal(rainKind(5), '보통 비');
-  assert.equal(feelsWord(20, 'en'), 'Pleasant'); assert.equal(feelsWord(-12, 'ja'), '極寒');
+  assert.equal(feelsWord(20, 'en'), 'Mild'); assert.equal(feelsWord(20), '온화'); assert.equal(feelsWord(-12, 'ja'), '極寒');
   assert.equal(humidityWord({ temp: 8, rh: 92, dew: 7, wet: true }, 'en'), 'Damp'); assert.equal(humidityWord({ temp: 30, rh: 70, dew: 24 }, 'ja'), '非常にべたつく');
-  assert.equal(windWord(2, 'en'), 'Gentle breeze'); assert.equal(windWord(15, 'ja'), '暴風 · 外出注意');
+  assert.equal(windWord(2, 'en'), 'Gentle breeze'); assert.equal(windWord(15, 'ja'), '暴風 · 外出にご注意ください');
   assert.equal(uvNote(1, 'en'), 'Low'); assert.equal(uvNote(null, 'ja'), '情報なし'); assert.ok(uvNote(11, 'en').startsWith('Extreme'));
   assert.equal(strings('en').bubble.umbrella, 'Take an umbrella'); assert.equal(strings('ja').bubble.thunder, '雷!');
 });
@@ -313,9 +325,9 @@ test('warnings translate by the glossary table, unknown names pass through', () 
   assert.equal(warningName('호우주의보', 'ko'), '호우주의보'); assert.equal(warningName('황사경보', 'en'), '황사경보');
   const b = bubble({ warnings: [{ name: '대설경보', severity: 2 }], feels: 0 }, 'en');
   assert.deepEqual(b, { kind: 'shout', tone: 'coral', icon: 'snowflake', text: 'Heavy Snow Warning' });
-  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }, 'en'), '6cm today, Stops around 6PM');
-  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }, 'ja'), '今日 6cm、18時ごろ止みそう');
-  assert.equal(alertNote('폭염경보', { total: 0, pr: 'none', hi: 36, lo: 27 }, 'en'), 'High 36°, limit midday outings');
+  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }, 'en'), '6cm today, snow until around 6PM, watch your step');
+  assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }, 'ja'), '今日 6cm、18時ごろまで雪の予報、滑りやすいのでご注意ください');
+  assert.equal(alertNote('폭염경보', { total: 0, pr: 'none', hi: 36, lo: 27 }, 'en'), 'High 36°, wear a hat and sunscreen and drink water often');
   const hrs = flat(40, { cloud: 95, mm: 3, pop: 90, sym: 'rain' });
   const s = buildScene({ points: parseMet(met(at(13), hrs)).points, warnings: [{ name: '호우주의보', severity: 1 }] }, { ...SEOUL, plan: 'plus', now: at(13, 40), lang: 'en' });
   validateScene(s);
@@ -665,7 +677,7 @@ test('warning kinds from Apple / JMA / NWS alert names (icons and notes), KMA na
   assert.equal(warningKind('Flash Flood Warning'), 'rain'); assert.equal(warningKind('Winter Storm Warning'), 'snow'); assert.equal(warningKind('High Wind Advisory'), 'wind');
   assert.equal(warningKind('Excessive Heat Warning'), 'heat'); assert.equal(warningKind('Freeze Warning'), 'cold'); assert.equal(warningKind('大雨警報'), 'rain'); assert.equal(warningKind('Tsunami Warning'), 'other');
   assert.equal(bubble({ warnings: [{ name: 'Winter Storm Warning', severity: 2 }], feels: 0 }, 'en').icon, 'snowflake');
-  assert.equal(alertNote('Excessive Heat Warning', { total: 0, pr: 'none', hi: 38, lo: 27 }, 'en'), 'High 38°, limit midday outings');
+  assert.equal(alertNote('Excessive Heat Warning', { total: 0, pr: 'none', hi: 38, lo: 27 }, 'en'), 'High 38°, wear a hat and sunscreen and drink water often');
 });
 
 test('HTTP: /health, bad input 400, unknown path 404', async () => {

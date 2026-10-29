@@ -22,7 +22,7 @@ enum Notifications {
                     let n = UNMutableNotificationContent()
                     var cal = Calendar.current; cal.timeZone = TimeZone(identifier: place.timeZone) ?? .current
                     let h = cal.component(.hour, from: fire)
-                    n.title = voice.say(L("%@쯤 비 예정 · 우산 챙기세요", HourLabel.word(h, clock12: clock12)))
+                    n.title = voice.say(L("%@쯤 비 예보 · 우산 챙기세요", HourLabel.word(h, clock12: clock12)))
                     n.body = voice.say(L("%@ · 30분 안에 비가 올 수 있어요", place.short))
                     n.sound = .default
                     // the chosen character in today's outfit under its open umbrella, in the rain (or snow) that is coming
@@ -89,8 +89,8 @@ enum Notifications {
     }
 
     static func morningBody(_ d: WeatherScene.DayRow) -> String {
-        if d.chance >= 60 { return d.icon == "snowflake" ? L("눈 예보예요 · 길이 미끄러울 수 있어요") : L("비 예보예요 · 우산을 챙겨 주세요") }
-        if d.chance >= 30 { return L("비 올 가능성 %d%% · 우산을 챙기는 게 좋을 것 같아요", d.chance) }
+        if d.chance >= 60 { return d.icon == "snowflake" ? L("눈 예보예요 · 미끄러우니 조심하세요") : L("비 예보예요 · 우산 챙기세요") }
+        if d.chance >= 30 { return L("강수확률 %d%% · 우산 챙기세요", d.chance) }
         return d.hi - d.lo >= 8 ? L("일교차가 커요") : L("옷차림은 앱에서 확인해 보세요")
     }
 

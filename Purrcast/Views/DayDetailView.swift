@@ -438,7 +438,7 @@ struct DayDetailView: View {
             let v = Int(h.feel[c.sel].rounded())
             let cur = v <= 0 ? 0 : v <= 8 ? 1 : v <= 16 ? 2 : v <= 22 ? 3 : v <= 27 ? 4 : 5
             let items = [ScaleItem(title: L("추움"), sub: L("%@ 이하", model.deg(0)), big: false), ScaleItem(title: L("쌀쌀"), sub: degRange(1, 8), big: false),
-                         ScaleItem(title: L("선선"), sub: degRange(9, 16), big: false), ScaleItem(title: L("쾌적"), sub: degRange(17, 22), big: false),
+                         ScaleItem(title: L("선선"), sub: degRange(9, 16), big: false), ScaleItem(title: L("온화"), sub: degRange(17, 22), big: false),
                          ScaleItem(title: L("따뜻"), sub: degRange(23, 27), big: false), ScaleItem(title: L("더움"), sub: model.deg(28) + "+", big: false)]
             return (L("체감 단계"), items, cur)
         case .wind:
@@ -768,8 +768,8 @@ struct DayDetailView: View {
         let d = c.day
         var t = d.hi - d.lo >= 6 ? L("%@ %@, %@ %@예요. 일교차가 커서 겉옷이 필요해요.", L("아침"), model.deg(d.lo), partOfDayInText(14), model.deg(d.hi))
             : L("하루 종일 %@~%@예요.", degNumber(d.lo), model.deg(d.hi))
-        if d.chance >= 60 { t += " " + (c.snowy ? L("눈 예보예요. 길이 미끄러울 수 있어요.") : L("비 예보예요. 우산을 챙겨 주세요.")) }
-        else if d.chance >= 30 { t += " " + (c.snowy ? L("눈 올 가능성이 %d%%예요. 우산을 챙기는 게 좋을 것 같아요.", d.chance) : L("비 올 가능성이 %d%%예요. 우산을 챙기는 게 좋을 것 같아요.", d.chance)) }
+        if d.chance >= 60 { t += " " + (c.snowy ? L("눈 예보예요. 미끄러우니 조심하세요.") : L("비 예보예요. 우산 챙기세요.")) }
+        else if d.chance >= 30 { t += " " + L("강수확률 %d%%예요. 우산 챙기세요.", d.chance) }
         return Brief(value: "\(model.deg(d.hi)) / \(model.deg(d.lo))", badge: L("일교차 %d°", dd(d.hi - d.lo)), badgeColor: DayTempColor.color(Double(d.hi)), badgeInk: UI.ink, summary: t)
     }
 
@@ -779,7 +779,7 @@ struct DayDetailView: View {
         let loH = h.temp.firstIndex(of: vmin) ?? 6, hiH = h.temp.firstIndex(of: vmax) ?? 15
         var t: String
         if hi >= 30 {
-            t = L("%@에 최고 %@예요. 더우니 물을 챙겨 주세요.", partOfDayInText(hiH), model.deg(hi)) + (lo >= 25 ? " " + L("밤에도 %@ 이상이에요.", model.deg(lo)) : "")
+            t = L("%@에 최고 %@예요. 더우니 물을 자주 마시는 게 좋아요.", partOfDayInText(hiH), model.deg(hi)) + (lo >= 25 ? " " + L("밤에도 %@ 이상이에요.", model.deg(lo)) : "")
         } else if hi <= 0 || lo <= -5 {
             t = L("%@ %@, %@ %@예요. 많이 추워요.", partOfDay(loH), model.deg(lo), partOfDayInText(hiH), model.deg(hi))
         } else if hi - lo >= 6 {
@@ -802,7 +802,7 @@ struct DayDetailView: View {
         let gap = roundHalfUp(zip(h.temp, h.feel).reduce(0) { $0 + $1.0 - $1.1 } / 24)
         let badge = gap > 0 ? L("실제보다 -%d°", dd(gap)) : gap < 0 ? L("실제보다 +%d°", dd(gap)) : L("실제와 비슷")
         let mid = roundHalfUp(Double(lo + hi) / 2)
-        let word = mid <= -10 ? L("매우 추운") : mid <= 0 ? L("추운") : mid <= 8 ? L("쌀쌀한") : mid <= 16 ? L("선선한") : mid <= 22 ? L("쾌적한") : mid <= 27 ? L("따뜻한") : mid <= 32 ? L("더운") : L("매우 더운")
+        let word = mid <= -10 ? L("매우 추운") : mid <= 0 ? L("추운") : mid <= 8 ? L("쌀쌀한") : mid <= 16 ? L("선선한") : mid <= 22 ? L("온화한") : mid <= 27 ? L("따뜻한") : mid <= 32 ? L("더운") : L("매우 더운")
         var t = L("체감 %@~%@, %@ 날이에요.", degNumber(lo), model.deg(hi), word)
         let windy = (h.wind.max() ?? 0) >= 8
         if gap < 0 { t += " " + L("습해서 실제 기온보다 %d° 높게 느껴져요.", dd(gap)) }
@@ -837,18 +837,18 @@ struct DayDetailView: View {
         for w in wet { let s = partOfDayInText(w); if !pods.contains(s) { pods.append(s) } }
         let t: String
         if wet.isEmpty {
-            t = p >= 30 ? (c.snowy ? L("눈 올 가능성이 %d%%예요. 우산을 챙기는 게 좋을 것 같아요.", p) : L("비 올 가능성이 %d%%예요. 우산을 챙기는 게 좋을 것 같아요.", p))
+            t = p >= 30 ? L("강수확률 %d%%예요. 우산 챙기세요.", p)
                 : (c.snowy ? L("눈 소식이 없어요.") : L("비 소식이 없어요."))
         } else if c.snowy {
-            t = soon ? L("곧 눈 예보예요. 길이 미끄러울 수 있어요.") : L("눈 예보예요. 길이 미끄러울 수 있어요.")
+            t = soon ? L("곧 눈 예보예요. 미끄러우니 조심하세요.") : L("눈 예보예요. 미끄러우니 조심하세요.")
         } else if soon {
-            t = L("곧 비 예보예요. 우산을 챙겨 주세요.")
+            t = L("곧 비 예보예요. 우산 챙기세요.")
         } else if wet.count >= 10 {
-            t = L("하루 종일 비 예보예요. 우산을 챙겨 주세요.")
+            t = L("하루 종일 비 예보예요. 우산 챙기세요.")
         } else if pods.count == 1 {
-            t = L("%@에 비 예보예요. 우산을 챙겨 주세요.", pods[0])
+            t = L("%@에 비 예보예요. 우산 챙기세요.", pods[0])
         } else {
-            t = L("비 예보예요. 우산을 챙겨 주세요.")
+            t = L("비 예보예요. 우산 챙기세요.")
         }
         return Brief(value: value, badge: badge, badgeColor: c.ink.blue, badgeInk: c.inv, summary: t)
     }
@@ -861,7 +861,7 @@ struct DayDetailView: View {
     private func briefWind(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let wmin = Int((h.wind.min() ?? 0).rounded()), wmax = Int((h.wind.max() ?? 0).rounded()), gmax = Int((h.gust.max() ?? 0).rounded())
         let lvl = windLevel(h)
-        var t = [L("바람이 약해요."), L("바람이 조금 있어요."), L("바람이 강해요."), L("바람이 매우 강해요. 바깥 활동은 줄여 주세요.")][lvl]
+        var t = [L("바람이 약해요."), L("바람이 조금 있어요."), L("바람이 강해요."), L("바람이 매우 강해요. 바깥 활동은 줄이는 게 좋아요.")][lvl]
         if lvl >= 1, let peak = h.wind.firstIndex(of: h.wind.max() ?? 0) { t += " " + L("%@에 가장 세요.", partOfDayInText(peak)) }
         let value = wmin == wmax ? model.windText(wmax) : "\(model.windNumber(wmin))~\(model.windText(wmax))"
         return Brief(value: value, badge: L("돌풍 %@", model.windNumber(gmax)), badgeColor: c.windColor, badgeInk: .white, summary: t)
@@ -870,7 +870,7 @@ struct DayDetailView: View {
     private func briefUV(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let m = h.uvMax, b = UVScale.band(m)
         let k = m >= 8 ? 3 : m >= 6 ? 2 : m >= 3 ? 1 : 0
-        let t = [L("자외선이 약해요."), L("자외선 보통이에요. 한낮엔 선크림을 바르는 게 좋을 것 같아요."), L("자외선이 강해요. 선크림과 모자를 챙겨 주세요."), L("자외선이 매우 강해요. 한낮엔 바깥 활동을 줄여 주세요.")][k]
+        let t = [L("자외선이 약해요."), L("자외선 보통이에요. 한낮엔 선크림을 바르는 게 좋아요."), L("자외선이 강해요. 선크림과 모자를 챙기세요."), L("자외선이 매우 강해요. 한낮엔 바깥 활동을 줄이는 게 좋아요.")][k]
         return Brief(value: L("최고 %@", String(m)), badge: L(b.word), badgeColor: Color(hex: b.color), badgeInk: Color(hex: b.onColor), summary: t)
     }
 
@@ -883,8 +883,8 @@ struct DayDetailView: View {
     private func briefHumidity(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let (k, avg, dew) = humidityLevel(h)
         let badge = [L("건조"), L("보송"), avg >= 70 ? L("조금 습함") : L("적당"), dew >= 18 ? L("꿉꿉") : L("습함"), L("끈적")][k]
-        let t = [L("건조해요. 물을 자주 마시는 게 좋을 것 같아요."), L("보송하고 쾌적해요."), avg >= 70 ? L("조금 습해요.") : L("적당해요."),
-                 dew >= 18 ? L("꿉꿉해요. 땀이 잘 마르지 않아요.") : L("습해요."),
+        let t = [L("건조해요. 물을 자주 마시는 게 좋아요."), L("보송해요."), avg >= 70 ? L("조금 습해요.") : L("적당해요."),
+                 dew >= 18 ? L("꿉꿉해요.") : L("습해요."),
                  dew >= 24 ? L("매우 끈적해요. 불쾌지수가 매우 높아요.") : L("끈적해요. 불쾌지수가 높아요.")][k] + " " + L("이슬점은 %@예요.", model.deg(dew))
         return Brief(value: L("평균 %d%%", avg), badge: badge, badgeColor: c.humColor, badgeInk: .white, summary: t)
     }

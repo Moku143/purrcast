@@ -95,7 +95,7 @@ final class WidgetMatrixTests: XCTestCase {
         var texts: [String: String] = [
             "place": snap.placeShort, "icon": s.hours.first?.icon ?? "cloud", "temp": snap.deg(s.temp),
             "feels": L("체감 %@", snap.deg(s.feels)), "chanceShort": L("강수 %d%%", chance), "chanceLong": L("강수확률 %d%%", chance),
-            "sunset": sunsetTile(s) ?? "", "issued": s.isPlus ? L("%@ 받음", s.updated) : L("%@ 기준", s.updated),
+            "sunset": sunsetTile(s) ?? "", "issued": s.isPlus ? L("%@ 업데이트", s.updated) : L("%@ 기준", s.updated),
             "lockTemp": snap.deg(s.temp), "lockLine": LockText.line(s),
             "lockTail": "\(Compact.tail(s, deg: snap.deg)) · \(snap.deg(s.lo))~\(snap.deg(s.hi))",
             "inline": LockText.inline(snap), "clock": WatchClock.now(clock12: snap.clock12), "date": f.string(from: Date()),

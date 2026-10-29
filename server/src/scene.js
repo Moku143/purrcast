@@ -50,7 +50,7 @@ export function buildScene(f, o) {
   const lv = R.level(feelsRaw, o.prev ?? null);                   // old ten-outfit number (older app builds)
   const outfit = R.outfit(feelsRaw, o.outfitPrev ?? null);       // the fifteen outfits
 
-  // rain timing: "16~19시 비 예정" names the hours the forecast puts rain or snow in. A 60 %+ chance alone does not
+  // rain timing: "16~19시 비 예보" names the hours the forecast puts rain or snow in. A 60 %+ chance alone does not
   // start or end the spell (기상청 gives 60 % to the dry hours before and after one, and the hourly rows, the
   // next-six-hours card and the rain alert all show those hours dry); it only bridges a dry hour inside it, and
   // stands in for the spell when the forecast has no amounts at all.

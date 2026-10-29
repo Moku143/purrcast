@@ -102,7 +102,7 @@ const B = (kind, tone, icon, text) => ({ kind, tone, icon, text });
  * One bubble at a time, by the design's priority:
  * 1 official warning · 2 own call: thunder / heavy rain / heavy snow · 3 rain starting within 2 h ·
  * 4 strong wind / thick fog · 5 extreme feels-like · 6 temperature swing / umbrella dilemma / umbrella packed.
- * Rain timing is the clock window (15~17시 비 예정), never a countdown.
+ * Rain timing is the clock window (15~17시 비 예보), never a countdown.
  */
 export function bubble(c, lang = c.lang ?? 'ko') {
   const S = strings(lang), T = S.bubble;
@@ -136,7 +136,7 @@ export function bubble(c, lang = c.lang ?? 'ko') {
 
 /**
  * When rain (or snow) is expected, as the hours people plan around: "15~17시" (first to last wet hour),
- * "15시쯤" when it is one hour, "내일 7~9시" when it starts tomorrow. Always "… 비 예정", never a promise.
+ * "15시쯤" when it is one hour, "내일 7~9시" when it starts tomorrow. Always "… 비 예보", never a promise.
  */
 export function whenWord(startH, endH, tomorrow, lang = 'ko') {
   if (startH == null) return '';
@@ -175,21 +175,23 @@ export function warningKind(name) {
 }
 
 /**
- * The line under the character when an official warning is in force: the warning's name and what it means
- * today, in one short clause from the forecast. "대설주의보 · 오늘 6cm, 18시쯤 그쳐요".
+ * The line under the character when an official warning is in force: the warning's name, what it means today in
+ * one short clause from the forecast, and what to do. "대설주의보 · 오늘 6cm, 18시까지 눈 예보, 미끄러우니 조심하세요".
  */
 export function alertNote(name, c, lang = c.lang ?? 'ko') {
   const S = strings(lang), A = S.alert, sep = S.sep;
   const { total, pr, nowWet, when, endH, hi, lo, gust, rh } = c;   // `name` is the KMA name (or Apple's description); `when` already in this language
-  const end = endH == null ? '' : S.stopAt(endH);
+  // clauses after the first start in lower case in English ("6mm today (Light), rain until around 6PM, take …")
+  const join = (...parts) => parts.filter(Boolean).map((p, i) => (i && S.lang === 'en' ? p.charAt(0).toLowerCase() + p.slice(1) : p)).join(sep);
   const k = warningKind(name);
-  if (k === 'snow') return [total ? A.todayCm(total) : '', nowWet ? end : (when ? S.expect(when, S.what.snow) : '')].filter(Boolean).join(sep) || A.icy;
-  if (k === 'rain') return [total ? A.todayMm(total, rainAmountWord(total, S)) : '', nowWet ? end : (when ? S.expect(when, S.what.rain) : '')].filter(Boolean).join(sep) || A.heavyRain;
-  if (k === 'typhoon') return [A.windRain, gust ? A.gust(gust) : '', A.takeCare].filter(Boolean).join(sep);
-  if (k === 'wind') return [gust ? A.gust(gust) : A.veryWindy, A.takeCare].join(sep);
+  const timing = (what) => (nowWet ? (endH == null ? '' : S.stopAt(endH, what)) : (when ? S.expect(when, what) : ''));
+  if (k === 'snow') return total || timing(S.what.snow) ? join(total ? A.todayCm(total) : '', timing(S.what.snow), A.snowCare) : A.icy;
+  if (k === 'rain') return total || timing(S.what.rain) ? join(total ? A.todayMm(total, rainAmountWord(total, S)) : '', timing(S.what.rain), A.rainCare) : A.heavyRain;
+  if (k === 'typhoon') return join(A.windRain, gust ? A.gust(gust) : '', A.stayIn);
+  if (k === 'wind') return join(gust ? A.gust(gust) : A.veryWindy, A.flying);
   if (k === 'heat') return A.heat(hi);
   if (k === 'cold') return A.cold(lo);
-  if (k === 'dry') return [rh == null ? '' : A.humidity(rh), A.fire].filter(Boolean).join(sep);
-  if (k === 'dust') return A.mask;
-  return /snow|sleet/.test(pr) ? A.icy : A.takeCare;
+  if (k === 'dry') return join(rh == null ? '' : A.humidity(rh), A.fire);
+  if (k === 'dust') return /황사|dust|黄砂/i.test(String(name)) ? A.yellowDust : A.fineDust;
+  return /snow|sleet/.test(pr) ? A.slippery : A.takeCare;
 }

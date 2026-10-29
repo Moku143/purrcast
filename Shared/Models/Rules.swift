@@ -36,7 +36,7 @@ enum Rules {
         case 6...7: return L("바람 꽤 강해요")
         case 8...10: return L("바람 강해요")
         case 11...13: return L("매우 강한 바람")
-        default: return L("강풍 · 외출 주의")
+        default: return L("강풍 · 외출 조심하세요")
         }
     }
 
@@ -60,12 +60,12 @@ enum Rules {
         let t = ((minutes % 1440) + 1440) % 1440
         return "\(t / 60):" + String(format: "%02d", t % 60)
     }
-    /// Rain per hour in everyday terms (what it means for an umbrella)
+    /// Rain per hour in everyday terms, and what to do about it
     static func rainKind(_ mm: Double) -> String {
         mm >= 30 ? L("매우 강한 비") : mm >= 15 ? L("강한 비") : mm >= 3 ? L("보통 비") : mm >= 1 ? L("약한 비") : L("이슬비")
     }
     static func rainKindNote(_ mm: Double) -> String {
-        mm >= 30 ? L("우산으로 막기 어려워요") : mm >= 15 ? L("바닥에 물이 고여요") : mm >= 3 ? L("우산이 꼭 필요해요") : mm >= 1 ? L("우산이 필요해요") : L("우산 없이도 괜찮아요")
+        mm >= 30 ? L("되도록 외출은 줄이는 게 좋아요") : mm >= 15 ? L("우산·우비 챙기세요") : mm >= 3 ? L("우산 꼭 챙기세요") : mm >= 1 ? L("우산 챙기세요") : L("가볍게 내려요")
     }
     /// A day's (or 12 h) total: 조금 · 보통 · 많음 · 매우 많음
     static func rainAmountWord(_ mm: Double) -> String { mm >= 50 ? L("매우 많음") : mm >= 20 ? L("많음") : mm >= 5 ? L("보통") : L("조금") }
@@ -77,7 +77,7 @@ enum Rules {
         case -9...0: return L("추움")
         case 1...8: return L("쌀쌀")
         case 9...16: return L("선선")
-        case 17...22: return L("쾌적")
+        case 17...22: return L("온화")
         case 23...27: return L("따뜻")
         case 28...32: return L("더움")
         default: return L("매우 더움")

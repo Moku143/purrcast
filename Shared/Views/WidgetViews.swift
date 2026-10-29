@@ -80,7 +80,7 @@ struct MediumWidgetView: View {
                 Text(snap.placeShort).font(.px(11)).probe("place")
                 if let t = sunsetTile(s) { PixelIcon(name: "sunset", size: 12).probe("sunsetIcon"); Text(t).font(.px(11)).probe("sunsetText") }
                 Spacer()
-                Text(s.isPlus ? L("%@ 받음", s.updated) : L("%@ 기준", s.updated)).font(.px(10)).opacity(0.75).probe("issued")
+                Text(s.isPlus ? L("%@ 업데이트", s.updated) : L("%@ 기준", s.updated)).font(.px(10)).opacity(0.75).probe("issued")
                 PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16).probe("icon")
             }
             HStack(alignment: .bottom, spacing: 4) {

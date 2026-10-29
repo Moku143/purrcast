@@ -232,7 +232,7 @@ struct PaywallView: View {
         return ZStack(alignment: .topLeading) {
             HStack(spacing: 4) {
                 PixelIcon(name: "umbrella_closed", size: 14)
-                Text(L("%@쯤 비 예정", "15:50")).font(.px(11)).foregroundStyle(UI.ink)
+                Text(L("%@쯤 비 예보", "15:50")).font(.px(11)).foregroundStyle(UI.ink)
             }
             .padding(.horizontal, 10).padding(.vertical, 6).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 10))
             .padding(.leading, 18).padding(.top, 16)

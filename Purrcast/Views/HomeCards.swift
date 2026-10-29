@@ -143,7 +143,7 @@ struct CompareCard: View {
         if wetOnes.isEmpty { return L("%@ 모두 %d시간 동안 %@ 없음", all, N >= 24 ? 24 : N - 1, wet) }
         if wetOnes.count == n {
             let a = wetOnes.map { $0.first }.min()!, b = wetOnes.map { $0.first }.max()!
-            let start = b - a <= 1 ? L("%@쯤 시작", word(hourOf(a))) : L("%@ 사이 시작", HourLabel.window(hourOf(a), hourOf(b), clock12: model.clock12))
+            let start = b - a <= 1 ? L("%@쯤부터", word(hourOf(a))) : L("%@ 사이부터", HourLabel.window(hourOf(a), hourOf(b), clock12: model.clock12))
             return L("%@ 모두 %@ 예보 · %@", all, wet, start)
         }
         let names = zip(cmp.sources, spans).filter { $0.1 != nil }.map { $0.0.name }.joined(separator: " · ")

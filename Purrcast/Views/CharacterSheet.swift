@@ -149,7 +149,7 @@ struct CharacterSheet: View {
                 .accessibilityIdentifier("voice-pills")
             }
             // what the character sounds like now, in its bubble style
-            Text(model.say(L("비 예보예요. 우산을 챙겨 주세요.")))
+            Text(model.say(L("비 예보예요. 우산 챙기세요.")))
                 .font(.ui(13)).foregroundStyle(UI.ink)
                 .padding(.horizontal, 12).padding(.vertical, 9)
                 .frame(maxWidth: .infinity, alignment: .leading)

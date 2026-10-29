@@ -9,7 +9,7 @@ enum Voice: String, CaseIterable, Codable {
     case polite, formal, casual
 
     var name: String { self == .polite ? L("존댓말") : self == .formal ? L("격식") : L("반말") }
-    var sample: String { self == .polite ? L("비 예보예요. 우산을 챙겨 주세요.") : self == .formal ? L("비 예보입니다. 우산을 챙겨 주십시오.") : L("비 예보야. 우산 챙겨.") }
+    var sample: String { self == .polite ? L("비 예보예요. 우산 챙기세요.") : self == .formal ? L("비 예보입니다. 우산 챙기십시오.") : L("비 예보야. 우산 챙겨.") }
 
     /// The voices a person can pick in this language (none in English: the picker is hidden).
     static var choices: [Voice] {
@@ -31,6 +31,7 @@ enum Voice: String, CaseIterable, Codable {
     /// Japanese casual (タメ口): the fixed phrases the app and the server produce, longest first.
     private static let jaCasual: [(String, String)] = [
         ("傘をお持ちください", "傘持ってって"), ("お持ちください", "持ってって"), ("ご注意ください", "気をつけて"), ("してください", "して"),
+        ("てください", "て"), ("ています", "てるよ"),
         ("の予報です", "の予報だよ"), ("見込みです", "見込みだよ"), ("かもしれません", "かも"), ("ありません", "ないよ"),
         ("いです", "いよ"), ("です", "だよ"),
     ]
@@ -43,7 +44,8 @@ enum Voice: String, CaseIterable, Codable {
         "비슷해요": ("비슷합니다", "비슷해"), "낮아요": ("낮습니다", "낮아"), "높아요": ("높습니다", "높아"), "커요": ("큽니다", "커"),
         "추워요": ("춥습니다", "추워"), "더워요": ("덥습니다", "더워"), "어려워요": ("어렵습니다", "어려워"), "고여요": ("고입니다", "고여"),
         "줄여요": ("줄이십시오", "줄여"), "피해요": ("피하십시오", "피해"), "좋아요": ("좋습니다", "좋아"), "같아요": ("같습니다", "같아"), "괜찮아요": ("괜찮습니다", "괜찮아"),
-        "짙어요": ("짙습니다", "짙어"), "챙겨요": ("챙기십시오", "챙겨"), "챙기세요": ("챙기십시오", "챙겨"), "세요": ("셉니다", "세"),
+        "짙어요": ("짙습니다", "짙어"), "옅어요": ("옅습니다", "옅어"), "챙겨요": ("챙기십시오", "챙겨"), "챙기세요": ("챙기십시오", "챙겨"),
+        "하세요": ("하십시오", "해"), "세요": ("셉니다", "세"),
         "보세요": ("보십시오", "봐"), "주세요": ("주십시오", "줘"), "않아요": ("않습니다", "않아"), "내려요": ("내립니다", "내려"),
         "그쳐요": ("그칩니다", "그쳐"), "와요": ("옵니다", "와"), "해요": ("합니다", "해"), "돼요": ("됩니다", "돼"), "여요": ("입니다", "여"),
         "느껴져요": ("느껴집니다", "느껴져"), "마셔요": ("마십시오", "마셔"), "쓰세요": ("쓰십시오", "써"),
@@ -63,7 +65,8 @@ enum Voice: String, CaseIterable, Codable {
             for (a, b) in Self.jaCasual { out = out.replacingOccurrences(of: a, with: b) }
             return out
         }
-        // sentences end with . or !; tiles and notifications join clauses with " · "
+        // sentences end with . or !; tiles and notifications join clauses with " · "; warnings with ", "
+        // ("비가 많이 와요, 우산 꼭 챙기고 …" — each clause keeps the same voice)
         var out = ""
         var buf = ""
         func flush(_ sep: String) { out += convert(buf) + sep; buf = "" }
@@ -72,6 +75,7 @@ enum Voice: String, CaseIterable, Codable {
             let c = text[i]
             if c == "." || c == "!" { flush(String(c)); i = text.index(after: i); continue }
             if text[i...].hasPrefix(" · ") { flush(" · "); i = text.index(i, offsetBy: 3); continue }
+            if text[i...].hasPrefix(", ") { flush(", "); i = text.index(i, offsetBy: 2); continue }
             buf.append(c); i = text.index(after: i)
         }
         if !buf.isEmpty { flush("") }

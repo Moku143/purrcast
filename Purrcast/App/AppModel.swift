@@ -146,9 +146,17 @@ final class AppModel: ObservableObject {
                 // the request was called off (the app went to the background, a newer refresh): not a failure
                 if Self.isCancel(error) { return }
                 if attempt == 0 { try? await Task.sleep(nanoseconds: 1_500_000_000); guard mine == generation else { return }; continue }
-                lastError = hasData ? L("새 날씨를 못 받았어요. 마지막으로 받은 날씨예요.") : L("날씨를 못 받았어요. 아래로 당겨 다시 시도해 주세요.")
+                // said as a wait, not a failure; with data on screen, which time it is from
+                lastError = hasData ? L("새 날씨를 불러오는 중이에요 · 지금은 %@ 날씨예요", shownTime) : L("날씨를 불러오는 데 시간이 걸리고 있어요. 잠시 후 아래로 당겨 주세요.")
             }
         }
+    }
+
+    /// When the weather on screen was fetched ("13:40"), or the forecast's own time when it came from the cache
+    private var shownTime: String {
+        guard let t = lastRefresh else { return raw.updated }
+        let c = Calendar.current.dateComponents([.hour, .minute], from: t)
+        return HourLabel.clock((c.hour ?? 0) * 60 + (c.minute ?? 0), clock12: clock12)
     }
 
     static func isCancel(_ e: Error) -> Bool {

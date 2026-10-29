@@ -16,6 +16,7 @@ const EXTRA = {
     '구름이 많아 약해요': '弱い（曇り）', '11~14시에 가장 강해요': '11〜14時が最も強い', '11~15시엔 바깥 활동 줄이기': '11〜15時は外出控えめに' },
 };
 
+const WHAT = { 비: 'rain', 눈: 'snow', 진눈깨비: 'sleet' };
 function reverse(obj) { return Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k])); }
 
 function translator(lang) {
@@ -23,7 +24,6 @@ function translator(lang) {
   const condR = reverse(KO.cond), bubbleR = reverse(KO.bubble), humR = reverse(KO.humidity), tileR = reverse(KO.tile), uvR = reverse(KO.uv);
   const amount = (w) => { const i = KO.rainAmount.indexOf(w); return i < 0 ? w : T.rainAmount[i]; };
   const hour = (h) => (h === '자정' ? T.hour(0) : T.hour(+h));
-  const stopAt = (h) => (h === '자정' ? T.stopAt(0) : T.stopAt(+h));
   const cond = (s) => s.split(' · ').map((p) => (condR[p] ? T.cond[condR[p]] : X[p] ?? p)).join(' · ');
   const when = (s) => {
     let m = s.match(/^(\d+)~(\d+)시$/); if (m) return T.when(+m[1], +m[2], false);
@@ -34,7 +34,7 @@ function translator(lang) {
   const bubble = (s) => {
     if (bubbleR[s]) return T.bubble[bubbleR[s]];
     if (X[s]) return X[s];
-    const m = s.match(/^(.+?) (비|눈|진눈깨비) 예정$/);
+    const m = s.match(/^(.+?) (비|눈|진눈깨비) 예보$/);
     if (m) return T.expect(when(m[1]), T.what[{ 비: 'rain', 눈: 'snow', 진눈깨비: 'sleet' }[m[2]]]);
     return s;
   };
@@ -43,9 +43,8 @@ function translator(lang) {
     if (s === KO.noRain12h) return T.noRain12h;
     if (uvR[s]) return T.uv[uvR[s]];
     if (X[s]) return X[s];
-    if ((m = s.match(/^(.+?) (비|눈|진눈깨비) 예정 · (.+?) \((.+)\)$/))) return `${bubble(`${m[1]} ${m[2]} 예정`)} · ${m[3]} (${amount(m[4])})`;
-    if ((m = s.match(/^지금 (비|눈|진눈깨비) · 12시간 (.+?)(?: \((.+)\))?$/))) return T.nowWetNote(T.what[{ 비: 'rain', 눈: 'snow', 진눈깨비: 'sleet' }[m[1]]], m[3] ? `${m[2]} (${amount(m[3])})` : m[2]);
-    if ((m = s.match(/^(?:새벽 )?(\d+|자정)시?쯤 그쳐요 · (.+)$/))) return `${stopAt(m[1])} · ${m[2]}`;
+    if ((m = s.match(/^(.+?) (비|눈|진눈깨비) 예보 · (.+?) \((.+)\)$/))) return `${bubble(`${m[1]} ${m[2]} 예보`)} · ${m[3]} (${amount(m[4])})`;
+    if ((m = s.match(/^지금 (비|눈|진눈깨비) · 앞으로 12시간 (.+?)(?: \((.+)\))?$/))) return T.nowWetNote(T.what[WHAT[m[1]]], m[3] ? `${m[2]} (${amount(m[3])})` : m[2]);
     if ((m = s.match(/^내일 일출 (.+)$/))) return T.sunriseTomorrow(m[1]);
     if ((m = s.match(/^일몰 (.+)$/))) return T.sunsetAt(m[1]);
     if ((m = s.match(/^일출 (.+)$/))) return `${T.tile.sunrise} ${m[1]}`;
@@ -53,18 +52,21 @@ function translator(lang) {
     if ((m = s.match(/^밤 · 내일 낮 최고 (\d+)$/))) return { en: `Night · Tomorrow's peak ${m[1]}`, ja: `夜 · 明日の最高 ${m[1]}` }[lang];
     return s;
   };
+  const constants = Object.keys(KO.alert).filter((k) => typeof KO.alert[k] === 'string');
   const alertNote = (s) => {
+    let m;
+    // whole lines first (some have a comma inside: "황사가 심해요, 마스크 챙기세요")
+    if ((m = s.match(/^낮 최고 (-?\d+)°, /)) && s === KO.alert.heat(m[1])) return T.alert.heat(m[1]);
+    if ((m = s.match(/^아침 (-?\d+)°, /)) && s === KO.alert.cold(m[1])) return T.alert.cold(m[1]);
+    for (const k of constants) if (KO.alert[k] === s) return T.alert[k];
     const parts = s.split(', ').map((p) => {
-      let m;
       if ((m = p.match(/^오늘 (.+?)cm$/))) return T.alert.todayCm(m[1]);
       if ((m = p.match(/^오늘 (.+?)mm \((.+)\)$/))) return T.alert.todayMm(m[1], amount(m[2]));
-      if ((m = p.match(/^(\d+)시쯤 그쳐요$/))) return T.stopAt(+m[1]);
+      if ((m = p.match(/^(\d+)시까지 (비|눈|진눈깨비) 예보$/))) return T.stopAt(+m[1], T.what[WHAT[m[2]]]);
+      if ((m = p.match(/^(.+?) (비|눈|진눈깨비) 예보$/))) return T.expect(when(m[1]), T.what[WHAT[m[2]]]);
       if ((m = p.match(/^돌풍 (.+) m\/s$/))) return T.alert.gust(m[1]);
-      if ((m = p.match(/^낮 최고 (-?\d+)°$/))) return T.alert.heat(m[1]).split(T.sep)[0];
-      if (p === '한낮 외출 줄여요') return T.alert.heat(0).split(T.sep)[1];
-      if ((m = p.match(/^아침 (-?\d+)°$/))) return T.alert.cold(m[1]).split(T.sep)[0];
-      if (p === '많이 추워요') return T.alert.cold(0).split(T.sep)[1];
-      for (const k of ['icy', 'heavyRain', 'windRain', 'veryWindy', 'takeCare', 'fire', 'mask']) if (KO.alert[k] === p) return T.alert[k];
+      if ((m = p.match(/^습도 (\d+)%$/))) return T.alert.humidity(m[1]);
+      for (const k of constants) if (KO.alert[k] === p) return T.alert[k];
       return p;
     });
     return parts.map((p, i) => (lang === 'en' && i > 0 ? p.charAt(0).toLowerCase() + p.slice(1) : p)).join(T.sep);

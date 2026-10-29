@@ -76,9 +76,9 @@ struct HomeView: View {
             CharacterSprite(character: model.shownCharacter, level: 5, rain: .none, width: 150)
             if model.lastError == nil {
                 ProgressView().tint(ink.ink)
-                Text(L("날씨를 받아 오는 중이에요")).font(.px(15))
+                Text(model.say(L("날씨를 불러오는 중이에요"))).font(.px(15))
             } else {
-                Text(model.lastError ?? "").font(.px(14)).multilineTextAlignment(.center).padding(.horizontal, 30)
+                Text(model.say(model.lastError ?? "")).font(.px(14)).multilineTextAlignment(.center).padding(.horizontal, 30)
                 Button(L("다시 시도")) { Task { await model.refresh(force: true) } }
                     .font(.px(15)).padding(.horizontal, 22).padding(.vertical, 10).background(ink.btn).clipShape(Capsule())
                     .accessibilityIdentifier("retry")
@@ -91,7 +91,7 @@ struct HomeView: View {
     private func notice(_ text: String, ink: Ink) -> some View {
         HStack(spacing: 8) {
             Image(systemName: "wifi.exclamationmark").font(.ui(13, .bold))
-            Text(text).font(.ui(12, .medium))
+            Text(model.say(text)).font(.ui(12, .medium))
             Spacer()
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
@@ -103,7 +103,7 @@ struct HomeView: View {
         HStack(spacing: 10) {
             PixelIcon(name: alertIcon(a.name), size: 18)
             (Text(a.name).font(.px(13)) + Text(" · ").font(.px(13)) + Text(model.say(a.note)).font(.px(13)))
-                .lineLimit(2).minimumScaleFactor(0.85)
+                .lineLimit(3).minimumScaleFactor(0.85)
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
@@ -160,7 +160,7 @@ struct HomeView: View {
                             Text(s.place ?? model.currentPlace.name).font(.px(17))
                         }
                     }.buttonStyle(.press(0.97)).accessibilityIdentifier("place")
-                    Text(s.isPlus ? L("%@ 받음 · Plus", s.updated) : L("오늘 %@ 기준", s.updated)).font(.px(11)).opacity(0.8)
+                    Text(s.isPlus ? L("%@ 업데이트 · Plus", s.updated) : L("오늘 %@ 기준", s.updated)).font(.px(11)).opacity(0.8)
                 }
                 Spacer()
                 HStack(spacing: 8) {
@@ -246,12 +246,18 @@ struct HomeView: View {
             if let st = R.firstIndex(where: { $0 >= 0.1 }) {
                 let en = R[st...].firstIndex(where: { $0 < 0.1 })
                 let last = en == nil ? R.count - 1 : en! - 1
-                // the hours people plan around: "15~17시 비 예정", and when it may stop
+                // the hours people plan around: "15~17시 비 예보" (what the forecast says, not a promise); raining
+                // now: how hard, "지금 비 · 시간당 2mm"
                 let hr = { (i: Int) -> Int in HourLabel.hour(six[i].label) ?? 0 }
-                head = st == 0 ? L("지금 비") : (st == last ? L("%@쯤 비 예정", HourLabel.word(hr(st), clock12: model.clock12))
-                                                 : L("%@ 비 예정", HourLabel.window(hr(st), hr(last), clock12: model.clock12)))
-                let stop = en == nil ? L("6시간 넘게 이어져요") : L("%@쯤 그쳐요", HourLabel.word((hr(last) + 1) % 24, clock12: model.clock12))
+                head = st == 0 ? L("지금 비 · 시간당 %@mm", Self.mmText(R[0]))
+                    : (st == last ? L("%@쯤 비 예보", HourLabel.word(hr(st), clock12: model.clock12))
+                                  : L("%@ 비 예보", HourLabel.window(hr(st), hr(last), clock12: model.clock12)))
                 let peak = R.max() ?? 0
+                // until when the forecast has it; past the 6 hours: the average and the heaviest hour instead
+                let wet = Array(R[st...])
+                let peakAt = st + (wet.firstIndex(of: peak) ?? 0)
+                let stop = en == nil ? L("평균 시간당 %@mm · 가장 많이 오는 때 %@", Self.mmText(wet.reduce(0, +) / Double(wet.count)), HourLabel.word(hr(peakAt), clock12: model.clock12))
+                    : L("%@까지 비 예보", HourLabel.word((hr(last) + 1) % 24, clock12: model.clock12))
                 sub = chanceTail(7) + "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop)"
                 icon = st == 0 ? "umbrella" : "umbrella_closed"
             }
@@ -262,6 +268,11 @@ struct HomeView: View {
         return nil
     }
 
+    /// Rain per hour as people read it: "2", "0.5", "12"
+    static func mmText(_ v: Double) -> String {
+        v >= 10 ? String(Int(v.rounded())) : { let r = (v * 10).rounded() / 10; return r == r.rounded() ? String(Int(r)) : String(format: "%.1f", r) }()
+    }
+
     private func minutesCard(_ s: WeatherScene, _ mm: [Double], nowMin: Int, chanceTail: String) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String]) {
         var head = L("1시간 동안 비 소식 없어요"), sub = "", icon = "cloud"
         if let st = mm.firstIndex(where: { $0 >= 0.1 }) {
@@ -269,16 +280,18 @@ struct HomeView: View {
             // clock times, pulled earlier to the 10 minutes for the start (15:57 → 15:50쯤) and later for the end
             let hhmm = { (t: Int) -> String in HourLabel.clock(t, clock12: model.clock12) }
             let s10 = (nowMin + st) / 10 * 10
-            head = st == 0 ? L("지금 비") : (s10 > nowMin ? L("%@쯤 비 예정", hhmm(s10)) : L("%@ 전 비 예정", hhmm((nowMin + st + 9) / 10 * 10)))
-            let stop = en == nil ? L("한동안 이어져요") : L("%@쯤 그쳐요", hhmm((nowMin + st + en! + 9) / 10 * 10))
+            head = st == 0 ? L("지금 비 · 시간당 %@mm", Self.mmText(mm[0]))
+                : (s10 > nowMin ? L("%@쯤 비 예보", hhmm(s10)) : L("%@ 전 비 예보", hhmm((nowMin + st + 9) / 10 * 10)))
+            // until when, when it ends inside the hour; otherwise how hard it is already says what to do
+            let stop = en == nil ? "" : " · " + L("%@까지 비 예보", hhmm((nowMin + st + en! + 9) / 10 * 10))
             let peak = mm.max() ?? 0
-            sub = chanceTail + "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop)"
+            sub = chanceTail + "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak))" + stop
             icon = st == 0 ? "umbrella" : "umbrella_closed"
         } else if let h = s.hours.dropFirst().prefix(3).first(where: { $0.mm >= 0.1 || $0.chance >= 30 }) {
             // the minute forecast is dry for the hour, but the hourly one has rain soon after: say so, so the card
-            // and the bubble ("22시쯤 비 예정") do not seem to disagree
+            // and the bubble ("22시쯤 비 예보") do not seem to disagree
             let at = model.hourLabel(h.label)
-            sub = h.chance >= 10 ? L("시간별 예보로는 %@쯤 비 · 강수확률 %d%%", at, h.chance) : L("시간별 예보로는 %@쯤 비", at)
+            sub = h.chance >= 10 ? L("시간별로는 %@쯤 비 예보 · 강수확률 %d%%", at, h.chance) : L("시간별로는 %@쯤 비 예보", at)
         }
         let span = mm.count
         return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) })

@@ -34,8 +34,8 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(plus.dayDetail?.first?.count, 8)
         XCTAssertEqual(plus.dayDetail?.first?[5].mm, 2.8, "16 h + 17 h of rain in the 15–18 h slot")
         XCTAssertEqual(plus.dayDetail?.first?[5].gust, 7); XCTAssertEqual(plus.dayDetail?.first?[5].dir, 225)
-        XCTAssertEqual(plus.bubble?.text, "16~18시 비 예정")
-        XCTAssertEqual(AppModel.planView(plus, plus: false).bubble?.text, "16~18시 비 예정", "the free plan keeps the window from the morning run")
+        XCTAssertEqual(plus.bubble?.text, "16~18시 비 예보")
+        XCTAssertEqual(AppModel.planView(plus, plus: false).bubble?.text, "16~18시 비 예보", "the free plan keeps the window from the morning run")
         XCTAssertNil(free.next6)
         XCTAssertEqual(free.updated, "06:00")
     }
@@ -278,7 +278,9 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Notifications.changeTitle(place: "NYC", todayHi: 25, yesterdayHi: 20, unitF: true), "NYC · 어제보다 9° 높아요")
         let d = WeatherScene.DayRow(name: "금", icon: "raincloud", chance: 70, lo: 9, hi: 19)
         XCTAssertEqual(Notifications.changeBody(d, deg: { "\($0)°" }), "오늘 9° ~ 19° · 일교차가 커요 · 비 예보")
-        XCTAssertEqual(Notifications.morningBody(d), "비 예보예요 · 우산을 챙겨 주세요")
+        XCTAssertEqual(Notifications.morningBody(d), "비 예보예요 · 우산 챙기세요")
+        XCTAssertEqual(Notifications.morningBody(WeatherScene.DayRow(name: "금", icon: "raincloud", chance: 40, lo: 9, hi: 19)), "강수확률 40% · 우산 챙기세요")
+        XCTAssertEqual(Notifications.morningBody(WeatherScene.DayRow(name: "금", icon: "snowflake", chance: 80, lo: -3, hi: 1)), "눈 예보예요 · 미끄러우니 조심하세요")
     }
 
     /// Widgets and the watch show words with the temperature between them; official names stay as they are.
@@ -288,13 +290,21 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "비 · 16° · 우산")
         s.bubble?.text = "호우주의보"
         XCTAssertEqual(Compact.head(s), "호우주의보")
-        s.bubble?.text = "15~17시 비 예정"; s.rain = "bag"
+        s.bubble?.text = "15~17시 비 예보"; s.rain = "bag"
         XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "15~17시 비 · 16° · 우산")
+        s.bubble?.text = "15~17시 비 예정"      // an older server
+        XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "15~17시 비 · 16° · 우산")
+        s.bubble?.text = "안개가 짙어요!"; s.rain = "none"
+        XCTAssertEqual(Compact.head(s), "짙은 안개")
+        s.bubble?.text = "안개가 옅어요"
+        XCTAssertEqual(Compact.head(s), "옅은 안개")
         s.bubble?.text = "한파!"; s.rain = "none"; s.temp = -13; s.feels = -16; s.cond = "맑음 · 한파"
         XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "한파 · -13° · 체감 -16°")
         s.bubble = nil; s.temp = 19; s.feels = 18; s.hi = 20; s.lo = 9; s.cond = "맑음"
         XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "맑음 · 19° · 큰 일교차")
-        s.bubble = WeatherScene.Bubble(kind: "speech", tone: "sky", icon: "umbrella_closed", text: "우산 챙겨요"); s.rain = "bag"; s.hi = 21
+        s.bubble = WeatherScene.Bubble(kind: "speech", tone: "sky", icon: "umbrella_closed", text: "우산 챙기세요"); s.rain = "bag"; s.hi = 21
+        XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "맑음 · 19° · 우산")
+        s.bubble?.text = "우산 챙겨요"           // an older server
         XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "맑음 · 19° · 우산")
         XCTAssertEqual(Compact.bubbleWord(s, max: 5), "맑음")
     }
@@ -326,9 +336,24 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(f.say("아침 -14°예요. 많이 추워요."), "아침 -14°입니다. 많이 춥습니다.")
         XCTAssertEqual(c.say("12시간 동안 비 소식 없어요"), "12시간 동안 비 소식 없어")
         XCTAssertEqual(f.say("보송해요 · 이슬점 7°"), "보송합니다 · 이슬점 7°")
-        XCTAssertEqual(c.say("15시쯤 비 예정 · 우산 챙기세요"), "15시쯤 비 예정 · 우산 챙겨")
+        XCTAssertEqual(c.say("15시쯤 비 예보 · 우산 챙기세요"), "15시쯤 비 예보 · 우산 챙겨")
         XCTAssertEqual(f.say("바람 세요!"), "바람이 셉니다!"); XCTAssertEqual(c.say("안개 짙어요!"), "안개 짙어!")
-        XCTAssertEqual(f.say("호우주의보"), "호우주의보"); XCTAssertEqual(c.say("15~17시 비 예정"), "15~17시 비 예정")
+        XCTAssertEqual(f.say("호우주의보"), "호우주의보"); XCTAssertEqual(c.say("15~17시 비 예보"), "15~17시 비 예보")
+        // the new wording: 챙기세요 · 조심하세요 · ~하는 게 좋아요, and warning lines with ", " between clauses
+        XCTAssertEqual(f.say("비 예보예요. 우산 챙기세요."), "비 예보입니다. 우산 챙기십시오.")
+        XCTAssertEqual(c.say("비 예보예요. 우산 챙기세요."), "비 예보야. 우산 챙겨.")
+        XCTAssertEqual(f.say("안개가 짙어요!"), "안개가 짙습니다!"); XCTAssertEqual(c.say("안개가 옅어요"), "안개가 옅어")
+        XCTAssertEqual(f.say("오늘 6cm, 18시까지 눈 예보, 미끄러우니 조심하세요"), "오늘 6cm, 18시까지 눈 예보, 미끄러우니 조심하십시오")
+        XCTAssertEqual(c.say("오늘 6cm, 18시까지 눈 예보, 미끄러우니 조심하세요"), "오늘 6cm, 18시까지 눈 예보, 미끄러우니 조심해")
+        XCTAssertEqual(f.say("비가 많이 와요, 우산 꼭 챙기고 우비도 있으면 좋아요"), "비가 많이 옵니다, 우산 꼭 챙기고 우비도 있으면 좋습니다")
+        XCTAssertEqual(c.say("비가 많이 와요, 우산 꼭 챙기고 우비도 있으면 좋아요"), "비가 많이 와, 우산 꼭 챙기고 우비도 있으면 좋아")
+        XCTAssertEqual(f.say("황사가 심해요, 마스크 챙기세요"), "황사가 심합니다, 마스크 챙기십시오")
+        XCTAssertEqual(c.say("낮 최고 35°, 모자·선크림을 챙기고 물을 자주 마시는 게 좋아요"), "낮 최고 35°, 모자·선크림을 챙기고 물을 자주 마시는 게 좋아")
+        XCTAssertEqual(f.say("강풍 · 외출 조심하세요"), "강풍 · 외출 조심하십시오")
+        XCTAssertEqual(c.say("이슬비 · 가볍게 내려요 · 18시까지 비 예보"), "이슬비 · 가볍게 내려 · 18시까지 비 예보")
+        XCTAssertEqual(f.say("새 날씨를 불러오는 중이에요 · 지금은 13:40 날씨예요"), "새 날씨를 불러오는 중입니다 · 지금은 13:40 날씨입니다")
+        XCTAssertEqual(c.say("날씨를 불러오는 데 시간이 걸리고 있어요. 잠시 후 아래로 당겨 주세요."), "날씨를 불러오는 데 시간이 걸리고 있어. 잠시 후 아래로 당겨 줘.")
+        XCTAssertEqual(f.say("바람이 매우 강해요. 바깥 활동은 줄이는 게 좋아요. 밤에 가장 세요."), "바람이 매우 강합니다. 바깥 활동은 줄이는 게 좋습니다. 밤에 가장 셉니다.")
         XCTAssertEqual(Voice.polite.say("많이 추워요."), "많이 추워요.")
         XCTAssertEqual(PurrCharacter.brit.defaultVoice, .formal); XCTAssertEqual(PurrCharacter.abys.defaultVoice, .casual)
     }
@@ -340,7 +365,7 @@ final class PurrcastTests: XCTestCase {
         Lang.current = .en
         defer { Lang.current = .ko }
         XCTAssertEqual(Brand.name, "Purrcast")
-        XCTAssertEqual(Rules.feelsWord(20), "Pleasant")
+        XCTAssertEqual(Rules.feelsWord(20), "Mild")
         XCTAssertEqual(Rules.windWord(ms: 2), "Gentle breeze")
         XCTAssertEqual(Rules.rainKind(5), "Moderate rain")
         XCTAssertEqual(L("설정"), "Settings")
@@ -358,7 +383,7 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(HourLabel.hour("Now"), nil)
         XCTAssertEqual(HourLabel.word(15, clock12: true), "3PM"); XCTAssertEqual(HourLabel.word(15, clock12: false), "15:00")
         XCTAssertEqual(HourLabel.window(15, 17, clock12: true), "3–5PM"); XCTAssertEqual(HourLabel.window(11, 13, clock12: true), "11AM–1PM")
-        XCTAssertEqual(L("%@쯤 비 예정 · 우산 챙기세요", HourLabel.word(15, clock12: true)), "Rain around 3PM · Take an umbrella")
+        XCTAssertEqual(L("%@쯤 비 예보 · 우산 챙기세요", HourLabel.word(15, clock12: true)), "Rain around 3PM · Take an umbrella")
         // one tone: the voices leave English alone and the picker has nothing to show
         XCTAssertEqual(Voice.casual.say("Rain expected. Take an umbrella."), "Rain expected. Take an umbrella.")
         XCTAssertTrue(Voice.choices.isEmpty)
@@ -369,12 +394,14 @@ final class PurrcastTests: XCTestCase {
         Lang.current = .ja
         defer { Lang.current = .ko }
         XCTAssertEqual(Brand.name, "ゴロゴロ天気")
-        XCTAssertEqual(Rules.feelsWord(20), "快適")
+        XCTAssertEqual(Rules.feelsWord(20), "穏やか")
         XCTAssertEqual(Notifications.changeTitle(place: "麻浦区", todayHi: 15, yesterdayHi: 19, unitF: false), "麻浦区・昨日より4°低い")
         XCTAssertEqual(Notifications.changeTitle(place: "麻浦区", todayHi: 20, yesterdayHi: 19, unitF: false), "麻浦区・昨日とほぼ同じ")
         XCTAssertEqual(HourLabel.hour("15時"), 15); XCTAssertEqual(HourLabel.hour("午後3時"), 15)
         XCTAssertEqual(HourLabel.word(15, clock12: false), "15時"); XCTAssertEqual(HourLabel.window(15, 17, clock12: false), "15〜17時")
-        XCTAssertEqual(L("%@쯤 비 예정 · 우산 챙기세요", HourLabel.word(15, clock12: false)), "15時ごろ雨・傘をお持ちください")
+        XCTAssertEqual(L("%@쯤 비 예보 · 우산 챙기세요", HourLabel.word(15, clock12: false)), "15時ごろ雨の予報・傘をお持ちください")
+        XCTAssertEqual(Voice.casual.say("今日 6cm、18時ごろまで雪の予報、滑りやすいのでご注意ください"), "今日 6cm、18時ごろまで雪の予報、滑りやすいので気をつけて")
+        XCTAssertEqual(Voice.casual.say("天気の読み込みに時間がかかっています。少ししてから下に引いてください。"), "天気の読み込みに時間がかかってるよ。少ししてから下に引いて。")
         var s = WeatherScene(); s.temp = 16; s.feels = 15; s.hi = 18; s.lo = 11; s.cond = "雨"; s.rain = "umbrella"
         s.bubble = WeatherScene.Bubble(kind: "speech", tone: "sky", icon: "umbrella", text: "雨!")
         XCTAssertEqual(Compact.line(s, deg: { "\($0)°" }), "雨 · 16° · 傘")
@@ -392,7 +419,7 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(HourLabel.word(15, clock12: false), "15시"); XCTAssertEqual(HourLabel.word(15, clock12: true), "오후 3시")
         XCTAssertEqual(HourLabel.window(15, 17, clock12: false), "15~17시")
         XCTAssertEqual(HourLabel.clock(950, clock12: false), "15:50")
-        XCTAssertEqual(L("%@쯤 비 예정 · 우산 챙기세요", HourLabel.word(15, clock12: false)), "15시쯤 비 예정 · 우산 챙기세요")
+        XCTAssertEqual(L("%@쯤 비 예보 · 우산 챙기세요", HourLabel.word(15, clock12: false)), "15시쯤 비 예보 · 우산 챙기세요")
         XCTAssertEqual(Lang.detect(["ko-KR"]), .ko); XCTAssertEqual(Lang.detect(["ja-JP"]), .ja); XCTAssertEqual(Lang.detect(["de-DE"]), .en); XCTAssertEqual(Lang.detect([]), .en)
     }
 
