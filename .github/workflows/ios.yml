@@ -50,6 +50,10 @@ jobs:
               m = []
           for t in m:
               for a in t.get('attachments', []):
+                  src = os.path.join('raw', a['exportedFileName'])
+                  # pictures only: Xcode also attaches screen recordings of UI tests (too big for the branch)
+                  if os.path.splitext(a['exportedFileName'])[1].lower() not in ('.png', '.jpg', '.jpeg', '') or os.path.getsize(src) > 20_000_000:
+                      continue
                   name = a.get('suggestedHumanReadableName') or a['exportedFileName']
                   name = name.split('_0_')[0].replace(' ', '-')
                   if not name.endswith('.png'): name += '.png'
