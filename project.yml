@@ -52,7 +52,7 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         # AppIcon (구름 조금) and the icons picked in 설정 › 앱 아이콘 (AppIcon.swift)
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "AppIcon-clear AppIcon-cloudy AppIcon-rain AppIcon-thunder AppIcon-snow AppIcon-night AppIcon-fog AppIcon-rainbow AppIcon-wind AppIcon-heavyrain AppIcon-sleet AppIcon-heat AppIcon-cold AppIcon-dust AppIcon-cloudynight AppIcon-rain-cat AppIcon-rain-abys AppIcon-rain-brit"
+        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "AppIcon-sun-peach-abys AppIcon-sun-peach-brit AppIcon-sun-blue-cat AppIcon-sun-blue-abys AppIcon-sun-blue-brit AppIcon-partly AppIcon-clear AppIcon-cloudy AppIcon-rain AppIcon-thunder AppIcon-snow AppIcon-night AppIcon-fog AppIcon-rainbow AppIcon-wind AppIcon-heavyrain AppIcon-sleet AppIcon-heat AppIcon-cold AppIcon-dust AppIcon-cloudynight AppIcon-rain-cat AppIcon-rain-abys AppIcon-rain-brit"
   PurrcastWidgets:
     type: app-extension
     platform: iOS

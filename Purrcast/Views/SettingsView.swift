@@ -193,7 +193,7 @@ struct SettingsView: View {
                 Button { go(.appIcon) } label: {
                     SettingRow(icon: "partly_cloudy", title: L("앱 아이콘")) {
                         HStack(spacing: 8) {
-                            Image("iconpick-\(AppIcon.current)").resizable().interpolation(.high).frame(width: 28, height: 28)
+                            Image(AppIcon.currentPreview(model.shownCharacter)).resizable().interpolation(.high).frame(width: 28, height: 28)
                                 .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
                             RowChevron()
                         }
