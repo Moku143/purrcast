@@ -191,7 +191,7 @@ private struct SmallFace: View {
             .frame(width: 80, height: 118, alignment: .bottom)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             .padding(.leading, 13).padding(.bottom, 8)
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: 2) {        // close together, down by the rain chance
                 if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") } }
                 Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
                 Text(L("강수 %d%%", chanceNow(s))).font(.px(9)).probe("chance")
