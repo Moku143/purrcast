@@ -16,39 +16,45 @@ struct WatchNow: View {
     var body: some View {
         let s = snap.scene, ink = Ink(night: s.isNight), lv = Rules.clamp(s.level)
         let rain = RainState(rawValue: s.rain) ?? .none
-        let catW: CGFloat = 80, catH = catW * Sprite.height / Sprite.width
-        ZStack(alignment: .topLeading) {
-            WidgetBackground(level: lv, night: s.isNight, scene: s, animate: !dimmed)
-            VStack(alignment: .leading, spacing: 0) {
+        GeometryReader { g in
+            // placed on the layout board on the 46-mm screen (208 × 248); smaller watches keep the margins and
+            // shrink the character and the words
+            let k = min(1, max(0.82, g.size.width / 208))
+            let catW = 84 * k, catH = catW * Sprite.height / Sprite.width
+            ZStack(alignment: .topLeading) {
+                WidgetBackground(level: lv, night: s.isNight, scene: s, animate: !dimmed)
                 HStack(spacing: 4) {
                     Text(snap.placeShort).font(.px(12)).lineLimit(1).minimumScaleFactor(0.7).probe("place")
                     PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 14).probe("icon")
                 }
                 .frame(maxWidth: 112, alignment: .leading)
                 .padding(.top, headerTop).padding(.leading, 16)
-                Spacer(minLength: 0)
-                HStack(alignment: .bottom, spacing: 0) {
-                    ZStack(alignment: .bottom) {
-                        CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: !dimmed).probe("cat")
-                            .frame(width: catW, height: catH, alignment: .bottom)
-                        if let b = s.bubble {
-                            BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize().probe("bubble")
-                                .scaleEffect(0.85, anchor: .bottom)
-                                .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: catH))
-                        }
+                // the temperature high on the right, under the clock
+                Text(snap.deg(s.temp)).font(.px(40 * k)).lineLimit(1).rolling(s.temp).probe("temp")
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.top, 64 * k).padding(.trailing, 20)
+                // the character at the bottom left; its bubble rides on it (above the head, or above the umbrella)
+                ZStack(alignment: .bottom) {
+                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: !dimmed).probe("cat")
+                        .frame(width: catW, height: catH, alignment: .bottom)
+                    if let b = s.bubble {
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9.5 * k).fixedSize().probe("bubble")
+                            .scaleEffect(0.85, anchor: .bottom)
+                            .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: catH))
                     }
-                    .frame(width: 90, height: 150, alignment: .bottom)
-                    Spacer(minLength: 0)
-                    VStack(alignment: .trailing, spacing: 3) {
-                        Text(snap.deg(s.temp)).font(.px(34)).rolling(s.temp).probe("temp")
-                        if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 12).probe("sunsetIcon"); Text(t).font(.px(10)).probe("sunsetText") } }
-                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(10)).probe("feels")
-                        Text(L("강수 %d%%", s.hours.prefix(6).map { $0.chance }.max() ?? 0)).font(.px(10)).probe("chance")
-                    }
-                    .lineLimit(1).minimumScaleFactor(0.7)
-                    .padding(.bottom, 14)
                 }
-                .padding(.leading, 10).padding(.trailing, 14).padding(.bottom, 4)
+                .frame(width: catW + 6, height: catH + 60, alignment: .bottom)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .padding(.leading, 16.5).padding(.bottom, 14.5)
+                // sunset · feels · rain at the bottom right
+                VStack(alignment: .trailing, spacing: 7 * k) {
+                    if let t = sunsetTile(s) { HStack(spacing: 3) { PixelIcon(name: "sunset", size: 14 * k).probe("sunsetIcon"); Text(t).font(.px(12 * k)).probe("sunsetText") } }
+                    Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels")
+                    Text(L("강수 %d%%", s.hours.prefix(6).map { $0.chance }.max() ?? 0)).font(.px(12 * k)).probe("chance")
+                }
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .padding(.trailing, 20).padding(.bottom, 23.5)
             }
             .foregroundStyle(ink.ink)
         }

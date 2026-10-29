@@ -240,10 +240,11 @@ private struct WidgetDayList: View {
 }
 
 extension View {
-    /// A soft glow in the sky's own light behind widget words, so heavy rain or snow does not cut through them.
+    /// A faint edge in the sky's own light around widget words — just enough that a rain or snow streak crossing a
+    /// letter does not merge with it, without looking lit up.
     func halo(_ ink: Ink) -> some View {
         let c = ink.night ? Color(hex: "#0B0F24") : Color.white
-        return shadow(color: c.opacity(ink.night ? 0.75 : 0.8), radius: 1).shadow(color: c.opacity(ink.night ? 0.55 : 0.6), radius: 3)
+        return shadow(color: c.opacity(ink.night ? 0.45 : 0.4), radius: 0.7)
     }
 }
 
