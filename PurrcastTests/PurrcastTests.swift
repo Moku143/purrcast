@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import Purrcast
 
 /// Logic checks that run on every GitHub build: decoding (including what the real server sends), the design's
@@ -126,6 +127,33 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(again.level, 13, "the outfit round-trips")
     }
 
+    /// Every notification picture can be drawn: each character, each outfit, each umbrella state, each sky.
+    /// A few are kept as attachments (notify-*) to look at.
+    func testNotificationPictures() {
+        for c in PurrCharacter.allCases {
+            for lv in 0..<Rules.levels {
+                for r in [RainState.none, .bag, .umbrella] {
+                    let img = NotificationArt.render(c, level: lv, rain: r, sky: .rain, falling: r == .umbrella)
+                    XCTAssertEqual(img?.size, CGSize(width: 600, height: 600), "\(c) \(lv) \(r)")
+                }
+            }
+        }
+        for sky in NotificationArt.Sky.allCases { XCTAssertNotNil(UIImage(named: "notify-bg-\(sky.rawValue)"), sky.rawValue) }
+        let keep: [(PurrCharacter, Int, RainState, NotificationArt.Sky, Bool)] = [
+            (.cat, 7, .bag, .rain, false), (.cat, 7, .umbrella, .rain, true), (.cat, 1, .none, .clear, false),
+            (.abys, 12, .umbrella, .snow, true), (.abys, 5, .none, .partly, false), (.brit, 9, .bag, .cloudy, false),
+            (.brit, 4, .umbrella, .storm, true), (.cat, 14, .bag, .snow, false)]
+        for (c, lv, r, sky, f) in keep {
+            guard let png = NotificationArt.render(c, level: lv, rain: r, sky: sky, falling: f)?.pngData() else { XCTFail(); continue }
+            let a = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")
+            a.name = "notify-\(c.rawValue)-\(lv)-\(r.rawValue)-\(sky.rawValue)"; a.lifetime = .keepAlways
+            add(a)
+        }
+        XCTAssertEqual(NotificationArt.sky(icon: "partly_cloudy"), .partly)
+        XCTAssertEqual(NotificationArt.sky(icon: "snowflake"), .snow)
+        XCTAssertEqual(NotificationArt.dayLevel(lo: 9, hi: 19), Rules.level(feels: 14))
+    }
+
     func testFreePlanHidesPlusData() {
         let raw = SceneLibrary.scene("seoul_soon")
         XCTAssertNotNil(raw.next6)
@@ -147,6 +175,24 @@ final class PurrcastTests: XCTestCase {
         let (fire, hour) = try XCTUnwrap(Notifications.firstRain(s, tz: tokyo, now: now))
         XCTAssertEqual(hour, 16)
         XCTAssertEqual(fire.timeIntervalSince(now), 3 * 3600, accuracy: 1)
+    }
+
+    /// The morning notification's hour is found across midnight (the next day's 7시, not today's).
+    func testHourRowForTheMorningNotification() throws {
+        var s = WeatherScene()
+        s.hours = try JSONDecoder().decode([WeatherScene.HourRow].self, from: Data(#"""
+            [["지금","cloud",18,10,0],["22시","cloud",17,10,0],["23시","raincloud",16,70,1],["0시","raincloud",15,80,2],
+             ["1시","cloud",15,20,0],["2시","cloud",15,10,0],["3시","cloud",14,10,0],["4시","cloud",14,10,0],["5시","cloud",14,10,0],
+             ["6시","cloud",14,20,0],["7시","raincloud",14,80,1.5],["8시","cloud",15,30,0]]
+            """#.utf8))
+        let seoul = try XCTUnwrap(TimeZone(identifier: "Asia/Seoul"))
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = seoul
+        let now = try XCTUnwrap(cal.date(from: DateComponents(year: 2026, month: 10, day: 21, hour: 21, minute: 10)))
+        let at = try XCTUnwrap(cal.date(from: DateComponents(year: 2026, month: 10, day: 22, hour: 7, minute: 30)))
+        let row = try XCTUnwrap(Notifications.hourRow(s, at: at, tz: seoul, now: now))
+        XCTAssertEqual(row.label, "7시"); XCTAssertEqual(row.mm, 1.5)
+        XCTAssertNil(Notifications.hourRow(s, at: at.addingTimeInterval(86400), tz: seoul, now: now), "beyond the forecast")
+        XCTAssertEqual(NotificationArt.wetSky(icon: "cloud"), .rain)
     }
 
     // MARK: widgets / watch snapshot

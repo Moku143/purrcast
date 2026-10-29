@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 import UserNotifications
 
 /// Local notifications planned from the latest forecast, re-planned after every refresh and whenever a
@@ -26,8 +25,9 @@ enum Notifications {
                     n.title = voice.say(L("%@쯤 비 예정 · 우산 챙기세요", HourLabel.word(h, clock12: clock12)))
                     n.body = voice.say(L("%@ · 30분 안에 비가 올 수 있어요", place.short))
                     n.sound = .default
-                    // the chosen character under its umbrella in the rain, beside the text
-                    if let a = rainPicture(character) { n.attachments = [a] }
+                    // the chosen character in today's outfit under its open umbrella, in the rain (or snow) that is coming
+                    let icon = s.hours.dropFirst().first(where: { $0.mm > 0 || ["raincloud", "lightning", "snowflake"].contains($0.icon) })?.icon ?? "raincloud"
+                    if let a = NotificationArt.attachment(character, level: s.level, rain: .umbrella, sky: NotificationArt.wetSky(icon: icon), falling: true, id: "rain") { n.attachments = [a] }
                     c.add(UNNotificationRequest(identifier: "rain", content: n,
                                                 trigger: UNTimeIntervalNotificationTrigger(timeInterval: at.timeIntervalSinceNow, repeats: false)))
                 }
@@ -38,12 +38,15 @@ enum Notifications {
             var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date().addingTimeInterval(86400))
             comps.hour = t.hour ?? 7; comps.minute = t.minute ?? 0
             let today = s.days.first, tomorrow = s.days.count > 1 ? s.days[1] : nil
+            // the hour the morning notifications arrive in, when the forecast reaches it: rain then → umbrella open
+            let atMorning = Calendar.current.date(from: comps).flatMap { hourRow(s, at: $0, tz: TimeZone(identifier: place.timeZone) ?? .current) }
 
             // 아침 요약
             if morning, let d = tomorrow {
                 let n = UNMutableNotificationContent()
                 n.title = voice.say(L("%@ · 오늘 %@ ~ %@", place.short, deg(d.lo), deg(d.hi)))
                 n.body = voice.say(morningBody(d))
+                if let a = dayPicture(d, character, now: atMorning, id: "morning") { n.attachments = [a] }
                 c.add(UNNotificationRequest(identifier: "morning", content: n, trigger: UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)))
             }
 
@@ -52,6 +55,7 @@ enum Notifications {
                 let n = UNMutableNotificationContent()
                 n.title = voice.say(changeTitle(place: place.short, todayHi: d.hi, yesterdayHi: y.hi, unitF: unitF))
                 n.body = voice.say(changeBody(d, deg: deg))
+                if let a = dayPicture(d, character, now: atMorning, id: "change") { n.attachments = [a] }
                 // a minute after the summary so the two never collapse into one line
                 var cc = comps; cc.minute = (cc.minute ?? 0) + 1
                 if cc.minute == 60 { cc.minute = 0; cc.hour = ((cc.hour ?? 7) + 1) % 24 }
@@ -60,15 +64,28 @@ enum Notifications {
         }
     }
 
-    /// The rain notification's picture (notify-rain-<character>): written to a file of its own each time, since iOS
-    /// moves an attachment's file into its own store.
-    static func rainPicture(_ c: PurrCharacter) -> UNNotificationAttachment? {
-        guard let img = UIImage(named: "notify-rain-\(c.rawValue)"), let data = img.pngData() else { return nil }
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("rain-\(c.rawValue)-\(UUID().uuidString).png")
-        do {
-            try data.write(to: url)
-            return try UNNotificationAttachment(identifier: "rain-\(c.rawValue)", url: url, options: nil)
-        } catch { return nil }
+    /// A day's picture: the outfit for its range under its sky; the umbrella open in the rain when it is raining as the
+    /// notification arrives (`now`, that hour's row), else packed when rain or snow is likely that day (30 %+).
+    static func dayPicture(_ d: WeatherScene.DayRow, _ c: PurrCharacter, now: WeatherScene.HourRow? = nil, id: String) -> UNNotificationAttachment? {
+        let lv = NotificationArt.dayLevel(lo: d.lo, hi: d.hi)
+        if let r = now, r.mm > 0 {
+            return NotificationArt.attachment(c, level: lv, rain: .umbrella, sky: NotificationArt.wetSky(icon: r.icon), falling: true, id: id)
+        }
+        return NotificationArt.attachment(c, level: lv, rain: d.chance >= 30 ? .bag : .none, sky: NotificationArt.sky(icon: d.icon), falling: false, id: id)
+    }
+
+    /// The forecast row of the hour that holds `target` (rows after "지금" are consecutive hours of the place's clock).
+    static func hourRow(_ s: WeatherScene, at target: Date, tz: TimeZone, now: Date = Date()) -> WeatherScene.HourRow? {
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
+        var prev = now
+        for row in s.hours.dropFirst() {
+            guard let h = HourLabel.hour(row.label), var d = cal.date(bySettingHour: h, minute: 0, second: 0, of: prev) else { continue }
+            if d < prev { d = cal.date(byAdding: .day, value: 1, to: d) ?? d }
+            prev = d
+            if target >= d && target < d.addingTimeInterval(3600) { return row }
+            if d > target { break }
+        }
+        return nil
     }
 
     static func morningBody(_ d: WeatherScene.DayRow) -> String {
