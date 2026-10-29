@@ -1145,8 +1145,6 @@ private struct DayChart: View {
 
     let ctx: DayCtx; let spec: DayChartSpec; let cw: CGFloat; let scrub: DayScrub
     let onScrub: (Int, Bool) -> Void
-    /// nil until a drag shows its direction; true = sideways (scrubbing the hours), false = up-down (scrolling)
-    @State var sideways: Bool? = nil
     @State var sizes: [Int: CGSize] = [:]
     private var W: CGFloat { cw * 24 }
     private var H: CGFloat { DayChart.H }
@@ -1164,17 +1162,11 @@ private struct DayChart: View {
         }
         .frame(maxWidth: .infinity, alignment: .topLeading).frame(height: H, alignment: .topLeading)
         .onPreferenceChange(DaySizes.self) { sizes = $0 }
-        .contentShape(Rectangle())
-        .simultaneousGesture(DragGesture(minimumDistance: 4, coordinateSpace: .local)
-            .onChanged { g in
-                if sideways == nil { sideways = abs(g.translation.width) >= abs(g.translation.height) }
-                if sideways == true { onScrub(hour(g.location.x), true) }
-            }
-            .onEnded { g in
-                if sideways == true { onScrub(hour(g.location.x), false) }
-                sideways = nil
-            })
-        .onTapGesture(coordinateSpace: .local) { p in Haptic.select(); onScrub(hour(p.x), false) }
+        // sideways drags read the hours, a tap picks one; an up-down drag that starts on the chart scrolls the page
+        // (a SwiftUI DragGesture here, even a simultaneous one, sometimes kept the page from scrolling)
+        .overlay(SidewaysPan(onMove: { x in onScrub(hour(x), true) },
+                             onEnd: { x in onScrub(hour(x), false) },
+                             onTap: { x in Haptic.select(); onScrub(hour(x), false) }))
     }
 
     private func hour(_ x: CGFloat) -> Int { max(0, min(23, Int(x / cw))) }
@@ -1544,5 +1536,44 @@ private extension View {
                     .shadow(color: Color(hex: "#1E2A44").opacity(c.night ? 0 : 0.08), radius: 9, y: 6)
             }
             .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(c.cardBorder, lineWidth: 1))
+    }
+}
+
+/// A pan that only starts when the finger moves more sideways than up or down (so the page's own scroll gets every
+/// up-down drag, wherever it starts), plus a tap. x is in the covered view's own points.
+private struct SidewaysPan: UIViewRepresentable {
+    var onMove: (CGFloat) -> Void
+    var onEnd: (CGFloat) -> Void
+    var onTap: (CGFloat) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+    func makeUIView(context: Context) -> UIView {
+        let v = UIView()
+        v.backgroundColor = .clear
+        let pan = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.pan(_:)))
+        pan.delegate = context.coordinator
+        v.addGestureRecognizer(pan)
+        v.addGestureRecognizer(UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tap(_:))))
+        return v
+    }
+    func updateUIView(_ v: UIView, context: Context) { context.coordinator.parent = self }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        var parent: SidewaysPan
+        init(_ p: SidewaysPan) { parent = p }
+        @objc func pan(_ g: UIPanGestureRecognizer) {
+            let x = g.location(in: g.view).x
+            switch g.state {
+            case .began, .changed: parent.onMove(x)
+            case .ended, .cancelled, .failed: parent.onEnd(x)
+            default: break
+            }
+        }
+        @objc func tap(_ g: UITapGestureRecognizer) { parent.onTap(g.location(in: g.view).x) }
+        func gestureRecognizerShouldBegin(_ g: UIGestureRecognizer) -> Bool {
+            guard let p = g as? UIPanGestureRecognizer else { return true }
+            let v = p.velocity(in: p.view)
+            return abs(v.x) > abs(v.y)
+        }
     }
 }

@@ -50,14 +50,22 @@ export function buildScene(f, o) {
   const lv = R.level(feelsRaw, o.prev ?? null);                   // old ten-outfit number (older app builds)
   const outfit = R.outfit(feelsRaw, o.outfitPrev ?? null);       // the fifteen outfits
 
-  // rain timing
+  // rain timing: "16~19시 비 예정" names the hours the forecast puts rain or snow in. A 60 %+ chance alone does not
+  // start or end the spell (기상청 gives 60 % to the dry hours before and after one, and the hourly rows, the
+  // next-six-hours card and the rain alert all show those hours dry); it only bridges a dry hour inside it, and
+  // stands in for the spell when the forecast has no amounts at all.
   const wet = (p) => p.mm >= 0.1 || p.type !== 'none';
+  const likely = (p) => (p.pop ?? 0) >= 60;
   const nowWet = wet(cur);
-  const startIdx = ahead.findIndex((p) => wet(p) || (p.pop ?? 0) >= 60);
+  let startIdx = ahead.findIndex(wet);
+  const byAmount = startIdx >= 0;
+  if (!byAmount) startIdx = ahead.findIndex(likely);
   const startIn = nowWet ? 0 : startIdx < 0 ? null : Math.max(1, Math.round((ahead[startIdx].t - nowT) / 3600000));
   const startP = startIdx < 0 ? null : ahead[startIdx];
   let endP = startP;
-  if (startIdx >= 0) for (let i = startIdx + 1; i < ahead.length && (wet(ahead[i]) || (ahead[i].pop ?? 0) >= 60); i++) endP = ahead[i];
+  if (startIdx >= 0) {
+    for (let i = startIdx + 1; i < ahead.length && (wet(ahead[i]) || likely(ahead[i])); i++) if (!byAmount || wet(ahead[i])) endP = ahead[i];
+  }
   const H = (p) => local(p.t, tz).h;
   const tomorrow = startP ? dayKey(startP.t, tz) !== dayKey(nowT, tz) : false;
   const when = startP ? R.whenWord(H(startP), H(endP), tomorrow, S) : '';   // 15~17시 · 15시쯤 · 내일 7~9시

@@ -191,6 +191,28 @@ test('scene: rain in a few hours → bag + "16~17시 비 예정" (the hours peop
   assert.equal(s.tiles[0].value, '70%');
 });
 
+test('scene: 60 % before the rain is not rain — "18~23시", not "16~23시" (기상청 gives the dry hours 60 %)', () => {
+  // now 15:07; 16 and 17 h: 60 %, no amount; 18–20 h rain; 21–23 h 0.5 mm; 0 h 30 %
+  const hrs = flat(40, { cloud: 90, sym: 'cloudy', pop: 30 });
+  hrs[0] = { cloud: 95, pop: 60, sym: 'cloudy' }; hrs[1] = { cloud: 95, pop: 60, sym: 'cloudy' }; hrs[2] = { cloud: 95, pop: 60, sym: 'cloudy' };
+  for (const [i, mm] of [[3, 1], [4, 2], [5, 2], [6, 0.5], [7, 0.5], [8, 0.5]]) hrs[i] = { cloud: 95, mm, pop: 60, sym: 'rain' };
+  const m = parseMet(met(at(15), hrs));
+  const s = buildScene({ points: m.points }, { ...SEOUL, plan: 'plus', now: at(15, 7) });
+  validateScene(s);
+  assert.equal(s.rain, 'bag');
+  assert.equal(s.bubble.text, '18~23시 비 예정');
+  assert.match(s.tiles[0].note, /^18~23시 비 예정 · /);
+  // a dry 60 % hour inside the spell still belongs to it; the 60 % hours after it do not
+  hrs[5] = { cloud: 95, pop: 60, sym: 'cloudy' }; hrs[9] = { cloud: 95, pop: 60, sym: 'cloudy' };
+  const t = buildScene({ points: parseMet(met(at(15), hrs)).points }, { ...SEOUL, plan: 'plus', now: at(15, 7) });
+  assert.equal(t.bubble.text, '18~23시 비 예정');
+  // no amounts anywhere (only chances): a 60 % chance still says when
+  const dry = flat(40, { cloud: 90, sym: 'cloudy', pop: 20 });
+  dry[3] = { cloud: 95, pop: 70, sym: 'cloudy' }; dry[4] = { cloud: 95, pop: 70, sym: 'cloudy' };
+  const u = buildScene({ points: parseMet(met(at(15), dry)).points }, { ...SEOUL, plan: 'plus', now: at(15, 7) });
+  assert.equal(u.bubble.text, '18~19시 비 예정');
+});
+
 test('when words: 15~17시 · 15시쯤 · 내일 7~9시', () => {
   assert.equal(whenWord(15, 17, false), '15~17시'); assert.equal(whenWord(15, 15, false), '15시쯤');
   assert.equal(whenWord(7, 9, true), '내일 7~9시');
