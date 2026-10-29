@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The home-screen icon follows the character shown: each one under its own umbrella. The cat is the primary icon,
+/// The home-screen icon follows the character shown: its face as the sun on the weather-app sky. The cat is the primary icon,
 /// 아비시니안 and 브리티시숏헤어 are alternate icons (asset catalog AppIcon-abys · AppIcon-brit, listed in project.yml).
 /// iOS itself tells the person the icon changed (a short system note), so it only changes when the character does.
 @MainActor
