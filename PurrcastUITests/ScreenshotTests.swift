@@ -166,4 +166,55 @@ final class ScreenshotTests: XCTestCase {
             app.terminate()
         }
     }
+
+    /// The layout board: each screen's screenshot and every element on it with its frame (points), as
+    /// layout-<screen>.png + layout-<screen>.json. Scrolling screens are taken at a few scroll positions.
+    func test10Layout() {
+        let screens: [(String, [String], Int)] = [
+            ("home-1", ["-scene", "maybe", "-plus", "-char", "cat"], 0),
+            ("home-2", ["-scene", "maybe", "-plus", "-char", "cat"], 1),
+            ("home-3", ["-scene", "maybe", "-plus", "-char", "cat"], 3),
+            ("home-4", ["-scene", "maybe", "-plus", "-char", "cat"], 6),
+            ("home-rain", ["-scene", "spring_rain", "-plus", "-char", "cat"], 0),
+            ("day", ["-scene", "maybe", "-plus", "-open", "day"], 0),
+            ("day-2", ["-scene", "maybe", "-plus", "-open", "day"], 1),
+            ("settings-1", ["-scene", "maybe", "-plus", "-open", "settings"], 0),
+            ("settings-2", ["-scene", "maybe", "-plus", "-open", "settings"], 2),
+            ("character", ["-scene", "maybe", "-plus", "-open", "character"], 0),
+            ("places", ["-scene", "maybe", "-plus", "-open", "places"], 0),
+            ("widgets", ["-scene", "maybe", "-plus", "-open", "widgets"], 0),
+            ("paywall", ["-scene", "maybe", "-open", "paywall"], 0),
+            ("appicon", ["-scene", "maybe", "-open", "appIcon"], 0),
+            ("sources", ["-scene", "maybe", "-open", "sources"], 0),
+        ]
+        for (name, args, swipes) in screens {
+            let app = XCUIApplication()
+            app.launchArguments = args + ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+            app.launch()
+            sleep(2)
+            for _ in 0..<swipes { app.swipeUp() }
+            if swipes > 0 { sleep(1) }
+            let png = app.screenshot().pngRepresentation
+            var items: [[String: Any]] = []
+            func walk(_ e: XCUIElementSnapshot, _ depth: Int) {
+                let f = e.frame
+                if f.width >= 1, f.height >= 1, f.width.isFinite, f.height.isFinite {
+                    items.append(["type": Int(e.elementType.rawValue), "id": e.identifier, "label": e.label,
+                                  "value": e.value.map { "\($0)" } ?? "", "x": Double(f.minX), "y": Double(f.minY),
+                                  "w": Double(f.width), "h": Double(f.height), "depth": depth])
+                }
+                for c in e.children { walk(c, depth + 1) }
+            }
+            if let snap = try? app.snapshot() { walk(snap, 0) }
+            let screen = app.frame
+            let doc: [String: Any] = ["screen": name, "w": Double(screen.width), "h": Double(screen.height), "elements": items]
+            let shot = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")
+            shot.name = "layout-\(name)"; shot.lifetime = .keepAlways; add(shot)
+            if let json = try? JSONSerialization.data(withJSONObject: doc) {
+                let a = XCTAttachment(data: json, uniformTypeIdentifier: "public.json")
+                a.name = "layout-\(name)"; a.lifetime = .keepAlways; add(a)
+            }
+            app.terminate()
+        }
+    }
 }
