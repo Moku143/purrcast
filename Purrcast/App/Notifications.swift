@@ -33,11 +33,15 @@ enum Notifications {
                 }
             }
 
-            // tomorrow morning at the chosen time (the user's own clock), with tomorrow's numbers
+            // the next morning at the chosen time (the user's own clock): still today's when the time is ahead (opening
+            // the app at 3 am must not wipe the 7 am summary), else tomorrow's — with that day's numbers
             let t = Calendar.current.dateComponents([.hour, .minute], from: morningTime)
-            var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date().addingTimeInterval(86400))
+            var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date())
             comps.hour = t.hour ?? 7; comps.minute = t.minute ?? 0
-            let today = s.days.first, tomorrow = s.days.count > 1 ? s.days[1] : nil
+            let stillToday = (Calendar.current.date(from: comps).map { $0.timeIntervalSinceNow > 60 } ?? false)
+            if !stillToday { comps = Calendar.current.dateComponents([.year, .month, .day], from: Date().addingTimeInterval(86400)); comps.hour = t.hour ?? 7; comps.minute = t.minute ?? 0 }
+            let tomorrow = stillToday ? s.days.first : (s.days.count > 1 ? s.days[1] : nil)   // the day the summary is about
+            let today = stillToday ? nil : s.days.first   // the day before it, for the change line (unknown once that day has begun)
             // the hour the morning notifications arrive in, when the forecast reaches it: rain then → umbrella open
             let atMorning = Calendar.current.date(from: comps).flatMap { hourRow(s, at: $0, tz: TimeZone(identifier: place.timeZone) ?? .current) }
 
