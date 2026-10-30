@@ -45,7 +45,6 @@ struct WidgetLabView: View {
             }
             // 미세먼지 on the lock screen (rectangle · circle) and the watch's circle, in colour
             HStack(alignment: .top, spacing: 12) {
-                lock("lab-dust-rect", 172, 76) { LockDustRectangularView(snap: snap) }
                 lock("lab-dust-circle", 76, 76, circle: true) { LockDustCircularView(snap: snap) }
                 WatchDustDisc(snap: snap).frame(width: 76, height: 76).background(Color.black).clipShape(Circle())
                     .accessibilityElement(children: .contain).accessibilityIdentifier("lab-dust-watch")

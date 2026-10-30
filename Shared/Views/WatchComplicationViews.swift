@@ -231,20 +231,19 @@ struct WatchSummaryPlate: View {
     }
 }
 
-/// 미세먼지 in a circle: the dust icon, the worse of the two readings and its step in the step's colour
-/// (환경부 steps in Korea, WHO's abroad — the server grades them). Nothing without a reading.
+/// 미세먼지 in a circle: the dust icon over the step's word, the ring in the step's colour (환경부 steps in Korea,
+/// WHO's abroad — the server grades them). Nothing without a reading.
 struct WatchDustDisc: View {
     let snap: WeatherSnapshot
     var body: some View {
         if let d = snap.scene.dust {
             let g = max(0, min(3, d.grade))
-            let v = DustFacts.value(d)
-            Gauge(value: Double(g) + 0.5, in: 0...4) {
+            Gauge(value: Double(g) + 1, in: 0...4) {
                 Text("")
             } currentValueLabel: {
                 VStack(spacing: 1) {
                     PixelIcon(name: DustFacts.icon(d), size: 13)
-                    Text(v.map { String(Int($0.rounded())) } ?? "–").font(.px(11))
+                    Text(L(DustScale.words[g])).font(.px(g == 3 ? 8 : 10)).lineLimit(1).minimumScaleFactor(0.6)
                 }
             }
             .gaugeStyle(.accessoryCircularCapacity)

@@ -119,7 +119,7 @@ private func pieceConfiguration(_ piece: WatchPiece) -> some WidgetConfiguration
         case .rain: return (L("비 올 확률"), L("앞으로 6시간 비 올 확률"))
         case .feels: return (L("체감온도"), L("체감온도를 색으로"))
         case .sun: return (L("일몰 · 일출"), L("다음 일몰이나 일출 시각"))
-        case .dust: return (L("미세먼지"), L("미세먼지 · 초미세먼지 등급과 수치"))
+        case .dust: return (L("미세먼지"), L("미세먼지 · 초미세먼지 등급"))
         }
     }()
     return StaticConfiguration(kind: "PurrcastWatch-\(piece.rawValue)", provider: WatchProvider()) { e in
