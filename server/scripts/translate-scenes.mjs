@@ -86,6 +86,12 @@ function translator(lang) {
     if (s.dayDetail) s.dayDetail = s.dayDetail.map((d) => d.map((r) => [hourLabel(r[0]), ...r.slice(1)]));
     s.days = s.days.map((d) => [dayName(d[0]), ...d.slice(1)]);
     if (s.cmp) s.cmp = { ...s.cmp, sources: s.cmp.sources.map((x) => ({ ...x, name: T.src[x.key] ?? x.name })) };
+    if (s.dust) {
+      const i = KO.dust.note.indexOf(s.dust.note);
+      s.dust.note = i >= 0 ? T.dust.note[i] : s.dust.note === KO.dust.yellow ? T.dust.yellow : s.dust.note === KO.dust.watch ? T.dust.watch : s.dust.note === KO.dust.warning ? T.dust.warning : s.dust.note;
+      s.dust.src = T.dust.src[s.dust.srcKey] ?? s.dust.src;
+      if (s.dust.station === '마포구') s.dust.station = { en: 'Mapo-gu', ja: '麻浦区' }[lang];
+    }
     return s;
   };
 }

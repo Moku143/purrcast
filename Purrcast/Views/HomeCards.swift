@@ -270,6 +270,10 @@ struct HomeFooter: View {
         if isSample { out.append(L("예시 날씨예요 · 실제 날씨는 서버 연결 후")) }
         if region == "kr" { out.append(scene.next6 != nil ? L("기상청 · 기상특보 · 예보 비교 · 다음 6시간 (공공누리 제1유형)") : L("기상청 · 기상특보 · 예보 비교 (공공누리 제1유형)")) }
         out.append(L("MET Norway · 예보 비교 (CC BY 4.0, 그래프로 바꿔 씀)"))
+        if let d = scene.dust {
+            // the dust source's own line: 에어코리아 is 공공누리 like 기상청; OpenWeather asks for a visible credit
+            out.append(d.src.lowercased().contains("openweather") ? "Air quality © OpenWeather (ODbL)" : L("에어코리아 · 미세먼지 (공공누리 제1유형)"))
+        }
         return out
     }
     private var usesApple: Bool { scene.src == "apple" || (scene.cmp?.sources.contains { $0.key == "apple" } ?? false) }
@@ -327,4 +331,87 @@ struct CompactHeader: View {
 struct ScrollOffsetKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+// MARK: 미세먼지
+
+/// 환경부 4 steps and their colours: 좋음 · 보통 · 나쁨 · 매우 나쁨 (the UV tile's green · yellow · orange · red).
+enum DustScale {
+    static let words = ["좋음", "보통", "나쁨", "매우 나쁨"]
+    static let colors = ["#4CAF50", "#F2C230", "#F28C28", "#E2453C"]
+    static let onColors = ["#FFFFFF", "#1E2A44", "#1E2A44", "#FFFFFF"]
+    /// Where a value sits in its grade's segment (0…1 across the whole bar), 환경부 bounds: PM10 30 · 80 · 150, PM2.5 15 · 35 · 75.
+    static func position(_ v: Double, pm25: Bool) -> Double {
+        let b: [Double] = pm25 ? [0, 15, 35, 75, 150] : [0, 30, 80, 150, 300]
+        for i in 0..<4 where v <= b[i + 1] || i == 3 {
+            let t = min(1, max(0, (v - b[i]) / (b[i + 1] - b[i])))
+            return (Double(i) + t) / 4
+        }
+        return 1
+    }
+}
+
+/// The 미세먼지 card: one row each for 미세먼지 and 초미세먼지 — icon and name, the value big with its grade chip, the line
+/// (황사 · 경보 · the grade's own) at the right, and the four-step bar with a ring where the value sits.
+struct DustCard: View {
+    @EnvironmentObject var model: AppModel
+    let dust: WeatherScene.Dust; let ink: Ink
+    var body: some View {
+        Card(ink: ink) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(L("미세먼지")).font(.px(13)); Spacer()
+                Text([dust.src, dust.station].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")).font(.ui(11)).foregroundStyle(ink.sub)
+            }
+            row(icon: "pm10", label: L("PM10"), value: dust.pm10, grade: dust.pm10Grade, pm25: false, note: dust.note, withNote: noteRow == 0)
+            Rectangle().fill(ink.line).frame(height: 1)
+            row(icon: "pm25", label: L("초미세먼지"), value: dust.pm25, grade: dust.pm25Grade, pm25: true, note: dust.note, withNote: noteRow == 1)
+        }
+        .accessibilityIdentifier("dust-card")
+    }
+    /// The line sits by the worse of the two (the first when equal).
+    private var noteRow: Int { (dust.pm25Grade ?? -1) > (dust.pm10Grade ?? -1) ? 1 : 0 }
+
+    private func row(icon: String, label: String, value: Double?, grade: Int?, pm25: Bool, note: String, withNote: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) { PixelIcon(name: icon, size: 16); Text(label).font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
+            HStack(alignment: .center, spacing: 8) {
+                Text(value.map { String(Int($0.rounded())) } ?? "–").font(.px(26)).rolling(value.map { String(Int($0.rounded())) } ?? "–")
+                if let g = grade {
+                    Text(L(DustScale.words[g])).font(.px(11)).foregroundStyle(Color(hex: DustScale.onColors[g]))
+                        .padding(.horizontal, 7).padding(.vertical, 4).background(Color(hex: DustScale.colors[g])).clipShape(RoundedRectangle(cornerRadius: 7))
+                }
+                Spacer(minLength: 8)
+                if withNote, !note.isEmpty {
+                    Text(model.say(note)).font(.ui(12)).foregroundStyle((grade ?? 0) >= 2 ? Color(hex: DustScale.colors[grade ?? 0]) : ink.sub)
+                        .multilineTextAlignment(.trailing).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            DustBar(value: value, pm25: pm25, ink: ink)
+        }
+    }
+}
+
+/// Four equal segments in the 환경부 colours and a ring where the value sits (none when the value is missing).
+struct DustBar: View {
+    let value: Double?; let pm25: Bool; let ink: Ink
+    var body: some View {
+        GeometryReader { g in
+            ZStack(alignment: .topLeading) {
+                HStack(spacing: 3) {
+                    ForEach(0..<4, id: \.self) { i in
+                        Capsule().fill(Color(hex: DustScale.colors[i])).frame(height: 6)
+                    }
+                }.offset(y: 4)
+                if let v = value {
+                    let pos = DustScale.position(v, pm25: pm25) * g.size.width
+                    Circle().fill(ink.night ? Color(hex: "#1B2142") : .white)
+                        .overlay(Circle().stroke(ink.ink, lineWidth: 2))
+                        .frame(width: 12, height: 12)
+                        .offset(x: min(max(pos - 6, 0), g.size.width - 12), y: 1)
+                        .animation(Motion.gentle, value: v)
+                }
+            }
+        }
+        .frame(height: 14)
+    }
 }

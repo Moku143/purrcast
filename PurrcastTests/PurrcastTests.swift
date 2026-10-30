@@ -36,6 +36,14 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(plus.dayDetail?.first?[3].label, "16시"); XCTAssertEqual(plus.dayDetail?.first?[3].mm, 1.4, "each hour its own rain")
         XCTAssertEqual(plus.dayDetail?.first?[3].gust, 7); XCTAssertEqual(plus.dayDetail?.first?[3].dir, 225)
         XCTAssertEqual(plus.dayDetail?.first?.map { Int($0.chance) }.max(), plus.days.first?.chance, "the sheet's highest chance is the day's")
+        // 미세먼지: the example scenes carry the block; a scene without it decodes to nil; a broken block is dropped, not fatal
+        let ex = SceneLibrary.all
+        let dust = try XCTUnwrap(ex["spring_dust"]?.dust)
+        XCTAssertEqual(dust.pm10, 162); XCTAssertEqual(dust.grade, 3); XCTAssertEqual(dust.pm25Grade, 2); XCTAssertEqual(dust.station, "마포구"); XCTAssertEqual(dust.tomorrow?.pm10Grade, 2)
+        XCTAssertTrue(dust.note.hasPrefix("황사"))
+        XCTAssertNil(ex["maybe"]?.dust)
+        XCTAssertEqual(DustScale.position(39, pm25: false), 0.25 + 9.0 / 50 / 4, accuracy: 0.001)
+        XCTAssertEqual(DustScale.position(0, pm25: true), 0); XCTAssertEqual(DustScale.position(999, pm25: true), 1)
         XCTAssertEqual(plus.bubble?.text, "16~18시 비 예보")
         XCTAssertEqual(AppModel.planView(plus, plus: false).bubble?.text, "16~18시 비 예보", "the free plan keeps the window from the morning run")
         XCTAssertNil(free.next6)

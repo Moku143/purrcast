@@ -296,6 +296,12 @@
 "%@ %@이 App Store 계정으로 결제되고, 기간이 끝나기 24시간 전까지 해지하지 않으면 같은 금액으로 자동 갱신돼요. 해지는 App Store 계정 설정에서 언제든 할 수 있어요." = "%2$@ per %1$@ is charged to your App Store account and renews at the same price unless cancelled at least 24 hours before the period ends. Cancel any time in your App Store account settings.";
 "기온" = "Temp";
 "자외선" = "UV";
+"초미세먼지" = "PM2.5";
+"미세먼지" = "Air quality";
+"PM10" = "PM10";
+"매우 나쁨" = "Very poor";
+"나쁨" = "Poor";
+"좋음" = "Good";
 "습도" = "Humidity";
 "이 날의 예보가 아직 없어요" = "No forecast for this day yet";
 "일교차 %d°" = "Swing %d°";
@@ -394,6 +400,7 @@
 "기상청 · 기상특보 · 예보 비교 (공공누리 제1유형)" = "KMA · warnings · forecast comparison (KOGL type 1)";
 "기상청 · 기상특보 · 예보 비교 · 다음 6시간 (공공누리 제1유형)" = "KMA · warnings · forecast comparison · next 6 hours (KOGL type 1)";
 "MET Norway · 예보 비교 (CC BY 4.0, 그래프로 바꿔 씀)" = "MET Norway · forecast comparison (CC BY 4.0, redrawn as charts)";
+"에어코리아 · 미세먼지 (공공누리 제1유형)" = "AirKorea · air quality (KOGL Type 1)";
 "Plus · 새 예보 나올 때마다" = "Plus · every new forecast";
 "무료 · 매일 06:00에 받아요" = "Free · updated daily at 06:00";
 "Weather data provided by Apple Weather" = "Weather data provided by Apple Weather";

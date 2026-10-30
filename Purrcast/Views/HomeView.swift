@@ -385,6 +385,7 @@ struct HomeView: View {
         let first = Array(s.tiles.prefix(2)), rest = Array(s.tiles.dropFirst(2))
         return VStack(spacing: 12) {
             tileRows(first, ink: ink)
+            if let d = s.dust { DustCard(dust: d, ink: ink) }
             WindCard(wind: s.wind, ink: ink)
             if let c = s.cmp { CompareCard(cmp: c, updated: s.updated, ink: ink) }
             if !rest.isEmpty { tileRows(rest, ink: ink) }

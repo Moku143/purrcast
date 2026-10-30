@@ -41,11 +41,12 @@ struct WeatherScene: Codable, Identifiable {
     var alert: Alert?                   // official warning in force: name + what it means today (home banner)
     var cmp: Compare?                   // 예보 비교: every source's next 24 h, for the comparison card
     var src: String?                    // kma | apple | met — the source behind everything else
+    var dust: Dust?                     // 미세먼지 (에어코리아 in Korea, OpenWeather elsewhere); nil until a source is set up
 
     enum CodingKeys: String, CodingKey {
         // `level` travels as "outfit" (0…14, fifteen outfits); the old ten-outfit "level" is only read (LegacyKeys)
         case level = "outfit"
-        case time, cover, precip, thunder, aux, clouds, fog, rain, temp, feels, hi, lo, yday, cond, clock, updated, bubble, hours, tiles, wind, days, place, plus, snow, mood, minutes, next6, nextSource, dayDetail, alert, cmp, src
+        case time, cover, precip, thunder, aux, clouds, fog, rain, temp, feels, hi, lo, yday, cond, clock, updated, bubble, hours, tiles, wind, days, place, plus, snow, mood, minutes, next6, nextSource, dayDetail, alert, cmp, src, dust
     }
     private enum LegacyKeys: String, CodingKey { case level }
 
@@ -94,6 +95,7 @@ struct WeatherScene: Codable, Identifiable {
         let cm = (try? c.decodeIfPresent(Compare.self, forKey: .cmp)) ?? nil
         cmp = (cm?.sources.count ?? 0) >= 2 ? cm : nil
         src = (try? c.decodeIfPresent(String.self, forKey: .src)) ?? nil
+        dust = (try? c.decodeIfPresent(Dust.self, forKey: .dust)) ?? nil
     }
 
     /// Decode an array, skipping elements that do not parse instead of failing the whole forecast.
@@ -140,6 +142,35 @@ struct WeatherScene: Codable, Identifiable {
     struct Alert: Codable, Equatable {
         var name: String; var note: String
         init(name: String, note: String) { self.name = name; self.note = note }
+    }
+
+    /// 미세먼지: values in ㎍/㎥ (either may be missing), 환경부 grades 0 좋음 · 1 보통 · 2 나쁨 · 3 매우 나쁨, the card's line,
+    /// the source's name, the station (Korea), tomorrow's grades when the bulletin has them.
+    struct Dust: Codable, Equatable {
+        var pm10: Double?; var pm25: Double?
+        var pm10Grade: Int?; var pm25Grade: Int?
+        var grade: Int
+        var note: String
+        var src: String
+        var station: String?
+        var at: String?
+        var tomorrow: Tomorrow?
+        var alarm: String?
+        struct Tomorrow: Codable, Equatable { var pm10Grade: Int?; var pm25Grade: Int? }
+        init(pm10: Double?, pm25: Double?, pm10Grade: Int?, pm25Grade: Int?, grade: Int, note: String, src: String, station: String? = nil, at: String? = nil, tomorrow: Tomorrow? = nil, alarm: String? = nil) {
+            self.pm10 = pm10; self.pm25 = pm25; self.pm10Grade = pm10Grade; self.pm25Grade = pm25Grade; self.grade = grade; self.note = note
+            self.src = src; self.station = station; self.at = at; self.tomorrow = tomorrow; self.alarm = alarm
+        }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            pm10 = try? c.decodeIfPresent(Double.self, forKey: .pm10); pm25 = try? c.decodeIfPresent(Double.self, forKey: .pm25)
+            pm10Grade = try? c.decodeIfPresent(Int.self, forKey: .pm10Grade); pm25Grade = try? c.decodeIfPresent(Int.self, forKey: .pm25Grade)
+            grade = max(0, min(3, (try? c.decode(Int.self, forKey: .grade)) ?? 0))
+            note = (try? c.decode(String.self, forKey: .note)) ?? ""
+            src = (try? c.decode(String.self, forKey: .src)) ?? ""
+            station = try? c.decodeIfPresent(String.self, forKey: .station); at = try? c.decodeIfPresent(String.self, forKey: .at)
+            tomorrow = try? c.decodeIfPresent(Tomorrow.self, forKey: .tomorrow); alarm = try? c.decodeIfPresent(String.self, forKey: .alarm)
+        }
     }
 
     struct Bubble: Codable {
