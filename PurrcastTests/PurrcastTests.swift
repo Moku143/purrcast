@@ -284,7 +284,7 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(LocationService.shortCity("제주특별자치도"), "제주")
     }
 
-    func testChangeNotificationWords() {
+    func testChangeNotificationWords() throws {
         XCTAssertEqual(Notifications.changeTitle(place: "마포구", todayHi: 15, yesterdayHi: 19, unitF: false), "마포구 · 어제보다 4° 낮아요")
         XCTAssertEqual(Notifications.changeTitle(place: "마포구", todayHi: 20, yesterdayHi: 19, unitF: false), "마포구 · 어제와 비슷해요")
         XCTAssertEqual(Notifications.changeTitle(place: "NYC", todayHi: 25, yesterdayHi: 20, unitF: true), "NYC · 어제보다 9° 높아요")
