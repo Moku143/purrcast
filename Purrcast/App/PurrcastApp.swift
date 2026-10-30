@@ -21,6 +21,7 @@ struct PurrcastApp: App {
                     }
                     #endif
                     WatchBridge.shared.start()
+                    LiveActivities.shared.watch(model)
                     await purchases.load()
                     syncPlan()
                     await model.refresh(force: true)
