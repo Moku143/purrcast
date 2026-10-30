@@ -110,7 +110,7 @@ struct WatchTempGauge: View {
                     .position(x: c.x + r * CGFloat(sin(a)), y: c.y - r * CGFloat(cos(a)))
                 Text("\(u(s.temp))°").font(.px(13 * k)).foregroundStyle(.white).position(x: c.x + 2.5 * k, y: c.y + 1 * k)
                 Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(Color(hex: "#9EA3B5"))
-                    .position(x: c.x, y: c.y + 19 * k)
+                    .position(x: c.x + 2.5 * k, y: c.y + 19 * k)   // under the digits
             }
         }
     }
