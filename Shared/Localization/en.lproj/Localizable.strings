@@ -40,10 +40,17 @@
 "우산 챙겨요" = "Take an umbrella";
 "우산 챙기세요" = "Take an umbrella";
 "우산" = "Umbrella";
+"조심" = "careful";
 "일교차" = "temp swing";
 "바람" = "Wind";
 "안개" = "Fog";
 "체감 %@" = "Feels %@";
+"자외선 %@" = "UV %@";
+"일몰 %@" = "Sunset %@";
+"어제보다 %d° 높아요" = "%d° warmer than yesterday";
+"어제보다 %d° 낮아요" = "%d° cooler than yesterday";
+"바람 %@" = "Wind %@";
+"미세먼지 · 마스크 챙기세요" = "Fine dust · Take a mask";
 "체감 %@ %@" = "Feels %@ %@";
 "최저 %@" = "Low %@";
 "최고 %@" = "High %@";
@@ -127,6 +134,7 @@
 "%@ · 30분 안에 비가 올 수 있어요" = "%@ · Rain may start within 30 min";
 "%@ · 오늘 %@ ~ %@" = "%@ · Today %@ to %@";
 "눈 예보예요 · 미끄러우니 조심하세요" = "Snow expected · Watch your step";
+"미끄러우니 조심하세요" = "Watch your step";
 "진눈깨비 예보예요 · 미끄러우니 조심하세요" = "Sleet expected · Watch your step";
 "비 예보예요 · 우산 챙기세요" = "Rain expected · Take an umbrella";
 "강수확률 %d%% · 우산 챙기세요" = "%d%% chance of rain · Take an umbrella";

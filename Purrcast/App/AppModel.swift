@@ -338,7 +338,7 @@ final class AppModel: ObservableObject {
         // free: the morning summary only (rain and the day-to-day change are Plus)
         Notifications.plan(scene: scene, place: currentPlace, rain: notifyRain && plus && !isSample, morning: notifyMorning && !isSample,
                            change: notifyChange && plus && !isSample, morningTime: morningTime, unitF: unitF, voice: voice, clock12: clock12,
-                           character: shownCharacter)
+                           character: shownCharacter, plus: plus)
     }
 
     /// A toggle went on: ask for permission if nobody asked yet, then plan.

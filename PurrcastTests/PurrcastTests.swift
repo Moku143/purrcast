@@ -286,6 +286,17 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Notifications.morningBody(WeatherScene.DayRow(name: "금", icon: "raincloud", chance: 40, lo: 9, hi: 19)), "강수확률 40% · 우산 챙기세요")
         XCTAssertEqual(Notifications.morningBody(WeatherScene.DayRow(name: "금", icon: "snowflake", chance: 80, lo: -3, hi: 1)), "눈 예보예요 · 미끄러우니 조심하세요")
         XCTAssertEqual(Notifications.morningBody(WeatherScene.DayRow(name: "금", icon: "sleet", chance: 80, lo: -1, hi: 3)), "진눈깨비 예보예요 · 미끄러우니 조심하세요")
+        // the full morning line-up: free from the day's forecast, Plus with a third line
+        let all = try JSONDecoder().decode([String: WeatherScene].self, from: fixture("server-scenes"))
+        let sc = try XCTUnwrap(all["plus"]), day0 = try XCTUnwrap(sc.days.first)
+        let free = Notifications.morningDetail(sc, day: day0, plus: false, today: true, unitF: false)
+        XCTAssertTrue(free.hasPrefix(sc.cond + " · "), free)
+        XCTAssertTrue(free.contains("16~18시 비 예보"), free); XCTAssertTrue(free.contains("우산 챙기세요"), free)
+        XCTAssertTrue(free.contains("체감 "), free); XCTAssertTrue(free.contains("일몰 "), free)
+        XCTAssertEqual(free.components(separatedBy: "\n").count, 2)
+        XCTAssertFalse(free.contains("어제보다"))
+        let tomorrow = Notifications.morningDetail(sc, day: sc.days[1], plus: false, today: false, unitF: false)
+        XCTAssertFalse(tomorrow.contains("체감"), "tomorrow's summary has no now-values: \(tomorrow)")
     }
 
     /// Widgets and the watch show words with the temperature between them; official names stay as they are.

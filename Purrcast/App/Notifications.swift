@@ -6,7 +6,7 @@ import UserNotifications
 /// computed in that time zone and scheduled as an interval (correct wherever the phone is).
 /// (기상특보 push needs the server to send it; until then warnings show in the bubble only.)
 enum Notifications {
-    static func plan(scene s: WeatherScene, place: Place, rain: Bool, morning: Bool, change: Bool, morningTime: Date, unitF: Bool, voice: Voice = .polite, clock12: Bool = false, character: PurrCharacter = .cat) {
+    static func plan(scene s: WeatherScene, place: Place, rain: Bool, morning: Bool, change: Bool, morningTime: Date, unitF: Bool, voice: Voice = .polite, clock12: Bool = false, character: PurrCharacter = .cat, plus: Bool = false) {
         let deg = { (v: Int) -> String in "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)°" }
         let c = UNUserNotificationCenter.current()
         c.getNotificationSettings { settings in
@@ -47,7 +47,7 @@ enum Notifications {
             if morning, let d = tomorrow {
                 let n = UNMutableNotificationContent()
                 n.title = voice.say(L("%@ · 오늘 %@ ~ %@", place.short, deg(d.lo), deg(d.hi)))
-                n.body = voice.say(morningBody(d))   // no picture: the app icon on the left is enough
+                n.body = voice.say(morningDetail(s, day: d, plus: plus, today: stillToday, unitF: unitF))   // no picture: the app icon is enough
                 c.add(UNNotificationRequest(identifier: "morning", content: n, trigger: UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)))
             }
 
@@ -86,6 +86,38 @@ enum Notifications {
             if d > target { break }
         }
         return nil
+    }
+
+    /// The whole morning in two or three lines, from what the plan has. Free (the 06:00 forecast): sky, rain with its
+    /// hours and amount, the swing, how it feels, UV, sunset. Plus adds a third line: the warning in force, else the
+    /// change from yesterday, strong wind and dust.
+    static func morningDetail(_ s: WeatherScene, day d: WeatherScene.DayRow, plus: Bool, today: Bool, unitF: Bool) -> String {
+        var l1: [String] = []
+        if today, !s.cond.isEmpty { l1.append(s.cond) }
+        if d.chance >= 30, today, let t = s.tiles.first, t.note.contains(L(" 예보")) { l1.append(t.note) }   // "15~17시 비 예보 · 7mm (보통)"
+        else { l1.append(morningBody(d)) }
+        if d.chance >= 30, !l1.last!.contains(L("우산")), !l1.last!.contains(L("조심")) { l1.append(d.icon == "snowflake" || d.icon == "sleet" ? L("미끄러우니 조심하세요") : L("우산 챙기세요")) }
+        var l2: [String] = []
+        if d.hi - d.lo >= 8 { l2.append(L("일교차 %d°", d.hi - d.lo)) }
+        if today { l2.append(L("체감 %@", Rules.feelsWord(s.feels))) }
+        if today, let uv = s.tiles.first(where: { $0.kind == "uv" })?.uv, uv >= 3 { l2.append(L("자외선 %@", UVScale.band(uv).word)) }
+        if today, let sun = s.tiles.first(where: { $0.icon == "sunset" }), let v = sun.value, v != "–" { l2.append(L("일몰 %@", v)) }
+        var lines = [l1.joined(separator: " · ")]
+        if !l2.isEmpty { lines.append(l2.joined(separator: " · ")) }
+        if plus {
+            var l3: [String] = []
+            if let a = s.alert { l3.append("\(a.name) · \(a.note)") }
+            else {
+                if today, abs(s.yday) >= 2 {
+                    let shown = unitF ? Int((Double(abs(s.yday)) * 1.8).rounded()) : abs(s.yday)
+                    l3.append(s.yday > 0 ? L("어제보다 %d° 높아요", shown) : L("어제보다 %d° 낮아요", shown))
+                }
+                if today, s.wind.speed >= 9 { l3.append(L("바람 %@", Rules.windWord(ms: s.wind.speed))) }
+                if today, s.aux == "dust" { l3.append(L("미세먼지 · 마스크 챙기세요")) }
+            }
+            if !l3.isEmpty { lines.append(l3.joined(separator: " · ")) }
+        }
+        return lines.joined(separator: "\n")
     }
 
     static func morningBody(_ d: WeatherScene.DayRow) -> String {
