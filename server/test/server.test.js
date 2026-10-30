@@ -841,7 +841,7 @@ test('Korea: scene.dust from 에어코리아 beside the KMA forecast; aux dust a
     ['getVilageFcst', kmaFixture(now)], ['getUltraSrtFcst', new Error('down')], ['getUltraSrtNcst', new Error('down')],
     ['getPwnStatus', { response: { header: { resultCode: '00' }, body: { items: { item: [] } } } }],
     ['api.met.no', met(now, flat(240, { temp: 12 }))],
-    ['getMsrstnList', STATIONS], ['getMsrstnAcctoRtmsDnstyInfo', RT],
+    ['getMsrstnList', STATIONS], ['getMsrstnAcctoRltmMesureDnsty', RT],
     ['InformCode=PM10', FC('PM10', '보통', '2026-10-22')], ['InformCode=PM25', FC('PM25', '좋음', '2026-10-22')], ['getUlfptcaAlarmInfo', ak([])],
   ];
   const q = readQuery(new URLSearchParams('lat=37.49&lon=126.84&region=kr&tz=Asia/Seoul&plan=plus&name=서울 구로구'));
@@ -851,7 +851,7 @@ test('Korea: scene.dust from 에어코리아 beside the KMA forecast; aux dust a
   assert.equal(s.dust.note, '괜찮은 편이에요'); assert.deepEqual(s.dust.tomorrow, { pm10Grade: 1, pm25Grade: 0 }); assert.equal(s.aux, 'none');
   // 나쁨: the sky gets the dust effect and the bubble says so (no warning in force)
   resetCache();
-  const bad = base.map(([k, v]) => (k === 'getMsrstnAcctoRtmsDnstyInfo' ? [k, ak([{ dataTime: '2026-10-30 13:00', pm10Value: '95', pm25Value: '48' }])] : [k, v]));
+  const bad = base.map(([k, v]) => (k === 'getMsrstnAcctoRltmMesureDnsty' ? [k, ak([{ dataTime: '2026-10-30 13:00', pm10Value: '95', pm25Value: '48' }])] : [k, v]));
   const s2 = await forecast(q, { KMA_SERVICE_KEY: 'k', AIRKOREA_SERVICE_KEY: 'a' }, null, { now, fetcher: fakeFetch(bad) });
   validateScene(s2);
   assert.equal(s2.dust.grade, 2); assert.equal(s2.aux, 'dust'); assert.equal(s2.bubble.text, '미세먼지 나쁨 · 마스크 챙기세요'); assert.equal(s2.bubble.icon, 'mask');
