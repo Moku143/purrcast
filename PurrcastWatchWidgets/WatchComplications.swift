@@ -104,7 +104,7 @@ struct PieceComplication: View {
                 case .rain: WatchRainRing(snap: snap)
                 case .feels: WatchFeelsDisc(snap: snap)
                 case .sun: WatchSunDisc(snap: snap)
-                case .dust: WatchDustDisc(snap: snap)
+                case .dust: EmptyView()
                 }
             }
         }
@@ -127,7 +127,7 @@ private func pieceConfiguration(_ piece: WatchPiece) -> some WidgetConfiguration
     }
     .configurationDisplayName(name)
     .description(note)
-    .supportedFamilies([.accessoryCorner, .accessoryCircular])
+    .supportedFamilies(piece == .dust ? [.accessoryCorner] : [.accessoryCorner, .accessoryCircular])   // 미세먼지: a corner (icon + step, in its colour)
 }
 
 struct TempWidget: Widget { var body: some WidgetConfiguration { pieceConfiguration(.temp) } }

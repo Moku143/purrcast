@@ -231,29 +231,6 @@ struct WatchSummaryPlate: View {
     }
 }
 
-/// 미세먼지 in a circle: the dust icon over the step's word, the ring in the step's colour (환경부 steps in Korea,
-/// WHO's abroad — the server grades them). Nothing without a reading.
-struct WatchDustDisc: View {
-    let snap: WeatherSnapshot
-    var body: some View {
-        if let d = snap.scene.dust {
-            let g = max(0, min(3, d.grade))
-            Gauge(value: Double(g) + 1, in: 0...4) {
-                Text("")
-            } currentValueLabel: {
-                VStack(spacing: 1) {
-                    PixelIcon(name: DustFacts.icon(d), size: 13)
-                    Text(L(DustScale.words[g])).font(.px(g == 3 ? 8 : 10)).lineLimit(1).minimumScaleFactor(0.6)
-                }
-            }
-            .gaugeStyle(.accessoryCircularCapacity)
-            .tint(Color(hex: DustScale.colors[g]))
-        } else {
-            VStack(spacing: 1) { PixelIcon(name: "pm10", size: 13); Text("–").font(.px(11)) }
-        }
-    }
-}
-
 enum DustFacts {
     /// The reading the step came from: PM2.5 when it is the worse one, else PM10
     static func value(_ d: WeatherScene.Dust) -> Double? {

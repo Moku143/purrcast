@@ -323,28 +323,26 @@ struct LockRainCircularView: View {
     }
 }
 
-/// Lock screen, circular: 미세먼지 — the dust icon over the step's word, the step as the ring's length (the lock
-/// screen is one colour, so a quarter per step: 좋음 one, 매우 나쁨 all four)
+/// Lock screen, circular: 미세먼지 — the same gauge as the temperature circle (the open arc with its dot), the dust
+/// icon over the step's word in the middle, the dot a quarter of the way per step (좋음 … 매우 나쁨)
 struct LockDustCircularView: View {
     let snap: WeatherSnapshot
     var body: some View {
+        let d = snap.scene.dust
+        let g = d.map { max(0, min(3, $0.grade)) }
         ZStack {
             AccessoryWidgetBackgroundCompat()
-            if let d = snap.scene.dust {
-                let g = max(0, min(3, d.grade))
-                Gauge(value: Double(g) + 1, in: 0...4) { Text("") } currentValueLabel: {
-                    VStack(spacing: 0) {
-                        PixelIcon(name: DustFacts.icon(d), size: 13).opacity(0.85)
-                        Text(L(DustScale.words[g])).font(.system(size: g == 3 ? 9 : 11, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.6).opacity(0.92)
-                    }
-                }
-                .gaugeStyle(.accessoryCircularCapacity)
-            } else {
-                VStack(spacing: 0) {
-                    PixelIcon(name: "pm10", size: 13).opacity(0.75)
-                    Text("–").font(.system(size: 13, weight: .semibold)).opacity(0.92)
+            Gauge(value: g.map { Double($0) + 0.5 } ?? 0, in: 0...4) {
+                Text("")
+            } currentValueLabel: {
+                VStack(spacing: 1) {
+                    PixelIcon(name: d.map { DustFacts.icon($0) } ?? "pm10", size: 13).opacity(0.9)
+                    Text(g.map { L(DustScale.words[$0]) } ?? "–").font(.system(size: g == 3 ? 9 : 11, weight: .semibold))
+                        .lineLimit(1).minimumScaleFactor(0.6).foregroundStyle(.white.opacity(0.92))
                 }
             }
+            .gaugeStyle(.accessoryCircular)
+            .tint(Gradient(colors: [.white.opacity(0.18), .white.opacity(0.95)]))
         }
     }
 }

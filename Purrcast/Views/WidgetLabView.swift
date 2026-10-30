@@ -43,11 +43,10 @@ struct WidgetLabView: View {
             lock("lab-inline", 257, 26) {
                 Text(LockText.inline(snap)).font(.system(size: 15, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.8)
             }
-            // 미세먼지 on the lock screen (rectangle · circle) and the watch's circle, in colour
+            // 미세먼지 on the lock screen, beside the temperature circle it matches
             HStack(alignment: .top, spacing: 12) {
+                lock("lab-circle-2", 76, 76, circle: true) { LockCircularView(snap: snap) }
                 lock("lab-dust-circle", 76, 76, circle: true) { LockDustCircularView(snap: snap) }
-                WatchDustDisc(snap: snap).frame(width: 76, height: 76).background(Color.black).clipShape(Circle())
-                    .accessibilityElement(children: .contain).accessibilityIdentifier("lab-dust-watch")
             }
         }
         .padding(.top, 24)
