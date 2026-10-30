@@ -93,12 +93,37 @@ struct RainWidget: Widget {
     }
 }
 
+/// Lock screen: 미세먼지 as a circle (icon, reading, the step as a ring), a rectangle (both readings and the line) or one line
+struct DustWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "PurrcastDust", provider: Provider()) { entry in
+            DustLockView(snap: entry.snap).containerBackground(for: .widget) { Color.clear }
+        }
+        .configurationDisplayName(L("미세먼지"))
+        .description(L("미세먼지 · 초미세먼지 등급과 수치"))
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
+    }
+}
+
+struct DustLockView: View {
+    @Environment(\.widgetFamily) var family
+    let snap: WeatherSnapshot
+    var body: some View {
+        switch family {
+        case .accessoryRectangular: LockDustRectangularView(snap: snap)
+        case .accessoryInline: Text(snap.scene.dust.map { DustFacts.word($0) + (DustFacts.value($0).map { " · \(Int($0.rounded()))" } ?? "") } ?? L("미세먼지"))
+        default: LockDustCircularView(snap: snap)
+        }
+    }
+}
+
 @main
 struct PurrcastWidgetBundle: WidgetBundle {
     var body: some Widget {
         PurrcastWidget()
         HoursWidget()
         RainWidget()
+        DustWidget()
         RainLiveActivity()
     }
 }

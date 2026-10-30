@@ -3,7 +3,7 @@ import SwiftUI
 
 // Watch complications, in colour (watchOS tints them itself when the person picks one colour for the face):
 // - 그르릉날씨: the big slot (modular face, Smart Stack), today's range gauge, a corner, one line
-// - 기온 · 비 올 확률 · 체감온도 · 일몰 · 일출: one per corner of an analog face (icon in the corner, number along the rim),
+// - 기온 · 비 올 확률 · 체감온도 · 일몰 · 일출 · 미세먼지: one per corner of an analog face (icon in the corner, number along the rim),
 //   or a circle
 // - 고양이: the whole cat in today's outfit, no plate (an analog face's lower sub-dial, or small in a corner)
 // Data: what the watch app saved from the phone.
@@ -75,7 +75,7 @@ struct SummaryWidget: Widget {
 
 // MARK: one number per corner
 
-enum WatchPiece: String { case temp, rain, feels, sun }
+enum WatchPiece: String { case temp, rain, feels, sun, dust }
 
 struct PieceComplication: View {
     @Environment(\.widgetFamily) var family
@@ -89,6 +89,9 @@ struct PieceComplication: View {
             case .rain: return (f.rainIcon, "\(f.chance)%", Color(hex: "#8EC5FF"))
             case .feels: return (f.feelsIcon, f.feels, TempColor.of(f.s.feels))
             case .sun: return (f.sun.icon, f.sun.time, Color(hex: "#FFD59A"))
+            case .dust:
+                guard let d = snap.scene.dust else { return ("pm10", "–", .white) }
+                return (DustFacts.icon(d), L(DustScale.words[max(0, min(3, d.grade))]), Color(hex: DustScale.colors[max(0, min(3, d.grade))]))
             }
         }()
         PlusGate(snap: snap) {
@@ -101,6 +104,7 @@ struct PieceComplication: View {
                 case .rain: WatchRainRing(snap: snap)
                 case .feels: WatchFeelsDisc(snap: snap)
                 case .sun: WatchSunDisc(snap: snap)
+                case .dust: WatchDustDisc(snap: snap)
                 }
             }
         }
@@ -115,6 +119,7 @@ private func pieceConfiguration(_ piece: WatchPiece) -> some WidgetConfiguration
         case .rain: return (L("비 올 확률"), L("앞으로 6시간 비 올 확률"))
         case .feels: return (L("체감온도"), L("체감온도를 색으로"))
         case .sun: return (L("일몰 · 일출"), L("다음 일몰이나 일출 시각"))
+        case .dust: return (L("미세먼지"), L("미세먼지 · 초미세먼지 등급과 수치"))
         }
     }()
     return StaticConfiguration(kind: "PurrcastWatch-\(piece.rawValue)", provider: WatchProvider()) { e in
@@ -129,6 +134,7 @@ struct TempWidget: Widget { var body: some WidgetConfiguration { pieceConfigurat
 struct RainWidget: Widget { var body: some WidgetConfiguration { pieceConfiguration(.rain) } }
 struct FeelsWidget: Widget { var body: some WidgetConfiguration { pieceConfiguration(.feels) } }
 struct SunWidget: Widget { var body: some WidgetConfiguration { pieceConfiguration(.sun) } }
+struct DustPieceWidget: Widget { var body: some WidgetConfiguration { pieceConfiguration(.dust) } }
 
 // MARK: 고양이
 
@@ -169,5 +175,6 @@ struct PurrcastWatchBundle: WidgetBundle {
         RainWidget()
         FeelsWidget()
         SunWidget()
+        DustPieceWidget()
     }
 }

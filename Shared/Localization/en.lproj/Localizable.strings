@@ -314,6 +314,8 @@
 "자외선" = "UV";
 "초미세먼지" = "PM2.5";
 "미세먼지" = "Air quality";
+"미세먼지 · 초미세먼지 등급과 수치" = "PM10 and PM2.5 levels and readings";
+"미세먼지 정보가 아직 없어요" = "No air quality data yet";
 "PM10" = "PM10";
 "매우 나쁨" = "Very poor";
 "나쁨" = "Poor";

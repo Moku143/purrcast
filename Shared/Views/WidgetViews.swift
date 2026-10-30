@@ -323,6 +323,52 @@ struct LockRainCircularView: View {
     }
 }
 
+/// Lock screen, circular: 미세먼지 — the dust icon over the reading, the step as a ring (one colour on the lock screen,
+/// so the ring's length says the step: a quarter per step)
+struct LockDustCircularView: View {
+    let snap: WeatherSnapshot
+    var body: some View {
+        ZStack {
+            AccessoryWidgetBackgroundCompat()
+            if let d = snap.scene.dust {
+                let g = max(0, min(3, d.grade))
+                Gauge(value: Double(g) + 1, in: 0...4) { Text("") } currentValueLabel: {
+                    VStack(spacing: 0) {
+                        PixelIcon(name: DustFacts.icon(d), size: 12).opacity(0.85)
+                        Text(DustFacts.value(d).map { String(Int($0.rounded())) } ?? "–").font(.system(size: 13, weight: .semibold)).opacity(0.92)
+                    }
+                }
+                .gaugeStyle(.accessoryCircularCapacity)
+            } else {
+                VStack(spacing: 0) {
+                    PixelIcon(name: "pm10", size: 12).opacity(0.75)
+                    Text("–").font(.system(size: 13, weight: .semibold)).opacity(0.92)
+                }
+            }
+        }
+    }
+}
+
+/// Lock screen, rectangular: 미세먼지 and 초미세먼지 with their steps and the line to act on
+struct LockDustRectangularView: View {
+    let snap: WeatherSnapshot
+    var body: some View {
+        if let d = snap.scene.dust {
+            HStack(spacing: 8) {
+                PixelIcon(name: DustFacts.icon(d), size: 26).opacity(0.85)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(DustFacts.word(d)).font(.system(size: 15, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7).opacity(0.92)
+                    Text([d.pm10.map { L("미세먼지") + " \(Int($0.rounded()))" }, d.pm25.map { L("초미세") + " \(Int($0.rounded()))" }].compactMap { $0 }.joined(separator: " · ")).font(.ui(11)).opacity(0.7).lineLimit(1)
+                    Text(d.note).font(.ui(11)).opacity(0.65).lineLimit(1).minimumScaleFactor(0.7)
+                }
+                Spacer(minLength: 0)
+            }
+        } else {
+            Text(L("미세먼지 정보가 아직 없어요")).font(.ui(12)).opacity(0.7)
+        }
+    }
+}
+
 struct AccessoryWidgetBackgroundCompat: View {
     var body: some View { Circle().fill(Color.white.opacity(0.12)) }
 }

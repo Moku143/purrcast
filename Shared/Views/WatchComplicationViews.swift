@@ -230,3 +230,44 @@ struct WatchSummaryPlate: View {
         s.isNight ? Color(hex: "#1B2142") : Color(hex: Rules.background[Rules.clamp(s.level)])
     }
 }
+
+/// 미세먼지 in a circle: the dust icon, the worse of the two readings and its step in the step's colour
+/// (환경부 steps in Korea, WHO's abroad — the server grades them). Nothing without a reading.
+struct WatchDustDisc: View {
+    let snap: WeatherSnapshot
+    var body: some View {
+        if let d = snap.scene.dust {
+            let g = max(0, min(3, d.grade))
+            let v = DustFacts.value(d)
+            Gauge(value: Double(g) + 0.5, in: 0...4) {
+                Text("")
+            } currentValueLabel: {
+                VStack(spacing: 1) {
+                    PixelIcon(name: DustFacts.icon(d), size: 13)
+                    Text(v.map { String(Int($0.rounded())) } ?? "–").font(.px(11))
+                }
+            }
+            .gaugeStyle(.accessoryCircularCapacity)
+            .tint(Color(hex: DustScale.colors[g]))
+        } else {
+            VStack(spacing: 1) { PixelIcon(name: "pm10", size: 13); Text("–").font(.px(11)) }
+        }
+    }
+}
+
+enum DustFacts {
+    /// The reading the step came from: PM2.5 when it is the worse one, else PM10
+    static func value(_ d: WeatherScene.Dust) -> Double? {
+        if let g25 = d.pm25Grade, g25 >= (d.pm10Grade ?? -1) { return d.pm25 ?? d.pm10 }
+        return d.pm10 ?? d.pm25
+    }
+    static func icon(_ d: WeatherScene.Dust) -> String {
+        if let g25 = d.pm25Grade, g25 > (d.pm10Grade ?? -1) { return "pm25" }
+        return "pm10"
+    }
+    /// "미세먼지 보통" (or "초미세먼지 나쁨" when that is the worse one) — the corner's rim text and the lock screen's line
+    static func word(_ d: WeatherScene.Dust) -> String {
+        let fine = (d.pm25Grade ?? -1) > (d.pm10Grade ?? -1)
+        return (fine ? L("초미세먼지") : L("미세먼지")) + " " + L(DustScale.words[max(0, min(3, d.grade))])
+    }
+}
