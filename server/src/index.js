@@ -6,7 +6,9 @@
 // Elsewhere: Apple WeatherKit (current, hourly, daily, next-hour minutes, alerts) when its key is set.
 // MET Norway is the fallback everywhere: no key, or a source failing, falls back to it.
 //
-// Bindings (wrangler.toml / secrets): KMA_SERVICE_KEY (secret), WEATHERKIT_KEY_ID · WEATHERKIT_KEY_P8 · APPLE_TEAM_ID
+// Bindings (wrangler.toml / secrets): KMA_SERVICE_KEY (secret), AIRKOREA_SERVICE_KEY (secret, 미세먼지 in Korea; the same
+// data.go.kr key works once 에어코리아 is approved for it), OPENWEATHER_KEY (secret, air quality elsewhere),
+// WEATHERKIT_KEY_ID · WEATHERKIT_KEY_P8 · APPLE_TEAM_ID
 // (secrets), WEATHERKIT_SERVICE_ID (var), CONTACT (var, for MET's User-Agent),
 // HISTORY (optional KV namespace: yesterday-at-this-hour temperatures for "전일 대비"),
 // FREE_DAY (KV namespace: the free plan's one Apple forecast a day per ~1 km cell; the Server workflow creates it).
@@ -14,6 +16,8 @@
 import { metUrl, parseMet } from './providers/met.js';
 import { toGrid, vilageBase, eveBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError } from './providers/kma.js';
 import { hasWeatherKit, weatherKitUrl, weatherKitToken, parseWeatherKit, packWeatherKit, unpackWeatherKit } from './providers/weatherkit.js';
+import { stationsUrl, realtimeUrl, forecastUrl, alarmUrl, airkoreaOK, nearestStation, parseRealtime, parseHistory, forecastRegion, parseForecast as parseDustForecast, parseAlarms } from './providers/airkorea.js';
+import { owNowUrl, owForecastUrl, owOK, parseOwNow, parseOwTomorrow } from './providers/openweather.js';
 import { buildScene, validateScene } from './scene.js';
 import { local, pad2, dayKey } from './time.js';
 import { normLang } from './i18n.js';
@@ -24,7 +28,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, weatherkit: hasWeatherKit(env), freeDay: !!env.FREE_DAY, time: new Date().toISOString() };
+      const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, airkorea: !!env.AIRKOREA_SERVICE_KEY, openweather: !!env.OPENWEATHER_KEY, weatherkit: hasWeatherKit(env), freeDay: !!env.FREE_DAY, time: new Date().toISOString() };
       if (url.searchParams.get('deep') === '1') out.check = await deepCheck(env);   // first-deploy check: can we reach both sources?
       return json(out);
     }
@@ -138,6 +142,8 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch 
   // Apple WeatherKit starts at once beside KMA and MET: the main source abroad, Korea's fallback when KMA is down
   // or slow, and the comparison card's second opinion — never waited for one after another
   const appleP = hasWeatherKit(env) ? apple(q, env, now, fetcher, ctx).catch((e) => ({ error: e })) : null;
+  // 미세먼지 alongside: 에어코리아 in Korea, OpenWeather elsewhere; never waited for on its own, never fatal
+  const dustP = dust(q, env, now, fetcher, ctx).catch((e) => { console.log('dust failed:', e.message); return null; });
   let f = null;
   if (q.region === 'kr' && env.KMA_SERVICE_KEY) {
     try { f = await korea(q, env, now, fetcher, ctx); } catch (e) { console.log('KMA failed, using WeatherKit / MET:', e.message); f = null; }
@@ -175,7 +181,54 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch 
   if (compare.length > 1) f.compare = compare;
 
   const yday = await history(env, q, now, f, ctx);
+  f.dust = await dustP;
   return buildScene(f, { lat: q.lat, lon: q.lon, tz: q.tz, plan: q.plan, prev: q.prev, outfitPrev: q.outfitPrev, yday, now, lang: q.lang });
+}
+
+/** 미세먼지 for the place: { pm10, pm25, src, station, tomorrow: { pm10Grade, pm25Grade } | null, alarm, history } or null.
+ *  Korea: the nearest 에어코리아 station's newest hour (the station list is kept a day, readings an hour; the free plan
+ *  shares the hour's reading per ~1 km cell like everything else). Elsewhere: OpenWeather's current hour (an hour too). */
+export async function dust(q, env, now, fetcher, ctx) {
+  const kst = (d) => { const p = local(d, 'Asia/Seoul'); return `${p.y}-${pad2(p.m)}-${pad2(p.d)} ${pad2(p.h)}:${pad2(p.mi ?? 0)}`; };
+  if (q.region === 'kr' && env.AIRKOREA_SERVICE_KEY) {
+    const key = env.AIRKOREA_SERVICE_KEY;
+    const st = nearestStation(await getJSON(stationsUrl(key), { ttl: 86400, fetcher, ok: airkoreaOK, ctx, kma: true }), q.lat, q.lon);
+    if (!st) return null;
+    const today = dayKey(now, 'Asia/Seoul'), tomorrow = dayKey(new Date(now.getTime() + 86400000), 'Asia/Seoul');
+    const ymd = (k) => `${k.slice(0, 4)}-${k.slice(4, 6)}-${k.slice(6, 8)}`;
+    const region = forecastRegion(st.addr, q.lat, q.lon);
+    const province = st.addr.split(/\s+/)[0] || '';
+    const [rt, f10, f25, al] = await Promise.allSettled([
+      getJSON(realtimeUrl(key, st.name), { ttl: 1800, fetcher, ok: airkoreaOK, ctx, kma: true }),
+      getJSON(forecastUrl(key, ymd(today), 'PM10'), { ttl: 3600, fetcher, ok: airkoreaOK, ctx, kma: true }),
+      getJSON(forecastUrl(key, ymd(today), 'PM25'), { ttl: 3600, fetcher, ok: airkoreaOK, ctx, kma: true }),
+      getJSON(alarmUrl(key, local(now, 'Asia/Seoul').y), { ttl: 1800, fetcher, ok: airkoreaOK, ctx, kma: true }),
+    ]);
+    if (rt.status !== 'fulfilled') throw rt.reason;
+    const cur = parseRealtime(rt.value);
+    if (!cur) return null;
+    const t10 = f10.status === 'fulfilled' ? parseDustForecast(f10.value, region, ymd(tomorrow)) : null;
+    const t25 = f25.status === 'fulfilled' ? parseDustForecast(f25.value, region, ymd(tomorrow)) : null;
+    return {
+      pm10: cur.pm10, pm25: cur.pm25, at: cur.at, src: 'airkorea', station: st.name,
+      tomorrow: t10 == null && t25 == null ? null : { pm10Grade: t10, pm25Grade: t25 },
+      alarm: al.status === 'fulfilled' ? parseAlarms(al.value, province, kst(now)) : null,
+      history: parseHistory(rt.value),
+    };
+  }
+  if (env.OPENWEATHER_KEY) {
+    const key = env.OPENWEATHER_KEY;
+    const [n, fc] = await Promise.allSettled([
+      getJSON(owNowUrl(key, q.lat, q.lon), { ttl: 1800, fetcher, ok: owOK, ctx }),
+      getJSON(owForecastUrl(key, q.lat, q.lon), { ttl: 3600, fetcher, ok: owOK, ctx }),
+    ]);
+    if (n.status !== 'fulfilled') throw n.reason;
+    const cur = parseOwNow(n.value);
+    if (!cur) return null;
+    const tm = fc.status === 'fulfilled' ? parseOwTomorrow(fc.value, (d) => dayKey(d, q.tz), dayKey(new Date(now.getTime() + 86400000), q.tz)) : null;
+    return { pm10: cur.pm10, pm25: cur.pm25, at: cur.at.toISOString(), src: 'openweather', station: null, tomorrow: tm, alarm: null, history: null };
+  }
+  return null;
 }
 
 async function korea(q, env, now, fetcher, ctx) {

@@ -2,6 +2,7 @@
 // Every function that returns words takes a trailing `lang` ('ko' default, or a strings() object) — see i18n.js.
 
 import { strings } from './i18n.js';
+import { gradePM10, gradePM25 } from './providers/airkorea.js';
 
 /** Outfit 0…14 from the feels-like °C (the app's fifteen outfits, scene field `outfit`), with ±1° hysteresis
  *  against the outfit shown last time. The usual Korean 기온별 옷차림 bands, split finer:
@@ -67,13 +68,37 @@ export function fogLevel(p) {
   return l;
 }
 
-/** One auxiliary effect (the design shows at most one): fog › wind › heat › frost. */
-export function aux({ now, feels, night }) {
+/** One auxiliary effect (the design shows at most one): fog › wind › heat › frost › dust (미세먼지 나쁨 or worse). */
+export function aux({ now, feels, night, dust }) {
   if (now.fog) return 'fog';
   if ((now.wind ?? 0) >= 8 || (now.gust ?? 0) >= 14) return 'wind';
   if ((!night && feels >= 33) || (night && feels >= 25)) return 'heat';
   if (feels <= -10) return 'frost';
+  if (dust != null && dust >= 2) return 'dust';
   return 'none';
+}
+
+/** The scene's 미세먼지 block from a provider reading: values, each grade, the worse grade, the card's note, tomorrow.
+ *  The note: a 황사 warning from 기상청 › 에어코리아 경보 / 주의보 › the grade's own line. */
+export function dustBlock(d, warnings, S) {
+  if (!d || (d.pm10 == null && d.pm25 == null)) return null;
+  const T = S.dust;
+  const g10 = gradePM10(d.pm10), g25 = gradePM25(d.pm25);
+  const grade = Math.max(g10 ?? 0, g25 ?? 0);
+  const yellow = (warnings || []).some((w) => /황사|yellow dust|黄砂/i.test(w.name || ''));
+  const note = yellow ? T.yellow : d.alarm?.kind === 'warning' ? T.warning : d.alarm?.kind === 'watch' ? T.watch : T.note[grade];
+  const out = { pm10: d.pm10, pm25: d.pm25, pm10Grade: g10, pm25Grade: g25, grade, note, src: T.src[d.src] ?? d.src, srcKey: d.src };
+  if (d.station) out.station = d.station;
+  if (d.at) out.at = d.at;
+  if (d.alarm) out.alarm = d.alarm.kind;
+  if (yellow) out.yellow = true;
+  if (d.tomorrow) {
+    // Korea sends grades; OpenWeather sends tomorrow's worst values
+    const t10 = d.tomorrow.pm10Grade ?? gradePM10(d.tomorrow.pm10), t25 = d.tomorrow.pm25Grade ?? gradePM25(d.tomorrow.pm25);
+    if (t10 != null || t25 != null) out.tomorrow = { pm10Grade: t10, pm25Grade: t25 };
+  }
+  if (Array.isArray(d.history) && d.history.length) out.history = d.history.map((h) => [h.at, h.pm10, h.pm25]);
+  return out;
 }
 
 export function condition({ pr, cov, thunder, auxKind, night, feels, lang }, l = lang ?? 'ko') {
@@ -125,6 +150,7 @@ export function bubble(c, lang = c.lang ?? 'ko') {
   }
   if (wind) return B('speech', 'sky', 'wind', nowWet ? (nowPr === 'snow' || nowPr === 'heavysnow' ? T.blizzard : T.windrain) : T.windy);
   if (fog) return B('speech', 'white', 'cloud', fog >= 3 ? T.fog : T.fogMid);   // fog: its thickness (fogLevel)
+  if (c.dust != null && c.dust >= 2 && S.dust.bubble[c.dust]) return B('speech', 'white', 'mask', S.dust.bubble[c.dust]);
   if (!night && feels >= 33) return B('shout', 'coral', 'thermo_hot', T.heat);
   if (night && feels >= 25) return B('speech', 'night', 'sweat', T.tropical);
   if (feels <= -10) return B('shout', 'sky', 'thermo_cold', T.cold);

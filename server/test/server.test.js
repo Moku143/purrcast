@@ -760,3 +760,122 @@ test('KMA extended days: PCP · SNO · WSD codes become amounts (글피 from a 0
   assert.equal(p['24-3'].wind, 10); assert.equal(p['24-3'].mm, 8);   // +3 day: code 3 → 10 m/s, 보통 비 → 8 mm
   assert.equal(p['24-6'].wind, 2); assert.equal(p['24-6'].mm, 2);    // 많은 눈 → 2 cm
 });
+
+// ── 미세먼지 ──────────────────────────────────────────────────────────────────────────────────────
+import { nearestStation, parseRealtime, parseForecast as parseDustForecast, parseAlarms, forecastRegion, gradePM10, gradePM25 } from '../src/providers/airkorea.js';
+import { parseOwNow, parseOwTomorrow } from '../src/providers/openweather.js';
+import { dustBlock } from '../src/rules.js';
+
+const ak = (items) => ({ response: { header: { resultCode: '00' }, body: { items, totalCount: items.length } } });
+const STATIONS = ak([
+  { stationName: '구로구', addr: '서울 구로구 가마산로 27길 45', dmX: '37.4956', dmY: '126.8899' },
+  { stationName: '신정동', addr: '서울 양천구 신정로 11길 20', dmX: '37.5162', dmY: '126.8573' },
+  { stationName: '부평', addr: '인천 부평구 부평로 ', dmX: '37.4900', dmY: '126.7230' },
+  { stationName: '없는좌표', addr: '서울 어딘가', dmX: '', dmY: '' },
+]);
+const RT = ak([
+  { dataTime: '2026-10-30 14:00', pm10Value: '-', pm25Value: '-' },                 // the newest hour not in yet
+  { dataTime: '2026-10-30 13:00', pm10Value: '39', pm25Value: '29' },
+  { dataTime: '2026-10-30 12:00', pm10Value: '44', pm25Value: '31' },
+]);
+const FC = (code, grade, day = '2026-10-31') => ak([
+  { informCode: code, informData: day, informGrade: `서울 : ${grade},제주 : 좋음,전남 : 좋음,경기남부 : 나쁨,경기북부 : 보통,영서 : 좋음,영동 : 좋음`, dataTime: '2026-10-30 11시 발표' },
+  { informCode: code, informData: '2026-10-30', informGrade: '서울 : 좋음', dataTime: '2026-10-30 11시 발표' },
+]);
+const ALARMS = ak([
+  { districtName: '서울', moveName: '서울', issueGbn: '주의보', itemCode: 'PM10', issueDate: '2026-10-30', issueTime: '09:00', clearDate: '' },
+  { districtName: '서울', moveName: '서울', issueGbn: '경보', itemCode: 'PM25', issueDate: '2026-03-01', issueTime: '09:00', clearDate: '2026-03-02', clearTime: '10:00' },
+  { districtName: '인천', moveName: '인천', issueGbn: '경보', itemCode: 'PM25', issueDate: '2026-10-30', issueTime: '09:00', clearDate: '' },
+]);
+
+test('에어코리아: nearest station, newest reading, tomorrow\'s grade, alarms, 환경부 grades', () => {
+  const st = nearestStation(STATIONS, 37.49, 126.84);   // 오류동
+  assert.equal(st.name, '신정동'); assert.ok(st.km < 6);
+  assert.deepEqual(parseRealtime(RT), { pm10: 39, pm25: 29, at: '2026-10-30 13:00' });
+  assert.equal(forecastRegion('서울 구로구', 37.49, 126.84), '서울');
+  assert.equal(forecastRegion('경기 고양시 덕양구', 37.65, 126.83), '경기북부'); assert.equal(forecastRegion('경기 수원시', 37.26, 127.03), '경기남부');
+  assert.equal(forecastRegion('강원 강릉시', 37.75, 128.9), '영동'); assert.equal(forecastRegion('강원 춘천시', 37.88, 127.73), '영서');
+  assert.equal(parseDustForecast(FC('PM10', '보통'), '서울', '2026-10-31'), 1);
+  assert.equal(parseDustForecast(FC('PM25', '매우나쁨'), '서울', '2026-10-31'), 3);
+  assert.equal(parseDustForecast(FC('PM10', '보통'), '경기남부', '2026-10-31'), 2);
+  assert.equal(parseDustForecast(FC('PM10', '보통'), '서울', '2026-11-01'), null, 'no bulletin for that day');
+  assert.deepEqual(parseAlarms(ALARMS, '서울', '2026-10-30 13:40'), { kind: 'watch', item: 'PM10' }, 'the cleared 경보 does not count');
+  assert.deepEqual(parseAlarms(ALARMS, '인천', '2026-10-30 13:40'), { kind: 'warning', item: 'PM25' });
+  assert.equal(parseAlarms(ALARMS, '부산', '2026-10-30 13:40'), null);
+  assert.deepEqual([0, 30, 31, 80, 81, 150, 151].map(gradePM10), [0, 0, 1, 1, 2, 2, 3]);
+  assert.deepEqual([0, 15, 16, 35, 36, 75, 76].map(gradePM25), [0, 0, 1, 1, 2, 2, 3]);
+});
+
+test('미세먼지 block: grades, the worse one, the note by priority (황사 › 경보 › 주의보 › grade), per language', () => {
+  const S = strings('ko');
+  const d = { pm10: 39, pm25: 29, src: 'airkorea', station: '구로구', tomorrow: { pm10Grade: 1, pm25Grade: 0 }, alarm: null, history: [{ at: 'a', pm10: 44, pm25: 31 }] };
+  const b = dustBlock(d, [], S);
+  assert.equal(b.pm10Grade, 1); assert.equal(b.pm25Grade, 1); assert.equal(b.grade, 1); assert.equal(b.note, '괜찮은 편이에요'); assert.equal(b.src, '에어코리아'); assert.equal(b.station, '구로구');
+  assert.deepEqual(b.tomorrow, { pm10Grade: 1, pm25Grade: 0 }); assert.deepEqual(b.history, [['a', 44, 31]]);
+  assert.equal(dustBlock({ ...d, pm25: 48 }, [], S).grade, 2, 'the worse of the two');
+  assert.equal(dustBlock({ ...d, pm25: 48 }, [], S).note, '공기가 탁해요 · 마스크를 챙겨 주세요');
+  assert.equal(dustBlock({ ...d, pm10: 160, pm25: 90 }, [], S).note, '공기가 많이 탁해요 · 외출할 땐 마스크를 착용해 주세요');
+  assert.equal(dustBlock({ ...d, alarm: { kind: 'watch', item: 'PM10' } }, [], S).note, '미세먼지 주의보 · 외출할 땐 마스크를 착용해 주세요');
+  assert.equal(dustBlock({ ...d, alarm: { kind: 'warning', item: 'PM25' } }, [], S).note, '미세먼지 경보 · 외출을 줄이고 마스크를 착용해 주세요');
+  assert.equal(dustBlock({ ...d, alarm: { kind: 'warning', item: 'PM25' } }, [{ name: '황사경보' }], S).note, '황사 · 창문을 닫고 외출할 땐 마스크를 착용해 주세요');
+  assert.equal(dustBlock({ pm10: null, pm25: null, src: 'airkorea' }, [], S), null);
+  assert.equal(dustBlock({ pm10: 12, pm25: null, src: 'openweather', tomorrow: { pm10: 90, pm25: 40 } }, [], strings('en')).note, 'The air is clear');
+  assert.deepEqual(dustBlock({ pm10: 12, pm25: null, src: 'openweather', tomorrow: { pm10: 90, pm25: 40 } }, [], strings('en')).tomorrow, { pm10Grade: 2, pm25Grade: 2 });
+  assert.equal(dustBlock({ pm10: 12, pm25: 8, src: 'openweather' }, [], strings('ja')).src, 'OpenWeather');
+});
+
+test('OpenWeather air pollution: now and tomorrow\'s worst hour', () => {
+  const now = { list: [{ dt: 1761800400, components: { pm10: 12.4, pm2_5: 7.6 } }] };
+  assert.deepEqual(parseOwNow(now), { pm10: 12, pm25: 8, at: new Date(1761800400000) });
+  const t0 = Date.UTC(2026, 9, 31) / 1000;   // 2026-10-31 00:00 UTC
+  const fc = { list: [0, 6, 12, 30].map((h) => ({ dt: t0 + h * 3600, components: { pm10: 20 + h, pm2_5: 5 + h / 2 } })) };
+  const key = (d) => d.toISOString().slice(0, 10).replace(/-/g, '');
+  assert.deepEqual(parseOwTomorrow(fc, key, '20261031'), { pm10: 32, pm25: 11 });
+  assert.equal(parseOwTomorrow(fc, key, '20261102'), null);
+  assert.equal(parseOwNow({}), null);
+});
+
+test('Korea: scene.dust from 에어코리아 beside the KMA forecast; aux dust and the bubble at 나쁨; nothing without the key', async () => {
+  const now = at(13, 50);
+  const base = [
+    ['getVilageFcst', kmaFixture(now)], ['getUltraSrtFcst', new Error('down')], ['getUltraSrtNcst', new Error('down')],
+    ['getPwnStatus', { response: { header: { resultCode: '00' }, body: { items: { item: [] } } } }],
+    ['api.met.no', met(now, flat(240, { temp: 12 }))],
+    ['getMsrstnList', STATIONS], ['getMsrstnAcctoRtmsDnstyInfo', RT],
+    ['InformCode=PM10', FC('PM10', '보통', '2026-10-22')], ['InformCode=PM25', FC('PM25', '좋음', '2026-10-22')], ['getUlfptcaAlarmInfo', ak([])],
+  ];
+  const q = readQuery(new URLSearchParams('lat=37.49&lon=126.84&region=kr&tz=Asia/Seoul&plan=plus&name=서울 구로구'));
+  const s = await forecast(q, { KMA_SERVICE_KEY: 'k', AIRKOREA_SERVICE_KEY: 'a' }, null, { now, fetcher: fakeFetch(base) });
+  validateScene(s);
+  assert.equal(s.dust.pm10, 39); assert.equal(s.dust.pm25, 29); assert.equal(s.dust.grade, 1); assert.equal(s.dust.station, '신정동');
+  assert.equal(s.dust.note, '괜찮은 편이에요'); assert.deepEqual(s.dust.tomorrow, { pm10Grade: 1, pm25Grade: 0 }); assert.equal(s.aux, 'none');
+  // 나쁨: the sky gets the dust effect and the bubble says so (no warning in force)
+  resetCache();
+  const bad = base.map(([k, v]) => (k === 'getMsrstnAcctoRtmsDnstyInfo' ? [k, ak([{ dataTime: '2026-10-30 13:00', pm10Value: '95', pm25Value: '48' }])] : [k, v]));
+  const s2 = await forecast(q, { KMA_SERVICE_KEY: 'k', AIRKOREA_SERVICE_KEY: 'a' }, null, { now, fetcher: fakeFetch(bad) });
+  validateScene(s2);
+  assert.equal(s2.dust.grade, 2); assert.equal(s2.aux, 'dust'); assert.equal(s2.bubble.text, '미세먼지 나쁨 · 마스크 챙기세요'); assert.equal(s2.bubble.icon, 'mask');
+  // an 에어코리아 outage never breaks the forecast
+  resetCache();
+  const down = base.map(([k, v]) => (k === 'getMsrstnList' ? [k, new Error('down')] : [k, v]));
+  const s3 = await forecast(q, { KMA_SERVICE_KEY: 'k', AIRKOREA_SERVICE_KEY: 'a' }, null, { now, fetcher: fakeFetch(down) });
+  validateScene(s3); assert.equal(s3.dust, undefined); assert.equal(s3.temp, s.temp);
+  resetCache();
+  const s4 = await forecast(q, { KMA_SERVICE_KEY: 'k' }, null, { now, fetcher: fakeFetch(base) });
+  assert.equal(s4.dust, undefined, 'no key: no block');
+  // English words
+  resetCache();
+  const en = await forecast({ ...q, lang: 'en' }, { KMA_SERVICE_KEY: 'k', AIRKOREA_SERVICE_KEY: 'a' }, null, { now, fetcher: fakeFetch(base) });
+  assert.equal(en.dust.note, 'Fairly okay'); assert.equal(en.dust.src, 'AirKorea');
+});
+
+test('Abroad: scene.dust from OpenWeather with Apple or MET weather', async () => {
+  const now = at(13, 50);
+  const ow = { list: [{ dt: Math.floor(now.getTime() / 1000), components: { pm10: 61, pm2_5: 12 } }] };
+  const fetcher = fakeFetch([['api.met.no', met(now, flat(240, { temp: 12 }))], ['air_pollution/forecast', { list: [] }], ['air_pollution', ow]]);
+  const q = readQuery(new URLSearchParams('lat=35.68&lon=139.69&region=jp&tz=Asia/Tokyo&plan=free&lang=ja'));
+  const s = await forecast(q, { OPENWEATHER_KEY: 'o' }, null, { now, fetcher });
+  validateScene(s);
+  assert.equal(s.dust.pm10, 61); assert.equal(s.dust.pm10Grade, 1); assert.equal(s.dust.pm25Grade, 0); assert.equal(s.dust.grade, 1);
+  assert.equal(s.dust.note, 'まあまあです'); assert.equal(s.dust.src, 'OpenWeather'); assert.equal(s.dust.station, undefined); assert.equal(s.dust.tomorrow, undefined);
+});

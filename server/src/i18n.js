@@ -58,6 +58,14 @@ const DICT = {
     dewPoint: (d) => `이슬점 ${d}°`,
     nowWetNote: (what, amt) => `지금 ${what} · 앞으로 12시간 ${amt}`,
     noRain12h: '12시간 동안 비 소식 없어요',
+    dust: {
+      title: '미세먼지', pm10: '미세먼지', pm25: '초미세먼지', grade: ['좋음', '보통', '나쁨', '매우 나쁨'],
+      note: ['공기가 맑아요', '괜찮은 편이에요', '공기가 탁해요 · 마스크를 챙겨 주세요', '공기가 많이 탁해요 · 외출할 땐 마스크를 착용해 주세요'],
+      watch: '미세먼지 주의보 · 외출할 땐 마스크를 착용해 주세요', warning: '미세먼지 경보 · 외출을 줄이고 마스크를 착용해 주세요',
+      yellow: '황사 · 창문을 닫고 외출할 땐 마스크를 착용해 주세요',
+      src: { airkorea: '에어코리아', openweather: 'OpenWeather' },
+      bubble: ['', '', '미세먼지 나쁨 · 마스크 챙기세요', '미세먼지 매우 나쁨 · 마스크 꼭 챙기세요'],
+    },
     src: { apple: 'Apple 날씨', kma: '기상청', met: 'MET Norway' },
     sep: ', ',
     alert: {
@@ -104,6 +112,14 @@ const DICT = {
     dewPoint: (d) => `Dew point ${d}°`,
     nowWetNote: (what, amt) => `${what} now · ${amt} in the next 12h`,
     noRain12h: 'No rain for the next 12 hours',
+    dust: {
+      title: 'Air quality', pm10: 'PM10', pm25: 'PM2.5', grade: ['Good', 'Moderate', 'Poor', 'Very poor'],
+      note: ['The air is clear', 'Fairly okay', 'The air is hazy · Bring a mask', 'Very hazy · Wear a mask outdoors'],
+      watch: 'Fine dust advisory · Wear a mask outdoors', warning: 'Fine dust warning · Stay in when you can and wear a mask outdoors',
+      yellow: 'Yellow dust · Close the windows and wear a mask outdoors',
+      src: { airkorea: 'AirKorea', openweather: 'OpenWeather' },
+      bubble: ['', '', 'Poor air · Bring a mask', 'Very poor air · Wear a mask'],
+    },
     src: { apple: 'Apple Weather', kma: 'KMA', met: 'MET Norway' },
     sep: ', ',
     alert: {
@@ -146,6 +162,14 @@ const DICT = {
     dewPoint: (d) => `露点 ${d}°`,
     nowWetNote: (what, amt) => `今 ${what} · この先12時間 ${amt}`,
     noRain12h: '12時間 雨の心配はありません',
+    dust: {
+      title: '大気汚染', pm10: 'PM10', pm25: 'PM2.5', grade: ['良い', '普通', '悪い', 'とても悪い'],
+      note: ['空気がきれいです', 'まあまあです', '空気がかすんでいます・マスクをお持ちください', 'かなりかすんでいます・外出時はマスクを着用してください'],
+      watch: 'PM2.5注意報・外出時はマスクを着用してください', warning: 'PM2.5警報・外出を控え、マスクを着用してください',
+      yellow: '黄砂・窓を閉め、外出時はマスクを着用してください',
+      src: { airkorea: 'AirKorea', openweather: 'OpenWeather' },
+      bubble: ['', '', 'PM2.5 悪い・マスクを', 'PM2.5 とても悪い・マスク必須'],
+    },
     src: { apple: 'Apple 天気', kma: '気象庁', met: 'MET Norway' },
     sep: '、',
     alert: {

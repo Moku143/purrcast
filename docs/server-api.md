@@ -34,7 +34,7 @@ Accept: application/json
   "cover": "overcast",      // clear | partly | overcast       ─┐ sky layers the app draws
   "precip": "none",         // none | rain | heavy | snow | heavysnow | sleet│
   "thunder": "off",         // on | off                         │
-  "aux": "none",            // none | wind | fog | heat | frost | dust ─┘
+  "aux": "none",            // none | wind | fog | heat | frost | dust (a 황사/dust warning, or 미세먼지 나쁨+) ─┘
   "clouds": 92,             // 0–100 % cloud now (null when unknown): how many clouds are drawn, how far down
   "fog": 0,                 // 0 none · 1 mist · 2 fog · 3 thick fog (visibility / MET fog area): how thick it is drawn
   "outfit": 5,              // outfit 0…14 from the feels-like temperature (rules below) — what the app draws
@@ -71,7 +71,16 @@ Accept: application/json
       // precipitation mm (cm when it falls as snow, as in `hours`), strongest gust m/s, wind direction ° (where it
       // comes from). A point from the day before that runs past midnight opens the day as a 0 h row.
       // Older answers: 8 three-hourly rows, or 6 values per row; the app reads all of these.
-  "plus": true                                          // echo of the plan
+  "plus": true,                                         // echo of the plan
+  "dust": {                                             // 미세먼지, when a source is set up (에어코리아 in Korea, OpenWeather elsewhere); absent otherwise
+    "pm10": 39, "pm25": 29,                             // ㎍/㎥, either may be null when a sensor is down
+    "pm10Grade": 1, "pm25Grade": 1, "grade": 1,         // 환경부 4 steps: 0 좋음 · 1 보통 · 2 나쁨 · 3 매우 나쁨; grade = the worse of the two
+    "note": "괜찮은 편이에요",                           // the card's line: 황사 warning › 미세먼지 경보 › 주의보 › the grade's line
+    "src": "에어코리아", "srcKey": "airkorea",           // translated source name; "station": "신정동" (Korea only); "at": "2026-10-30 13:00"
+    "tomorrow": { "pm10Grade": 1, "pm25Grade": 0 },     // the forecast bulletin's grade for tomorrow (either may be null); absent when unknown
+    "alarm": "watch",                                   // "watch" (주의보) | "warning" (경보) in force, Korea only; "yellow": true under a 황사 warning
+    "history": [["2026-10-29 14:00", 44, 31], …]        // Korea: the station's last 24 hours, oldest first
+  }
 }
 ```
 
@@ -112,6 +121,7 @@ The next-6-hours card says until when (`18시까지 비 예보`).
 | `hours[][0]`, `next6[][0]` | `지금` `14시` | `Now` `2PM` | `今` `14時` |
 | `dayDetail[][][0]` | `0시` … `21시` | `12AM` … `9PM` | `0時` … `21時` |
 | `days[][0]` | `오늘` `월`…`일` | `Today` `Mon`…`Sun` | `今日` `月`…`日` |
+| `dust.note` | `공기가 맑아요` · `괜찮은 편이에요` · `공기가 탁해요 · 마스크를 챙겨 주세요` · `공기가 많이 탁해요 · 외출할 땐 마스크를 착용해 주세요` | `The air is clear` · `Fairly okay` · `The air is hazy · Bring a mask` · `Very hazy · Wear a mask outdoors` | `空気がきれいです` · `まあまあです` · `空気がかすんでいます・マスクをお持ちください` · `かなりかすんでいます・外出時はマスクを着用してください` |
 | `tiles[].label` | `강수확률` `자외선` `일몰`/`일출` `습도` | `Rain chance` `UV` `Sunset`/`Sunrise` `Humidity` | `降水確率` `紫外線` `日の入り`/`日の出` `湿度` |
 | rain tile note | `15~17시 비 예보 · 7mm (보통)` · `12시간 동안 비 소식 없어요` | `Rain 3–5PM · 7mm (Moderate)` · `No rain for the next 12 hours` | `15〜17時 雨の予報 · 7mm (普通)` · `12時間 雨の心配はありません` |
 | UV note | `강해요 · 선크림, 모자` | `High · Sunscreen, hat` | `強い · 日焼け止め、帽子` |

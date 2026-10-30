@@ -77,7 +77,9 @@ export function buildScene(f, o) {
   const pr = R.precip(cur);
   const cov = R.cover(cur.cloud);
   const thunder = !!cur.thunder;
-  const auxKind = R.aux({ now: cur, feels, night });
+  // 미세먼지: grades from the values (환경부 4 steps), the card's note (황사 warning › 경보/주의보 › the grade), the sky effect
+  const dustBlock = R.dustBlock(f.dust, f.warnings, S);
+  const auxKind = R.aux({ now: cur, feels, night, dust: dustBlock?.grade });
 
   // days (up to 10), from all points; KMA daily min / max override
   const days = [];
@@ -155,6 +157,7 @@ export function buildScene(f, o) {
   const bub = R.bubble({
     warnings: f.warnings, nowWet, nowPr: pr, nowMm: cur.mm, thunder, startIn, when,
     wind: auxKind === 'wind', fog: auxKind === 'fog' ? Math.max(2, R.fogLevel(cur)) : 0, feels, night, swing: hi - lo, maxPop, plus, rain, next: next ?? 'rain',
+    dust: dustBlock?.grade ?? null,
   }, S);
 
   const scene = {
@@ -185,6 +188,7 @@ export function buildScene(f, o) {
     plus,
     src: f.src || f.nextSource || 'met',
   };
+  if (dustBlock) scene.dust = dustBlock;
   if (f.warnings?.length) {
     const w = f.warnings[0].name;
     scene.alert = { name: S.warning(w), note: R.alertNote(w, { total, pr, nowWet, when, endH: nowWet && endP ? (H(endP) + 1) % 24 : null, hi, lo, gust: ri(cur.gust ?? 0), rh: cur.rh == null ? null : ri(cur.rh) }, S) };
@@ -267,6 +271,12 @@ export function validateScene(s) {
   if (!s.wind || !['speed', 'gust', 'deg'].every((k) => Number.isFinite(s.wind[k]))) bad.push('wind');
   if (s.next6 != null && !(Array.isArray(s.next6) && s.next6.every((n) => n.length === 2 && typeof n[0] === 'string' && Number.isFinite(n[1])))) bad.push('next6');
   if (s.minutes != null && !(Array.isArray(s.minutes) && s.minutes.every(Number.isFinite))) bad.push('minutes');
+  if (s.dust != null) {
+    const d = s.dust;
+    if (!(Number.isInteger(d.grade) && d.grade >= 0 && d.grade <= 3 && typeof d.note === 'string' && typeof d.src === 'string'
+      && (d.pm10 == null || Number.isFinite(d.pm10)) && (d.pm25 == null || Number.isFinite(d.pm25))
+      && (d.pm10Grade == null || (d.pm10Grade >= 0 && d.pm10Grade <= 3)) && (d.pm25Grade == null || (d.pm25Grade >= 0 && d.pm25Grade <= 3)))) bad.push('dust');
+  }
   if (s.nextSource != null && typeof s.nextSource !== 'string') bad.push('nextSource');
   if (s.src != null && typeof s.src !== 'string') bad.push('src');
   // dayDetail rows: 6 values (older answers) or 9 (+ mm, gust, direction); the app reads both
