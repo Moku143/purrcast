@@ -357,6 +357,20 @@ async function deepCheck(env) {
       out.kma = t.trimStart().startsWith('<') ? kmaXmlError(t).message : (JSON.parse(t)?.response?.header?.resultMsg ?? r.status);
     } catch (e) { out.kma = String(e.message || e); }
   }
+  // 미세먼지 sources: what each answers for Seoul / Tokyo (the gateway's reason when a key is not approved yet)
+  if (env.AIRKOREA_SERVICE_KEY) {
+    try {
+      const r = await fetch(stationsUrl(env.AIRKOREA_SERVICE_KEY)); const t = await r.text();
+      out.airkorea = t.trimStart().startsWith('<') ? kmaXmlError(t).message : (JSON.parse(t)?.response?.header?.resultMsg ?? r.status);
+      if (out.airkorea === 'NORMAL_CODE' || r.ok) { const d = await dust({ lat: 37.49, lon: 126.84, region: 'kr', tz: 'Asia/Seoul' }, env, new Date(), fetch, null).catch((e) => ({ error: e.message })); out.airkoreaDust = d && !d.error ? `${d.station} pm10 ${d.pm10} pm25 ${d.pm25}` : d?.error || 'null'; }
+    } catch (e) { out.airkorea = String(e.message || e); }
+  } else out.airkorea = 'no key';
+  if (env.OPENWEATHER_KEY) {
+    try {
+      const r = await fetch(owNowUrl(env.OPENWEATHER_KEY, 35.69, 139.7)); const t = await r.text();
+      out.openweather = r.ok ? `${r.status} ${parseOwNow(JSON.parse(t))?.pm10 ?? '?'}` : `${r.status} ${t.slice(0, 120)}`;
+    } catch (e) { out.openweather = String(e.message || e); }
+  } else out.openweather = 'no key';
   return out;
 }
 
