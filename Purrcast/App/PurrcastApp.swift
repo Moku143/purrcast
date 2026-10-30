@@ -93,12 +93,12 @@ struct RootView: View {
         .onAppear(perform: openFromLaunchArguments)
     }
 
-    /// UI tests open a page directly: -open character|paywall|settings|places|sources|widgets|language|licenses|day (debug builds only)
+    /// UI tests open a page directly: -open character|paywall|settings|places|sources|widgets|language|licenses|day|today (debug builds only)
     private func openFromLaunchArguments() {
         #if DEBUG
         let a = ProcessInfo.processInfo.arguments
         guard let i = a.firstIndex(of: "-open"), i + 1 < a.count else { return }
-        if a[i + 1] == "day" { day = 1 } else { route = Route(rawValue: a[i + 1]) }
+        if a[i + 1] == "day" { day = 1 } else if a[i + 1] == "today" { day = 0 } else { route = Route(rawValue: a[i + 1]) }
         #endif
     }
 }
