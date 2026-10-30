@@ -198,6 +198,9 @@ final class ScreenshotTests: XCTestCase {
             ("sources", ["-scene", "maybe", "-open", "sources"], 0),
             ("widgetlab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab"], 0),
             ("widgetlab-dust", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "widgetLab"], 0),
+            ("watchlab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage3"], 0),
+            ("watchlab-dust", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage3"], 0),
+            ("locklab", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage4"], 0),
             ("livelab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "liveLab"], 0),
             ("widgetlab-2", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage2"], 0),
         ]

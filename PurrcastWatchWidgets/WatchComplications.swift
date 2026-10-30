@@ -144,13 +144,8 @@ struct CatComplication: View {
     var body: some View {
         let snap = entry.snap, f = WatchFacts(snap: snap)
         PlusGate(snap: snap) {
-            // the whole cat in today's outfit everywhere — small in a corner (the temperature along the rim), no plate
-            if family == .accessoryCorner {
-                art(f.sprite, pixel: false)
-                    .widgetLabel { Text(f.temp).foregroundStyle(.white) }
-            } else {
-                art(f.sprite, pixel: false)
-            }
+            // the whole cat in today's outfit, no plate (the analog face's lower sub-dial)
+            art(f.sprite, pixel: false)
         }
     }
 }
@@ -162,7 +157,7 @@ struct CatWidget: Widget {
         }
         .configurationDisplayName(L("고양이"))
         .description(L("고양이와 오늘 날씨"))
-        .supportedFamilies([.accessoryCircular, .accessoryCorner])
+        .supportedFamilies([.accessoryCircular])
     }
 }
 
