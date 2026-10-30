@@ -2548,7 +2548,23 @@
      232
     ]
    ]
-  ]
+  ],
+  "dust": {
+   "pm10": 39,
+   "pm25": 29,
+   "pm10Grade": 1,
+   "pm25Grade": 1,
+   "grade": 1,
+   "note": "괜찮은 편이에요",
+   "src": "에어코리아",
+   "srcKey": "airkorea",
+   "station": "마포구",
+   "at": "2026-10-21 13:00",
+   "tomorrow": {
+    "pm10Grade": 1,
+    "pm25Grade": 0
+   }
+  }
  },
  "combo": {
   "time": "night",

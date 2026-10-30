@@ -46,6 +46,10 @@ final class ScreenshotTests: XCTestCase {
         shot("home-bottom", ["-scene", "maybe"]) { app in
             for _ in 0..<6 { app.swipeUp() }; sleep(1)
         }
+        // the 미세먼지 card under a 황사 line (spring_dust: 매우 나쁨 / 나쁨)
+        shot("home-dust", ["-scene", "spring_dust", "-plus"]) { app in
+            for _ in 0..<3 { app.swipeUp() }; sleep(1)
+        }
     }
 
     func test4Onboarding() {
