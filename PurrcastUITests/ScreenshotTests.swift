@@ -197,7 +197,6 @@ final class ScreenshotTests: XCTestCase {
             ("appicon", ["-scene", "maybe", "-open", "appIcon"], 0),
             ("sources", ["-scene", "maybe", "-open", "sources"], 0),
             ("widgetlab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab"], 0),
-            ("livelab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "liveLab"], 0),
             ("widgetlab-2", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage2"], 0),
         ]
         // the widgets in English and Japanese, and with the longest words each language can produce

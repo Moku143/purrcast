@@ -330,15 +330,15 @@ final class AppModel: ObservableObject {
         SharedStore.save(snap)
         WatchBridge.shared.send(snap)
         planNotifications()
-        Task { await LiveActivities.shared.register(self) }   // the place, plan or character may have changed
+        Task { await RainPush.shared.register(self) }   // the place or plan may have changed
     }
 
     func planNotifications() {
         guard pinnedScene == nil, hasData else { return }
         // example weather must never turn into a real-looking alert
         // free: the morning summary only (rain and the day-to-day change are Plus)
-        // the rain alert comes as the Live Activity's own banner once the server can push it; else the app's own
-        let rainHere = notifyRain && plus && !isSample && !LiveActivities.shared.active
+        // the rain alert comes from the server (a push an hour before) once it has this device; else the app's own
+        let rainHere = notifyRain && plus && !isSample && !RainPush.shared.active
         Notifications.plan(scene: scene, place: currentPlace, rain: rainHere, morning: notifyMorning && !isSample,
                            change: notifyChange && plus && !isSample, morningTime: morningTime, unitF: unitF, voice: voice, clock12: clock12,
                            character: shownCharacter, plus: plus)

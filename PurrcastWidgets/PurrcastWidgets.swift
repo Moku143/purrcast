@@ -99,6 +99,5 @@ struct PurrcastWidgetBundle: WidgetBundle {
         PurrcastWidget()
         HoursWidget()
         RainWidget()
-        RainLiveActivity()
     }
 }

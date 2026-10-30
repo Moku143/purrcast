@@ -4,6 +4,7 @@ import SwiftUI
 struct PurrcastApp: App {
     @StateObject private var model = AppModel()
     @StateObject private var purchases = Purchases()
+    @UIApplicationDelegateAdaptor(PushDelegate.self) private var pushDelegate
     @Environment(\.scenePhase) private var phase
 
     var body: some Scene {
@@ -21,7 +22,7 @@ struct PurrcastApp: App {
                     }
                     #endif
                     WatchBridge.shared.start()
-                    LiveActivities.shared.watch(model)
+                    RainPush.shared.start(model)
                     await purchases.load()
                     syncPlan()
                     await model.refresh(force: true)
@@ -56,7 +57,7 @@ struct PurrcastApp: App {
 
 /// Sheets and full-screen pages reachable from home.
 enum Route: String, Identifiable {
-    case character, paywall, settings, places, sources, widgets, language, licenses, appIcon, widgetLab, liveLab
+    case character, paywall, settings, places, sources, widgets, language, licenses, appIcon, widgetLab
     var id: String { rawValue }
 }
 
@@ -83,7 +84,6 @@ struct RootView: View {
             case .sources: SourcesView(route: $route).presentationCornerRadius(28)
             case .widgets: NavigationStack { WidgetGalleryView() }.presentationCornerRadius(28)
             case .widgetLab: WidgetLabView()          // the layout board's widget page (UI tests only)
-            case .liveLab: LiveLabView()              // the Live Activity's views at size (UI tests only)
             case .language: LanguageView(route: $route).presentationCornerRadius(28)
             case .licenses: LicensesView(route: $route).presentationCornerRadius(28)
             case .appIcon: AppIconView(route: $route).presentationCornerRadius(28)
