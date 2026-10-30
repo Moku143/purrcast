@@ -153,14 +153,37 @@ struct WeatherScene: Codable, Identifiable {
         var note: String
         var note10: String?; var note25: String?   // each row's own line (older answers: only `note`)
         var src: String
+        var srcKey: String?                         // "airkorea" (환경부 steps) | "openweather" (WHO steps)
         var station: String?
         var at: String?
         var tomorrow: Tomorrow?
         var alarm: String?
+        var hours: [Reading]?                       // Plus: today's readings so far, by local hour (the day sheet's chart)
         struct Tomorrow: Codable, Equatable { var pm10Grade: Int?; var pm25Grade: Int? }
-        init(pm10: Double?, pm25: Double?, pm10Grade: Int?, pm25Grade: Int?, grade: Int, note: String, note10: String? = nil, note25: String? = nil, src: String, station: String? = nil, at: String? = nil, tomorrow: Tomorrow? = nil, alarm: String? = nil) {
+        /// [13, 39, 29] → hour of the day, PM10, PM2.5 (either may be null when a sensor is down)
+        struct Reading: Codable, Equatable {
+            var hour: Int; var pm10: Double?; var pm25: Double?
+            init(hour: Int, pm10: Double?, pm25: Double?) { self.hour = hour; self.pm10 = pm10; self.pm25 = pm25 }
+            init(from decoder: Decoder) throws {
+                var c = try decoder.unkeyedContainer()
+                hour = max(0, min(23, try c.decode(Int.self)))
+                func value() -> Double? {
+                    if c.isAtEnd { return nil }
+                    if (try? c.decodeNil()) == true { return nil }
+                    return try? c.decode(Double.self)
+                }
+                pm10 = value(); pm25 = value()
+            }
+            func encode(to encoder: Encoder) throws {
+                var c = encoder.unkeyedContainer()
+                try c.encode(hour); try c.encode(pm10); try c.encode(pm25)
+            }
+        }
+        /// Korea's 환경부 steps unless the source says WHO's (OpenWeather abroad)
+        var who: Bool { srcKey == "openweather" }
+        init(pm10: Double?, pm25: Double?, pm10Grade: Int?, pm25Grade: Int?, grade: Int, note: String, note10: String? = nil, note25: String? = nil, src: String, srcKey: String? = nil, station: String? = nil, at: String? = nil, tomorrow: Tomorrow? = nil, alarm: String? = nil, hours: [Reading]? = nil) {
             self.pm10 = pm10; self.pm25 = pm25; self.pm10Grade = pm10Grade; self.pm25Grade = pm25Grade; self.grade = grade; self.note = note; self.note10 = note10; self.note25 = note25
-            self.src = src; self.station = station; self.at = at; self.tomorrow = tomorrow; self.alarm = alarm
+            self.src = src; self.srcKey = srcKey; self.station = station; self.at = at; self.tomorrow = tomorrow; self.alarm = alarm; self.hours = hours
         }
         init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -170,8 +193,11 @@ struct WeatherScene: Codable, Identifiable {
             note = (try? c.decode(String.self, forKey: .note)) ?? ""
             note10 = try? c.decodeIfPresent(String.self, forKey: .note10); note25 = try? c.decodeIfPresent(String.self, forKey: .note25)
             src = (try? c.decode(String.self, forKey: .src)) ?? ""
+            srcKey = try? c.decodeIfPresent(String.self, forKey: .srcKey)
             station = try? c.decodeIfPresent(String.self, forKey: .station); at = try? c.decodeIfPresent(String.self, forKey: .at)
             tomorrow = try? c.decodeIfPresent(Tomorrow.self, forKey: .tomorrow); alarm = try? c.decodeIfPresent(String.self, forKey: .alarm)
+            let hs = (try? c.decodeIfPresent([Reading].self, forKey: .hours)) ?? nil
+            hours = hs?.isEmpty == false ? hs : nil
         }
     }
 
@@ -240,15 +266,20 @@ struct WeatherScene: Codable, Identifiable {
         }
     }
     /// ["15시", 0.8] → label, mm
+    /// ["16시", 0.8, 1] → hour label, mm of water, what falls (0 rain · 1 snow · 2 sleet; older answers: rain)
     struct NextHour: Codable {
-        var label: String; var mm: Double
+        var label: String; var mm: Double; var kind: Int = 0
+        var snow: Bool { kind == 1 }
+        var sleet: Bool { kind == 2 }
+        init(label: String, mm: Double, kind: Int = 0) { self.label = label; self.mm = mm; self.kind = kind }
         init(from decoder: Decoder) throws {
             var c = try decoder.unkeyedContainer()
             label = try c.decode(String.self); mm = max(0, (try? c.decode(Double.self)) ?? 0)
+            kind = max(0, min(2, (try? c.decode(Int.self)) ?? 0))
         }
         func encode(to encoder: Encoder) throws {
             var c = encoder.unkeyedContainer()
-            try c.encode(label); try c.encode(mm)
+            try c.encode(label); try c.encode(mm); try c.encode(kind)
         }
     }
     /// ["9시", 13, 20, 3, 4, 70, 0.4, 5.2, 225] → hour label, °C, rain chance %, wind m/s, UV, humidity %, then for the

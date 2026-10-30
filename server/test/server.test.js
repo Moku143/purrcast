@@ -316,6 +316,10 @@ test('scene in en / ja: rain in a few hours → "Rain 4–5PM" · "16〜17時 �
   assert.match(en.tiles[2].note, /^Sunrise tomorrow \d\d:\d\d$/); assert.match(ja.tiles[2].note, /^明日の日の出 \d\d:\d\d$/);
   assert.match(en.tiles[3].note, /^Comfortable · Dew point \d+°$/); assert.match(ja.tiles[3].note, /^ちょうどいい · 露点 \d+°$/);
   assert.equal(en.next6[0][0], '2PM'); assert.equal(ja.next6[0][0], '14時');
+  // the 6-hour card's rows say what falls: [label, mm, kind] — 0 rain, 1 snow, 2 sleet
+  assert.deepEqual(ko.next6.map((n) => n[2]), [0, 0, 0, 0, 0, 0]);
+  const snowy = buildScene({ points: m.points, next6: m.points.slice(1, 7).map((p, i) => (i === 2 ? { ...p, type: 'snow' } : i === 3 ? { ...p, type: 'sleet' } : p)) }, { ...SEOUL, plan: 'plus', now: at(13, 40) });
+  assert.deepEqual(snowy.next6.map((n) => n[2]), [0, 0, 1, 2, 0, 0]); validateScene(snowy);
   assert.deepEqual(en.dayDetail[1].slice(0, 3).map((h) => h[0]), ['12AM', '1AM', '2AM']); assert.equal(en.dayDetail[1][15][0], '3PM');
   assert.equal(ja.dayDetail[1][15][0], '15時');
   assert.equal(en.updated, ko.updated); assert.equal(en.clock, ko.clock);
@@ -832,6 +836,10 @@ test('미세먼지 block: grades, the worse one, the note by priority (황사 �
   assert.equal(dustBlock({ pm10: 12, pm25: null, src: 'openweather', tomorrow: { pm10: 90, pm25: 40 } }, [], strings('en')).note, 'The air is clear');
   assert.deepEqual(dustBlock({ pm10: 12, pm25: null, src: 'openweather', tomorrow: { pm10: 90, pm25: 40 } }, [], strings('en')).tomorrow, { pm10Grade: 2, pm25Grade: 2 });
   assert.equal(dustBlock({ pm10: 12, pm25: 8, src: 'openweather' }, [], strings('ja')).src, 'OpenWeather');
+  // abroad: WHO's values — 40 ㎍/㎥ PM10 is still 좋음 (환경부 would say 보통), 37 PM2.5 보통
+  assert.equal(dustBlock({ pm10: 40, pm25: 37, src: 'openweather' }, [], S).pm10Grade, 0);
+  assert.equal(dustBlock({ pm10: 40, pm25: 37, src: 'openweather' }, [], S).pm25Grade, 1);
+  assert.equal(dustBlock({ pm10: 40, pm25: 37, src: 'airkorea' }, [], S).pm10Grade, 1);
 });
 
 test('OpenWeather air pollution: now and tomorrow\'s worst hour', () => {

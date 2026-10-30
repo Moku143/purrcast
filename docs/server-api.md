@@ -57,7 +57,7 @@ Accept: application/json
              { "icon": "raindrop", "label": "습도", "value": "72%", "unit": "", "note": "이슬점 13°" } ],
   "wind": { "speed": 4, "gust": 7, "deg": 225 },       // m/s, m/s, degrees the wind comes from
   "minutes": [0, 0, 0.2, …],                            // Plus · WeatherKit forecastNextHour where Apple has it: up to 60 values, mm/h per minute, from now
-  "next6": [ ["15시", 0], ["16시", 0.8], … ],            // Plus: next 6 hourly slots, mm
+  "next6": [ ["15시", 0, 0], ["16시", 0.8, 1], … ],      // Plus: next 6 hourly slots, mm (water), kind 0 rain · 1 snow · 2 sleet (older answers: no kind)
   "nextSource": "kma",                                  // kma (초단기예보) | apple | met — the card's legend
   "src": "kma",                                         // kma | apple | met — where the main forecast came from (attribution)
   "cmp": { "start": 14, "snow": false,                  // 예보 비교 (both plans): this hour + 23 more, every source we have for the place
@@ -74,7 +74,7 @@ Accept: application/json
   "plus": true,                                         // echo of the plan
   "dust": {                                             // 미세먼지, when a source is set up (에어코리아 in Korea, OpenWeather elsewhere); absent otherwise
     "pm10": 39, "pm25": 29,                             // ㎍/㎥, either may be null when a sensor is down
-    "pm10Grade": 1, "pm25Grade": 1, "grade": 1,         // 환경부 4 steps: 0 좋음 · 1 보통 · 2 나쁨 · 3 매우 나쁨; grade = the worse of the two
+    "pm10Grade": 1, "pm25Grade": 1, "grade": 1,         // 4 steps: 0 좋음 · 1 보통 · 2 나쁨 · 3 매우 나쁨 (Korea: 환경부 PM10 30/80/150 · PM2.5 15/35/75; elsewhere WHO PM10 45/75/150 · PM2.5 15/37.5/75); grade = the worse of the two
     "note": "괜찮은 편이에요",                           // the card's line: 황사 warning › 미세먼지 경보 › 주의보 › the grade's line
     "src": "에어코리아", "srcKey": "airkorea",           // translated source name; "station": "신정동" (Korea only); "at": "2026-10-30 13:00"
     "tomorrow": { "pm10Grade": 1, "pm25Grade": 0 },     // the forecast bulletin's grade for tomorrow (either may be null); absent when unknown

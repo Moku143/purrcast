@@ -340,9 +340,26 @@ enum DustScale {
     static let words = ["좋음", "보통", "나쁨", "매우 나쁨"]
     static let colors = ["#4CAF50", "#F2C230", "#F28C28", "#E2453C"]
     static let onColors = ["#FFFFFF", "#1E2A44", "#1E2A44", "#FFFFFF"]
-    /// Where a value sits in its grade's segment (0…1 across the whole bar), 환경부 bounds: PM10 30 · 80 · 150, PM2.5 15 · 35 · 75.
-    static func position(_ v: Double, pm25: Bool) -> Double {
-        let b: [Double] = pm25 ? [0, 15, 35, 75, 150] : [0, 30, 80, 150, 300]
+    /// The upper bound of each step (the last one is where the bar ends): 환경부 PM10 30 · 80 · 150, PM2.5 15 · 35 · 75;
+    /// abroad WHO's 2021 24-hour values (the guideline, then interim targets 3 and 1): PM10 45 · 75 · 150, PM2.5 15 · 37.5 · 75.
+    static func bounds(pm25: Bool, who: Bool = false) -> [Double] {
+        who ? (pm25 ? [0, 15, 37.5, 75, 150] : [0, 45, 75, 150, 300]) : (pm25 ? [0, 15, 35, 75, 150] : [0, 30, 80, 150, 300])
+    }
+    /// 0 좋음 … 3 매우 나쁨
+    static func grade(_ v: Double, pm25: Bool, who: Bool = false) -> Int {
+        let b = bounds(pm25: pm25, who: who)
+        return v <= b[1] ? 0 : v <= b[2] ? 1 : v <= b[3] ? 2 : 3
+    }
+    /// "0~15", "16~35", "36~75", "76+" — the step's range as the scale card prints it
+    static func range(_ i: Int, pm25: Bool, who: Bool = false) -> String {
+        let b = bounds(pm25: pm25, who: who)
+        let n = { (v: Double) -> String in v == v.rounded() ? String(Int(v)) : String(format: "%.1f", v) }
+        if i >= 3 { return n(b[3] + 1) + "+" }
+        return (i == 0 ? "0" : n(floor(b[i]) + 1)) + "~" + n(b[i + 1])
+    }
+    /// Where a value sits in its grade's segment (0…1 across the whole bar).
+    static func position(_ v: Double, pm25: Bool, who: Bool = false) -> Double {
+        let b = bounds(pm25: pm25, who: who)
         for i in 0..<4 where v <= b[i + 1] || i == 3 {
             let t = min(1, max(0, (v - b[i]) / (b[i + 1] - b[i])))
             return (Double(i) + t) / 4
@@ -351,49 +368,8 @@ enum DustScale {
     }
 }
 
-/// The 미세먼지 card: one row each for 미세먼지 and 초미세먼지 — icon and name, the value big with its grade chip, the line
-/// (황사 · 경보 · the grade's own) at the right, and the four-step bar with a ring where the value sits.
-struct DustCard: View {
-    @EnvironmentObject var model: AppModel
-    let dust: WeatherScene.Dust; let ink: Ink
-    var body: some View {
-        Card(ink: ink) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(L("미세먼지")).font(.px(13)); Spacer()
-                Text([dust.src, dust.station].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")).font(.ui(11)).foregroundStyle(ink.sub)
-            }
-            // each row its own line; an older answer has one line only, shown by the worse row
-            row(icon: "pm10", label: L("PM10"), value: dust.pm10, grade: dust.pm10Grade, pm25: false, note: dust.note10 ?? (noteRow == 0 ? dust.note : ""))
-            Rectangle().fill(ink.line).frame(height: 1)
-            row(icon: "pm25", label: L("초미세먼지"), value: dust.pm25, grade: dust.pm25Grade, pm25: true, note: dust.note25 ?? (noteRow == 1 ? dust.note : ""))
-        }
-        .accessibilityIdentifier("dust-card")
-    }
-    private var noteRow: Int { (dust.pm25Grade ?? -1) > (dust.pm10Grade ?? -1) ? 1 : 0 }
-
-    private func row(icon: String, label: String, value: Double?, grade: Int?, pm25: Bool, note: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) { PixelIcon(name: icon, size: 16); Text(label).font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
-            HStack(alignment: .center, spacing: 8) {
-                Text(value.map { String(Int($0.rounded())) } ?? "–").font(.px(26)).rolling(value.map { String(Int($0.rounded())) } ?? "–")
-                if let g = grade {
-                    Text(L(DustScale.words[g])).font(.px(11)).foregroundStyle(Color(hex: DustScale.onColors[g]))
-                        .padding(.horizontal, 7).padding(.vertical, 4).background(Color(hex: DustScale.colors[g])).clipShape(RoundedRectangle(cornerRadius: 7))
-                }
-                Spacer(minLength: 8)
-                if !note.isEmpty {
-                    Text(model.say(note)).font(.ui(12)).foregroundStyle((grade ?? 0) >= 2 ? Color(hex: DustScale.colors[grade ?? 0]) : ink.sub)
-                        .multilineTextAlignment(.trailing).lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            DustBar(value: value, pm25: pm25, ink: ink)
-        }
-    }
-}
-
-/// Four equal segments in the 환경부 colours and a ring where the value sits (none when the value is missing).
 struct DustBar: View {
-    let value: Double?; let pm25: Bool; let ink: Ink
+    let value: Double?; let pm25: Bool; var who = false; let ink: Ink
     var body: some View {
         GeometryReader { g in
             ZStack(alignment: .topLeading) {
@@ -403,7 +379,7 @@ struct DustBar: View {
                     }
                 }.offset(y: 4)
                 if let v = value {
-                    let pos = DustScale.position(v, pm25: pm25) * g.size.width
+                    let pos = DustScale.position(v, pm25: pm25, who: who) * g.size.width
                     Circle().fill(ink.night ? Color(hex: "#1B2142") : .white)
                         .overlay(Circle().stroke(ink.ink, lineWidth: 2))
                         .frame(width: 12, height: 12)

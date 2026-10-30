@@ -16,7 +16,7 @@ const ri = (v) => (v == null || Number.isNaN(v) ? 0 : Math.round(v));
  *   warnings optional [{ name, severity }]
  *   precip none | rain | heavy | snow | heavysnow (3 cm/h+) | sleet (진눈깨비: rain and snow together)
  *   → scene.alert { name, note } when one is in force (the line under the character on the home screen)
- *   next6    optional [{ t, mm }] (KMA 초단기예보 / WeatherKit hourly, Plus)
+ *   next6    optional [{ t, mm, type }] (KMA 초단기예보 / WeatherKit hourly, Plus); type: rain | snow | sleet | none
  *   minutes  optional [mm/h per minute, up to 60] (WeatherKit forecastNextHour, Plus)
  *   nextSource 'kma' | 'met' | 'apple'
  *   src      'kma' | 'met' | 'apple' — the main forecast's source (nextSource when missing)
@@ -220,7 +220,10 @@ export function buildScene(f, o) {
     }
     return rows;
   });
-  if (plus && f.next6?.length) scene.next6 = f.next6.slice(0, 6).map((p) => [S.hour(H(p)), r1(p.mm || 0)]);
+  // [label, mm, kind]: kind 0 rain · 1 snow · 2 sleet, from the hour's precipitation type (snow in the next six hours is
+  // water-equivalent mm from 초단기예보 / WeatherKit; the app reads it as about as many cm)
+  const kindOf = (p) => (p.type === 'snow' || p.type === 'heavysnow' ? 1 : p.type === 'sleet' ? 2 : 0);
+  if (plus && f.next6?.length) scene.next6 = f.next6.slice(0, 6).map((p) => [S.hour(H(p)), r1(p.mm || 0), kindOf(p)]);
   if (plus && (f.next6?.length || f.minutes?.length)) scene.nextSource = f.nextSource || 'kma';   // who the rain-soon card cites
   if (f.compare?.length > 1) scene.cmp = compareBlock(f.compare, cur, nowT, tz, S);
   if (plus && f.minutes?.length) scene.minutes = f.minutes.slice(0, 60).map((v) => (Number.isFinite(v) ? Math.round(v * 100) / 100 : 0));
@@ -269,7 +272,7 @@ export function validateScene(s) {
   if (!Array.isArray(s.tiles)) bad.push('tiles');
   else s.tiles.forEach((t, i) => { if (typeof t.icon !== 'string' || typeof t.label !== 'string' || typeof t.note !== 'string') bad.push(`tiles[${i}]`); });
   if (!s.wind || !['speed', 'gust', 'deg'].every((k) => Number.isFinite(s.wind[k]))) bad.push('wind');
-  if (s.next6 != null && !(Array.isArray(s.next6) && s.next6.every((n) => n.length === 2 && typeof n[0] === 'string' && Number.isFinite(n[1])))) bad.push('next6');
+  if (s.next6 != null && !(Array.isArray(s.next6) && s.next6.every((n) => (n.length === 2 || n.length === 3) && typeof n[0] === 'string' && Number.isFinite(n[1])))) bad.push('next6');
   if (s.minutes != null && !(Array.isArray(s.minutes) && s.minutes.every(Number.isFinite))) bad.push('minutes');
   if (s.dust != null) {
     const d = s.dust;

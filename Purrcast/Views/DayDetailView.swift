@@ -11,6 +11,7 @@ struct DayDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State var start: Int
     @State private var metric: DayMetric = .temp
+    @State private var fine = true           // 미세먼지 tab: PM2.5 (초미세) or PM10
     @State private var picked: Int?          // hour chosen on the chart; nil → now (today) or noon
     @State private var scrubbing = false
     @Namespace private var ns
@@ -32,8 +33,9 @@ struct DayDetailView: View {
     private func sheet(_ s: WeatherScene, index: Int) -> some View {
         let hourly = DayHourly.make(scene: s, index: index)
         let ink = Ink(night: s.isNight)
-        let sel = picked ?? (index == 0 ? (hourly?.now ?? 12) : 12)
-        let ctx = DayCtx(scene: s, index: index, day: s.days[index], hourly: hourly, ink: ink, night: s.isNight, sel: sel, metric: metric, scrub: scrubbing)
+        var sel = picked ?? (index == 0 ? (hourly?.now ?? 12) : 12)
+        if metric == .dust, let last = hourly?.dustLast { sel = min(sel, last) }   // no readings past the newest hour yet
+        let ctx = DayCtx(scene: s, index: index, day: s.days[index], hourly: hourly, ink: ink, night: s.isNight, sel: sel, metric: metric, scrub: scrubbing, fine: fine)
         return ScrollView(showsIndicators: false) {
             VStack(spacing: 12) {
                 Capsule().fill(Color(red: 127 / 255, green: 135 / 255, blue: 160 / 255).opacity(0.45)).frame(width: 36, height: 5)
@@ -52,7 +54,10 @@ struct DayDetailView: View {
         }
         .background(sheetBackground(s).ignoresSafeArea())
         .foregroundStyle(ink.ink)
-        .onChange(of: start) { _, _ in picked = nil; scrubbing = false }
+        .onChange(of: start) { _, i in
+            picked = nil; scrubbing = false
+            if metric == .dust, DayHourly.make(scene: s, index: i)?.hasDust != true { metric = .temp }   // readings are today's only
+        }
     }
 
     /// Day: the outfit colour fading into #EEF1F7 over the first 420 pt · night: navy all the way down
@@ -131,16 +136,34 @@ struct DayDetailView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.press(0.95))
+        .accessibilityIdentifier("tab-\(m)")
     }
 
+    /// Five tabs across the width; with today's 미세먼지 readings (Plus) a sixth, and the row scrolls sideways
+    /// (the chosen tab is brought into view)
     private func tabs(_ c: DayCtx) -> some View {
-        let items: [(DayMetric, String, String)] = [
+        var items: [(DayMetric, String, String)] = [
             (.temp, L("기온"), "thermo_hot"), (.rain, c.snowy ? L("눈") : L("비"), c.snowy ? "snowflake" : "umbrella"),
             (.wind, L("바람"), "wind"), (.uv, L("자외선"), "sun_strong"), (.humidity, L("습도"), "sweat"),
         ]
-        return HStack(spacing: 6) {
-            ForEach(items, id: \.0) { item in tab(c, item) }
+        if c.hourly?.hasDust == true { items.append((.dust, L("미세먼지"), "pm10")) }
+        let on: DayMetric = metric == .feels ? .temp : metric
+        return GeometryReader { g in
+            let w = (g.size.width - 6 * 4) / 5
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(items, id: \.0) { item in tab(c, item).frame(width: w).id(item.0) }
+                    }
+                    .padding(.horizontal, 16)
+                }
+                .padding(.horizontal, -16)
+                .scrollDisabled(items.count <= 5)
+                .onChange(of: on) { _, m in withAnimation(Motion.gentle) { proxy.scrollTo(m, anchor: m == .dust ? UnitPoint.trailing : nil) } }
+                .onAppear { if on == .dust { proxy.scrollTo(on, anchor: .trailing) } }
+            }
         }
+        .frame(height: 58)
     }
 
     /// One tab: 8 / 7 pt padding inside a 2 pt border (the selected one is filled to the same size)
@@ -236,6 +259,7 @@ struct DayDetailView: View {
             GeometryReader { g in chartBlock(c, h, sp, width: g.size.width) }
                 .frame(height: chartBlockHeight)
             if metric == .uv { DayUVBar(uv: h.uvMax, ink: c.ink.ink, inv: c.inv) }
+            if metric == .dust { DayDustBar(value: c.dustMax, pm25: c.fine, who: c.who, ink: c.ink.ink, inv: c.inv) }
         }
         .dayCard(c)
         .animation(Motion.gentle, value: metric)
@@ -269,6 +293,11 @@ struct DayDetailView: View {
                     chip(L("실제"), on: metric == .temp, c) { metric = .temp }
                     chip(L("체감"), on: metric == .feels, c) { metric = .feels }
                 }
+            } else if metric == .dust {
+                HStack(spacing: 4) {
+                    chip(L("미세먼지"), on: !fine, c) { fine = false }
+                    chip(L("초미세"), on: fine, c) { fine = true }
+                }
             } else {
                 legendRow(c, h)
             }
@@ -294,6 +323,7 @@ struct DayDetailView: View {
         case .wind: return L("시간별 바람 (%@)", model.windUnit)
         case .uv: return L("시간별 자외선 지수")
         case .humidity: return L("시간별 습도")
+        case .dust: return fine ? L("시간별 초미세먼지") : L("시간별 미세먼지")
         }
     }
 
@@ -447,11 +477,17 @@ struct DayDetailView: View {
                          ScaleItem(title: L("강함"), sub: windRange(8, 13), big: false), ScaleItem(title: L("매우 강함"), sub: model.windNumber(14) + "+", big: false)]
             return (L("바람 단계"), items, cur)
         case .uv:
+            // WHO's five steps, the words of the badge and the bar: 낮음 0–2 · 보통 3–5 · 높음 6–7 · 매우 높음 8–10 · 위험 11+
             let m = h.uvMax
-            let cur = m >= 8 ? 3 : m >= 6 ? 2 : m >= 3 ? 1 : 0
-            let items = [ScaleItem(title: L("약함"), sub: "0~2", big: false), ScaleItem(title: L("보통"), sub: "3~5", big: false),
-                         ScaleItem(title: L("강함"), sub: "6~7", big: false), ScaleItem(title: L("매우 강함"), sub: "8+", big: false)]
+            let cur = m >= 11 ? 4 : m >= 8 ? 3 : m >= 6 ? 2 : m >= 3 ? 1 : 0
+            let items = zip(UVScale.bands, ["0~2", "3~5", "6~7", "8~10", "11+"]).map { ScaleItem(title: L($0.word), sub: $1, big: false) }
             return (L("자외선 대비"), items, cur)
+        case .dust:
+            // the four steps of the scale in force (환경부 in Korea, WHO elsewhere) and the chosen hour's step
+            let v = c.dustVals[max(0, min(23, c.sel))]
+            let cur = DustScale.grade(v, pm25: c.fine, who: c.who)
+            let items = (0..<4).map { ScaleItem(title: L(DustScale.words[$0]), sub: DustScale.range($0, pm25: c.fine, who: c.who), big: false) }
+            return (c.who ? L("%@ 단계 · WHO", c.fine ? L("초미세먼지") : L("미세먼지")) : L("%@ 단계", c.fine ? L("초미세먼지") : L("미세먼지")), items, cur)
         case .humidity:
             let items = [ScaleItem(title: L("건조"), sub: "<30%", big: false), ScaleItem(title: L("보송"), sub: "<60%", big: false),
                          ScaleItem(title: L("적당"), sub: "60~70%", big: false), ScaleItem(title: L("습함"), sub: "70%+", big: false),
@@ -490,6 +526,7 @@ struct DayDetailView: View {
         case .wind: v = model.windText(Int(h.wind[i].rounded()))
         case .uv: v = "\(Int(h.uv[i].rounded()))"
         case .humidity: v = "\(Int(h.rh[i].rounded()))%"
+        case .dust: v = "\(Int(c.dustVals[i].rounded()))"
         }
         return Extreme(title: timeWord(c), value: v, hour: nil, isSel: true)
     }
@@ -524,6 +561,13 @@ struct DayDetailView: View {
             let hi = at(h.rh, max: true), lo = at(h.rh, max: false)
             return [Extreme(title: L("최고"), value: "\(Int(hi.0.rounded()))%", hour: hi.1),
                     Extreme(title: L("최저"), value: "\(Int(lo.0.rounded()))%", hour: lo.1)]
+        case .dust:
+            // today's highest reading so far and the forecast bulletin's step for tomorrow
+            let known = Array(c.dustVals.prefix((h.dustLast ?? 23) + 1))
+            let hi = at(known, max: true)
+            let tm = c.fine ? h.dust?.tomorrow?.pm25Grade : h.dust?.tomorrow?.pm10Grade
+            return [Extreme(title: L("오늘 최고"), value: "\(Int(hi.0.rounded()))", hour: hi.1),
+                    Extreme(title: L("내일"), value: tm.map { L(DustScale.words[max(0, min(3, $0))]) } ?? "–", hour: nil)]
         }
     }
 
@@ -608,6 +652,7 @@ struct DayDetailView: View {
         case .wind: return windSpec(c, h)
         case .uv: return uvSpec(c, h)
         case .humidity: return humiditySpec(c, h)
+        case .dust: return dustSpec(c, h)
         }
     }
 
@@ -699,6 +744,22 @@ struct DayDetailView: View {
         return s
     }
 
+    /// Like the UV chart: the curve coloured by each hour's step, the grid on the steps' bounds; hours without a
+    /// reading yet (later today) are drawn in nothing, so the curve stops at the newest hour.
+    private func dustSpec(_ c: DayCtx, _ h: DayHourly) -> DayChartSpec {
+        let vals = c.dustVals, last = h.dustLast ?? 23
+        let b = DustScale.bounds(pm25: c.fine, who: c.who)
+        let top = max(b[3] * 1.1, (vals.prefix(last + 1).max() ?? 0) * 1.15)
+        var s = DayChartSpec(vals: vals, ymin: 0, ymax: top)
+        s.grid = [0, b[1], b[2], b[3]].map { ($0 / top, $0 == $0.rounded() ? String(Int($0)) : String($0)) }
+        s.segColors = (0..<25).map { i in i - 1 >= last ? .clear : Color(hex: DustScale.colors[DustScale.grade(mid(vals, i), pm25: c.fine, who: c.who)]) }
+        let worst = Color(hex: DustScale.colors[DustScale.grade(vals.prefix(last + 1).max() ?? 0, pm25: c.fine, who: c.who)])
+        let edge = (Double(last) + 0.5) / 24
+        s.areaStops = [Gradient.Stop(color: worst, location: 0), Gradient.Stop(color: worst, location: edge), Gradient.Stop(color: .clear, location: edge + 0.001)]
+        s.areaHorizontal = true; s.areaOpacity = 0.35
+        return s
+    }
+
     private func humiditySpec(_ c: DayCtx, _ h: DayHourly) -> DayChartSpec {
         var s = DayChartSpec(vals: h.rh, ymin: 0, ymax: 100)
         s.grid = [(0, "0%"), (0.5, "50%"), (1, "100%")]
@@ -729,6 +790,9 @@ struct DayDetailView: View {
             return DayScrub(time: t, icon: "sun_strong", main: String(v), sub: L(b.word), subColor: Color(hex: b.color), subInk: Color(hex: b.onColor))
         case .humidity:
             return DayScrub(time: t, icon: "sweat", main: "\(Int(h.rh[i].rounded()))%", sub: L("이슬점 %@", model.deg(h.dew(i))))
+        case .dust:
+            let v = c.dustVals[i], g = DustScale.grade(v, pm25: c.fine, who: c.who)
+            return DayScrub(time: t, icon: c.fine ? "pm25" : "pm10", main: String(Int(v.rounded())), sub: L(DustScale.words[g]), subColor: Color(hex: DustScale.colors[g]), subInk: Color(hex: DustScale.onColors[g]))
         }
     }
 
@@ -764,6 +828,7 @@ struct DayDetailView: View {
         case .wind: return briefWind(c, h)
         case .uv: return briefUV(c, h)
         case .humidity: return briefHumidity(c, h)
+        case .dust: return briefDust(c, h)
         }
     }
 
@@ -872,9 +937,24 @@ struct DayDetailView: View {
 
     private func briefUV(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let m = h.uvMax, b = UVScale.band(m)
-        let k = m >= 8 ? 3 : m >= 6 ? 2 : m >= 3 ? 1 : 0
-        let t = [L("자외선이 약해요."), L("자외선 보통이에요. 한낮엔 선크림을 바르는 게 좋아요."), L("자외선이 강해요. 선크림과 모자를 챙기세요."), L("자외선이 매우 강해요. 한낮엔 바깥 활동을 줄이는 게 좋아요.")][k]
+        let k = m >= 11 ? 4 : m >= 8 ? 3 : m >= 6 ? 2 : m >= 3 ? 1 : 0
+        let t = [L("자외선이 약해요."), L("자외선 보통이에요. 한낮엔 선크림을 바르는 게 좋아요."), L("자외선이 강해요. 선크림과 모자를 챙기세요."),
+                 L("자외선이 매우 강해요. 한낮엔 바깥 활동을 줄이는 게 좋아요."), L("자외선이 위험 수준이에요. 한낮엔 바깥 활동을 피하는 게 좋아요.")][k]
         return Brief(value: L("최고 %@", String(m)), badge: L(b.word), badgeColor: Color(hex: b.color), badgeInk: Color(hex: b.onColor), summary: t)
+    }
+
+    /// 미세먼지: today's highest reading so far with its step, then the newest hour's step (when it differs), the
+    /// step's line and tomorrow's step from the forecast bulletin.
+    private func briefDust(_ c: DayCtx, _ h: DayHourly) -> Brief {
+        let last = h.dustLast ?? 23
+        let known = Array(c.dustVals.prefix(last + 1))
+        let m = known.max() ?? 0, g = DustScale.grade(m, pm25: c.fine, who: c.who)
+        let now = known.last ?? 0, gn = DustScale.grade(now, pm25: c.fine, who: c.who)
+        let what = c.fine ? L("초미세먼지") : L("미세먼지")
+        var t = gn == g ? L("%@ %@이에요.", what, L(DustScale.words[g])) : L("%@ %@까지 올랐다가 지금은 %@이에요.", what, L(DustScale.words[g]), L(DustScale.words[gn]))
+        t += " " + [L("공기가 맑아요."), L("괜찮은 편이에요."), L("마스크를 챙겨 주세요."), L("외출할 땐 마스크를 착용해 주세요.")][gn]
+        if let tm = c.fine ? h.dust?.tomorrow?.pm25Grade : h.dust?.tomorrow?.pm10Grade { t += " " + L("내일은 %@ 예보예요.", L(DustScale.words[max(0, min(3, tm))])) }
+        return Brief(value: L("최고 %@", String(Int(m.rounded()))), badge: L(DustScale.words[g]), badgeColor: Color(hex: DustScale.colors[g]), badgeInk: Color(hex: DustScale.onColors[g]), summary: t)
     }
 
     private func humidityLevel(_ h: DayHourly) -> (k: Int, avg: Int, dew: Int) {
@@ -895,13 +975,18 @@ struct DayDetailView: View {
 
 // MARK: - model
 
-enum DayMetric: Int { case temp, feels, rain, wind, uv, humidity }
+enum DayMetric: Int { case temp, feels, rain, wind, uv, humidity, dust }
 
 /// Everything the subviews need for one day, resolved once per render. Colours are the prototype's.
 private struct DayCtx {
     let scene: WeatherScene; let index: Int; let day: WeatherScene.DayRow; let hourly: DayHourly?
     let ink: Ink; let night: Bool; let sel: Int; let metric: DayMetric; let scrub: Bool
+    var fine = true                              // 미세먼지 tab: PM2.5 or PM10
     var snowy: Bool { day.icon == "snowflake" }
+    /// The 미세먼지 curve in use (PM2.5 or PM10), its scale (WHO abroad) and today's highest reading so far
+    var dustVals: [Double] { (fine ? hourly?.pm25 : hourly?.pm10) ?? Array(repeating: 0, count: 24) }
+    var who: Bool { hourly?.dust?.who ?? false }
+    var dustMax: Double { dustVals.prefix((hourly?.dustLast ?? 23) + 1).max() ?? 0 }
     var inv: Color { night ? Color(hex: "#141A36") : .white }
     var bubble: Color { night ? Color(hex: "#232B58") : .white }
     var shadow: Color { night ? Color.black.opacity(0.35) : Color(hex: "#1E2A44").opacity(0.18) }
@@ -926,6 +1011,10 @@ private struct DayCtx {
 private struct DayHourly {
     var temp: [Double] = [], feel: [Double] = [], chance: [Double] = [], wind: [Double] = [], gust: [Double] = []
     var uv: [Double] = [], rh: [Double] = [], mm: [Double] = [], dir: [Double] = []
+    var pm10: [Double] = [], pm25: [Double] = []   // today's 미세먼지 readings by hour (Plus), held flat past the newest
+    var dustLast: Int?      // the newest hour with a reading
+    var dust: WeatherScene.Dust?
+    var hasDust: Bool { dustLast != nil }
     var hasMM = false       // the forecast has amounts (older answers only have the chance)
     var total = 0.0         // the day's amount, mm (cm on a snowy day)
     var dayProb = 0; var dayIcon = "cloud"; var snowy = false; var rainy = false
@@ -975,6 +1064,16 @@ private struct DayHourly {
         d.total = rows.reduce(0) { $0 + max(0, $1.mm ?? 0) }
         d.dayProb = day.chance; d.dayIcon = day.icon; d.snowy = day.icon == "snowflake"; d.rainy = rainy
         if index == 0, let m = WeatherScene.clockMinutes(s.clock) { d.now = m / 60 }
+        // 미세먼지: today's readings so far, each held until the next (sensor gaps too); nothing past the newest hour
+        if index == 0, let dust = s.dust, let hs = dust.hours, let lastH = hs.map(\.hour).max() {
+            var p10 = Array(repeating: 0.0, count: 24), p25 = Array(repeating: 0.0, count: 24)
+            var a = hs.first?.pm10 ?? 0, b = hs.first?.pm25 ?? 0
+            for hr in 0..<24 {
+                if let r = hs.last(where: { $0.hour == hr }) { a = r.pm10 ?? a; b = r.pm25 ?? b }
+                p10[hr] = a; p25[hr] = b
+            }
+            d.pm10 = p10; d.pm25 = p25; d.dustLast = lastH; d.dust = dust
+        }
         // night icons from the sunset / sunrise tile when there is one ("17:52" → from 18 h)
         for t in s.tiles {
             guard let v = t.value, let m = WeatherScene.clockMinutes(v) else { continue }
@@ -1519,6 +1618,29 @@ private struct DayUVBar: View {
                     .frame(width: 14, height: 14)
                     .offset(x: pos - 7)
                     .animation(Motion.gentle, value: uv)
+            }
+        }
+        .frame(height: 14)
+    }
+}
+
+/// The 미세먼지 scale under its chart: the four steps' colours and a square at today's highest reading
+private struct DayDustBar: View {
+    let value: Double; let pm25: Bool; let who: Bool; let ink: Color; let inv: Color
+    var body: some View {
+        GeometryReader { g in
+            let pos = CGFloat(DustScale.position(value, pm25: pm25, who: who)) * g.size.width
+            ZStack(alignment: .topLeading) {
+                HStack(spacing: 2) {
+                    ForEach(0..<4, id: \.self) { i in
+                        Rectangle().fill(Color(hex: DustScale.colors[i])).frame(width: (g.size.width - 6) / 4, height: 6)
+                    }
+                }
+                .offset(y: 4)
+                Rectangle().fill(inv).overlay(Rectangle().strokeBorder(ink, lineWidth: 2))
+                    .frame(width: 14, height: 14)
+                    .offset(x: min(max(pos - 7, 0), g.size.width - 14))
+                    .animation(Motion.gentle, value: value)
             }
         }
         .frame(height: 14)

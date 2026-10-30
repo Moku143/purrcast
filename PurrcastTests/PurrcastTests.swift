@@ -44,6 +44,20 @@ final class PurrcastTests: XCTestCase {
         XCTAssertNil(ex["combo"]?.dust)
         XCTAssertEqual(DustScale.position(39, pm25: false), 0.25 + 9.0 / 50 / 4, accuracy: 0.001)
         XCTAssertEqual(DustScale.position(0, pm25: true), 0); XCTAssertEqual(DustScale.position(999, pm25: true), 1)
+        // the scale card's ranges: 환경부 at home, WHO abroad
+        XCTAssertEqual((0..<4).map { DustScale.range($0, pm25: true) }, ["0~15", "16~35", "36~75", "76+"])
+        XCTAssertEqual((0..<4).map { DustScale.range($0, pm25: false, who: true) }, ["0~45", "46~75", "76~150", "151+"])
+        XCTAssertEqual(DustScale.range(1, pm25: true, who: true), "16~37.5"); XCTAssertEqual(DustScale.grade(40, pm25: false, who: true), 0); XCTAssertEqual(DustScale.grade(40, pm25: false), 1)
+        // today's readings (Plus): [hour, pm10, pm25], a sensor gap as null; older answers have none
+        let hoursJSON = """
+        {"pm10": 39, "pm25": 29, "grade": 1, "note": "", "src": "에어코리아", "srcKey": "airkorea", "hours": [[0, 20, 10], [1, 22, null], [13, 39, 29]]}
+        """.data(using: .utf8)!
+        let withHours = try JSONDecoder().decode(WeatherScene.Dust.self, from: hoursJSON)
+        XCTAssertEqual(withHours.hours?.count, 3); XCTAssertEqual(withHours.hours?[1].pm10, 22); XCTAssertNil(withHours.hours?[1].pm25); XCTAssertEqual(withHours.hours?[2].hour, 13)
+        XCTAssertFalse(withHours.who); XCTAssertNil(dust.hours)
+        // the 6-hour card's rows: [label, mm, kind] — older rows without a kind are rain
+        let six = try JSONDecoder().decode([WeatherScene.NextHour].self, from: #"[["15시", 0.8], ["16시", 1.2, 1], ["17시", 0.3, 2]]"#.data(using: .utf8)!)
+        XCTAssertEqual(six.map(\.kind), [0, 1, 2]); XCTAssertTrue(six[1].snow); XCTAssertTrue(six[2].sleet)
         XCTAssertEqual(plus.bubble?.text, "16~18시 비 예보")
         XCTAssertEqual(AppModel.planView(plus, plus: false).bubble?.text, "16~18시 비 예보", "the free plan keeps the window from the morning run")
         XCTAssertNil(free.next6)

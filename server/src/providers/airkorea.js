@@ -26,6 +26,10 @@ export const airkoreaOK = (json) => json?.response?.header?.resultCode === '00';
 /** 환경부 grades, 0 좋음 · 1 보통 · 2 나쁨 · 3 매우 나쁨. */
 export const gradePM10 = (v) => (v == null ? null : v <= 30 ? 0 : v <= 80 ? 1 : v <= 150 ? 2 : 3);
 export const gradePM25 = (v) => (v == null ? null : v <= 15 ? 0 : v <= 35 ? 1 : v <= 75 ? 2 : 3);
+/** The same four steps on WHO's 2021 24-hour values (the guideline, then interim targets 3 and 1), used outside Korea:
+ *  PM10 45 · 75 · 150, PM2.5 15 · 37.5 · 75. */
+export const gradePM10WHO = (v) => (v == null ? null : v <= 45 ? 0 : v <= 75 ? 1 : v <= 150 ? 2 : 3);
+export const gradePM25WHO = (v) => (v == null ? null : v <= 15 ? 0 : v <= 37.5 ? 1 : v <= 75 ? 2 : 3);
 const GRADE_WORD = { 좋음: 0, 보통: 1, 나쁨: 2, 매우나쁨: 3, '매우 나쁨': 3 };
 
 const km = (a, b, c, d) => {

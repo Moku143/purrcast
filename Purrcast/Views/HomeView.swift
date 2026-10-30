@@ -246,20 +246,28 @@ struct HomeView: View {
             if let st = R.firstIndex(where: { $0 >= 0.1 }) {
                 let en = R[st...].firstIndex(where: { $0 < 0.1 })
                 let last = en == nil ? R.count - 1 : en! - 1
+                // what falls in those hours: snow (sleet) when any wet hour says so — 초단기예보 and WeatherKit give snow
+                // as water (mm), about as many cm of snow, so the card says "약 1cm"
+                let wetRows = six[st...last]
+                let snow = wetRows.contains { $0.snow } && !wetRows.contains { $0.kind == 0 }
+                let sleet = !snow && wetRows.contains { $0.sleet || $0.snow }
+                let what = snow ? L("눈") : sleet ? L("진눈깨비") : L("비")
+                let amount = { (v: Double) -> String in snow ? L("약 %@cm", Self.mmText(v)) : "\(Self.mmText(v))mm" }
                 // the hours people plan around: "15~17시 비 예보" (what the forecast says, not a promise); raining
                 // now: how hard, "지금 비 · 시간당 2mm"
                 let hr = { (i: Int) -> Int in HourLabel.hour(six[i].label) ?? 0 }
-                head = st == 0 ? L("지금 비 · 시간당 %@mm", Self.mmText(R[0]))
-                    : (st == last ? L("%@쯤 비 예보", HourLabel.word(hr(st), clock12: model.clock12))
-                                  : L("%@ 비 예보", HourLabel.window(hr(st), hr(last), clock12: model.clock12)))
+                head = st == 0 ? L("지금 %@ · 시간당 %@", what, amount(R[0]))
+                    : (st == last ? L("%@쯤 %@ 예보", HourLabel.word(hr(st), clock12: model.clock12), what)
+                                  : L("%@ %@ 예보", HourLabel.window(hr(st), hr(last), clock12: model.clock12), what))
                 let peak = R.max() ?? 0
                 // until when the forecast has it; past the 6 hours: the average and the heaviest hour instead
                 let wet = Array(R[st...])
                 let peakAt = st + (wet.firstIndex(of: peak) ?? 0)
-                let stop = en == nil ? L("평균 시간당 %@mm · 가장 많이 오는 때 %@", Self.mmText(wet.reduce(0, +) / Double(wet.count)), HourLabel.word(hr(peakAt), clock12: model.clock12))
-                    : L("%@까지 비 예보", HourLabel.word((hr(last) + 1) % 24, clock12: model.clock12))
-                sub = chanceTail(7) + "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak)) · \(stop)"
-                icon = st == 0 ? "umbrella" : "umbrella_closed"
+                let stop = en == nil ? L("평균 시간당 %@ · 가장 많이 오는 때 %@", amount(wet.reduce(0, +) / Double(wet.count)), HourLabel.word(hr(peakAt), clock12: model.clock12))
+                    : L("%@까지 %@ 예보", HourLabel.word((hr(last) + 1) % 24, clock12: model.clock12), what)
+                let kind = snow ? "\(Rules.snowKind(peak)) · \(L("미끄러우니 조심하세요"))" : "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak))"
+                sub = chanceTail(7) + "\(kind) · \(stop)"
+                icon = snow ? "snowflake" : sleet ? "sleet" : st == 0 ? "umbrella" : "umbrella_closed"
             }
             let legend = s.nextSource == "met" ? "MET Norway · Plus" : s.nextSource == "apple" ? L("Apple 날씨 · Plus") : L("기상청 초단기 · Plus")
             return (L("다음 6시간"), legend, head, sub, icon, R, six.map { model.hourLabel($0.label) })

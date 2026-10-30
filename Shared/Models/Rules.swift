@@ -67,6 +67,8 @@ enum Rules {
     static func rainKindNote(_ mm: Double) -> String {
         mm >= 30 ? L("되도록 외출은 줄이는 게 좋아요") : mm >= 15 ? L("우산·우비 챙기세요") : mm >= 3 ? L("우산 꼭 챙기세요") : mm >= 1 ? L("우산 챙기세요") : L("가볍게 내려요")
     }
+    /// Snow per hour, by its water (mm ≈ cm of snow): 약한 눈 · 보통 눈 · 강한 눈
+    static func snowKind(_ mm: Double) -> String { mm >= 3 ? L("강한 눈") : mm >= 1 ? L("보통 눈") : L("약한 눈") }
     /// A day's (or 12 h) total: 조금 · 보통 · 많음 · 매우 많음
     static func rainAmountWord(_ mm: Double) -> String { mm >= 50 ? L("매우 많음") : mm >= 20 ? L("많음") : mm >= 5 ? L("보통") : L("조금") }
 
