@@ -108,11 +108,21 @@ struct WatchTempGauge: View {
                 Circle().fill(Color.black).overlay(Circle().stroke(Color.white, lineWidth: 2 * k))
                     .frame(width: 7.2 * k, height: 7.2 * k)
                     .position(x: c.x + r * CGFloat(sin(a)), y: c.y - r * CGFloat(cos(a)))
-                Text("\(u(s.temp))°").font(.px(13 * k)).foregroundStyle(.white).position(x: c.x + 2.5 * k, y: c.y + 1 * k)
+                HangingDegree(text: "\(u(s.temp))", font: .px(13 * k)).foregroundStyle(.white).position(x: c.x, y: c.y + 1 * k)
                 Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(Color(hex: "#9EA3B5"))
-                    .position(x: c.x + 2.5 * k, y: c.y + 19 * k)   // under the digits
+                    .position(x: c.x, y: c.y + 19 * k)
             }
         }
+    }
+}
+
+/// Digits centred on their own, the degree sign hanging off to the right (so "16°" sits where "16" would).
+struct HangingDegree: View {
+    let text: String
+    let font: Font
+    var body: some View {
+        Text(text).font(font)
+            .overlay(alignment: .trailing) { Text("°").font(font).alignmentGuide(.trailing) { $0[.leading] } }
     }
 }
 
@@ -156,7 +166,7 @@ struct WatchFeelsDisc: View {
         let f = WatchFacts(snap: snap)
         VStack(spacing: 1) {
             PixelIcon(name: f.feelsIcon, size: 14)
-            Text(f.feels).font(.px(13)).foregroundStyle(TempColor.of(f.s.feels))
+            HangingDegree(text: String(f.feels.dropLast()), font: .px(13)).foregroundStyle(TempColor.of(f.s.feels))
         }
     }
 }
@@ -192,7 +202,7 @@ struct WatchSummary: View {
                     if s.bubble != nil {
                         HStack(spacing: 3) {
                             PixelIcon(name: f.headIcon, size: 11)
-                            Text(f.head).font(.px(10)).lineLimit(1).minimumScaleFactor(0.7)
+                            Text(f.head.replacingOccurrences(of: "!", with: "")).font(.px(10)).lineLimit(1).minimumScaleFactor(0.7)
                         }
                         .foregroundStyle(Color(hex: "#1A2440"))
                         .padding(.horizontal, 4).padding(.vertical, 2)
