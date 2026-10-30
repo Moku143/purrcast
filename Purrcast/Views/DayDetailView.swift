@@ -553,22 +553,22 @@ struct DayDetailView: View {
             return [Extreme(title: L("가장 센 바람"), value: model.windText(Int(w.0.rounded())), hour: w.1),
                     Extreme(title: L("가장 센 돌풍"), value: model.windText(Int(g.0.rounded())), hour: g.1)]
         case .uv:
+            // 최고 · 최저 like the other tabs; the low over the daylight hours (at night every index is 0)
             let hi = at(h.uv, max: true)
-            let strong = h.uv.indices.filter { h.uv[$0] >= 3 }
-            let span = strong.isEmpty ? L("없음") : HourLabel.window(strong.first!, strong.last! + 1, clock12: model.clock12)
-            return [Extreme(title: L("가장 강할 때"), value: "\(Int(hi.0.rounded()))", hour: hi.0 >= 1 ? hi.1 : nil),
-                    Extreme(title: L("자외선 3 이상"), value: span, hour: strong.first)]
+            let day = Array(h.uv[h.dawn...min(23, max(h.dawn, h.dusk))])
+            let lo = at(day, max: false)
+            return [Extreme(title: L("최고"), value: "\(Int(hi.0.rounded()))", hour: hi.0 >= 1 ? hi.1 : nil),
+                    Extreme(title: L("낮 최저"), value: "\(Int(lo.0.rounded()))", hour: h.dawn + lo.1)]
         case .humidity:
             let hi = at(h.rh, max: true), lo = at(h.rh, max: false)
             return [Extreme(title: L("최고"), value: "\(Int(hi.0.rounded()))%", hour: hi.1),
                     Extreme(title: L("최저"), value: "\(Int(lo.0.rounded()))%", hour: lo.1)]
         case .dust:
-            // today's highest reading so far and the forecast bulletin's step for tomorrow
+            // today's highest and lowest readings so far (tomorrow's step is in the bubble)
             let known = Array(c.dustVals.prefix((h.dustLast ?? 23) + 1))
-            let hi = at(known, max: true)
-            let tm = c.fine ? h.dust?.tomorrow?.pm25Grade : h.dust?.tomorrow?.pm10Grade
-            return [Extreme(title: L("오늘 최고"), value: "\(Int(hi.0.rounded()))", hour: hi.1),
-                    Extreme(title: L("내일"), value: tm.map { L(DustScale.words[max(0, min(3, $0))]) } ?? "–", hour: nil)]
+            let hi = at(known, max: true), lo = at(known, max: false)
+            return [Extreme(title: L("최고"), value: "\(Int(hi.0.rounded()))", hour: hi.1),
+                    Extreme(title: L("최저"), value: "\(Int(lo.0.rounded()))", hour: lo.1)]
         }
     }
 
@@ -943,8 +943,10 @@ struct DayDetailView: View {
     private func briefUV(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let m = h.uvMax, b = UVScale.band(m)
         let k = m >= 11 ? 4 : m >= 8 ? 3 : m >= 6 ? 2 : m >= 3 ? 1 : 0
-        let t = [L("자외선이 약해요."), L("자외선 보통이에요. 한낮엔 선크림을 바르는 게 좋아요."), L("자외선이 강해요. 선크림과 모자를 챙기세요."),
+        var t = [L("자외선이 약해요."), L("자외선 보통이에요. 한낮엔 선크림을 바르는 게 좋아요."), L("자외선이 강해요. 선크림과 모자를 챙기세요."),
                  L("자외선이 매우 강해요. 한낮엔 바깥 활동을 줄이는 게 좋아요."), L("자외선이 위험 수준이에요. 한낮엔 바깥 활동을 피하는 게 좋아요.")][k]
+        let strong = h.uv.indices.filter { h.uv[$0] >= 3 }
+        if let a = strong.first, let b = strong.last { t += " " + L("%@에 3 이상이에요.", HourLabel.window(a, b + 1, clock12: model.clock12)) }
         return Brief(value: L("최고 %@", String(m)), badge: L(b.word), badgeColor: Color(hex: b.color), badgeInk: Color(hex: b.onColor), summary: t)
     }
 

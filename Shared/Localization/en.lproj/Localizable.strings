@@ -55,6 +55,7 @@
 "초미세먼지 %@" = "PM2.5 %@";
 "마스크를 챙겨 주세요" = "Bring a mask";
 "외출할 땐 마스크를 착용해 주세요" = "Wear a mask outdoors";
+"창문을 닫고 외출할 땐 마스크를 착용해 주세요" = "Close the windows and wear a mask outdoors";
 "체감 %@ %@" = "Feels %@ %@";
 "최저 %@" = "Low %@";
 "최고 %@" = "High %@";
@@ -500,6 +501,7 @@
 "%@ 단계" = "%@ scale";
 "%@ 단계 · WHO" = "%@ scale · WHO";
 "오늘 최고" = "Today's high";
+"낮 최저" = "Daytime low";
 "%@ %@이에요." = "%1$@ is %2$@.";
 "%@ %@까지 올랐다가 지금은 %@이에요." = "%1$@ reached %2$@ and is %3$@ now.";
 "공기가 맑아요." = "The air is clear.";
@@ -526,6 +528,7 @@
 "자외선이 강해요. 선크림과 모자를 챙기세요." = "Strong UV. Take sunscreen and a hat.";
 "자외선이 매우 강해요. 한낮엔 바깥 활동을 줄이는 게 좋아요." = "Very strong UV. Best to limit time outdoors at midday.";
 "자외선이 위험 수준이에요. 한낮엔 바깥 활동을 피하는 게 좋아요." = "Extreme UV. Best to avoid time outdoors at midday.";
+"%@에 3 이상이에요." = "3 or higher %@.";
 "자외선이 약해요." = "Low UV.";
 "적당" = "Comfortable";
 "적당해요." = "Comfortable.";

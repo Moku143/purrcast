@@ -89,26 +89,36 @@ enum Notifications {
     }
 
     /// The whole morning, one thing per line: ① sky and rain (its hours and amount) ② the swing, how it feels, UV,
-    /// sunset ③ Plus: the warning in force, else the change from yesterday, strong wind, dust ④ what to take — said once
-    /// (a warning line already says it). Free plans this from the 06:00 forecast, Plus from the latest.
+    /// sunset ③ 미세먼지 (Plus: a 주의보 / 경보 in force instead of the grade) ④ Plus: the warning in force, else the
+    /// change from yesterday and strong wind ⑤ what to take — said once (a warning line already says it). A few
+    /// emoji lead the lines people act on: the sky, a mask at 나쁨 or worse, the umbrella or a warning.
+    /// Free plans this from the 06:00 forecast, Plus from the latest.
     static func morningDetail(_ s: WeatherScene, day d: WeatherScene.DayRow, plus: Bool, today: Bool, unitF: Bool) -> String {
         let snowy = d.icon == "snowflake" || d.icon == "sleet"
         var sky: [String] = []
         if today, !s.cond.isEmpty { sky.append(s.cond) }
         if d.chance >= 30, today, let t = s.tiles.first, t.note.contains(L(" 예보")) { sky.append(t.note) }   // "16~18시 비 예보 · 4mm (조금)"
-        else if d.chance >= 60 { sky.append(snowy ? L("눈 예보") : L("비 예보")) }
+        else if d.chance >= 60, !(today && s.isSnow && !s.cond.isEmpty) { sky.append(snowy ? L("눈 예보") : L("비 예보")) }   // "눈 · 눈 예보" says it twice
         else if d.chance >= 30 { sky.append(L("강수확률 %d%%", d.chance)) }
         var day: [String] = []
         if d.hi - d.lo >= 8 { day.append(L("일교차 %d°", d.hi - d.lo)) }
         if today { day.append(L("체감 %@", Rules.feelsWord(s.feels))) }
         if today, let uv = s.tiles.first(where: { $0.kind == "uv" })?.uv, uv >= 3 { day.append(L("자외선 %@", UVScale.band(uv).word)) }
         if today, let sun = s.tiles.first(where: { $0.icon == "sunset" }), let v = sun.value, v != "–" { day.append(L("일몰 %@", v)) }
-        // 미세먼지: the grade(s), the finer one only when it differs; a mask line when 나쁨 or worse
+        // 미세먼지: the grade(s), the finer one only when it differs; a mask line when 나쁨 or worse. Plus: a 주의보 /
+        // 경보 in force is the line instead (the server's own words for it)
         var dustLine: [String] = []
-        if today, let d = s.dust {
-            if let g = d.pm10Grade { dustLine.append(L("미세먼지 %@", L(DustScale.words[g]))) }
-            if let g = d.pm25Grade, g != d.pm10Grade { dustLine.append(L("초미세먼지 %@", L(DustScale.words[g]))) }
-            if d.grade >= 2 { dustLine.append(d.grade >= 3 ? L("외출할 땐 마스크를 착용해 주세요") : L("마스크를 챙겨 주세요")) }
+        var masked = false
+        if today, let dd = s.dust {
+            if plus, let kind = dd.alarm, kind == "watch" || kind == "warning" {
+                let item = dd.pm25Grade.map { $0 >= (dd.pm10Grade ?? 0) } == true ? L("초미세먼지") : L("미세먼지")
+                dustLine.append("\(item) \(kind == "warning" ? L("경보") : L("주의보")) · " + L("창문을 닫고 외출할 땐 마스크를 착용해 주세요"))
+                masked = true
+            } else {
+                if let g = dd.pm10Grade { dustLine.append(L("미세먼지 %@", L(DustScale.words[g]))) }
+                if let g = dd.pm25Grade, g != dd.pm10Grade { dustLine.append(L("초미세먼지 %@", L(DustScale.words[g]))) }
+                if dd.grade >= 2 { dustLine.append(dd.grade >= 3 ? L("외출할 땐 마스크를 착용해 주세요") : L("마스크를 챙겨 주세요")); masked = true }
+            }
         }
         var extra: [String] = []
         var warned = false
@@ -120,15 +130,16 @@ enum Notifications {
                     extra.append(s.yday > 0 ? L("어제보다 %d° 높아요", shown) : L("어제보다 %d° 낮아요", shown))
                 }
                 if today, s.wind.speed >= 9 { extra.append(L("바람 %@", Rules.windWord(ms: s.wind.speed))) }
-                if today, s.aux == "dust" { extra.append(L("미세먼지 · 마스크 챙기세요")) }
+                if today, s.aux == "dust", s.dust == nil { extra.append(L("미세먼지 · 마스크 챙기세요")) }   // an older answer without the block
             }
         }
+        let skyEmoji = today && s.isSnow ? "🌨️ " : (d.chance >= 60 ? (snowy ? "🌨️ " : "🌧️ ") : s.cover == "clear" && today ? "☀️ " : d.chance >= 30 ? "🌦️ " : "☁️ ")
         var lines: [String] = []
-        if !sky.isEmpty { lines.append(sky.joined(separator: " · ")) }
+        if !sky.isEmpty { lines.append(skyEmoji + sky.joined(separator: " · ")) }
         if !day.isEmpty { lines.append(day.joined(separator: " · ")) }
-        if !dustLine.isEmpty { lines.append(dustLine.joined(separator: " · ")) }
-        if !extra.isEmpty { lines.append(extra.joined(separator: " · ")) }
-        if d.chance >= 30, !warned { lines.append(snowy ? L("미끄러우니 조심하세요") : L("우산 챙기세요")) }
+        if !dustLine.isEmpty { lines.append((masked ? "😷 " : "") + dustLine.joined(separator: " · ")) }
+        if !extra.isEmpty { lines.append((warned ? "⚠️ " : "") + extra.joined(separator: " · ")) }
+        if d.chance >= 30, !warned { lines.append(snowy ? "⚠️ " + L("미끄러우니 조심하세요") : "☂️ " + L("우산 챙기세요")) }
         if lines.isEmpty { lines.append(morningBody(d)) }
         return lines.joined(separator: "\n")
     }
