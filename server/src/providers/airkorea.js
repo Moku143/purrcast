@@ -12,8 +12,8 @@ export function airkoreaUrl(svc, op, key, params) {
   const q = new URLSearchParams({ returnType: 'json', pageNo: '1', numOfRows: '100', ...params });
   return `${BASE}/${svc}/${op}?serviceKey=${encodeURIComponent(key)}&${q}`;
 }
-export const stationsUrl = (key) => airkoreaUrl('MsrstnInfoInqireSvc', 'getMsrstnList', key, { numOfRows: '1000' });
-export const realtimeUrl = (key, station) => airkoreaUrl('ArpltnInforInqireSvc', 'getMsrstnAcctoRtmsDnstyInfo', key, { stationName: station, dataTerm: 'DAILY', ver: '1.3', numOfRows: '30' });
+export const stationsUrl = (key) => airkoreaUrl('MsrstnInfoInqireSvc', 'getMsrstnList', key, { numOfRows: '1000', ver: '1.1' });   // 1.1: dmX / dmY in their right places
+export const realtimeUrl = (key, station) => airkoreaUrl('ArpltnInforInqireSvc', 'getMsrstnAcctoRltmMesureDnsty', key, { stationName: station, dataTerm: 'DAILY', ver: '1.5', numOfRows: '30' });   // 1.5: with PM2.5
 export const forecastUrl = (key, ymd, code) => airkoreaUrl('ArpltnInforInqireSvc', 'getMinuDustFrcstDspth', key, { searchDate: ymd, InformCode: code });
 export const alarmUrl = (key, year) => airkoreaUrl('UlfptcaAlarmInqireSvc', 'getUlfptcaAlarmInfo', key, { year: String(year), numOfRows: '200' });
 
@@ -38,8 +38,10 @@ const km = (a, b, c, d) => {
 export function nearestStation(json, lat, lon) {
   let best = null;
   for (const it of items(json)) {
-    const y = parseFloat(it.dmX), x = parseFloat(it.dmY);   // dmX is the latitude, dmY the longitude (as 에어코리아 names them)
-    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+    // dmX / dmY: the latitude and longitude, but which is which has differed between versions — told apart by range
+    const a = parseFloat(it.dmX), b = parseFloat(it.dmY);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
+    const y = a > 100 ? b : a, x = a > 100 ? a : b;
     const d = km(lat, lon, y, x);
     if (!best || d < best.km) best = { name: it.stationName, addr: it.addr || '', km: Math.round(d * 10) / 10 };
   }
