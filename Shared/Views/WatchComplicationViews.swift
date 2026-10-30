@@ -108,7 +108,7 @@ struct WatchTempGauge: View {
                 Circle().fill(Color.black).overlay(Circle().stroke(Color.white, lineWidth: 2 * k))
                     .frame(width: 7.2 * k, height: 7.2 * k)
                     .position(x: c.x + r * CGFloat(sin(a)), y: c.y - r * CGFloat(cos(a)))
-                Text("\(u(s.temp))°").font(.px(13 * k)).foregroundStyle(.white).position(x: c.x, y: c.y + 1 * k)
+                Text("\(u(s.temp))°").font(.px(13 * k)).foregroundStyle(.white).position(x: c.x + 2.5 * k, y: c.y + 1 * k)
                 Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(Color(hex: "#9EA3B5"))
                     .position(x: c.x, y: c.y + 19 * k)
             }
@@ -131,16 +131,21 @@ struct WatchRainRing: View {
     let snap: WeatherSnapshot
     var body: some View {
         let f = WatchFacts(snap: snap)
-        Gauge(value: Double(f.chance), in: 0...100) {
-            Text("%")
-        } currentValueLabel: {
-            VStack(spacing: 1) {
-                PixelIcon(name: f.rainIcon, size: 13)
-                Text("\(f.chance)%").font(.px(12))
+        GeometryReader { g in
+            let d = min(g.size.width, g.size.height), k = d / 54, lw = 5 * k, r = 22 * k
+            let c = CGPoint(x: g.size.width / 2, y: g.size.height / 2)
+            ZStack {
+                Circle().stroke(Color.white.opacity(0.18), lineWidth: lw).frame(width: r * 2, height: r * 2).position(c)
+                Circle().trim(from: 0, to: CGFloat(max(0, min(100, f.chance))) / 100)
+                    .stroke(Color(hex: "#5AA0FF"), style: StrokeStyle(lineWidth: lw, lineCap: .round))
+                    .rotationEffect(.degrees(-90)).frame(width: r * 2, height: r * 2).position(c)
+                VStack(spacing: 1 * k) {
+                    PixelIcon(name: f.rainIcon, size: 13 * k)
+                    Text("\(f.chance)%").font(.px(12 * k)).foregroundStyle(.white)
+                }
+                .position(c)
             }
         }
-        .gaugeStyle(.accessoryCircularCapacity)
-        .tint(Color(hex: "#5AA0FF"))
     }
 }
 
@@ -179,31 +184,30 @@ struct WatchSummary: View {
     var body: some View {
         let f = WatchFacts(snap: snap), s = f.s
         if plate {
-            // the Smart Stack card like the phone's 2×2 widget: the sky behind, the cat with its word, the temperature,
-            // then sunset · feels-like · rain
-            let ink = Ink(night: s.isNight), lv = f.level
-            ZStack(alignment: .topLeading) {
-                PixelIcon(name: f.icon, size: 12).halo(ink).frame(maxWidth: .infinity, alignment: .topLeading).padding(.leading, 2)
-                ZStack(alignment: .bottom) {
-                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: f.rain, width: 40, animate: false)
-                        .frame(width: 40, height: 46, alignment: .bottom)
-                    if let b = s.bubble {
-                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 4), fontSize: 9).fixedSize()
-                            .scaleEffect(0.55, anchor: .bottom).padding(.bottom, 44)
+            let ink = s.isNight ? Color(hex: "#F3F5FF") : Color(hex: "#1A2440")
+            HStack(alignment: .bottom, spacing: 4) {
+                Image(f.sprite).resizable().interpolation(.high).scaledToFit()
+                    .frame(width: 54).padding(.bottom, -6)
+                VStack(alignment: .leading, spacing: 4) {
+                    if s.bubble != nil {
+                        HStack(spacing: 3) {
+                            PixelIcon(name: f.headIcon, size: 11)
+                            Text(f.head).font(.px(10)).lineLimit(1).minimumScaleFactor(0.7)
+                        }
+                        .foregroundStyle(Color(hex: "#1A2440"))
+                        .padding(.horizontal, 4).padding(.vertical, 2)
+                        .background(Color.white)
+                        .overlay(Rectangle().stroke(Color(hex: "#1A2440"), lineWidth: 1.5))
                     }
+                    HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        Text(f.temp).font(.px(26))
+                        Text(f.cond).font(.px(10)).lineLimit(1)
+                    }
+                    Text(L("체감 %@", f.feels) + (f.chance >= 10 ? " · " + L("강수 %d%%", f.chance) : "")).font(.px(9)).opacity(0.85).lineLimit(1)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                .padding(.leading, 4)
-                VStack(alignment: .trailing, spacing: 0) {
-                    Text(f.temp).font(.px(22)).lineLimit(1).minimumScaleFactor(0.7)
-                    if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 8); Text(t).font(.px(7.5)) } }
-                    Text(L("체감 %@", f.feels)).font(.px(7.5))
-                    Text(L("강수 %d%%", f.chance)).font(.px(7.5))
-                }
-                .lineLimit(1).minimumScaleFactor(0.8).halo(ink)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .foregroundStyle(ink)
+                Spacer(minLength: 0)
             }
-            .foregroundStyle(ink.ink)
         } else {
             // at a glance, no exclamation: "☁ 16° 비" / "어제보다 3° 낮아요" / "↑16° ↓11° · 강수 80%"
             let y = s.yday

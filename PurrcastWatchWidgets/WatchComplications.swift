@@ -65,7 +65,7 @@ struct SummaryComplication: View {
 struct SummaryWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastWatch", provider: WatchProvider()) { e in
-            SummaryComplication(entry: e).containerBackground(for: .widget) { WidgetBackground(level: Rules.clamp(e.snap.scene.level), night: e.snap.scene.isNight, scene: e.snap.scene) }
+            SummaryComplication(entry: e).containerBackground(for: .widget) { WatchSummaryPlate(snap: e.snap) }
         }
         .configurationDisplayName(Brand.name)
         .description(L("옷차림으로 보는 지금 날씨"))

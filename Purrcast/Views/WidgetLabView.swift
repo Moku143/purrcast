@@ -149,8 +149,8 @@ struct WidgetLabView: View {
                 .accessibilityElement(children: .contain).accessibilityIdentifier("lab-w-corners")
                 WatchSummary(snap: snap).frame(width: 170).accessibilityIdentifier("lab-w-summary")
                 Text(LockText.inline(snap)).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white).accessibilityIdentifier("lab-w-inline")
-                WatchSummary(snap: snap, plate: true).padding(.horizontal, 8).padding(.vertical, 6).frame(width: 170, height: 74)
-                    .background(WidgetBackground(level: Rules.clamp(snap.scene.level), night: snap.scene.isNight, scene: snap.scene)).clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                WatchSummary(snap: snap, plate: true).padding(.horizontal, 8).frame(width: 170, height: 74)
+                    .background(WatchSummaryPlate(snap: snap)).clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .accessibilityIdentifier("lab-w-stack")
             }
             .padding(14)
