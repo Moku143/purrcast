@@ -187,10 +187,12 @@
 "6시간 동안 비 소식 없어요" = "No rain in the next 6 hours";
 "지금 비" = "Raining now";
 "지금 비 · 시간당 %@mm" = "Raining now · %@mm/h";
+"지금 비 · %@" = "Raining now · %@";
 "%@쯤 비 예보" = "Rain around %@";
 "%@ 비 예보" = "Rain %@";
 "평균 시간당 %@mm · 가장 많이 오는 때 %@" = "Avg %1$@mm/h · Heaviest around %2$@";
 "%@까지 비 예보" = "Rain until around %@";
+"%d시까지 비 예보" = "Rain until around %d:00";
 "지금 %@ · 시간당 %@" = "%1$@ now · %2$@/h";
 "%@쯤 %@ 예보" = "%2$@ around %1$@";
 "%@ %@ 예보" = "%2$@ %1$@";
@@ -372,6 +374,7 @@
 "왼쪽 위 ‘편집’ → ‘위젯 추가’" = "Top left ‘Edit’ → ‘Add Widget’";
 "%@를 찾아 크기를 골라요" = "Find %@ and pick a size";
 "잠금 화면" = "Lock Screen";
+"다이내믹 아일랜드" = "Dynamic Island";
 "잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 %@를 골라요. 시계 위 한 줄은 시계 위 날짜를 눌러 %@를 골라요." = "Touch and hold the Lock Screen, tap Customize → Lock Screen, then pick %@ in the widget area. For the line above the clock, tap the date above the clock and pick %@.";
 "%@ 업데이트" = "updated %@";
 "%@ 기준" = "as of %@";
