@@ -1,0 +1,2 @@
+FREE_DAY: bound
+DEVICES: bound
