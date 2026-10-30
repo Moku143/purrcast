@@ -192,19 +192,20 @@ Korea always cover 00–24 h: the earlier runs (05 h, yesterday 23 h) fill what 
 - 적용: 홈 말풍선 · 특보 띠 · 다음 6시간 카드 · 타일 설명 · 날짜 상세 · 알림. 위젯 · 워치 · 특보 이름은 단어라 그대로.
 - 예: 비 예보예요. 우산을 챙겨 주세요. → 비 예보입니다. 우산을 챙겨 주십시오. / 비 예보야. 우산을 챙겨.
 
-## Live Activities (Plus) — `POST /v1/devices`
+## Rain alert push (Plus) — `POST /v1/devices`
 
-The app registers its device for the rain Live Activity (Dynamic Island / lock screen). Body (JSON):
+The app registers its device for the rain alert. Body (JSON):
 
 ```json
 { "id": "<uuid>", "lat": 37.49, "lon": 126.84, "tz": "Asia/Seoul", "region": "kr", "lang": "ko", "name": "오류동", "char": "cat", "plan": "plus",
-  "start": "<push-to-start token, hex>",   // from ActivityKit (iOS 17.2+); sent when it changes
-  "act": "<activity update token, hex>" }  // sent once an activity is running (its own token)
+  "rain": true,                             // the 비 오기 전 toggle
+  "start": "<push-to-start token, hex>" }   // from ActivityKit (iOS 17.2+); sent when it changes
 ```
 
 Fields left out keep their earlier values. `DELETE /v1/devices?id=` forgets the device. Every half hour (cron) the
-Worker fetches each Plus device's place (Plus plan, shared per ~1 km cell) and, when rain or snow is due within two
-hours or falling now, starts the activity over APNs (`attributes-type` `RainActivityAttributes`), updates it while it
-runs and ends it when the forecast is dry again. Content state: `{ title, sub, icon, what, falling, mm, start, end, endHour }`
+Worker fetches each Plus device's place (Plus plan, shared per ~1 km cell) and, when rain or snow is due within the
+hour or falling now and that rain has not been announced yet, pushes once: a Live Activity (`attributes-type`
+`RainActivityAttributes`) that shows on the Dynamic Island / lock screen for ten minutes, with the alert banner
+("6시쯤 비 예보 · 1mm · 우산 챙기세요"). Content state: `{ title, sub, icon, what, falling, mm, start, end, endHour }`
 (`start` / `end` unix seconds). Needs the APNs key secrets (`APNS_KEY`, `APNS_KEY_ID`, `APPLE_TEAM_ID`) and the
 `DEVICES` KV namespace; `/health` shows `apns` and `devices`.

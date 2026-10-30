@@ -1,7 +1,8 @@
-// Live Activities (Dynamic Island / lock screen) for rain on the way — Plus. The app registers its device (a
-// push-to-start token, iOS 17.2+); every half hour the Worker's cron looks at each device's place and, when rain
-// (or snow) is due within two hours or falling now, starts the activity over APNs, keeps it current, and ends it
-// when the rain is past. Needs an APNs key: APNS_KEY (the .p8 text), APNS_KEY_ID, APPLE_TEAM_ID.
+// The rain alert (Plus) as a Live Activity push: the app registers its device (a push-to-start token, iOS 17.2+);
+// every half hour the Worker's cron looks at each device's place and, when rain (or snow) is due within the hour
+// or falling now, starts the activity once over APNs — on the Dynamic Island / lock screen for a few minutes
+// (DISMISS_AFTER), with the alert banner — and says nothing more about that rain. Needs an APNs key: APNS_KEY (the
+// .p8 text), APNS_KEY_ID, APPLE_TEAM_ID.
 //
 // Device records live in the DEVICES KV namespace: dev:<id> → { id, start (push-to-start token), act (the running
 // activity's update token), key (which rain the activity is about), until (ms), lat, lon, tz, region, lang, name,
@@ -14,6 +15,8 @@ export const APNS_HOST = 'https://api.push.apple.com';
 export const BUNDLE_ID = 'app.purrcast.ios';
 export const ATTRIBUTES_TYPE = 'RainActivityAttributes';
 const MAX_HOURS = 8;   // ActivityKit ends an activity after 8 hours anyway
+export const WITHIN_HOURS = 1;       // the alert comes when the rain is this close
+export const DISMISS_AFTER = 10 * 60; // seconds the activity stays on the island / lock screen
 
 export const hasAPNs = (env) => !!(env.APNS_KEY && env.APNS_KEY_ID && env.APPLE_TEAM_ID);
 
@@ -78,7 +81,7 @@ const wet = (p) => (p.mm || 0) >= 0.1 || ['rain', 'heavy', 'snow', 'heavysnow', 
  * points): null when nothing falls within `within` hours and nothing is falling now. Otherwise
  * { key, start, end, falling, what, mm, state } where `state` is the activity's content-state.
  */
-export function rainActivity(f, { now, tz, lang = 'ko', within = 2 }) {
+export function rainActivity(f, { now, tz, lang = 'ko', within = WITHIN_HOURS }) {
   const S = strings(lang);
   const nowT = now.getTime();
   // the hour rows from now on: next6 covers the first hours, the hourly points carry on after it
@@ -126,8 +129,8 @@ export function activityBody(event, { state, place, char, level, now, end }) {
   if (event === 'start') {
     return { aps: { timestamp: ts, event: 'start', 'content-state': state, 'attributes-type': ATTRIBUTES_TYPE,
       attributes: { place, character: char || 'cat', level: level ?? 5 },
-      alert: { title: state.title, body: `${place} · ${state.sub}`, sound: 'default' },
-      'stale-date': ts + 3900, 'dismissal-date': Math.floor(end / 1000) + 600 } };
+      alert: { title: state.title, body: place ? `${place} · ${state.sub}` : state.sub, sound: 'default' },
+      'stale-date': ts + DISMISS_AFTER, 'dismissal-date': ts + DISMISS_AFTER } };
   }
   if (event === 'end') return { aps: { timestamp: ts, event: 'end', 'content-state': state, 'dismissal-date': ts } };
   return { aps: { timestamp: ts, event: 'update', 'content-state': state, 'stale-date': ts + 3900, 'dismissal-date': Math.floor(end / 1000) + 600 } };
@@ -158,6 +161,7 @@ export function readDevice(body) {
   if (body.name != null) out.name = String(body.name).slice(0, 40);
   if (body.char != null) out.char = String(body.char).slice(0, 16);
   if (body.plan != null) out.plan = body.plan === 'plus' ? 'plus' : 'free';
+  if (body.rain != null) out.rain = !!body.rain;
   return out;
 }
 
@@ -174,11 +178,12 @@ export async function saveDevice(store, dev, now = new Date()) {
 
 /**
  * The half-hourly pass: every Plus device with a push-to-start token gets its place's forecast (shared per ~1 km
- * cell), and the activity is started, updated or ended. `forecastRaw(q)` gives { f } for a place. Returns counts.
+ * cell); rain within the hour that the device has not been told about yet is pushed once. `forecastRaw(q)` gives
+ * { scene, f } for a place. Returns counts.
  */
 export async function runActivities(env, { forecastRaw, fetcher = fetch, now = new Date() }) {
   const store = env.DEVICES;
-  const out = { devices: 0, started: 0, updated: 0, ended: 0, skipped: 0, errors: 0 };
+  const out = { devices: 0, started: 0, skipped: 0, errors: 0 };
   if (!store || !hasAPNs(env)) return out;
   const raws = new Map();
   const rawFor = async (dev) => {
@@ -195,30 +200,20 @@ export async function runActivities(env, { forecastRaw, fetcher = fetch, now = n
       try { dev = await store.get(k.name, 'json'); } catch { continue; }
       if (!dev) continue;
       out.devices++;
-      if (dev.plan !== 'plus' || !dev.start) { out.skipped++; continue; }
+      if (dev.plan !== 'plus' || !dev.start || dev.rain === false) { out.skipped++; continue; }
       const raw = await rawFor(dev);
       if (!raw || raw.error) { out.errors++; continue; }
       const act = rainActivity(raw.f, { now, tz: dev.tz, lang: dev.lang });
-      const running = dev.key && dev.until && dev.until > now.getTime();
       try {
-        if (act && !running) {
+        if (act && dev.key !== act.key) {
+          // this rain has not been announced: once, then remember it until the rain is past
           const body = activityBody('start', { state: act.state, place: dev.name || '', char: dev.char, level: raw.scene?.level, now, end: act.end });
           const r = await sendLiveActivity(env, dev.start, body, { fetcher, now });
-          if (r.ok) { out.started++; await store.put(k.name, JSON.stringify({ ...dev, key: act.key, until: act.end, act: null }), { expirationTtl: DEV_TTL }); }
+          if (r.ok) { out.started++; await store.put(k.name, JSON.stringify({ ...dev, key: act.key, until: act.end }), { expirationTtl: DEV_TTL }); }
           else { out.errors++; if (r.dead) await store.put(k.name, JSON.stringify({ ...dev, start: null }), { expirationTtl: DEV_TTL }); console.log('APNs start failed:', r.status, r.reason); }
-        } else if (act && running && dev.act) {
-          const r = await sendLiveActivity(env, dev.act, activityBody('update', { state: act.state, now, end: act.end }), { fetcher, now });
-          if (r.ok) { out.updated++; await store.put(k.name, JSON.stringify({ ...dev, key: act.key, until: act.end }), { expirationTtl: DEV_TTL }); }
-          else { out.errors++; console.log('APNs update failed:', r.status, r.reason); }
-        } else if (!act && running && dev.act) {
-          const S = strings(dev.lang);
-          const state = { title: S.live.over, sub: '', icon: 'cloud', what: 'rain', falling: false, mm: 0, start: Math.floor(now / 1000), end: Math.floor(now / 1000), endHour: local(now, dev.tz).h };
-          const r = await sendLiveActivity(env, dev.act, activityBody('end', { state, now, end: now.getTime() }), { fetcher, now });
-          if (r.ok) out.ended++; else out.errors++;
-          await store.put(k.name, JSON.stringify({ ...dev, key: null, until: null, act: null }), { expirationTtl: DEV_TTL });
         } else {
           out.skipped++;
-          if (!act && running && !dev.act && dev.until < now.getTime()) await store.put(k.name, JSON.stringify({ ...dev, key: null, until: null }), { expirationTtl: DEV_TTL });
+          if (!act && dev.key && dev.until && dev.until < now.getTime()) await store.put(k.name, JSON.stringify({ ...dev, key: null, until: null }), { expirationTtl: DEV_TTL });
         }
       } catch (e) { out.errors++; console.log('activity failed:', e.message); }
     }

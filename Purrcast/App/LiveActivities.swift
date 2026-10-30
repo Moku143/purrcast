@@ -1,10 +1,11 @@
 import Foundation
 import ActivityKit
 
-/// The rain Live Activity's plumbing on the app's side: ActivityKit hands out a push-to-start token (iOS 17.2+) and,
-/// once an activity runs, its own update token; both go to the server with the place, plan and character
-/// (`POST /v1/devices`), and the server starts, updates and ends the activity over APNs every half hour (Plus).
-/// The phone needs nothing else running. Without a server (the sample provider) nothing is sent.
+/// The Plus rain alert's plumbing on the app's side: ActivityKit hands out a push-to-start token (iOS 17.2+), which
+/// goes to the server with the place, plan and character (`POST /v1/devices`); the server's half-hourly pass then
+/// pushes the alert about an hour before the rain — a Live Activity that shows on the Dynamic Island / lock screen
+/// for a few minutes, with the banner — so the app need not be open. Without a server (the sample provider) nothing
+/// is sent and the app's own scheduled notification stays.
 @MainActor
 final class LiveActivities {
     static let shared = LiveActivities()
@@ -44,36 +45,17 @@ final class LiveActivities {
                 }
             }
         }
-        // activities already running (the app was relaunched while one shows) and the ones to come
-        for a in Activity<RainActivityAttributes>.activities { follow(a, model) }
-        Task { [weak self, weak model] in
-            for await a in Activity<RainActivityAttributes>.activityUpdates {
-                guard let self, let model else { return }
-                self.follow(a, model)
-            }
-        }
-    }
-
-    private func follow(_ a: Activity<RainActivityAttributes>, _ model: AppModel) {
-        Task { [weak self, weak model] in
-            for await data in a.pushTokenUpdates {
-                let hex = data.map { String(format: "%02x", $0) }.joined()
-                guard let self, let model else { return }
-                await self.register(model, act: hex, force: true)
-            }
-        }
     }
 
     /// The device as the server should know it now. Sent when something changed (or an hour has passed).
-    func register(_ model: AppModel, act: String? = nil, force: Bool = false) async {
+    func register(_ model: AppModel, force: Bool = false) async {
         guard let base = WeatherSource.serverURL, !model.isSample, let start = startToken else { return }
         let p = model.currentPlace
-        var body: [String: Any] = [
+        let body: [String: Any] = [
             "id": Self.deviceID, "lat": (p.lat * 100).rounded() / 100, "lon": (p.lon * 100).rounded() / 100, "tz": p.timeZone,
             "region": p.region, "lang": Lang.current.code, "name": p.short, "char": model.shownCharacter.rawValue,
-            "plan": model.plus ? "plus" : "free", "start": start,
+            "plan": model.plus ? "plus" : "free", "start": start, "rain": model.notifyRain,
         ]
-        if let act { body["act"] = act }
         guard let data = try? JSONSerialization.data(withJSONObject: body, options: [.sortedKeys]) else { return }
         let key = String(decoding: data, as: UTF8.self)
         if !force, key == lastSent, let t = lastSentAt, Date().timeIntervalSince(t) < 3600 { return }

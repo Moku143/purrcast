@@ -339,6 +339,7 @@ final class AppModel: ObservableObject {
         // free: the morning summary only (rain and the day-to-day change are Plus)
         // the rain alert comes as the Live Activity's own banner once the server can push it; else the app's own
         let rainHere = notifyRain && plus && !isSample && !LiveActivities.shared.active
+        Task { await LiveActivities.shared.register(self) }   // the toggle travels with the device
         Notifications.plan(scene: scene, place: currentPlace, rain: rainHere, morning: notifyMorning && !isSample,
                            change: notifyChange && plus && !isSample, morningTime: morningTime, unitF: unitF, voice: voice, clock12: clock12,
                            character: shownCharacter, plus: plus)
