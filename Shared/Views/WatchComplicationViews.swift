@@ -179,30 +179,37 @@ struct WatchSummary: View {
     var body: some View {
         let f = WatchFacts(snap: snap), s = f.s
         if plate {
-            let ink = s.isNight ? Color(hex: "#F3F5FF") : Color(hex: "#1A2440")
-            HStack(alignment: .bottom, spacing: 4) {
-                Image(f.sprite).resizable().interpolation(.high).scaledToFit()
-                    .frame(width: 54).padding(.bottom, -6)
-                VStack(alignment: .leading, spacing: 4) {
-                    if s.bubble != nil {
-                        HStack(spacing: 3) {
-                            PixelIcon(name: f.headIcon, size: 11)
-                            Text(f.head).font(.px(10)).lineLimit(1).minimumScaleFactor(0.7)
-                        }
-                        .foregroundStyle(Color(hex: "#1A2440"))
-                        .padding(.horizontal, 4).padding(.vertical, 2)
-                        .background(Color.white)
-                        .overlay(Rectangle().stroke(Color(hex: "#1A2440"), lineWidth: 1.5))
-                    }
-                    HStack(alignment: .firstTextBaseline, spacing: 5) {
-                        Text(f.temp).font(.px(26))
-                        Text(f.cond).font(.px(10)).lineLimit(1)
-                    }
-                    Text(L("체감 %@", f.feels) + (f.chance >= 10 ? " · " + L("강수 %d%%", f.chance) : "")).font(.px(9)).opacity(0.85).lineLimit(1)
+            // the Smart Stack card like the phone's 2×2 widget: the sky behind, the cat with its word, the temperature,
+            // then sunset · feels-like · rain
+            let ink = Ink(night: s.isNight), lv = f.level
+            ZStack(alignment: .topLeading) {
+                HStack(spacing: 3) {
+                    Text(snap.placeShort).font(.px(10)).lineLimit(1).minimumScaleFactor(0.7)
+                    Spacer(minLength: 0)
+                    PixelIcon(name: f.icon, size: 13)
                 }
-                .foregroundStyle(ink)
-                Spacer(minLength: 0)
+                .halo(ink)
+                ZStack(alignment: .bottom) {
+                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: f.rain, width: 44, animate: false)
+                        .frame(width: 44, height: 51, alignment: .bottom)
+                    if let b = s.bubble {
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 4), fontSize: 9).fixedSize()
+                            .scaleEffect(0.6, anchor: .bottom).padding(.bottom, 50)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .padding(.leading, 2).padding(.bottom, -2)
+                VStack(alignment: .trailing, spacing: 0) {
+                    Text(f.temp).font(.px(24)).lineLimit(1).minimumScaleFactor(0.7)
+                    if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 9); Text(t).font(.px(8)) } }
+                    Text(L("체감 %@", f.feels)).font(.px(8))
+                    Text(L("강수 %d%%", f.chance)).font(.px(8))
+                }
+                .lineLimit(1).minimumScaleFactor(0.8).halo(ink)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .padding(.top, 14)
             }
+            .foregroundStyle(ink.ink)
         } else {
             // at a glance, no exclamation: "☁ 16° 비" / "어제보다 3° 낮아요" / "↑16° ↓11° · 강수 80%"
             let y = s.yday
