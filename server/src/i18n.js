@@ -40,6 +40,9 @@ const DICT = {
     partOfDay: { morning: '아침', afternoon: '오후', evening: '저녁', night: '밤' },
     partTomorrow: (p) => `내일 ${p}`,
     what: { rain: '비', snow: '눈', sleet: '진눈깨비' },
+    // the Live Activity (Dynamic Island / lock screen): "지금 비 · 1mm" / "6시쯤 비 예보", "1mm · 우산 챙기세요"
+    live: { nowFalling: (what, amt) => `지금 ${what} · ${amt}`, aboutCm: (n) => `약 ${n}cm`, over: '비가 그쳤어요',
+      care: { rain: '우산 챙기세요', snow: '미끄러우니 조심하세요', sleet: '미끄러우니 조심하세요' } },
     expect: (when, what) => `${when} ${what} 예보`,                       // 15~17시 비 예보 (the forecast says so, not a promise)
     cond: { thunder: '뇌우', heavy: '강한 비', rain: '비', snow: '눈', heavysnow: '많은 눈', sleet: '진눈깨비', clear: '맑음', partly: '구름 조금', overcast: '흐림',
       wind: '바람', windStrong: '바람 강함', fog: '안개', heat: '폭염', night: '열대야', frost: '한파' },
@@ -94,6 +97,8 @@ const DICT = {
     partOfDay: { morning: 'morning', afternoon: 'afternoon', evening: 'evening', night: 'night' },
     partTomorrow: (p) => `tomorrow ${p}`,
     what: { rain: 'Rain', snow: 'Snow', sleet: 'Sleet' },
+    live: { nowFalling: (what, amt) => `${what} now · ${amt}`, aboutCm: (n) => `about ${n}cm`, over: 'The rain has stopped',
+      care: { rain: 'Take an umbrella', snow: 'Watch your step', sleet: 'Watch your step' } },
     expect: (when, what) => `${what} ${when}`,                             // Rain 3–5PM
     cond: { thunder: 'Thunderstorm', heavy: 'Heavy rain', rain: 'Rain', snow: 'Snow', heavysnow: 'Heavy snow', sleet: 'Sleet', clear: 'Clear', partly: 'Partly cloudy', overcast: 'Cloudy',
       wind: 'Windy', windStrong: 'Strong wind', fog: 'Fog', heat: 'Heat wave', night: 'Tropical night', frost: 'Cold wave' },
@@ -144,6 +149,8 @@ const DICT = {
     partOfDay: { morning: '朝', afternoon: '午後', evening: '夕方', night: '夜' },
     partTomorrow: (p) => `明日の${p}`,
     what: { rain: '雨', snow: '雪', sleet: 'みぞれ' },
+    live: { nowFalling: (what, amt) => `今、${what}・${amt}`, aboutCm: (n) => `約${n}cm`, over: '雨がやみました',
+      care: { rain: '傘をお持ちください', snow: '滑りやすいのでご注意ください', sleet: '滑りやすいのでご注意ください' } },
     expect: (when, what) => `${when} ${what}の予報`,                       // 15〜17時 雨の予報
     cond: { thunder: '雷雨', heavy: '強い雨', rain: '雨', snow: '雪', heavysnow: '大雪', sleet: 'みぞれ', clear: '晴れ', partly: '晴れ時々曇り', overcast: '曇り',
       wind: '風', windStrong: '強風', fog: '霧', heat: '猛暑', night: '熱帯夜', frost: '寒波' },

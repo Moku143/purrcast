@@ -914,3 +914,75 @@ test('Abroad: scene.dust from OpenWeather with Apple or MET weather', async () =
   assert.equal(s.dust.pm10, 61); assert.equal(s.dust.pm10Grade, 1); assert.equal(s.dust.pm25Grade, 0); assert.equal(s.dust.grade, 1);
   assert.equal(s.dust.note, 'まあまあです'); assert.equal(s.dust.src, 'OpenWeather'); assert.equal(s.dust.station, undefined); assert.equal(s.dust.tomorrow, undefined);
 });
+
+// ---- Live Activities (push.js) ----
+import { rainActivity, activityBody, readDevice, saveDevice, runActivities, apnsToken, resetApnsToken } from '../src/push.js';
+
+test('Live Activity: rain within two hours → start text; falling now → until-when text; snow in cm; nothing when dry', () => {
+  const now = at(13, 40);
+  const pts = (spec) => spec.map(([h, mm, type]) => ({ t: at(h), mm, type: type || (mm > 0 ? 'rain' : 'none') }));
+  const dry = rainActivity({ points: pts([[13, 0], [14, 0], [15, 0], [16, 0]]) }, { now, tz: TZ });
+  assert.equal(dry, null);
+  const soon = rainActivity({ points: pts([[13, 0], [14, 0], [15, 1.2], [16, 2], [17, 0]]) }, { now, tz: TZ });
+  assert.equal(soon.falling, false); assert.equal(soon.state.title, '15시쯤 비 예보'); assert.equal(soon.state.sub, '2mm · 우산 챙기세요');
+  assert.equal(soon.state.icon, 'umbrella_closed'); assert.equal(soon.state.endHour, 17); assert.equal(soon.key, '20261021:15:rain');
+  assert.equal(soon.state.start, Math.floor(at(15).getTime() / 1000)); assert.equal(soon.state.end, Math.floor(at(17).getTime() / 1000));
+  const later = rainActivity({ points: pts([[13, 0], [14, 0], [15, 0], [16, 1.2]]) }, { now, tz: TZ });
+  assert.equal(later, null, 'more than two hours away: not yet');
+  const falling = rainActivity({ now: { mm: 1 }, points: pts([[13, 1], [14, 0.8], [15, 0]]) }, { now, tz: TZ });
+  assert.equal(falling.falling, true); assert.equal(falling.state.title, '지금 비 · 1mm'); assert.equal(falling.state.sub, '15시까지 비 예보'); assert.equal(falling.state.icon, 'umbrella');
+  const snow = rainActivity({ points: pts([[13, 0], [14, 0.6, 'snow'], [15, 0]]) }, { now, tz: TZ, lang: 'en' });
+  assert.equal(snow.state.title, 'Snow around 2PM'); assert.equal(snow.state.sub, 'about 0.6cm · Watch your step'); assert.equal(snow.state.icon, 'snowflake');
+  // next6 (초단기) rows come first and win over the hourly points for the same hour
+  const six = rainActivity({ next6: pts([[14, 0.4]]), points: pts([[13, 0], [14, 0], [15, 0]]) }, { now, tz: TZ, lang: 'ja' });
+  assert.equal(six.state.title, '14時ごろ 雨の予報');
+  const b = activityBody('start', { state: soon.state, place: '오류동', char: 'abys', level: 7, now, end: soon.end });
+  assert.equal(b.aps.event, 'start'); assert.equal(b.aps['attributes-type'], 'RainActivityAttributes'); assert.deepEqual(b.aps.attributes, { place: '오류동', character: 'abys', level: 7 });
+  assert.equal(b.aps.alert.body, '오류동 · 2mm · 우산 챙기세요'); assert.equal(b.aps['dismissal-date'], soon.state.end + 600);
+  assert.equal(activityBody('end', { state: soon.state, now, end: now.getTime() }).aps.event, 'end');
+});
+
+test('Live Activity: device registration, the APNs token, and the half-hourly pass over a fake store', async () => {
+  assert.equal(readDevice({ id: 'ABC-1', lat: 37.49, lon: 126.84, tz: 'Asia/Seoul', region: 'kr', lang: 'ko', name: '오류동', char: 'cat', plan: 'plus', start: 'ab'.repeat(32) }).start, 'ab'.repeat(32));
+  assert.equal(readDevice({ id: 'x', lat: 999, lon: 0 }), null); assert.equal(readDevice({ id: 'x', lat: 1, lon: 1, tz: 'Mars/Olympus' }), null);
+  assert.equal(readDevice({ id: 'x', lat: 1, lon: 1, start: 'zz' }).start, null, 'a token is hex'); assert.equal(readDevice({ id: 'x', lat: 1, lon: 1 }).plan, undefined);
+  const kv = new Map();
+  const store = {
+    get: async (k) => (kv.has(k) ? JSON.parse(kv.get(k)) : null), put: async (k, v) => { kv.set(k, v); }, delete: async (k) => { kv.delete(k); },
+    list: async () => ({ keys: [...kv.keys()].map((name) => ({ name })), list_complete: true }),
+  };
+  const now = at(13, 40);
+  await saveDevice(store, readDevice({ id: 'D1', lat: 37.49, lon: 126.84, tz: 'Asia/Seoul', region: 'kr', lang: 'ko', name: '오류동', plan: 'plus', start: 'ab'.repeat(32) }), now);
+  await saveDevice(store, readDevice({ id: 'D1', lat: 37.49, lon: 126.84, act: 'cd'.repeat(32) }), now);
+  assert.equal(JSON.parse(kv.get('dev:D1')).start, 'ab'.repeat(32), 'a later registration keeps the push-to-start token');
+  assert.equal(JSON.parse(kv.get('dev:D1')).act, 'cd'.repeat(32));
+  await saveDevice(store, readDevice({ id: 'D2', lat: 35.68, lon: 139.69, tz: 'Asia/Tokyo', region: 'jp', lang: 'ja', plan: 'free', start: 'ef'.repeat(32) }), now);
+  // the APNs provider token: ES256 over { iss: team, iat }, with the key id in the header
+  const env = { DEVICES: store, APNS_KEY: (await testP8()).pem, APNS_KEY_ID: 'KEY1234567', APPLE_TEAM_ID: 'TEAM123456' };
+  resetApnsToken();
+  const jwt = await apnsToken(env, now);
+  const [h, p] = jwt.split('.').slice(0, 2).map((x) => JSON.parse(Buffer.from(x.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()));
+  assert.deepEqual(h, { alg: 'ES256', kid: 'KEY1234567' }); assert.equal(p.iss, 'TEAM123456'); assert.equal(p.iat, Math.floor(now.getTime() / 1000));
+  // the pass: D1 (Plus, rain at 15 h) gets a start; D2 (free) is skipped; the APNs call is recorded, not sent
+  const sent = [];
+  const fetcher = async (url, init) => { sent.push({ url, headers: init.headers, body: JSON.parse(init.body) }); return { ok: true, status: 200, json: async () => ({}) }; };
+  const pts = (spec) => spec.map(([hh, mm]) => ({ t: at(hh), mm, type: mm > 0 ? 'rain' : 'none' }));
+  const forecastRaw = async () => ({ scene: { level: 6 }, f: { points: pts([[13, 0], [14, 0], [15, 1.2], [16, 0]]) } });
+  let out = await runActivities(env, { forecastRaw, fetcher, now });
+  assert.equal(out.started, 1); assert.equal(out.skipped, 1); assert.equal(sent.length, 1);
+  assert.equal(sent[0].url, 'https://api.push.apple.com/3/device/' + 'ab'.repeat(32));
+  assert.equal(sent[0].headers['apns-topic'], 'app.purrcast.ios.push-type.liveactivity'); assert.equal(sent[0].headers['apns-push-type'], 'liveactivity');
+  assert.equal(sent[0].body.aps.event, 'start'); assert.equal(sent[0].body.aps.attributes.level, 6);
+  const d1 = JSON.parse(kv.get('dev:D1')); assert.equal(d1.key, '20261021:15:rain'); assert.equal(d1.act, null, 'a new activity will send its own token');
+  // the app sends the activity's token; the next pass updates it
+  await saveDevice(store, readDevice({ id: 'D1', lat: 37.49, lon: 126.84, act: '12'.repeat(32) }), now);
+  out = await runActivities(env, { forecastRaw, fetcher, now: at(14, 10) });
+  assert.equal(out.updated, 1); assert.equal(sent[1].body.aps.event, 'update'); assert.equal(sent[1].url.endsWith('12'.repeat(32)), true);
+  // the rain is gone from the forecast: the activity ends
+  out = await runActivities(env, { forecastRaw: async () => ({ scene: {}, f: { points: pts([[14, 0], [15, 0], [16, 0]]) } }), fetcher, now: at(14, 40) });
+  assert.equal(out.ended, 1); assert.equal(sent[2].body.aps.event, 'end'); assert.equal(JSON.parse(kv.get('dev:D1')).key, null);
+  // a dead push-to-start token (410) is dropped
+  const dead = async () => ({ ok: false, status: 410, json: async () => ({ reason: 'Unregistered' }) });
+  out = await runActivities(env, { forecastRaw, fetcher: dead, now: at(13, 40) });
+  assert.equal(out.errors, 1); assert.equal(JSON.parse(kv.get('dev:D1')).start, null);
+});

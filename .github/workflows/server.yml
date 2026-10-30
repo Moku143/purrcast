@@ -54,6 +54,8 @@ jobs:
           WEATHERKIT_KEY_ID: ${{ secrets.WEATHERKIT_KEY_ID }}
           WEATHERKIT_KEY_P8: ${{ secrets.WEATHERKIT_KEY_P8 }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APNS_KEY: ${{ secrets.APNS_KEY }}
+          APNS_KEY_ID: ${{ secrets.APNS_KEY_ID }}
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
             echo "::notice::No Cloudflare secrets yet — server not deployed. See server/README.md."
@@ -82,6 +84,17 @@ jobs:
             echo "::warning::No FREE_DAY KV namespace (the Cloudflare API token needs Workers KV Storage: Edit) — free outside Korea refreshes every 30 min"
             echo "FREE_DAY: could not create (token needs Workers KV Storage: Edit)" > ../kv.txt
           fi
+          # the Live Activity device registry (KV namespace DEVICES), found or created the same way
+          devid=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$kv?per_page=100" | node -e "${pick//purrcast-free-day/purrcast-devices}")
+          if [ -z "$devid" ]; then
+            devid=$(curl -s -X POST -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" "$kv" -d '{"title":"purrcast-devices"}' | node -e "${pick//purrcast-free-day/purrcast-devices}")
+          fi
+          if [ -n "$devid" ]; then
+            printf '\n[[kv_namespaces]]\nbinding = "DEVICES"\nid = "%s"\n' "$devid" >> wrangler.toml
+            echo "DEVICES: bound" >> ../kv.txt
+          else
+            echo "::warning::No DEVICES KV namespace — Live Activities off"
+          fi
           npx --yes wrangler@4 deploy 2>&1 | tee deploy.txt
           test "${PIPESTATUS[0]}" -eq 0
           if [ -n "$KMA_SERVICE_KEY" ]; then echo "$KMA_SERVICE_KEY" | npx --yes wrangler@4 secret put KMA_SERVICE_KEY; fi
@@ -92,6 +105,9 @@ jobs:
           if [ -n "$WEATHERKIT_KEY_ID" ]; then printf '%s' "$WEATHERKIT_KEY_ID" | npx --yes wrangler@4 secret put WEATHERKIT_KEY_ID; fi
           if [ -n "$WEATHERKIT_KEY_P8" ]; then printf '%s' "$WEATHERKIT_KEY_P8" | npx --yes wrangler@4 secret put WEATHERKIT_KEY_P8; fi
           if [ -n "$APPLE_TEAM_ID" ]; then printf '%s' "$APPLE_TEAM_ID" | npx --yes wrangler@4 secret put APPLE_TEAM_ID; fi
+          # APNs (Live Activities): the key's .p8 text and its id
+          if [ -n "$APNS_KEY" ]; then printf '%s' "$APNS_KEY" | npx --yes wrangler@4 secret put APNS_KEY; fi
+          if [ -n "$APNS_KEY_ID" ]; then printf '%s' "$APNS_KEY_ID" | npx --yes wrangler@4 secret put APNS_KEY_ID; fi
           url=$(grep -o 'https://[a-z0-9.-]*workers.dev' deploy.txt | head -1)
           echo "Deployed: ${url:-?}" >> "$GITHUB_STEP_SUMMARY"
           echo "$url" > ../url.txt

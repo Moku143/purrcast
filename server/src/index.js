@@ -21,6 +21,7 @@ import { owNowUrl, owForecastUrl, owHistoryUrl, owOK, parseOwNow, parseOwTomorro
 import { buildScene, validateScene } from './scene.js';
 import { local, pad2, dayKey } from './time.js';
 import { normLang } from './i18n.js';
+import { hasAPNs, readDevice, saveDevice, runActivities } from './push.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' };
 
@@ -28,10 +29,11 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, airkorea: !!env.AIRKOREA_SERVICE_KEY, openweather: !!env.OPENWEATHER_KEY, weatherkit: hasWeatherKit(env), freeDay: !!env.FREE_DAY, time: new Date().toISOString() };
+      const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, airkorea: !!env.AIRKOREA_SERVICE_KEY, openweather: !!env.OPENWEATHER_KEY, weatherkit: hasWeatherKit(env), freeDay: !!env.FREE_DAY, apns: hasAPNs(env), devices: !!env.DEVICES, time: new Date().toISOString() };
       if (url.searchParams.get('deep') === '1') out.check = await deepCheck(env);   // first-deploy check: can we reach both sources?
       return json(out);
     }
+    if (url.pathname === '/v1/devices') return devices(request, env);
     if (url.pathname !== '/v1/forecast') return json({ error: 'not found' }, 404);
     try {
       const q = readQuery(url.searchParams);
@@ -45,7 +47,32 @@ export default {
       return json({ error: String(e.message || e) }, status);
     }
   },
+
+  /** Every half hour (wrangler.toml `crons`): the rain Live Activities of registered Plus devices. */
+  async scheduled(event, env, ctx) {
+    const now = new Date();
+    const forecastRaw = (q) => forecast(q, env, ctx, { now, raw: true });
+    const out = await runActivities(env, { forecastRaw, now });
+    console.log('activities:', JSON.stringify(out));
+  },
 };
+
+/** POST: the app registers (or re-registers) its device for Live Activities; DELETE ?id= forgets it. */
+async function devices(request, env) {
+  if (!env.DEVICES) return json({ error: 'no device store' }, 503);
+  if (request.method === 'DELETE') {
+    const id = String(new URL(request.url).searchParams.get('id') || '').replace(/[^0-9A-Za-z-]/g, '').slice(0, 64);
+    if (id) await env.DEVICES.delete(`dev:${id}`);
+    return json({ ok: true });
+  }
+  if (request.method !== 'POST') return json({ error: 'method' }, 405);
+  let body = null;
+  try { body = await request.json(); } catch { /* bad json */ }
+  const dev = readDevice(body);
+  if (!dev) return json({ error: 'bad device' }, 400);
+  const saved = await saveDevice(env.DEVICES, dev);
+  return json({ ok: true, push: hasAPNs(env), plan: saved.plan, start: !!saved.start, act: !!saved.act });
+}
 
 export function readQuery(sp) {
   // ~1 km is plenty for a forecast and is what the privacy policy promises
@@ -134,7 +161,7 @@ async function getJSON(url, { ttl, headers = {}, fetcher = fetch, ok = () => tru
   return data;
 }
 
-export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch } = {}) {
+export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch, raw = false } = {}) {
   const ua = `Purrcast/1.0 ${env.CONTACT || 'github.com/Moku143/purrcast'}`;
   const metP = getJSON(metUrl(q.lat, q.lon), { ttl: 1800, headers: { 'user-agent': ua }, fetcher, ctx })
     .then(parseMet).catch((e) => ({ error: e }));
@@ -182,7 +209,8 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch 
 
   const yday = await history(env, q, now, f, ctx);
   f.dust = await dustP;
-  return buildScene(f, { lat: q.lat, lon: q.lon, tz: q.tz, plan: q.plan, prev: q.prev, outfitPrev: q.outfitPrev, yday, now, lang: q.lang });
+  const scene = buildScene(f, { lat: q.lat, lon: q.lon, tz: q.tz, plan: q.plan, prev: q.prev, outfitPrev: q.outfitPrev, yday, now, lang: q.lang });
+  return raw ? { scene, f } : scene;   // raw: the Live Activity pass reads the hourly points too
 }
 
 /** 미세먼지 for the place: { pm10, pm25, src, station, tomorrow: { pm10Grade, pm25Grade } | null, alarm, history } or null.
