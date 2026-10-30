@@ -136,6 +136,7 @@ struct DayDetailView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.press(0.95))
+        .accessibilityIdentifier("day-\(i)")
     }
 
     /// Five tabs across the width; with today's 미세먼지 readings (Plus) a sixth, and the row scrolls sideways

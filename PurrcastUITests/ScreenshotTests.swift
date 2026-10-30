@@ -52,6 +52,7 @@ final class ScreenshotTests: XCTestCase {
         }
         // the day sheet's 미세먼지 tab (today's readings, Plus) and the 자외선 tab with its five-step scale
         shot("day-dust", ["-scene", "spring_dust", "-plus", "-open", "day"], wait: 2) { app in
+            app.buttons["day-0"].firstMatch.tap(); sleep(1)   // the sheet opens on tomorrow; the readings are today's
             app.buttons["tab-dust"].firstMatch.tap(); sleep(1); app.swipeUp(); sleep(1)
         }
         shot("day-uv", ["-scene", "summer_heat", "-plus", "-open", "day"], wait: 2) { app in
