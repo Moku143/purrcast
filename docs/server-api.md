@@ -64,11 +64,13 @@ Accept: application/json
            "sources": [ { "name": "기상청", "key": "kma", "main": true, "t": [18, 18, …], "r": [0, 0.4, …] },   // °C · mm (cm when snow); null = no point
                         { "name": "Apple 날씨", "key": "apple", "main": false, "t": […], "r": […] },
                         { "name": "MET Norway", "key": "met", "main": false, "t": […], "r": […] } ] },   // absent with one source only
-  "dayDetail": [ [ ["0시", 9.5, 10, 2.1, 0, 82, 0.4, 3.6, 225], … 8 per day ], … one per day ],
-      // the day sheet, every 3 h (0, 3 … 21): label, °C, chance %, wind m/s, UV, humidity % (the point nearest the hour;
-      // chance: the highest in the slot, so the day's highest equals its chance in `days`),
-      // then for the whole 3-hour slot: precipitation mm (cm when it falls as snow, as in `hours`), strongest gust m/s,
-      // wind direction ° (where it comes from). Older answers have the first 6 values only; the app reads both.
+  "dayDetail": [ [ ["0시", 9.5, 10, 2.1, 0, 82, 0.4, 3.6, 225], … one per forecast point ], … one per day ],
+      // the day sheet: one row per forecast point of the day (every hour where the forecast is hourly, 3- or 6-hourly
+      // further out), the same points the day's row in `days` is made from, so its highest chance and amounts agree.
+      // Row: label, °C, chance %, wind m/s, UV, humidity %, then for the hours the point covers inside the day:
+      // precipitation mm (cm when it falls as snow, as in `hours`), strongest gust m/s, wind direction ° (where it
+      // comes from). A point from the day before that runs past midnight opens the day as a 0 h row.
+      // Older answers: 8 three-hourly rows, or 6 values per row; the app reads all of these.
   "plus": true                                          // echo of the plan
 }
 ```

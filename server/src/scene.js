@@ -88,12 +88,24 @@ export function buildScene(f, o) {
     if (!byDay.has(k)) byDay.set(k, []);
     byDay.get(k).push(p);
   }
+  const HOUR = 3600000;
+  const popOf = (p) => p.pop ?? (wet(p) ? 70 : 0);
+  // a point from the day before that runs on past midnight (MET's 6-hourly 21 h point) also covers the day's first hours
+  const leadOf = (list) => {
+    const first = list[0], l0 = local(first.t, tz);
+    const start = Date.UTC(l0.y, l0.m - 1, l0.d) - offsetMin(first.t) * 60000;
+    if (+first.t <= start) return null;
+    let lead = null;
+    for (const p of pts) if (+p.t < start && +p.t + (p.step || 1) * HOUR > start) lead = p;
+    return lead;
+  };
   for (const [k, list] of [...byDay.entries()].slice(0, 10)) {
     const temps = list.map((p) => p.temp);
     let lo = Math.min(...temps), hi = Math.max(...temps);
     if (f.daily?.[k]?.lo != null) lo = f.daily[k].lo;
     if (f.daily?.[k]?.hi != null) hi = f.daily[k].hi;
-    const chance = Math.max(0, ...list.map((p) => p.pop ?? 0));
+    const lead = leadOf(list);
+    const chance = Math.max(0, ...list.map(popOf), lead ? popOf(lead) : 0);
     const dayPts = list.filter((p) => { const h = local(p.t, tz).h; return h >= 6 && h <= 20; });
     let ic = 'sun';
     for (const p of (dayPts.length ? dayPts : list)) ic = R.worse(ic, R.icon({ ...p, mm: p.mm >= 0.1 ? p.mm : 0, type: p.mm >= 0.1 ? p.type : 'none' }, false));
@@ -177,43 +189,32 @@ export function buildScene(f, o) {
     const w = f.warnings[0].name;
     scene.alert = { name: S.warning(w), note: R.alertNote(w, { total, pr, nowWet, when, endH: nowWet && endP ? (H(endP) + 1) % 24 : null, hi, lo, gust: ri(cur.gust ?? 0), rh: cur.rh == null ? null : ri(cur.rh) }, S) };
   }
-  // day sheet: 8 three-hourly values per day (0, 3, … 21 h) — temp, wind, UV, humidity (the point nearest the slot),
-  // rain chance (the highest of that day's points in the slot, so the sheet's curve peaks at the day's own chance in
-  // `days` — the nearest point alone missed a 30 % at 13 h between two 20 % slots), then what the whole 3-hour slot holds: the precipitation (mm; cm when it falls as snow, as in `hours`),
-  // the strongest gust and the wind direction (degrees it comes from). Points cover [t, t + step h) with mm per hour
-  // (MET's 6-hourly points too), so a slot takes each point's amount for the hours it overlaps.
-  const HOUR = 3600000;
+  // day sheet: one row per forecast point of the day — every hour where the forecast is hourly (기상청's first days,
+  // Apple), 3- or 6-hourly further out (MET) — so its curves, highest chance and amounts come from the very points the
+  // day's row in `days` comes from. Row: label, °C, chance %, wind m/s, UV, humidity %, then for the hours the point
+  // covers within the day: precipitation (mm; cm when it falls as snow, as in `hours`), strongest gust, wind direction
+  // (degrees it comes from). A point from the day before that runs past midnight opens the day as a 0 h row (its rain,
+  // chance and wind; the temperature, humidity and UV of the day's first point, so the curves stay the day's own).
+  const gustOf = (p) => p.gust ?? (p.wind != null ? p.wind * 1.5 : null);   // no gust in the source (KMA alone): 1.5 × wind, as `wind.gust`
   scene.dayDetail = [...byDay.entries()].slice(0, days.length).map(([, list]) => {
-    const [y, m, d] = [list[0].t, list[0].t, list[0].t].map((t, i) => [local(t, tz).y, local(t, tz).m, local(t, tz).d][i]);
-    return [0, 3, 6, 9, 12, 15, 18, 21].map((h) => {
-      const target = Date.UTC(y, m - 1, d, h) - offsetMin(list[0].t) * 60000;
-      const end = target + 3 * HOUR;
-      let best = list[0], bd = Infinity;
-      for (const p of list) { const x = Math.abs(p.t - target); if (x < bd) { bd = x; best = p; } }
-      const uvv = uvUnderCloud(best.uvClear, best.cloud);
-      const gustOf = (p) => p.gust ?? (p.wind != null ? p.wind * 1.5 : null);   // no gust in the source (KMA alone): 1.5 × wind, as `wind.gust`
-      let mm = 0, gust = null;
-      for (const p of pts) {
-        const from = +p.t, overlap = Math.min(from + (p.step || 1) * HOUR, end) - Math.max(from, target);
-        if (overlap <= 0) continue;
-        mm += (p.mm || 0) * overlap / HOUR;
-        const g = gustOf(p);
-        if (g != null && (gust == null || g > gust)) gust = g;
-      }
-      if (gust == null) gust = gustOf(best);   // a slot before the first point (earlier today): the nearest point's
-      const popOf = (p) => p.pop ?? (wet(p) ? 70 : 0);
-      let pop = null;
-      for (const p of list) {
-        const from = +p.t;
-        if (Math.min(from + (p.step || 1) * HOUR, end) - Math.max(from, target) > 0) pop = Math.max(pop ?? 0, popOf(p));
-      }
-      if (pop == null) pop = popOf(best);
-      let dir = best.dir, dd = Infinity;
-      if (dir == null) for (const p of list) { const x = Math.abs(p.t - target); if (p.dir != null && x < dd) { dd = x; dir = p.dir; } }
-      dir = ri((((dir ?? cur.dir ?? 0) % 360) + 360) % 360) % 360;
-      return [S.hour(h), r1(best.temp), ri(pop), r1(best.wind ?? 0), r1(h >= 6 && h <= 18 ? uvv ?? 0 : 0), ri(best.rh ?? 0),
-        r1(mm), r1(Math.max(gust ?? 0, best.wind ?? 0)), dir];
-    });
+    const l0 = local(list[0].t, tz);
+    const start = Date.UTC(l0.y, l0.m - 1, l0.d) - offsetMin(list[0].t) * 60000, end = start + 24 * HOUR;
+    const lead = leadOf(list);
+    const seen = new Set();
+    const rows = [];
+    for (const [i, p] of [...(lead ? [lead] : []), ...list].entries()) {
+      const isLead = lead && i === 0;
+      const h = isLead ? 0 : local(p.t, tz).h;
+      if (seen.has(h)) continue;   // two sources at the same hour: the first (the merged forecast's own order)
+      seen.add(h);
+      const from = isLead ? start : +p.t, until = Math.min(+p.t + (p.step || 1) * HOUR, end);
+      const own = isLead ? list[0] : p;   // the curves' values
+      const uvv = uvUnderCloud(own.uvClear, own.cloud);
+      const dir = ri((((p.dir ?? own.dir ?? cur.dir ?? 0) % 360) + 360) % 360) % 360;
+      rows.push([S.hour(h), r1(own.temp), ri(popOf(p)), r1(p.wind ?? own.wind ?? 0), r1(h >= 6 && h <= 18 ? uvv ?? 0 : 0), ri(own.rh ?? 0),
+        r1((p.mm || 0) * Math.max(0, until - from) / HOUR), r1(Math.max(gustOf(p) ?? 0, p.wind ?? 0)), dir]);
+    }
+    return rows;
   });
   if (plus && f.next6?.length) scene.next6 = f.next6.slice(0, 6).map((p) => [S.hour(H(p)), r1(p.mm || 0)]);
   if (plus && (f.next6?.length || f.minutes?.length)) scene.nextSource = f.nextSource || 'kma';   // who the rain-soon card cites

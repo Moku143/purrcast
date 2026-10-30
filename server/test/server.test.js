@@ -145,21 +145,24 @@ test('scene: clear dry day — no umbrella, no bubble, sun tile, valid for the a
   assert.equal(s.level, 4); assert.equal(s.outfit, outfit(s.feels)); assert.equal(s.temp, 18); assert.equal(s.hours.length, 13); assert.equal(s.hours[0][0], '지금');
   assert.equal(s.hours[1][0], '14시'); assert.equal(s.tiles[2].label, '일몰'); assert.equal(s.updated, '06:00');
   assert.equal(s.cond, '맑음');
-  assert.equal(s.dayDetail.length, s.days.length); assert.equal(s.dayDetail[1].length, 8); assert.equal(s.dayDetail[1][4][0], '12시');
-  assert.deepEqual(s.dayDetail[1][4].slice(6), [0, 4.8, 225], 'dry slot: no rain, gust 1.6 × 3 m/s, wind from the south-west');
+  assert.equal(s.dayDetail.length, s.days.length); assert.equal(s.dayDetail[1].length, 24, 'an hourly forecast: every hour of the day');
+  assert.deepEqual(s.dayDetail[1].map((r) => r[0]).slice(0, 3), ['0시', '1시', '2시']); assert.equal(s.dayDetail[1][12][0], '12시');
+  assert.deepEqual(s.dayDetail[1][12].slice(6), [0, 4.8, 225], 'dry hour: no rain, gust 1.6 × 3 m/s, wind from the south-west');
 });
 
-test('day sheet chance: 30 % at 13 h between 20 % hours shows as 30 % in the 12–15 h slot, as in the day row', () => {
+test('day sheet chance: 30 % at 13 h between 20 % hours is on the sheet at 13 h, as in the day row', () => {
   const hrs = flat(40, { cloud: 60, sym: 'partlycloudy' });
   const i22 = (h) => 11 + h;
   for (let h = 0; h < 24; h++) hrs[i22(h)] = { ...hrs[i22(h)], pop: 20 };
   hrs[i22(13)] = { ...hrs[i22(13)], pop: 30 };
   const s = buildScene({ points: parseMet(met(at(13), hrs)).points }, { ...SEOUL, plan: 'free', now: at(13, 40) });
   assert.equal(s.days[1][2], 30);
-  assert.equal(s.dayDetail[1][4][2], 30, '12–15 h'); assert.equal(s.dayDetail[1][5][2], 20, '15–18 h');
+  const d = s.dayDetail[1];
+  assert.equal(d.find((r) => r[0] === '13시')[2], 30); assert.equal(d.find((r) => r[0] === '12시')[2], 20);
+  assert.equal(Math.max(...d.map((r) => r[2])), s.days[1][2]);
 });
 
-test('day sheet rows: + the 3-hour slot\'s rain (MET 6-hourly points spread over their hours), strongest gust, wind direction', () => {
+test('day sheet rows: one per forecast point — hourly, then MET\'s 6-hourly points with their rain inside the day; a point running past midnight opens the next day', () => {
   const hrs = flat(40, { cloud: 90, sym: 'cloudy' });   // 13:00 on the 21st + 40 h, so the 22nd is covered hour by hour
   const i22 = (h) => 11 + h;                             // index of h:00 on the 22nd
   hrs[i22(12)] = { cloud: 95, mm: 1.2, pop: 80, sym: 'rain' }; hrs[i22(13)] = { cloud: 95, mm: 2.0, pop: 80, sym: 'rain' };
@@ -176,13 +179,19 @@ test('day sheet rows: + the 3-hour slot\'s rain (MET 6-hourly points spread over
   }
   const s = buildScene({ points: parseMet(j).points }, { ...SEOUL, plan: 'free', now: at(13, 40) });
   validateScene(s);
-  const d22 = s.dayDetail[1], d23 = s.dayDetail[2];
+  const d22 = s.dayDetail[1], d23 = s.dayDetail[2], d24 = s.dayDetail[3];
+  const at22 = (h) => d22.find((r) => r[0] === `${h}시`), at23 = (h) => d23.find((r) => r[0] === `${h}시`);
   assert.ok(s.dayDetail.every((d) => d.every((r) => r.length === 9)), 'label + 5 point values + mm, gust, direction');
-  assert.deepEqual(d22.map((r) => r[6]), [0, 0, 0, 0, 3.8, 0, 0, 0], '12–15h holds 1.2 + 2.0 + 0.6 mm');
-  assert.equal(d22[5][7], 12.4, 'the strongest gust in 15–18h'); assert.equal(d22[4][7], 4.8);
-  assert.equal(d22[3][8], 90); assert.equal(d22[4][8], 225);
-  assert.deepEqual(d23.slice(3, 7).map((r) => r[6]), [2, 3, 3, 3], '10:00 and 16:00 points (6 h each, 1 mm/h) split over the slots');
-  assert.equal(d23[4][7], 3, 'no gust in the source: 1.5 × wind'); assert.equal(d23[4][8], 180);
+  assert.equal(d22.length, 24);
+  assert.deepEqual(d22.map((r) => r[6]).slice(11, 16), [0, 1.2, 2, 0.6, 0], 'each hour its own amount');
+  assert.equal(at22(16)[7], 12.4, 'the hour\'s gust'); assert.equal(at22(12)[7], 4.8);
+  assert.equal(at22(9)[8], 90); assert.equal(at22(12)[8], 225);
+  assert.deepEqual(d23.map((r) => r[0]), ['0시', '1시', '2시', '3시', '4시', '10시', '16시', '22시'], 'hourly to 04:00, then every 6 hours');
+  assert.deepEqual([at23(10)[6], at23(16)[6], at23(22)[6]], [6, 6, 2], '6 h at 1 mm/h; the 22 h point only up to midnight');
+  assert.equal(at23(10)[7], 3, 'no gust in the source: 1.5 × wind'); assert.equal(at23(10)[8], 180);
+  assert.equal(d24[0][0], '0시', 'the 22 h point runs on to 04:00: it opens the next day'); assert.equal(d24[0][6], 4);
+  assert.equal(d24[0][1], d24[1][1], 'with the day\'s own first temperature');
+  s.dayDetail.forEach((d, i) => assert.ok(d.reduce((a, r) => a + r[6], 0) >= 0));
   // chance: the slot's highest, so the sheet's curve reaches the day's chance (13 h at 80 % sits between the 12 and 15 h slots)
   s.dayDetail.forEach((d, i) => assert.equal(Math.max(...d.map((r) => r[2])), s.days[i][2], `day ${i}: curve peak = the day's chance`));
   // older answers (6 values per row) still pass; anything else does not
@@ -307,8 +316,8 @@ test('scene in en / ja: rain in a few hours → "Rain 4–5PM" · "16〜17時 �
   assert.match(en.tiles[2].note, /^Sunrise tomorrow \d\d:\d\d$/); assert.match(ja.tiles[2].note, /^明日の日の出 \d\d:\d\d$/);
   assert.match(en.tiles[3].note, /^Comfortable · Dew point \d+°$/); assert.match(ja.tiles[3].note, /^ちょうどいい · 露点 \d+°$/);
   assert.equal(en.next6[0][0], '2PM'); assert.equal(ja.next6[0][0], '14時');
-  assert.deepEqual(en.dayDetail[0].map((h) => h[0]), ['12AM', '3AM', '6AM', '9AM', '12PM', '3PM', '6PM', '9PM']);
-  assert.equal(ja.dayDetail[0][5][0], '15時');
+  assert.deepEqual(en.dayDetail[1].slice(0, 3).map((h) => h[0]), ['12AM', '1AM', '2AM']); assert.equal(en.dayDetail[1][15][0], '3PM');
+  assert.equal(ja.dayDetail[1][15][0], '15時');
   assert.equal(en.updated, ko.updated); assert.equal(en.clock, ko.clock);
   const dry = buildScene({ points: parseMet(met(at(13), flat(40))).points }, { ...SEOUL, plan: 'free', now: at(13, 40), lang: 'en' });
   assert.equal(dry.tiles[0].note, 'No rain for the next 12 hours'); assert.equal(dry.updated, '06:00');
@@ -441,8 +450,10 @@ test('Korea, Plus in the afternoon: today\'s low and the morning hours come from
   assert.equal(s.lo, 2, 'today\'s low is the 05 h run\'s TMN, not the lowest hour still ahead');
   assert.equal(s.hi, 13);
   assert.equal(s.days[0][3], 2);
-  assert.equal(Math.round(s.dayDetail[0][0][1]), 2, '0시 from yesterday\'s 23 h run, not the first hour of the 11 h run');
-  assert.equal(Math.round(s.dayDetail[0][3][1]), Math.round(day(9)), '9시 from the 05 h run');
+  const row = (h) => s.dayDetail[0].find((r) => r[0] === `${h}시`);
+  assert.equal(Math.round(row(0)[1]), 2, '0시 from yesterday\'s 23 h run, not the first hour of the 11 h run');
+  assert.equal(Math.round(row(9)[1]), Math.round(day(9)), '9시 from the 05 h run');
+  assert.equal(s.dayDetail[0].length, 24);
 });
 
 test('Korea, KMA hanging → the answer comes from MET within the upstream time limit', async () => {

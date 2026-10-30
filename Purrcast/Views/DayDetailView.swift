@@ -3,9 +3,9 @@ import SwiftUI
 /// Tapping a day in the 10-day list, as on the prototype's AppDay screen: a 10-day strip, metric tabs
 /// (기온 · 비 · 바람 · 자외선 · 습도), the character dressed for the selected hour beside a summary bubble,
 /// one chart per tab with a marker at the selected hour (tap an hour, or drag sideways across the chart to read any hour),
-/// and a plain-language scale underneath. Everything comes from the stored forecast (`dayDetail`, 8 three-hourly
-/// rows per day: the point values are interpolated to 24 hours, the 3-hour rain amounts spread over their hours);
-/// without it only the summary line is shown.
+/// and a plain-language scale underneath. Everything comes from the stored forecast (`dayDetail`: the day's forecast
+/// points, every hour where the forecast is hourly; values are interpolated to 24 hours, rain amounts spread over the
+/// hours each row covers); without it only the summary line is shown.
 struct DayDetailView: View {
     @EnvironmentObject var model: AppModel
     @Environment(\.dismiss) private var dismiss
@@ -499,8 +499,11 @@ struct DayDetailView: View {
         case .temp, .feels:
             let v = metric == .feels ? h.feel : h.temp
             let hi = at(v, max: true), lo = at(v, max: false)
-            return [Extreme(title: L("최고"), value: model.deg(roundHalfUp(hi.0)), hour: hi.1),
-                    Extreme(title: L("최저"), value: model.deg(roundHalfUp(lo.0)), hour: lo.1)]
+            // temperature: the day's own 최고 · 최저, the numbers in the 10-day list and on the home screen (기상청 and
+            // Apple forecast them for the whole day, now and then a degree past the hourly values), at the curve's hour
+            let hiV = metric == .temp ? c.day.hi : roundHalfUp(hi.0), loV = metric == .temp ? c.day.lo : roundHalfUp(lo.0)
+            return [Extreme(title: L("최고"), value: model.deg(hiV), hour: hi.1),
+                    Extreme(title: L("최저"), value: model.deg(loV), hour: lo.1)]
         case .rain:
             let hi = at(h.chance, max: true)
             let unit = c.snowy ? "cm" : "mm"
@@ -775,7 +778,7 @@ struct DayDetailView: View {
 
     private func briefTemp(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let vmin = h.temp.min() ?? 0, vmax = h.temp.max() ?? 0
-        let lo = Int(vmin.rounded()), hi = Int(vmax.rounded())
+        let lo = c.day.lo, hi = c.day.hi            // the day's own, as in the 10-day list; their hours from the curve
         let loH = h.temp.firstIndex(of: vmin) ?? 6, hiH = h.temp.firstIndex(of: vmax) ?? 15
         var t: String
         if hi >= 30 {
@@ -916,9 +919,10 @@ private struct DayCtx {
     }
 }
 
-/// 24 hourly values for one day from the 8 three-hourly rows of `dayDetail`: point values (temperature, chance, wind,
-/// gusts, UV, humidity) are interpolated, wind directions by the shorter way round, and each 3-hour rain amount is spread
-/// over its own hours. Feels-like is derived the way the prototype does it; gusts too when the forecast has none.
+/// 24 hourly values for one day from its `dayDetail` rows (one per forecast point: every hour where the forecast is
+/// hourly, 3- or 6-hourly further out; older answers: 8 three-hourly rows): point values (temperature, chance, wind,
+/// gusts, UV, humidity) are interpolated between rows, wind directions by the shorter way round, and each row's rain
+/// amount is spread over the hours up to the next row. Feels-like is derived the way the prototype does it; gusts too when the forecast has none.
 private struct DayHourly {
     var temp: [Double] = [], feel: [Double] = [], chance: [Double] = [], wind: [Double] = [], gust: [Double] = []
     var uv: [Double] = [], rh: [Double] = [], mm: [Double] = [], dir: [Double] = []

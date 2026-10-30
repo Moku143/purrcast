@@ -37,7 +37,7 @@ struct WeatherScene: Codable, Identifiable {
     var minutes: [Double]?              // next-hour rain, mm/h per minute (Plus, where a minute source exists)
     var next6: [NextHour]?              // next six hourly slots (Plus)
     var nextSource: String?             // kma | met — which forecast the six hours come from
-    var dayDetail: [[DayHour]]?         // per day, 8 three-hourly values for the day sheet
+    var dayDetail: [[DayHour]]?         // per day, the day sheet's rows: one per forecast point (hourly where the forecast is)
     var alert: Alert?                   // official warning in force: name + what it means today (home banner)
     var cmp: Compare?                   // 예보 비교: every source's next 24 h, for the comparison card
     var src: String?                    // kma | apple | met — the source behind everything else
