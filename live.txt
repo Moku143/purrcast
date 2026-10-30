@@ -1,0 +1,8 @@
+ok   lat=37.5663 lon=126.9019 region=kr tz=Asia/Seoul → 12° (체감 12°) lv6 none · 맑음 · - · days 10 · src kma
+ok   lat=37.5663 lon=126.9019 region=kr tz=Asia/Seoul → 13° (체감 13°) lv6 none · 맑음 · - · days 10 · src kma · next6 kma
+ok   lat=33.4996 lon=126.5312 region=kr tz=Asia/Seoul → 16° (체감 16°) lv5 none · 맑음 · - · days 10 · src kma · next6 kma
+ok   lat=35.6938 lon=139.7034 region=jp tz=Asia/Tokyo → 13° (체감 13°) lv6 bag · 흐림 · 일교차 커요! · days 10 · src apple · minutes 60
+ok   lat=40.7128 lon=-74.006 region=other tz=America/New_York → 21° (체감 21°) lv3 none · 맑음 · 일교차 커요! · days 10 · src apple
+ok   lat=64.1466 lon=-21.9426 region=other tz=Atlantic/Reykjavik → 6° (체감 2°) lv8 umbrella · 비 · 비! · days 10 · src apple · next6 apple
+KMA key present: Korea used 기상청
+WeatherKit key present: Tokyo used apple, New York used apple (apple = WeatherKit, met = fell back to MET Norway)
