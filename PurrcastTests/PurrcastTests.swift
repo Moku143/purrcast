@@ -41,7 +41,7 @@ final class PurrcastTests: XCTestCase {
         let dust = try XCTUnwrap(ex["spring_dust"]?.dust)
         XCTAssertEqual(dust.pm10, 162); XCTAssertEqual(dust.grade, 3); XCTAssertEqual(dust.pm25Grade, 2); XCTAssertEqual(dust.station, "마포구"); XCTAssertEqual(dust.tomorrow?.pm10Grade, 2)
         XCTAssertTrue(dust.note.hasPrefix("황사"))
-        XCTAssertNil(ex["maybe"]?.dust)
+        XCTAssertNil(ex["combo"]?.dust)
         XCTAssertEqual(DustScale.position(39, pm25: false), 0.25 + 9.0 / 50 / 4, accuracy: 0.001)
         XCTAssertEqual(DustScale.position(0, pm25: true), 0); XCTAssertEqual(DustScale.position(999, pm25: true), 1)
         XCTAssertEqual(plus.bubble?.text, "16~18시 비 예보")

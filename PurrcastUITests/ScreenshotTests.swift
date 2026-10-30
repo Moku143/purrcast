@@ -48,7 +48,7 @@ final class ScreenshotTests: XCTestCase {
         }
         // the 미세먼지 card under a 황사 line (spring_dust: 매우 나쁨 / 나쁨)
         shot("home-dust", ["-scene", "spring_dust", "-plus"]) { app in
-            for _ in 0..<3 { app.swipeUp() }; sleep(1)
+            for _ in 0..<2 { app.swipeUp() }; sleep(1)
         }
     }
 
