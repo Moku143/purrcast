@@ -165,8 +165,8 @@ App Store Connect → 앱 → 구독:
 
 | 참조 이름 | 제품 ID | 기간 | 가격 (대한민국) | 체험 |
 |---|---|---|---|---|
-| Plus Yearly | `app.purrcast.plus.yearly` | 1년 | 14,900원에 가장 가까운 가격 단계 | 신규 구독자 3일 무료 |
-| Plus Monthly | `app.purrcast.plus.monthly` | 1개월 | 1,900원에 가장 가까운 가격 단계 | 신규 구독자 3일 무료 |
+| Plus Yearly | `app.purrcast.plus.yearly` | 1년 | 19,000원에 가장 가까운 가격 단계 | 신규 구독자 3일 무료 |
+| Plus Monthly | `app.purrcast.plus.monthly` | 1개월 | 2,500원에 가장 가까운 가격 단계 | 신규 구독자 3일 무료 |
 
 3. 각 구독의 현지화
    - 한국어: 표시 이름 `그르릉날씨 Plus 연간` / `그르릉날씨 Plus 월간`, 설명 `가까운 비 · 애플워치 · 캐릭터 · 지역 여러 곳`

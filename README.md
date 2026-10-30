@@ -29,7 +29,7 @@
 
 ## 결제
 
-StoreKit 2. 상품 ID `app.purrcast.plus.yearly`(14,900원) · `app.purrcast.plus.monthly`(1,900원), 둘 다 3일 무료.
+StoreKit 2. 상품 ID `app.purrcast.plus.yearly`(19,000원) · `app.purrcast.plus.monthly`(2,500원), 둘 다 3일 무료.
 App Store Connect에 같은 ID로 만들면 그대로 동작해요.
 
 ## 출시 전에 남은 것
