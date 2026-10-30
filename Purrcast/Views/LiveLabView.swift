@@ -9,7 +9,7 @@ struct LiveLabView: View {
     var body: some View {
         let a = RainActivityAttributes(place: model.currentPlace.short, character: model.shownCharacter.rawValue, level: model.scene.level)
         let now = Int(Date().timeIntervalSince1970)
-        let soon = RainActivityAttributes.ContentState(title: L("%@쯤 비 예보", L("%d시", 18)), sub: "1mm · " + L("우산 챙기세요"), icon: "umbrella_closed", what: "rain", falling: false, mm: 1, start: now + 2 * 3600, end: now + 3 * 3600, endHour: 19)
+        let soon = RainActivityAttributes.ContentState(title: L("%@쯤 비 예보", HourLabel.word(18, clock12: model.clock12)), sub: "1mm · " + L("우산 챙기세요"), icon: "umbrella_closed", what: "rain", falling: false, mm: 1, start: now + 2 * 3600, end: now + 3 * 3600, endHour: 19)
         let falling = RainActivityAttributes.ContentState(title: L("지금 비 · %@", "1mm"), sub: L("%d시까지 비 예보", 19), icon: "umbrella", what: "rain", falling: true, mm: 1, start: now, end: now + 3600, endHour: 19)
         ScrollView {
             VStack(spacing: 18) {
