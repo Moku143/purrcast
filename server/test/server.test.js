@@ -762,8 +762,8 @@ test('KMA extended days: PCP · SNO · WSD codes become amounts (글피 from a 0
 });
 
 // ── 미세먼지 ──────────────────────────────────────────────────────────────────────────────────────
-import { nearestStation, parseRealtime, parseForecast as parseDustForecast, parseAlarms, forecastRegion, gradePM10, gradePM25 } from '../src/providers/airkorea.js';
-import { parseOwNow, parseOwTomorrow } from '../src/providers/openweather.js';
+import { nearestStation, parseRealtime, parseHistory, todayHours, parseForecast as parseDustForecast, parseAlarms, forecastRegion, gradePM10, gradePM25 } from '../src/providers/airkorea.js';
+import { parseOwNow, parseOwTomorrow, parseOwHours } from '../src/providers/openweather.js';
 import { dustBlock } from '../src/rules.js';
 
 const ak = (items) => ({ response: { header: { resultCode: '00' }, body: { items, totalCount: items.length } } });
@@ -792,6 +792,12 @@ test('에어코리아: nearest station, newest reading, tomorrow\'s grade, alarm
   const st = nearestStation(STATIONS, 37.49, 126.84);   // 오류동
   assert.equal(st.name, '신정동'); assert.ok(st.km < 6);
   assert.deepEqual(parseRealtime(RT), { pm10: 39, pm25: 29, at: '2026-10-30 13:00' });
+  // today's hours for the chart: oldest first, only today, "24:00" is hour 0 of the next day, sensor gaps skipped
+  const hist = parseHistory(ak([
+    { dataTime: '2026-10-30 14:00', pm10Value: '-', pm25Value: '-' }, { dataTime: '2026-10-30 13:00', pm10Value: '39', pm25Value: '29' },
+    { dataTime: '2026-10-30 01:00', pm10Value: '20', pm25Value: '-' }, { dataTime: '2026-10-29 24:00', pm10Value: '18', pm25Value: '9' }, { dataTime: '2026-10-29 23:00', pm10Value: '17', pm25Value: '8' },
+  ]));
+  assert.deepEqual(todayHours(hist, '2026-10-30'), [[0, 18, 9], [1, 20, null], [13, 39, 29]]);
   assert.equal(forecastRegion('서울 구로구', 37.49, 126.84), '서울');
   assert.equal(forecastRegion('경기 고양시 덕양구', 37.65, 126.83), '경기북부'); assert.equal(forecastRegion('경기 수원시', 37.26, 127.03), '경기남부');
   assert.equal(forecastRegion('강원 강릉시', 37.75, 128.9), '영동'); assert.equal(forecastRegion('강원 춘천시', 37.88, 127.73), '영서');
@@ -808,10 +814,10 @@ test('에어코리아: nearest station, newest reading, tomorrow\'s grade, alarm
 
 test('미세먼지 block: grades, the worse one, the note by priority (황사 › 경보 › 주의보 › grade), per language', () => {
   const S = strings('ko');
-  const d = { pm10: 39, pm25: 29, src: 'airkorea', station: '구로구', tomorrow: { pm10Grade: 1, pm25Grade: 0 }, alarm: null, history: [{ at: 'a', pm10: 44, pm25: 31 }] };
+  const d = { pm10: 39, pm25: 29, src: 'airkorea', station: '구로구', tomorrow: { pm10Grade: 1, pm25Grade: 0 }, alarm: null, hours: [[13, 44, 31]] };
   const b = dustBlock(d, [], S);
   assert.equal(b.pm10Grade, 1); assert.equal(b.pm25Grade, 1); assert.equal(b.grade, 1); assert.equal(b.note, '괜찮은 편이에요'); assert.equal(b.src, '에어코리아'); assert.equal(b.station, '구로구');
-  assert.deepEqual(b.tomorrow, { pm10Grade: 1, pm25Grade: 0 }); assert.deepEqual(b.history, [['a', 44, 31]]);
+  assert.deepEqual(b.tomorrow, { pm10Grade: 1, pm25Grade: 0 }); assert.deepEqual(b.hours, [[13, 44, 31]]);
   assert.equal(dustBlock({ ...d, pm25: 48 }, [], S).grade, 2, 'the worse of the two');
   assert.equal(dustBlock({ ...d, pm25: 48 }, [], S).note, '공기가 탁해요 · 마스크를 챙겨 주세요');
   assert.equal(dustBlock({ ...d, pm10: 160, pm25: 90 }, [], S).note, '공기가 많이 탁해요 · 외출할 땐 마스크를 착용해 주세요');
@@ -837,6 +843,8 @@ test('OpenWeather air pollution: now and tomorrow\'s worst hour', () => {
   assert.deepEqual(parseOwTomorrow(fc, key, '20261031'), { pm10: 32, pm25: 11 });
   assert.equal(parseOwTomorrow(fc, key, '20261102'), null);
   assert.equal(parseOwNow({}), null);
+  const hourOf = (d) => ({ key: key(d), h: d.getUTCHours() });
+  assert.deepEqual(parseOwHours(fc, hourOf, '20261031'), [[0, 20, 5], [6, 26, 8], [12, 32, 11]]);
 });
 
 test('Korea: scene.dust from 에어코리아 beside the KMA forecast; aux dust and the bubble at 나쁨; nothing without the key', async () => {
@@ -853,6 +861,21 @@ test('Korea: scene.dust from 에어코리아 beside the KMA forecast; aux dust a
   validateScene(s);
   assert.equal(s.dust.pm10, 39); assert.equal(s.dust.pm25, 29); assert.equal(s.dust.grade, 1); assert.equal(s.dust.station, '신정동');
   assert.equal(s.dust.note, '괜찮은 편이에요'); assert.deepEqual(s.dust.tomorrow, { pm10Grade: 1, pm25Grade: 0 }); assert.equal(s.aux, 'none');
+  // Plus: today's readings so far for the day sheet's chart; free: the day's one reading, no hours
+  resetCache();
+  const todayRT = base.map(([k, v]) => (k === 'getMsrstnAcctoRltmMesureDnsty' ? [k, ak([{ dataTime: '2026-10-21 13:00', pm10Value: '39', pm25Value: '29' }, { dataTime: '2026-10-21 12:00', pm10Value: '44', pm25Value: '31' }, { dataTime: '2026-10-20 24:00', pm10Value: '20', pm25Value: '10' }])] : [k, v]));
+  const sp = await forecast(q, { KMA_SERVICE_KEY: 'k', AIRKOREA_SERVICE_KEY: 'a' }, null, { now, fetcher: fakeFetch(todayRT) });
+  assert.deepEqual(sp.dust.hours, [[0, 20, 10], [12, 44, 31], [13, 39, 29]]);
+  resetCache();
+  const kv = new Map();
+  const FREE_DAY = { get: async (k) => (kv.has(k) ? JSON.parse(kv.get(k)) : null), put: async (k, v) => { kv.set(k, v); } };
+  const sf = await forecast({ ...q, plan: 'free' }, { KMA_SERVICE_KEY: 'k', AIRKOREA_SERVICE_KEY: 'a', FREE_DAY }, null, { now, fetcher: fakeFetch(todayRT) });
+  assert.equal(sf.dust.hours, undefined); assert.equal(sf.dust.pm10, 39);
+  assert.equal([...kv.keys()].filter((k) => k.startsWith('dust:')).length, 1, 'the free day\'s reading is kept');
+  resetCache();
+  const worse = base.map(([k, v]) => (k === 'getMsrstnAcctoRltmMesureDnsty' ? [k, ak([{ dataTime: '2026-10-21 16:00', pm10Value: '95', pm25Value: '48' }])] : [k, v]));
+  const sf2 = await forecast({ ...q, plan: 'free' }, { KMA_SERVICE_KEY: 'k', AIRKOREA_SERVICE_KEY: 'a', FREE_DAY }, null, { now: new Date(now.getTime() + 3 * 3600000), fetcher: fakeFetch(worse) });
+  assert.equal(sf2.dust.pm10, 39, 'free: the kept reading, not the newer (worse) one');
   // 나쁨: the sky gets the dust effect and the bubble says so (no warning in force)
   resetCache();
   const bad = base.map(([k, v]) => (k === 'getMsrstnAcctoRltmMesureDnsty' ? [k, ak([{ dataTime: '2026-10-30 13:00', pm10Value: '95', pm25Value: '48' }])] : [k, v]));

@@ -19,7 +19,7 @@ Accept: application/json
 | lat, lon | place, rounded to 2 decimals (~1 km) by the app and again by the server |
 | region | `kr` (기상청 + MET Norway, six-hour rain), `jp` / `other` (Apple WeatherKit: minute rain where Apple has it, MET Norway without a key) |
 | tz     | IANA time zone of the place; every clock time in the answer is local to it |
-| plan   | `free` → one forecast a day (Korea: the 06:00 forecast; Apple countries: the first answer after 06:00, kept for the day), no `minutes` / `next6`; `plus` → latest run, with them |
+| plan   | `free` → one forecast a day (Korea: the 06:00 forecast; Apple countries: the first answer after 06:00, kept for the day), no `minutes` / `next6`, and one `dust` reading a day (the first after 06:00, kept) without `hours`; `plus` → latest run, with them, and `dust` refreshed hourly with today's `hours` |
 | lang   | `ko` (default) · `en` · `ja`; any other value → `en`. Changes the words in the answer only — see [Languages](#languages) |
 | outfitPrev | optional, the outfit (0…14) the app showed last for this place (±1° hysteresis) |
 | prev   | optional, the old ten-outfit level (0…9) — sent by app builds from before the fifteen outfits |
@@ -79,7 +79,7 @@ Accept: application/json
     "src": "에어코리아", "srcKey": "airkorea",           // translated source name; "station": "신정동" (Korea only); "at": "2026-10-30 13:00"
     "tomorrow": { "pm10Grade": 1, "pm25Grade": 0 },     // the forecast bulletin's grade for tomorrow (either may be null); absent when unknown
     "alarm": "watch",                                   // "watch" (주의보) | "warning" (경보) in force, Korea only; "yellow": true under a 황사 warning
-    "history": [["2026-10-29 14:00", 44, 31], …]        // Korea: the station's last 24 hours, oldest first
+    "hours": [[0, 44, 31], [1, 41, 30], …]              // Plus only: today's readings so far by local hour, oldest first (the day sheet's chart)
   }
 }
 ```

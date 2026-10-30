@@ -16,8 +16,8 @@
 import { metUrl, parseMet } from './providers/met.js';
 import { toGrid, vilageBase, eveBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError } from './providers/kma.js';
 import { hasWeatherKit, weatherKitUrl, weatherKitToken, parseWeatherKit, packWeatherKit, unpackWeatherKit } from './providers/weatherkit.js';
-import { stationsUrl, realtimeUrl, forecastUrl, alarmUrl, airkoreaOK, nearestStation, parseRealtime, parseHistory, forecastRegion, parseForecast as parseDustForecast, parseAlarms } from './providers/airkorea.js';
-import { owNowUrl, owForecastUrl, owOK, parseOwNow, parseOwTomorrow } from './providers/openweather.js';
+import { stationsUrl, realtimeUrl, forecastUrl, alarmUrl, airkoreaOK, nearestStation, parseRealtime, parseHistory, todayHours, forecastRegion, parseForecast as parseDustForecast, parseAlarms } from './providers/airkorea.js';
+import { owNowUrl, owForecastUrl, owHistoryUrl, owOK, parseOwNow, parseOwTomorrow, parseOwHours } from './providers/openweather.js';
 import { buildScene, validateScene } from './scene.js';
 import { local, pad2, dayKey } from './time.js';
 import { normLang } from './i18n.js';
@@ -189,7 +189,32 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch 
  *  Readings are hourly at the source (에어코리아 on the hour, OpenWeather's hour too), so they are kept an hour per ~1 km
  *  cell for every plan; the forecast bulletin comes out four times a day, so three hours. Korea: the nearest 에어코리아
  *  station (the station list is kept a day). Elsewhere: OpenWeather. */
+/**
+ * 미세먼지 · 초미세먼지. Plus: the station's newest hour (cached an hour) and today's readings so far (`hours`, the day
+ * sheet's chart). Free: one reading a day — the first answer of the day for this ~1 km cell is kept in FREE_DAY, like
+ * the free forecast (without the namespace: the hourly cache) — and no hours.
+ */
 export async function dust(q, env, now, fetcher, ctx) {
+  const plus = q.plan === 'plus';
+  const store = !plus && env.FREE_DAY ? env.FREE_DAY : null;
+  const key = `dust:${q.lat.toFixed(2)},${q.lon.toFixed(2)}:${freeDay(now, q.tz)}`;
+  if (store) {
+    try {
+      const kept = await store.get(key, 'json');
+      if (kept && (kept.pm10 != null || kept.pm25 != null)) return kept;
+    } catch (e) { console.log('FREE_DAY dust read failed:', e.message); }
+  }
+  let d = await dustNow(q, env, now, fetcher, ctx);
+  if (!d) return null;
+  if (!plus) { const { hours, ...rest } = d; d = rest; }
+  if (store) {
+    const put = store.put(key, JSON.stringify(d), { expirationTtl: 30 * 3600 }).catch((e) => console.log('FREE_DAY dust write failed:', e.message));
+    if (ctx?.waitUntil) ctx.waitUntil(put); else await put;
+  }
+  return d;
+}
+
+async function dustNow(q, env, now, fetcher, ctx) {
   const kst = (d) => { const p = local(d, 'Asia/Seoul'); return `${p.y}-${pad2(p.m)}-${pad2(p.d)} ${pad2(p.h)}:${pad2(p.mi ?? 0)}`; };
   if (q.region === 'kr' && env.AIRKOREA_SERVICE_KEY) {
     const key = env.AIRKOREA_SERVICE_KEY;
@@ -214,20 +239,27 @@ export async function dust(q, env, now, fetcher, ctx) {
       pm10: cur.pm10, pm25: cur.pm25, at: cur.at, src: 'airkorea', station: st.name,
       tomorrow: t10 == null && t25 == null ? null : { pm10Grade: t10, pm25Grade: t25 },
       alarm: al.status === 'fulfilled' ? parseAlarms(al.value, province, kst(now)) : null,
-      history: parseHistory(rt.value),
+      hours: todayHours(parseHistory(rt.value), ymd(today)),
     };
   }
   if (env.OPENWEATHER_KEY) {
     const key = env.OPENWEATHER_KEY;
-    const [n, fc] = await Promise.allSettled([
+    const today = dayKey(now, q.tz);
+    const hourOf = (d) => ({ key: dayKey(d, q.tz), h: local(d, q.tz).h });
+    const [n, fc, hi] = await Promise.allSettled([
       getJSON(owNowUrl(key, q.lat, q.lon), { ttl: 3600, fetcher, ok: owOK, ctx }),
       getJSON(owForecastUrl(key, q.lat, q.lon), { ttl: 3 * 3600, fetcher, ok: owOK, ctx }),
+      q.plan === 'plus' ? getJSON(owHistoryUrl(key, q.lat, q.lon, Math.floor(now.getTime() / 1000) - 24 * 3600, Math.floor(now.getTime() / 1000)), { ttl: 3600, fetcher, ok: owOK, ctx }) : Promise.resolve(null),
     ]);
     if (n.status !== 'fulfilled') throw n.reason;
     const cur = parseOwNow(n.value);
     if (!cur) return null;
     const tm = fc.status === 'fulfilled' ? parseOwTomorrow(fc.value, (d) => dayKey(d, q.tz), dayKey(new Date(now.getTime() + 86400000), q.tz)) : null;
-    return { pm10: cur.pm10, pm25: cur.pm25, at: cur.at.toISOString(), src: 'openweather', station: null, tomorrow: tm, alarm: null, history: null };
+    let hours = hi.status === 'fulfilled' && hi.value ? parseOwHours(hi.value, hourOf, today) : [];
+    // the current hour is not always in the history yet
+    const nowH = local(now, q.tz).h;
+    if (!hours.some((x) => x[0] === nowH) && (cur.pm10 != null || cur.pm25 != null)) hours.push([nowH, cur.pm10, cur.pm25]);
+    return { pm10: cur.pm10, pm25: cur.pm25, at: cur.at.toISOString(), src: 'openweather', station: null, tomorrow: tm, alarm: null, hours };
   }
   return null;
 }

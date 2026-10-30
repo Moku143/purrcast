@@ -101,7 +101,7 @@ export function dustBlock(d, warnings, S) {
     const t10 = d.tomorrow.pm10Grade ?? gradePM10(d.tomorrow.pm10), t25 = d.tomorrow.pm25Grade ?? gradePM25(d.tomorrow.pm25);
     if (t10 != null || t25 != null) out.tomorrow = { pm10Grade: t10, pm25Grade: t25 };
   }
-  if (Array.isArray(d.history) && d.history.length) out.history = d.history.map((h) => [h.at, h.pm10, h.pm25]);
+  if (Array.isArray(d.hours) && d.hours.length) out.hours = d.hours;   // Plus: today's readings so far, [[hour, pm10, pm25]]
   return out;
 }
 

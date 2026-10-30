@@ -2,10 +2,12 @@
 // the app credits "Air quality © OpenWeather"). Needs OPENWEATHER_KEY.
 //   /air_pollution: the current hour's components (pm10, pm2_5 in ㎍/㎥)
 //   /air_pollution/forecast: hourly for 4 days → tomorrow's worst hour
+//   /air_pollution/history: hourly readings between two unix times → today's hours so far (the day sheet's chart)
 
 const BASE = 'https://api.openweathermap.org/data/2.5';
 export const owNowUrl = (key, lat, lon) => `${BASE}/air_pollution?lat=${lat}&lon=${lon}&appid=${encodeURIComponent(key)}`;
 export const owForecastUrl = (key, lat, lon) => `${BASE}/air_pollution/forecast?lat=${lat}&lon=${lon}&appid=${encodeURIComponent(key)}`;
+export const owHistoryUrl = (key, lat, lon, start, end) => `${BASE}/air_pollution/history?lat=${lat}&lon=${lon}&start=${start}&end=${end}&appid=${encodeURIComponent(key)}`;
 export const owOK = (json) => Array.isArray(json?.list) && json.list.length > 0;
 
 const r0 = (v) => (Number.isFinite(v) ? Math.round(v) : null);
@@ -27,4 +29,19 @@ export function parseOwTomorrow(json, dayKeyOf, tomorrowKey) {
     if (b != null && (pm25 == null || b > pm25)) pm25 = b;
   }
   return pm10 == null && pm25 == null ? null : { pm10, pm25 };
+}
+
+/** Today's readings by local hour from the history (or forecast) list: [[hour, pm10, pm25]], one per hour, oldest first.
+ *  `hourOf(t)` gives (dayKey, hour) in the place's time zone. */
+export function parseOwHours(json, hourOf, todayKey) {
+  const out = [];
+  for (const it of json?.list || []) {
+    const { key, h } = hourOf(new Date((it.dt || 0) * 1000));
+    if (key !== todayKey) continue;
+    const a = r0(it.components?.pm10), b = r0(it.components?.pm2_5);
+    if (a == null && b == null) continue;
+    if (out.length && out[out.length - 1][0] === h) continue;
+    out.push([h, a, b]);
+  }
+  return out;
 }

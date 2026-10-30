@@ -107,3 +107,23 @@ export function parseAlarms(json, province, nowKst) {
   }
   return best;
 }
+
+/** Today's readings by hour from the station's last 24 rows: [[hour, pm10, pm25]], oldest first. 에어코리아 stamps the
+ *  reading for the hour ending at HH:00 ("24:00" is midnight, the end of that day → hour 0 of the next). */
+export function todayHours(history, todayYmd) {
+  const out = [];
+  for (const h of history || []) {
+    const m = /^(\d{4}-\d{2}-\d{2}) (\d{2}):/.exec(h.at || '');
+    if (!m) continue;
+    let ymd = m[1], hr = parseInt(m[2], 10);
+    if (hr === 24) {
+      hr = 0;
+      const d = new Date(`${ymd}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + 1);
+      ymd = d.toISOString().slice(0, 10);
+    }
+    if (ymd !== todayYmd) continue;
+    if (h.pm10 == null && h.pm25 == null) continue;
+    out.push([hr, h.pm10, h.pm25]);
+  }
+  return out;
+}

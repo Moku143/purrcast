@@ -26,7 +26,7 @@ Cloudflare Workers 무료 플랜(하루 10만 요청)에서 돌아가고, 코드
    - `CLOUDFLARE_API_TOKEN` = 2번 토큰
    - `CLOUDFLARE_ACCOUNT_ID` = 2번 Account ID
    - `KMA_SERVICE_KEY` = 1번 Decoding 키 (없으면 한국도 MET Norway로 동작)
-   - `AIRKOREA_SERVICE_KEY` = 같은 data.go.kr 키 (에어코리아 대기오염정보·측정소정보·미세먼지 경보 활용신청 후). 없으면 한국 미세먼지 카드가 안 나와요
+   - `AIRKOREA_SERVICE_KEY` = 같은 data.go.kr 키 (에어코리아 대기오염정보·측정소정보·미세먼지 경보 활용신청 후). 없으면 한국 미세먼지 카드가 안 나와요. 무료는 하루 1회(06시 이후 첫 응답, FREE_DAY에 보관), Plus는 매시간 + 오늘 시간별(`hours`)
    - `OPENWEATHER_KEY` = OpenWeather API 키 (해외 미세먼지, 무료 플랜). 없으면 해외 미세먼지 카드가 안 나와요
    - `WEATHERKIT_KEY_ID`, `WEATHERKIT_KEY_P8`, `APPLE_TEAM_ID` = 아래 **Apple WeatherKit** (없으면 한국 밖은 MET Norway로 동작)
 
