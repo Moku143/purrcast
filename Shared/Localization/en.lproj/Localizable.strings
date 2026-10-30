@@ -145,6 +145,7 @@
 "%@ · 어제보다 %d° 낮아요" = "%@ · %d° cooler than yesterday";
 "오늘 %@ ~ %@" = "Today %@ to %@";
 "비 예보" = "Rain expected";
+"눈 예보" = "Snow expected";
 "비 올 수도" = "Rain possible";
 "연" = "year";
 "월" = "month";

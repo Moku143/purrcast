@@ -88,35 +88,40 @@ enum Notifications {
         return nil
     }
 
-    /// The whole morning in two or three lines, from what the plan has. Free (the 06:00 forecast): sky, rain with its
-    /// hours and amount, the swing, how it feels, UV, sunset. Plus adds a third line: the warning in force, else the
-    /// change from yesterday, strong wind and dust.
+    /// The whole morning, one thing per line: ① sky and rain (its hours and amount) ② the swing, how it feels, UV,
+    /// sunset ③ Plus: the warning in force, else the change from yesterday, strong wind, dust ④ what to take — said once
+    /// (a warning line already says it). Free plans this from the 06:00 forecast, Plus from the latest.
     static func morningDetail(_ s: WeatherScene, day d: WeatherScene.DayRow, plus: Bool, today: Bool, unitF: Bool) -> String {
-        var l1: [String] = []
-        if today, !s.cond.isEmpty { l1.append(s.cond) }
-        if d.chance >= 30, today, let t = s.tiles.first, t.note.contains(L(" 예보")) { l1.append(t.note) }   // "15~17시 비 예보 · 7mm (보통)"
-        else { l1.append(morningBody(d)) }
-        if d.chance >= 30, !l1.last!.contains(L("우산")), !l1.last!.contains(L("조심")) { l1.append(d.icon == "snowflake" || d.icon == "sleet" ? L("미끄러우니 조심하세요") : L("우산 챙기세요")) }
-        var l2: [String] = []
-        if d.hi - d.lo >= 8 { l2.append(L("일교차 %d°", d.hi - d.lo)) }
-        if today { l2.append(L("체감 %@", Rules.feelsWord(s.feels))) }
-        if today, let uv = s.tiles.first(where: { $0.kind == "uv" })?.uv, uv >= 3 { l2.append(L("자외선 %@", UVScale.band(uv).word)) }
-        if today, let sun = s.tiles.first(where: { $0.icon == "sunset" }), let v = sun.value, v != "–" { l2.append(L("일몰 %@", v)) }
-        var lines = [l1.joined(separator: " · ")]
-        if !l2.isEmpty { lines.append(l2.joined(separator: " · ")) }
+        let snowy = d.icon == "snowflake" || d.icon == "sleet"
+        var sky: [String] = []
+        if today, !s.cond.isEmpty { sky.append(s.cond) }
+        if d.chance >= 30, today, let t = s.tiles.first, t.note.contains(L(" 예보")) { sky.append(t.note) }   // "16~18시 비 예보 · 4mm (조금)"
+        else if d.chance >= 60 { sky.append(snowy ? L("눈 예보") : L("비 예보")) }
+        else if d.chance >= 30 { sky.append(L("강수확률 %d%%", d.chance)) }
+        var day: [String] = []
+        if d.hi - d.lo >= 8 { day.append(L("일교차 %d°", d.hi - d.lo)) }
+        if today { day.append(L("체감 %@", Rules.feelsWord(s.feels))) }
+        if today, let uv = s.tiles.first(where: { $0.kind == "uv" })?.uv, uv >= 3 { day.append(L("자외선 %@", UVScale.band(uv).word)) }
+        if today, let sun = s.tiles.first(where: { $0.icon == "sunset" }), let v = sun.value, v != "–" { day.append(L("일몰 %@", v)) }
+        var extra: [String] = []
+        var warned = false
         if plus {
-            var l3: [String] = []
-            if let a = s.alert { l3.append("\(a.name) · \(a.note)") }
+            if let a = s.alert { extra.append("\(a.name) · \(a.note)"); warned = true }
             else {
                 if today, abs(s.yday) >= 2 {
                     let shown = unitF ? Int((Double(abs(s.yday)) * 1.8).rounded()) : abs(s.yday)
-                    l3.append(s.yday > 0 ? L("어제보다 %d° 높아요", shown) : L("어제보다 %d° 낮아요", shown))
+                    extra.append(s.yday > 0 ? L("어제보다 %d° 높아요", shown) : L("어제보다 %d° 낮아요", shown))
                 }
-                if today, s.wind.speed >= 9 { l3.append(L("바람 %@", Rules.windWord(ms: s.wind.speed))) }
-                if today, s.aux == "dust" { l3.append(L("미세먼지 · 마스크 챙기세요")) }
+                if today, s.wind.speed >= 9 { extra.append(L("바람 %@", Rules.windWord(ms: s.wind.speed))) }
+                if today, s.aux == "dust" { extra.append(L("미세먼지 · 마스크 챙기세요")) }
             }
-            if !l3.isEmpty { lines.append(l3.joined(separator: " · ")) }
         }
+        var lines: [String] = []
+        if !sky.isEmpty { lines.append(sky.joined(separator: " · ")) }
+        if !day.isEmpty { lines.append(day.joined(separator: " · ")) }
+        if !extra.isEmpty { lines.append(extra.joined(separator: " · ")) }
+        if d.chance >= 30, !warned { lines.append(snowy ? L("미끄러우니 조심하세요") : L("우산 챙기세요")) }
+        if lines.isEmpty { lines.append(morningBody(d)) }
         return lines.joined(separator: "\n")
     }
 
