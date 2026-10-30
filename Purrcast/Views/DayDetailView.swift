@@ -136,7 +136,7 @@ struct DayDetailView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.press(0.95))
-        .accessibilityIdentifier("tab-\(m)")
+        .accessibilityIdentifier("tab-\(item.0)")
     }
 
     /// Five tabs across the width; with today's 미세먼지 readings (Plus) a sixth, and the row scrolls sideways
@@ -751,11 +751,15 @@ struct DayDetailView: View {
         let b = DustScale.bounds(pm25: c.fine, who: c.who)
         let top = max(b[3] * 1.1, (vals.prefix(last + 1).max() ?? 0) * 1.15)
         var s = DayChartSpec(vals: vals, ymin: 0, ymax: top)
-        s.grid = [0, b[1], b[2], b[3]].map { ($0 / top, $0 == $0.rounded() ? String(Int($0)) : String($0)) }
-        s.segColors = (0..<25).map { i in i - 1 >= last ? .clear : Color(hex: DustScale.colors[DustScale.grade(mid(vals, i), pm25: c.fine, who: c.who)]) }
-        let worst = Color(hex: DustScale.colors[DustScale.grade(vals.prefix(last + 1).max() ?? 0, pm25: c.fine, who: c.who)])
+        let label = { (v: Double) -> String in v == v.rounded() ? String(Int(v)) : String(v) }
+        s.grid = [0, b[1], b[2], b[3]].map { v in (v / top, label(v)) }
+        let colorOf = { (v: Double) -> Color in Color(hex: DustScale.colors[DustScale.grade(v, pm25: c.fine, who: c.who)]) }
+        var cols: [Color] = []
+        for i in 0..<25 { cols.append(i - 1 >= last ? Color.clear : colorOf(mid(vals, i))) }
+        s.segColors = cols
+        let worst = colorOf(vals.prefix(last + 1).max() ?? 0)
         let edge = (Double(last) + 0.5) / 24
-        s.areaStops = [Gradient.Stop(color: worst, location: 0), Gradient.Stop(color: worst, location: edge), Gradient.Stop(color: .clear, location: edge + 0.001)]
+        s.areaStops = [Gradient.Stop(color: worst, location: 0), Gradient.Stop(color: worst, location: edge), Gradient.Stop(color: Color.clear, location: edge + 0.001)]
         s.areaHorizontal = true; s.areaOpacity = 0.35
         return s
     }

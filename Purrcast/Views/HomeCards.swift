@@ -368,6 +368,45 @@ enum DustScale {
     }
 }
 
+struct DustCard: View {
+    @EnvironmentObject var model: AppModel
+    let dust: WeatherScene.Dust; let ink: Ink
+    var body: some View {
+        Card(ink: ink) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(L("미세먼지")).font(.px(13)); Spacer()
+                Text([dust.src, dust.station].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")).font(.ui(11)).foregroundStyle(ink.sub)
+            }
+            // each row its own line; an older answer has one line only, shown by the worse row
+            row(icon: "pm10", label: L("PM10"), value: dust.pm10, grade: dust.pm10Grade, pm25: false, note: dust.note10 ?? (noteRow == 0 ? dust.note : ""))
+            Rectangle().fill(ink.line).frame(height: 1)
+            row(icon: "pm25", label: L("초미세먼지"), value: dust.pm25, grade: dust.pm25Grade, pm25: true, note: dust.note25 ?? (noteRow == 1 ? dust.note : ""))
+        }
+        .accessibilityIdentifier("dust-card")
+    }
+    private var noteRow: Int { (dust.pm25Grade ?? -1) > (dust.pm10Grade ?? -1) ? 1 : 0 }
+
+    private func row(icon: String, label: String, value: Double?, grade: Int?, pm25: Bool, note: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) { PixelIcon(name: icon, size: 16); Text(label).font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
+            HStack(alignment: .center, spacing: 8) {
+                Text(value.map { String(Int($0.rounded())) } ?? "–").font(.px(26)).rolling(value.map { String(Int($0.rounded())) } ?? "–")
+                if let g = grade {
+                    Text(L(DustScale.words[g])).font(.px(11)).foregroundStyle(Color(hex: DustScale.onColors[g]))
+                        .padding(.horizontal, 7).padding(.vertical, 4).background(Color(hex: DustScale.colors[g])).clipShape(RoundedRectangle(cornerRadius: 7))
+                }
+                Spacer(minLength: 8)
+                if !note.isEmpty {
+                    Text(model.say(note)).font(.ui(12)).foregroundStyle((grade ?? 0) >= 2 ? Color(hex: DustScale.colors[grade ?? 0]) : ink.sub)
+                        .multilineTextAlignment(.trailing).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            DustBar(value: value, pm25: pm25, who: dust.who, ink: ink)
+        }
+    }
+}
+
+/// Four equal segments in the 환경부 colours and a ring where the value sits (none when the value is missing).
 struct DustBar: View {
     let value: Double?; let pm25: Bool; var who = false; let ink: Ink
     var body: some View {
