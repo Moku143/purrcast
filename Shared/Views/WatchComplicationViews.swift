@@ -183,31 +183,25 @@ struct WatchSummary: View {
             // then sunset · feels-like · rain
             let ink = Ink(night: s.isNight), lv = f.level
             ZStack(alignment: .topLeading) {
-                HStack(spacing: 3) {
-                    Text(snap.placeShort).font(.px(10)).lineLimit(1).minimumScaleFactor(0.7)
-                    Spacer(minLength: 0)
-                    PixelIcon(name: f.icon, size: 13)
-                }
-                .halo(ink)
+                PixelIcon(name: f.icon, size: 12).halo(ink).frame(maxWidth: .infinity, alignment: .topLeading).padding(.leading, 2)
                 ZStack(alignment: .bottom) {
-                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: f.rain, width: 44, animate: false)
-                        .frame(width: 44, height: 51, alignment: .bottom)
+                    CharacterSprite(character: snap.shownCharacter, level: lv, rain: f.rain, width: 40, animate: false)
+                        .frame(width: 40, height: 46, alignment: .bottom)
                     if let b = s.bubble {
                         BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 4), fontSize: 9).fixedSize()
-                            .scaleEffect(0.6, anchor: .bottom).padding(.bottom, 50)
+                            .scaleEffect(0.55, anchor: .bottom).padding(.bottom, 44)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                .padding(.leading, 2).padding(.bottom, -2)
+                .padding(.leading, 4)
                 VStack(alignment: .trailing, spacing: 0) {
-                    Text(f.temp).font(.px(24)).lineLimit(1).minimumScaleFactor(0.7)
-                    if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 9); Text(t).font(.px(8)) } }
-                    Text(L("체감 %@", f.feels)).font(.px(8))
-                    Text(L("강수 %d%%", f.chance)).font(.px(8))
+                    Text(f.temp).font(.px(22)).lineLimit(1).minimumScaleFactor(0.7)
+                    if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 8); Text(t).font(.px(7.5)) } }
+                    Text(L("체감 %@", f.feels)).font(.px(7.5))
+                    Text(L("강수 %d%%", f.chance)).font(.px(7.5))
                 }
                 .lineLimit(1).minimumScaleFactor(0.8).halo(ink)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                .padding(.top, 14)
             }
             .foregroundStyle(ink.ink)
         } else {
