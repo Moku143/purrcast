@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths-ignore: ['docs/**', 'server/**', '**/*.md', '.github/workflows/server.yml', '.github/workflows/testflight.yml', '.github/workflows/store-screenshots.yml', '.github/workflows/widget-matrix.yml']
   workflow_dispatch:
+    inputs:
+      only:
+        description: 'Quick run: one screenshot test only (e.g. test10Layout, test3Scroll); the watch build is skipped'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -32,7 +37,9 @@ jobs:
         if: success()
         run: |
           set -o pipefail
-          xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast \
+          only=""
+          if [ -n "${{ github.event.inputs.only }}" ]; then only="-only-testing:PurrcastUITests/ScreenshotTests/${{ github.event.inputs.only }} -only-testing:PurrcastTests"; fi
+          xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast $only \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST " || true
       - name: Export screenshots
@@ -64,7 +71,7 @@ jobs:
           PY
           fi
       - name: Watch app build and screenshots
-        if: always()
+        if: always() && github.event.inputs.only == ''
         continue-on-error: true
         run: |
           set -o pipefail
