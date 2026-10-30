@@ -35,6 +35,7 @@ targets:
         UIUserInterfaceStyle: Light
         ITSAppUsesNonExemptEncryption: false
         NSLocationWhenInUseUsageDescription: 지금 위치의 날씨를 보여 드리기 위해 필요해요.
+        NSSupportsLiveActivities: true
         PurrcastServerURL: ""
     entitlements:
       path: Config/Purrcast.entitlements
