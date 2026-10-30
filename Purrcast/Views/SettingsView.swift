@@ -135,7 +135,8 @@ struct SettingsView: View {
         Group {
             SectionLabel(text: L("알림"))
             RowGroup {
-                SettingRow(icon: "umbrella_closed", title: L("비 오기 전")) { toggle($model.notifyRain) }
+                // free: the morning summary only; rain, the day-to-day change and warnings are Plus
+                SettingRow(icon: "umbrella_closed", title: L("비 오기 전")) { if model.plus { toggle($model.notifyRain) } else { PlusTag() } }
                 RowDivider()
                 SettingRow(icon: "sun", title: L("아침 요약")) {
                     HStack(spacing: 8) {
@@ -145,9 +146,9 @@ struct SettingsView: View {
                     }
                 }
                 RowDivider()
-                SettingRow(icon: "daynight", title: L("기온 변화"), subtitle: L("아침에 어제와 비교해 알려 드려요")) { toggle($model.notifyChange) }
+                SettingRow(icon: "daynight", title: L("기온 변화"), subtitle: L("아침에 어제와 비교해 알려 드려요")) { if model.plus { toggle($model.notifyChange) } else { PlusTag() } }
                 RowDivider()
-                SettingRow(icon: "exclaim", title: L("기상특보"), subtitle: L("기상청 특보가 내려지면 알려 드려요")) { toggle($model.notifyAlert) }
+                SettingRow(icon: "exclaim", title: L("기상특보"), subtitle: L("기상청 특보가 내려지면 알려 드려요")) { if model.plus { toggle($model.notifyAlert) } else { PlusTag() } }
                 RowDivider()
                 SettingRow(icon: "zzz", title: L("조용한 시간")) { RowValue(text: "22:00~07:00", chevron: false) }
             }

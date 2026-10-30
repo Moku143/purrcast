@@ -261,6 +261,7 @@
 "무료는 아침 예보 하나, Plus는 새 예보가 나올 때마다." = "Free gets the morning forecast; Plus updates with every new run.";
 "새 예보마다" = "Every forecast";
 "가까운 비" = "Rain ahead";
+"비 오기 전 알림" = "Rain alerts";
 "앞으로 6시간, 언제 얼마나 오는지." = "The next 6 hours: when and how much.";
 "워치 앱 · 컴플리케이션" = "Watch app · Complications";
 "지역 여러 곳" = "More places";
@@ -422,6 +423,7 @@
 "추후 업데이트로 추가 예정" = "Coming in a future update";
 "무료는 하루 1번, Plus는 새 예보가 나올 때마다." = "Free updates once a day; Plus updates with every new forecast.";
 "비 올 시각까지 · 한국은 다음 6시간" = "Down to the minute rain starts · Next 6 hours in Korea";
+"비 30분 전 알림 · 기온 변화 · 기상특보" = "30 min before rain · day-to-day change · warnings";
 "이용약관" = "Terms of Use";
 
 /* day sheet: tabs · bubble · charts · scales */

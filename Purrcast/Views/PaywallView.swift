@@ -16,6 +16,7 @@ struct PaywallView: View {
         f += [
             Feature(art: "fresh", title: L("새 예보마다 업데이트"), note: L("무료는 하루 1번, Plus는 새 예보가 나올 때마다."), check: L("새 예보마다")),
             Feature(art: "rain", title: L("가까운 비"), note: L("비 올 시각까지 · 한국은 다음 6시간"), check: L("가까운 비")),
+            Feature(art: "rain", title: L("비 오기 전 알림"), note: L("비 30분 전 알림 · 기온 변화 · 기상특보"), check: L("알림")),
             Feature(art: "watch", title: L("애플워치"), note: L("손목에서 지금 날씨 · 시간별 · 10일\n워치 페이스에 기온 · 비 확률 · 캐릭터"), check: L("애플워치")),
             Feature(art: "places", title: L("지역 여러 곳"), note: L("무료는 1곳 더, Plus는 제한 없이."), check: L("지역 여러 곳")),
             Feature(art: "chars", title: L("캐릭터 바꾸기"), note: L("아비시니안 · 브리티시숏헤어 · 추후 업데이트로 추가 예정"), check: L("캐릭터")),
