@@ -186,8 +186,9 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch 
 }
 
 /** 미세먼지 for the place: { pm10, pm25, src, station, tomorrow: { pm10Grade, pm25Grade } | null, alarm, history } or null.
- *  Korea: the nearest 에어코리아 station's newest hour (the station list is kept a day, readings an hour; the free plan
- *  shares the hour's reading per ~1 km cell like everything else). Elsewhere: OpenWeather's current hour (an hour too). */
+ *  Readings are hourly at the source (에어코리아 on the hour, OpenWeather's hour too), so they are kept an hour per ~1 km
+ *  cell for every plan; the forecast bulletin comes out four times a day, so three hours. Korea: the nearest 에어코리아
+ *  station (the station list is kept a day). Elsewhere: OpenWeather. */
 export async function dust(q, env, now, fetcher, ctx) {
   const kst = (d) => { const p = local(d, 'Asia/Seoul'); return `${p.y}-${pad2(p.m)}-${pad2(p.d)} ${pad2(p.h)}:${pad2(p.mi ?? 0)}`; };
   if (q.region === 'kr' && env.AIRKOREA_SERVICE_KEY) {
@@ -199,10 +200,10 @@ export async function dust(q, env, now, fetcher, ctx) {
     const region = forecastRegion(st.addr, q.lat, q.lon);
     const province = st.addr.split(/\s+/)[0] || '';
     const [rt, f10, f25, al] = await Promise.allSettled([
-      getJSON(realtimeUrl(key, st.name), { ttl: 1800, fetcher, ok: airkoreaOK, ctx, kma: true }),
-      getJSON(forecastUrl(key, ymd(today), 'PM10'), { ttl: 3600, fetcher, ok: airkoreaOK, ctx, kma: true }),
-      getJSON(forecastUrl(key, ymd(today), 'PM25'), { ttl: 3600, fetcher, ok: airkoreaOK, ctx, kma: true }),
-      getJSON(alarmUrl(key, local(now, 'Asia/Seoul').y), { ttl: 1800, fetcher, ok: airkoreaOK, ctx, kma: true }),
+      getJSON(realtimeUrl(key, st.name), { ttl: 3600, fetcher, ok: airkoreaOK, ctx, kma: true }),
+      getJSON(forecastUrl(key, ymd(today), 'PM10'), { ttl: 3 * 3600, fetcher, ok: airkoreaOK, ctx, kma: true }),
+      getJSON(forecastUrl(key, ymd(today), 'PM25'), { ttl: 3 * 3600, fetcher, ok: airkoreaOK, ctx, kma: true }),
+      getJSON(alarmUrl(key, local(now, 'Asia/Seoul').y), { ttl: 3600, fetcher, ok: airkoreaOK, ctx, kma: true }),
     ]);
     if (rt.status !== 'fulfilled') throw rt.reason;
     const cur = parseRealtime(rt.value);
@@ -219,8 +220,8 @@ export async function dust(q, env, now, fetcher, ctx) {
   if (env.OPENWEATHER_KEY) {
     const key = env.OPENWEATHER_KEY;
     const [n, fc] = await Promise.allSettled([
-      getJSON(owNowUrl(key, q.lat, q.lon), { ttl: 1800, fetcher, ok: owOK, ctx }),
-      getJSON(owForecastUrl(key, q.lat, q.lon), { ttl: 3600, fetcher, ok: owOK, ctx }),
+      getJSON(owNowUrl(key, q.lat, q.lon), { ttl: 3600, fetcher, ok: owOK, ctx }),
+      getJSON(owForecastUrl(key, q.lat, q.lon), { ttl: 3 * 3600, fetcher, ok: owOK, ctx }),
     ]);
     if (n.status !== 'fulfilled') throw n.reason;
     const cur = parseOwNow(n.value);
