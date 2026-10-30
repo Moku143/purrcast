@@ -42,15 +42,12 @@ enum Notifications {
             if !stillToday { comps = Calendar.current.dateComponents([.year, .month, .day], from: Date().addingTimeInterval(86400)); comps.hour = t.hour ?? 7; comps.minute = t.minute ?? 0 }
             let tomorrow = stillToday ? s.days.first : (s.days.count > 1 ? s.days[1] : nil)   // the day the summary is about
             let today = stillToday ? nil : s.days.first   // the day before it, for the change line (unknown once that day has begun)
-            // the hour the morning notifications arrive in, when the forecast reaches it: rain then → umbrella open
-            let atMorning = Calendar.current.date(from: comps).flatMap { hourRow(s, at: $0, tz: TimeZone(identifier: place.timeZone) ?? .current) }
 
             // 아침 요약
             if morning, let d = tomorrow {
                 let n = UNMutableNotificationContent()
                 n.title = voice.say(L("%@ · 오늘 %@ ~ %@", place.short, deg(d.lo), deg(d.hi)))
-                n.body = voice.say(morningBody(d))
-                if let a = dayPicture(d, character, now: atMorning, id: "morning") { n.attachments = [a] }
+                n.body = voice.say(morningBody(d))   // no picture: the app icon on the left is enough
                 c.add(UNNotificationRequest(identifier: "morning", content: n, trigger: UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)))
             }
 
@@ -59,7 +56,6 @@ enum Notifications {
                 let n = UNMutableNotificationContent()
                 n.title = voice.say(changeTitle(place: place.short, todayHi: d.hi, yesterdayHi: y.hi, unitF: unitF))
                 n.body = voice.say(changeBody(d, deg: deg))
-                if let a = dayPicture(d, character, now: atMorning, id: "change") { n.attachments = [a] }
                 // a minute after the summary so the two never collapse into one line
                 var cc = comps; cc.minute = (cc.minute ?? 0) + 1
                 if cc.minute == 60 { cc.minute = 0; cc.hour = ((cc.hour ?? 7) + 1) % 24 }
