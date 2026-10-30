@@ -103,6 +103,13 @@ enum Notifications {
         if today { day.append(L("체감 %@", Rules.feelsWord(s.feels))) }
         if today, let uv = s.tiles.first(where: { $0.kind == "uv" })?.uv, uv >= 3 { day.append(L("자외선 %@", UVScale.band(uv).word)) }
         if today, let sun = s.tiles.first(where: { $0.icon == "sunset" }), let v = sun.value, v != "–" { day.append(L("일몰 %@", v)) }
+        // 미세먼지: the grade(s), the finer one only when it differs; a mask line when 나쁨 or worse
+        var dustLine: [String] = []
+        if today, let d = s.dust {
+            if let g = d.pm10Grade { dustLine.append(L("미세먼지 %@", L(DustScale.words[g]))) }
+            if let g = d.pm25Grade, g != d.pm10Grade { dustLine.append(L("초미세먼지 %@", L(DustScale.words[g]))) }
+            if d.grade >= 2 { dustLine.append(d.grade >= 3 ? L("외출할 땐 마스크를 착용해 주세요") : L("마스크를 챙겨 주세요")) }
+        }
         var extra: [String] = []
         var warned = false
         if plus {
@@ -119,6 +126,7 @@ enum Notifications {
         var lines: [String] = []
         if !sky.isEmpty { lines.append(sky.joined(separator: " · ")) }
         if !day.isEmpty { lines.append(day.joined(separator: " · ")) }
+        if !dustLine.isEmpty { lines.append(dustLine.joined(separator: " · ")) }
         if !extra.isEmpty { lines.append(extra.joined(separator: " · ")) }
         if d.chance >= 30, !warned { lines.append(snowy ? L("미끄러우니 조심하세요") : L("우산 챙기세요")) }
         if lines.isEmpty { lines.append(morningBody(d)) }

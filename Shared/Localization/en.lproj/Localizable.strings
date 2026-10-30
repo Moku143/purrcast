@@ -51,6 +51,10 @@
 "어제보다 %d° 낮아요" = "%d° cooler than yesterday";
 "바람 %@" = "Wind %@";
 "미세먼지 · 마스크 챙기세요" = "Fine dust · Take a mask";
+"미세먼지 %@" = "Air quality %@";
+"초미세먼지 %@" = "PM2.5 %@";
+"마스크를 챙겨 주세요" = "Bring a mask";
+"외출할 땐 마스크를 착용해 주세요" = "Wear a mask outdoors";
 "체감 %@ %@" = "Feels %@ %@";
 "최저 %@" = "Low %@";
 "최고 %@" = "High %@";

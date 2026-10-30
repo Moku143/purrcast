@@ -818,6 +818,10 @@ test('미세먼지 block: grades, the worse one, the note by priority (황사 �
   assert.equal(dustBlock({ ...d, alarm: { kind: 'watch', item: 'PM10' } }, [], S).note, '미세먼지 주의보 · 외출할 땐 마스크를 착용해 주세요');
   assert.equal(dustBlock({ ...d, alarm: { kind: 'warning', item: 'PM25' } }, [], S).note, '미세먼지 경보 · 외출을 줄이고 마스크를 착용해 주세요');
   assert.equal(dustBlock({ ...d, alarm: { kind: 'warning', item: 'PM25' } }, [{ name: '황사경보' }], S).note, '황사 · 창문을 닫고 외출할 땐 마스크를 착용해 주세요');
+  // each row's own line
+  const rows = dustBlock({ ...d, pm25: 48, alarm: { kind: 'watch', item: 'PM25' } }, [{ name: '황사경보' }], S);
+  assert.equal(rows.note10, '황사 · 창문을 닫고 외출할 땐 마스크를 착용해 주세요'); assert.equal(rows.note25, '미세먼지 주의보 · 외출할 땐 마스크를 착용해 주세요');
+  assert.equal(dustBlock(d, [], S).note10, '괜찮은 편이에요'); assert.equal(dustBlock({ ...d, pm25: 48 }, [], S).note25, '공기가 탁해요 · 마스크를 챙겨 주세요');
   assert.equal(dustBlock({ pm10: null, pm25: null, src: 'airkorea' }, [], S), null);
   assert.equal(dustBlock({ pm10: 12, pm25: null, src: 'openweather', tomorrow: { pm10: 90, pm25: 40 } }, [], strings('en')).note, 'The air is clear');
   assert.deepEqual(dustBlock({ pm10: 12, pm25: null, src: 'openweather', tomorrow: { pm10: 90, pm25: 40 } }, [], strings('en')).tomorrow, { pm10Grade: 2, pm25Grade: 2 });

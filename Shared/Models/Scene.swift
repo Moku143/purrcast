@@ -151,14 +151,15 @@ struct WeatherScene: Codable, Identifiable {
         var pm10Grade: Int?; var pm25Grade: Int?
         var grade: Int
         var note: String
+        var note10: String?; var note25: String?   // each row's own line (older answers: only `note`)
         var src: String
         var station: String?
         var at: String?
         var tomorrow: Tomorrow?
         var alarm: String?
         struct Tomorrow: Codable, Equatable { var pm10Grade: Int?; var pm25Grade: Int? }
-        init(pm10: Double?, pm25: Double?, pm10Grade: Int?, pm25Grade: Int?, grade: Int, note: String, src: String, station: String? = nil, at: String? = nil, tomorrow: Tomorrow? = nil, alarm: String? = nil) {
-            self.pm10 = pm10; self.pm25 = pm25; self.pm10Grade = pm10Grade; self.pm25Grade = pm25Grade; self.grade = grade; self.note = note
+        init(pm10: Double?, pm25: Double?, pm10Grade: Int?, pm25Grade: Int?, grade: Int, note: String, note10: String? = nil, note25: String? = nil, src: String, station: String? = nil, at: String? = nil, tomorrow: Tomorrow? = nil, alarm: String? = nil) {
+            self.pm10 = pm10; self.pm25 = pm25; self.pm10Grade = pm10Grade; self.pm25Grade = pm25Grade; self.grade = grade; self.note = note; self.note10 = note10; self.note25 = note25
             self.src = src; self.station = station; self.at = at; self.tomorrow = tomorrow; self.alarm = alarm
         }
         init(from decoder: Decoder) throws {
@@ -167,6 +168,7 @@ struct WeatherScene: Codable, Identifiable {
             pm10Grade = try? c.decodeIfPresent(Int.self, forKey: .pm10Grade); pm25Grade = try? c.decodeIfPresent(Int.self, forKey: .pm25Grade)
             grade = max(0, min(3, (try? c.decode(Int.self, forKey: .grade)) ?? 0))
             note = (try? c.decode(String.self, forKey: .note)) ?? ""
+            note10 = try? c.decodeIfPresent(String.self, forKey: .note10); note25 = try? c.decodeIfPresent(String.self, forKey: .note25)
             src = (try? c.decode(String.self, forKey: .src)) ?? ""
             station = try? c.decodeIfPresent(String.self, forKey: .station); at = try? c.decodeIfPresent(String.self, forKey: .at)
             tomorrow = try? c.decodeIfPresent(Tomorrow.self, forKey: .tomorrow); alarm = try? c.decodeIfPresent(String.self, forKey: .alarm)

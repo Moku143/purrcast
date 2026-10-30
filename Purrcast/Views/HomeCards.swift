@@ -362,16 +362,16 @@ struct DustCard: View {
                 Text(L("미세먼지")).font(.px(13)); Spacer()
                 Text([dust.src, dust.station].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")).font(.ui(11)).foregroundStyle(ink.sub)
             }
-            row(icon: "pm10", label: L("PM10"), value: dust.pm10, grade: dust.pm10Grade, pm25: false, note: dust.note, withNote: noteRow == 0)
+            // each row its own line; an older answer has one line only, shown by the worse row
+            row(icon: "pm10", label: L("PM10"), value: dust.pm10, grade: dust.pm10Grade, pm25: false, note: dust.note10 ?? (noteRow == 0 ? dust.note : ""))
             Rectangle().fill(ink.line).frame(height: 1)
-            row(icon: "pm25", label: L("초미세먼지"), value: dust.pm25, grade: dust.pm25Grade, pm25: true, note: dust.note, withNote: noteRow == 1)
+            row(icon: "pm25", label: L("초미세먼지"), value: dust.pm25, grade: dust.pm25Grade, pm25: true, note: dust.note25 ?? (noteRow == 1 ? dust.note : ""))
         }
         .accessibilityIdentifier("dust-card")
     }
-    /// The line sits by the worse of the two (the first when equal).
     private var noteRow: Int { (dust.pm25Grade ?? -1) > (dust.pm10Grade ?? -1) ? 1 : 0 }
 
-    private func row(icon: String, label: String, value: Double?, grade: Int?, pm25: Bool, note: String, withNote: Bool) -> some View {
+    private func row(icon: String, label: String, value: Double?, grade: Int?, pm25: Bool, note: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) { PixelIcon(name: icon, size: 16); Text(label).font(.ui(12, .semibold)).foregroundStyle(ink.sub) }
             HStack(alignment: .center, spacing: 8) {
@@ -381,7 +381,7 @@ struct DustCard: View {
                         .padding(.horizontal, 7).padding(.vertical, 4).background(Color(hex: DustScale.colors[g])).clipShape(RoundedRectangle(cornerRadius: 7))
                 }
                 Spacer(minLength: 8)
-                if withNote, !note.isEmpty {
+                if !note.isEmpty {
                     Text(model.say(note)).font(.ui(12)).foregroundStyle((grade ?? 0) >= 2 ? Color(hex: DustScale.colors[grade ?? 0]) : ink.sub)
                         .multilineTextAlignment(.trailing).lineLimit(2).fixedSize(horizontal: false, vertical: true)
                 }

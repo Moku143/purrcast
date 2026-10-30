@@ -86,8 +86,12 @@ export function dustBlock(d, warnings, S) {
   const g10 = gradePM10(d.pm10), g25 = gradePM25(d.pm25);
   const grade = Math.max(g10 ?? 0, g25 ?? 0);
   const yellow = (warnings || []).some((w) => /황사|yellow dust|黄砂/i.test(w.name || ''));
-  const note = yellow ? T.yellow : d.alarm?.kind === 'warning' ? T.warning : d.alarm?.kind === 'watch' ? T.watch : T.note[grade];
-  const out = { pm10: d.pm10, pm25: d.pm25, pm10Grade: g10, pm25Grade: g25, grade, note, src: T.src[d.src] ?? d.src, srcKey: d.src };
+  const alarmLine = d.alarm?.kind === 'warning' ? T.warning : d.alarm?.kind === 'watch' ? T.watch : null;
+  // each row's own line: 황사 on the 미세먼지 row, an 경보 / 주의보 on its item's row, else the grade's line
+  const note10 = yellow ? T.yellow : alarmLine && d.alarm.item !== 'PM25' ? alarmLine : g10 == null ? '' : T.note[g10];
+  const note25 = alarmLine && d.alarm.item === 'PM25' ? alarmLine : g25 == null ? '' : T.note[g25];
+  const note = yellow ? T.yellow : alarmLine ? alarmLine : T.note[grade];   // the one line for the worse of the two
+  const out = { pm10: d.pm10, pm25: d.pm25, pm10Grade: g10, pm25Grade: g25, grade, note, note10, note25, src: T.src[d.src] ?? d.src, srcKey: d.src };
   if (d.station) out.station = d.station;
   if (d.at) out.at = d.at;
   if (d.alarm) out.alarm = d.alarm.kind;

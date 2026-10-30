@@ -308,6 +308,13 @@ final class PurrcastTests: XCTestCase {
         let plusText = Notifications.morningDetail(warned, day: day0, plus: true, today: true, unitF: false)
         XCTAssertTrue(plusText.contains("호우주의보"), plusText)
         XCTAssertEqual(plusText.components(separatedBy: "우산").count, 2, "the warning line says it, the umbrella line is dropped: \(plusText)")
+        // 미세먼지 in the morning: the grade, the finer one when it differs, a mask line at 나쁨+
+        var dusty = sc; dusty.dust = WeatherScene.Dust(pm10: 95, pm25: 29, pm10Grade: 2, pm25Grade: 1, grade: 2, note: "", src: "에어코리아")
+        let dl = Notifications.morningDetail(dusty, day: day0, plus: false, today: true, unitF: false)
+        XCTAssertTrue(dl.contains("미세먼지 나쁨 · 초미세먼지 보통 · 마스크를 챙겨 주세요"), dl)
+        dusty.dust = WeatherScene.Dust(pm10: 22, pm25: 11, pm10Grade: 0, pm25Grade: 0, grade: 0, note: "", src: "에어코리아")
+        let dl2 = Notifications.morningDetail(dusty, day: day0, plus: false, today: true, unitF: false)
+        XCTAssertTrue(dl2.contains("\n미세먼지 좋음\n"), dl2); XCTAssertFalse(dl2.contains("초미세먼지"))
         let tomorrow = Notifications.morningDetail(sc, day: sc.days[1], plus: false, today: false, unitF: false)
         XCTAssertFalse(tomorrow.contains("체감"), "tomorrow's summary has no now-values: \(tomorrow)")
     }

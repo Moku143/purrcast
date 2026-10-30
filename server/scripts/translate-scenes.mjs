@@ -89,6 +89,9 @@ function translator(lang) {
     if (s.dust) {
       const i = KO.dust.note.indexOf(s.dust.note);
       s.dust.note = i >= 0 ? T.dust.note[i] : s.dust.note === KO.dust.yellow ? T.dust.yellow : s.dust.note === KO.dust.watch ? T.dust.watch : s.dust.note === KO.dust.warning ? T.dust.warning : s.dust.note;
+      const line = (v) => { const j = KO.dust.note.indexOf(v); return j >= 0 ? T.dust.note[j] : v === KO.dust.yellow ? T.dust.yellow : v === KO.dust.watch ? T.dust.watch : v === KO.dust.warning ? T.dust.warning : v; };
+      if (s.dust.note10 != null) s.dust.note10 = line(s.dust.note10);
+      if (s.dust.note25 != null) s.dust.note25 = line(s.dust.note25);
       s.dust.src = T.dust.src[s.dust.srcKey] ?? s.dust.src;
       if (s.dust.station === '마포구') s.dust.station = { en: 'Mapo-gu', ja: '麻浦区' }[lang];
     }
