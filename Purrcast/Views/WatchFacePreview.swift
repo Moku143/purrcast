@@ -31,7 +31,7 @@ struct WatchFacePreview: View {
                     Spacer(minLength: 0)
                     WatchRainRing(snap: snap).foregroundStyle(.white).frame(width: 52, height: 52).probe("rainCircle")
                     Spacer(minLength: 0)
-                    WatchCatDisc(snap: snap).frame(width: 52, height: 52).probe("faceCircle")
+                    WatchCatSlot(snap: snap).frame(width: 52, height: 52).probe("faceCircle")   // the whole cat, as the complication shows
                 }
             }
             .padding(.horizontal, 12).padding(.top, 10).padding(.bottom, 14)

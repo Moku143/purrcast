@@ -49,6 +49,7 @@
 "일몰 %@" = "Sunset %@";
 "어제보다 %d° 높아요" = "%d° warmer than yesterday";
 "어제보다 %d° 낮아요" = "%d° cooler than yesterday";
+"어제와 비슷해요" = "About the same as yesterday";
 "바람 %@" = "Wind %@";
 "미세먼지 · 마스크 챙기세요" = "Fine dust · Take a mask";
 "미세먼지 %@" = "Air quality %@";

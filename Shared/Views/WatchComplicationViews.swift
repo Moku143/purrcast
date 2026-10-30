@@ -108,8 +108,8 @@ struct WatchTempGauge: View {
                 Circle().fill(Color.black).overlay(Circle().stroke(Color.white, lineWidth: 2 * k))
                     .frame(width: 7.2 * k, height: 7.2 * k)
                     .position(x: c.x + r * CGFloat(sin(a)), y: c.y - r * CGFloat(cos(a)))
-                Text("\(u(s.temp))°").font(.px(15 * k)).foregroundStyle(.white).position(x: c.x, y: c.y + 1 * k)
-                Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 8 * k, weight: .semibold)).foregroundStyle(Color(hex: "#9EA3B5"))
+                Text("\(u(s.temp))°").font(.px(13 * k)).foregroundStyle(.white).position(x: c.x, y: c.y + 1 * k)
+                Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(Color(hex: "#9EA3B5"))
                     .position(x: c.x, y: c.y + 19 * k)
             }
         }
@@ -136,7 +136,7 @@ struct WatchRainRing: View {
         } currentValueLabel: {
             VStack(spacing: 1) {
                 PixelIcon(name: f.rainIcon, size: 13)
-                Text("\(f.chance)%").font(.px(10))
+                Text("\(f.chance)%").font(.px(12))
             }
         }
         .gaugeStyle(.accessoryCircularCapacity)
@@ -150,7 +150,7 @@ struct WatchFeelsDisc: View {
     var body: some View {
         let f = WatchFacts(snap: snap)
         VStack(spacing: 1) {
-            PixelIcon(name: f.feelsIcon, size: 16)
+            PixelIcon(name: f.feelsIcon, size: 14)
             Text(f.feels).font(.px(13)).foregroundStyle(TempColor.of(f.s.feels))
         }
     }
@@ -162,8 +162,8 @@ struct WatchSunDisc: View {
     var body: some View {
         let f = WatchFacts(snap: snap)
         VStack(spacing: 1) {
-            PixelIcon(name: f.sun.icon, size: 16)
-            Text(f.sun.time).font(.px(11)).foregroundStyle(Color(hex: "#FFD59A"))
+            PixelIcon(name: f.sun.icon, size: 14)
+            Text(f.sun.time).font(.px(12)).foregroundStyle(Color(hex: "#FFD59A"))
         }
     }
 }
@@ -204,18 +204,18 @@ struct WatchSummary: View {
                 Spacer(minLength: 0)
             }
         } else {
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 5) {
-                    PixelIcon(name: f.headIcon, size: 15)
-                    Text(f.head).font(.px(13)).foregroundStyle(Color(hex: "#FFB08A")).lineLimit(1).minimumScaleFactor(0.7)
-                }
+            // at a glance, no exclamation: "☁ 16° 비" / "어제보다 3° 낮아요" / "↑16° ↓11° · 강수 80%"
+            let y = s.yday
+            let vs = abs(y) < 2 ? L("어제와 비슷해요") : y > 0 ? L("어제보다 %d° 높아요", abs(y)) : L("어제보다 %d° 낮아요", abs(y))
+            VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(f.temp).font(.px(24)).foregroundStyle(.white)
-                    Text(L("체감 %@", f.feels) + " · " + f.cond).font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Color(hex: "#9EA3B5")).lineLimit(1).minimumScaleFactor(0.8)
+                    PixelIcon(name: f.icon, size: 15).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 2 }
+                    Text(f.temp).font(.px(22)).foregroundStyle(.white)
+                    Text(f.cond).font(.system(size: 12, weight: .semibold)).foregroundStyle(Color(hex: "#C9CDDC")).lineLimit(1).minimumScaleFactor(0.8)
                 }
-                Text(f.range).font(.system(size: 12, weight: .semibold)).foregroundStyle(Color(hex: "#9EA3B5"))
-                    .lineLimit(1).minimumScaleFactor(0.8)
+                Text(vs).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.8)
+                Text("↑\(snap.deg(s.hi)) ↓\(snap.deg(s.lo))" + (f.chance >= 10 ? " · " + L("강수 %d%%", f.chance) : "")).font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color(hex: "#9EA3B5")).lineLimit(1).minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
