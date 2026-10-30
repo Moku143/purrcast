@@ -136,7 +136,6 @@ struct DayDetailView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.press(0.95))
-        .accessibilityIdentifier("tab-\(item.0)")
     }
 
     /// Five tabs across the width; with today's 미세먼지 readings (Plus) a sixth, and the row scrolls sideways
@@ -184,6 +183,7 @@ struct DayDetailView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.press(0.95))
+        .accessibilityIdentifier("tab-\(m)")
     }
 
     /// The alert's icon from its name, in any language (the same words as the server's `warningKind`)
