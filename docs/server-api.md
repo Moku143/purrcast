@@ -65,7 +65,8 @@ Accept: application/json
                         { "name": "Apple 날씨", "key": "apple", "main": false, "t": […], "r": […] },
                         { "name": "MET Norway", "key": "met", "main": false, "t": […], "r": […] } ] },   // absent with one source only
   "dayDetail": [ [ ["0시", 9.5, 10, 2.1, 0, 82, 0.4, 3.6, 225], … 8 per day ], … one per day ],
-      // the day sheet, every 3 h (0, 3 … 21): label, °C, chance %, wind m/s, UV, humidity % (the point nearest the hour),
+      // the day sheet, every 3 h (0, 3 … 21): label, °C, chance %, wind m/s, UV, humidity % (the point nearest the hour;
+      // chance: the highest in the slot, so the day's highest equals its chance in `days`),
       // then for the whole 3-hour slot: precipitation mm (cm when it falls as snow, as in `hours`), strongest gust m/s,
       // wind direction ° (where it comes from). Older answers have the first 6 values only; the app reads both.
   "plus": true                                          // echo of the plan

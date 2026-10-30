@@ -177,8 +177,9 @@ export function buildScene(f, o) {
     const w = f.warnings[0].name;
     scene.alert = { name: S.warning(w), note: R.alertNote(w, { total, pr, nowWet, when, endH: nowWet && endP ? (H(endP) + 1) % 24 : null, hi, lo, gust: ri(cur.gust ?? 0), rh: cur.rh == null ? null : ri(cur.rh) }, S) };
   }
-  // day sheet: 8 three-hourly values per day (0, 3, … 21 h) — temp, rain chance, wind, UV, humidity (the point nearest
-  // the slot), then what the whole 3-hour slot holds: the precipitation (mm; cm when it falls as snow, as in `hours`),
+  // day sheet: 8 three-hourly values per day (0, 3, … 21 h) — temp, wind, UV, humidity (the point nearest the slot),
+  // rain chance (the highest of that day's points in the slot, so the sheet's curve peaks at the day's own chance in
+  // `days` — the nearest point alone missed a 30 % at 13 h between two 20 % slots), then what the whole 3-hour slot holds: the precipitation (mm; cm when it falls as snow, as in `hours`),
   // the strongest gust and the wind direction (degrees it comes from). Points cover [t, t + step h) with mm per hour
   // (MET's 6-hourly points too), so a slot takes each point's amount for the hours it overlaps.
   const HOUR = 3600000;
@@ -200,10 +201,17 @@ export function buildScene(f, o) {
         if (g != null && (gust == null || g > gust)) gust = g;
       }
       if (gust == null) gust = gustOf(best);   // a slot before the first point (earlier today): the nearest point's
+      const popOf = (p) => p.pop ?? (wet(p) ? 70 : 0);
+      let pop = null;
+      for (const p of list) {
+        const from = +p.t;
+        if (Math.min(from + (p.step || 1) * HOUR, end) - Math.max(from, target) > 0) pop = Math.max(pop ?? 0, popOf(p));
+      }
+      if (pop == null) pop = popOf(best);
       let dir = best.dir, dd = Infinity;
       if (dir == null) for (const p of list) { const x = Math.abs(p.t - target); if (p.dir != null && x < dd) { dd = x; dir = p.dir; } }
       dir = ri((((dir ?? cur.dir ?? 0) % 360) + 360) % 360) % 360;
-      return [S.hour(h), r1(best.temp), ri(best.pop ?? (wet(best) ? 70 : 0)), r1(best.wind ?? 0), r1(h >= 6 && h <= 18 ? uvv ?? 0 : 0), ri(best.rh ?? 0),
+      return [S.hour(h), r1(best.temp), ri(pop), r1(best.wind ?? 0), r1(h >= 6 && h <= 18 ? uvv ?? 0 : 0), ri(best.rh ?? 0),
         r1(mm), r1(Math.max(gust ?? 0, best.wind ?? 0)), dir];
     });
   });

@@ -149,6 +149,16 @@ test('scene: clear dry day — no umbrella, no bubble, sun tile, valid for the a
   assert.deepEqual(s.dayDetail[1][4].slice(6), [0, 4.8, 225], 'dry slot: no rain, gust 1.6 × 3 m/s, wind from the south-west');
 });
 
+test('day sheet chance: 30 % at 13 h between 20 % hours shows as 30 % in the 12–15 h slot, as in the day row', () => {
+  const hrs = flat(40, { cloud: 60, sym: 'partlycloudy' });
+  const i22 = (h) => 11 + h;
+  for (let h = 0; h < 24; h++) hrs[i22(h)] = { ...hrs[i22(h)], pop: 20 };
+  hrs[i22(13)] = { ...hrs[i22(13)], pop: 30 };
+  const s = buildScene({ points: parseMet(met(at(13), hrs)).points }, { ...SEOUL, plan: 'free', now: at(13, 40) });
+  assert.equal(s.days[1][2], 30);
+  assert.equal(s.dayDetail[1][4][2], 30, '12–15 h'); assert.equal(s.dayDetail[1][5][2], 20, '15–18 h');
+});
+
 test('day sheet rows: + the 3-hour slot\'s rain (MET 6-hourly points spread over their hours), strongest gust, wind direction', () => {
   const hrs = flat(40, { cloud: 90, sym: 'cloudy' });   // 13:00 on the 21st + 40 h, so the 22nd is covered hour by hour
   const i22 = (h) => 11 + h;                             // index of h:00 on the 22nd
@@ -173,6 +183,8 @@ test('day sheet rows: + the 3-hour slot\'s rain (MET 6-hourly points spread over
   assert.equal(d22[3][8], 90); assert.equal(d22[4][8], 225);
   assert.deepEqual(d23.slice(3, 7).map((r) => r[6]), [2, 3, 3, 3], '10:00 and 16:00 points (6 h each, 1 mm/h) split over the slots');
   assert.equal(d23[4][7], 3, 'no gust in the source: 1.5 × wind'); assert.equal(d23[4][8], 180);
+  // chance: the slot's highest, so the sheet's curve reaches the day's chance (13 h at 80 % sits between the 12 and 15 h slots)
+  s.dayDetail.forEach((d, i) => assert.equal(Math.max(...d.map((r) => r[2])), s.days[i][2], `day ${i}: curve peak = the day's chance`));
   // older answers (6 values per row) still pass; anything else does not
   validateScene({ ...s, dayDetail: s.dayDetail.map((d) => d.map((r) => r.slice(0, 6))) });
   assert.throws(() => validateScene({ ...s, dayDetail: [[['0시', 1, 2, 3, 4, 5, 6, 7]]] }), /dayDetail/);
