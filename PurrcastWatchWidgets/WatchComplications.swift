@@ -5,7 +5,7 @@ import SwiftUI
 // - 그르릉날씨: the big slot (modular face, Smart Stack), today's range gauge, a corner, one line
 // - 기온 · 비 올 확률 · 체감온도 · 일몰 · 일출: one per corner of an analog face (icon in the corner, number along the rim),
 //   or a circle
-// - 고양이: the whole cat in today's outfit, no plate (an analog face's lower sub-dial), or its head in a coloured disc
+// - 고양이: the whole cat in today's outfit, no plate (an analog face's lower sub-dial, or small in a corner)
 // Data: what the watch app saved from the phone.
 
 struct WatchEntry: TimelineEntry { let date: Date; let snap: WeatherSnapshot }
@@ -138,8 +138,9 @@ struct CatComplication: View {
     var body: some View {
         let snap = entry.snap, f = WatchFacts(snap: snap)
         PlusGate(snap: snap) {
+            // the whole cat in today's outfit everywhere — small in a corner (the temperature along the rim), no plate
             if family == .accessoryCorner {
-                art(snap.shownCharacter.faceImage)
+                art(f.sprite, pixel: false)
                     .widgetLabel { Text(f.temp).foregroundStyle(.white) }
             } else {
                 art(f.sprite, pixel: false)
