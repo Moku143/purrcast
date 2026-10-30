@@ -1,0 +1,29 @@
+bundle id app.purrcast.ios: FA9LNMDMS5 (XC app purrcast ios, UNIVERSAL, team 9865Z67LR4)
+capabilities: IN_APP_PURCHASE, APP_GROUPS, IN_APP_PURCHASE, WEATHER_KIT, WEATHERKIT, APP_GROUPS, IN_APP_PURCHASE, APP_GROUPS, IN_APP_PURCHASE, APP_GROUPS
+WeatherKit: ON
+
+app Purrcast: Weather & Outfits (6827140340)
+subscription groups: none yet
+in-app purchases (non-subscription): 0
+group "Me" internal · auto-add new builds: true (39cae037-b05f-4d2e-94ff-e715e4018a7a)
+
+build · version · uploaded · processing · TestFlight internal / external · expired · groups
+28 · 1.0 · 2026-10-29T11:57:36-07:00 · VALID · IN_BETA_TESTING / READY_FOR_BETA_SUBMISSION · ok · [] · usesNonExemptEncryption=false
+27 · 1.0 · 2026-10-29T11:47:54-07:00 · VALID · IN_BETA_TESTING / READY_FOR_BETA_SUBMISSION · ok · [] · usesNonExemptEncryption=false
+26 · 1.0 · 2026-10-29T11:38:49-07:00 · VALID · IN_BETA_TESTING / READY_FOR_BETA_SUBMISSION · ok · [] · usesNonExemptEncryption=false
+25 · 1.0 · 2026-10-29T04:22:48-07:00 · VALID · IN_BETA_TESTING / READY_FOR_BETA_SUBMISSION · ok · [] · usesNonExemptEncryption=false
+24 · 1.0 · 2026-10-29T02:42:09-07:00 · VALID · IN_BETA_TESTING / READY_FOR_BETA_SUBMISSION · ok · [] · usesNonExemptEncryption=false
+23 · 1.0 · 2026-10-28T19:11:11-07:00 · VALID · IN_BETA_TESTING / READY_FOR_BETA_SUBMISSION · ok · [] · usesNonExemptEncryption=false
+22 · 1.0 · 2026-10-27T21:32:59-07:00 · VALID · IN_BETA_TESTING / READY_FOR_BETA_SUBMISSION · ok · [] · usesNonExemptEncryption=false
+21 · 1.0 · 2026-10-27T07:35:32-07:00 · VALID · IN_BETA_TESTING / READY_FOR_BETA_SUBMISSION · ok · [] · usesNonExemptEncryption=false
+add build 28 to "Me": HTTP 422 ENTITY_UNPROCESSABLE: Cannot add internal group to a build.
+
+registered: app.purrcast.ios.widgets, app.purrcast.ios, app.purrcast.ios.watchkitapp, app.purrcast.ios.watchkitapp.widgets
+app.purrcast.ios: FA9LNMDMS5 · capabilities: IN_APP_PURCHASE, APP_GROUPS, IN_APP_PURCHASE, WEATHER_KIT, WEATHERKIT, APP_GROUPS, IN_APP_PURCHASE, APP_GROUPS, IN_APP_PURCHASE, APP_GROUPS
+   profiles: iOS Team Store Provisioning Profile: app.purrcast.ios.widgets [IOS_APP_STORE, ACTIVE, until 2027-10-26] · iOS Team Store Provisioning Profile: app.purrcast.ios [IOS_APP_STORE, ACTIVE, until 2027-10-26] · iOS Team Store Provisioning Profile: app.purrcast.ios.watchkitapp [IOS_APP_STORE, ACTIVE, until 2027-10-26] · iOS Team Store Provisioning Profile: app.purrcast.ios.watchkitapp.widgets [IOS_APP_STORE, ACTIVE, until 2027-10-26]
+app.purrcast.ios.widgets: F6ZXNUXMG9 · capabilities: IN_APP_PURCHASE, APP_GROUPS
+   profiles: iOS Team Store Provisioning Profile: app.purrcast.ios.widgets [IOS_APP_STORE, ACTIVE, until 2027-10-26]
+app.purrcast.ios.watchkitapp: PW5GPX7WN8 · capabilities: IN_APP_PURCHASE, APP_GROUPS, IN_APP_PURCHASE, APP_GROUPS
+   profiles: iOS Team Store Provisioning Profile: app.purrcast.ios.watchkitapp [IOS_APP_STORE, ACTIVE, until 2027-10-26] · iOS Team Store Provisioning Profile: app.purrcast.ios.watchkitapp.widgets [IOS_APP_STORE, ACTIVE, until 2027-10-26]
+app.purrcast.ios.watchkitapp.widgets: T6XHT4JBVL · capabilities: IN_APP_PURCHASE, APP_GROUPS
+   profiles: iOS Team Store Provisioning Profile: app.purrcast.ios.watchkitapp.widgets [IOS_APP_STORE, ACTIVE, until 2027-10-26]
