@@ -319,7 +319,10 @@ struct HomeView: View {
             let chances: [Int?] = six.map { r in s.hours.first { $0.label == r.label }?.chance }
             // the scale's lines: the amounts the words turn at (약한 · 보통 · 강한 비: 1 · 3 · 15mm; snow 1 · 3 · 6cm)
             let snowy = six.contains { $0.snow } && !six.contains { $0.kind == 0 }
-            return (L("다음 6시간"), legend, head, sub, icon, R, six.map { model.hourLabel($0.label) }, chances, snowy ? [1, 3, 6] : [1, 3, 15], snowy ? "cm" : "mm")
+            // the top line rises above the heaviest hour when it is past the usual top (15mm · 6cm): to the next 5mm / 1cm
+            let peakAll = R.max() ?? 0
+            let top = snowy ? max(6, ceil(peakAll)) : max(15, ceil(peakAll / 5) * 5)
+            return (L("다음 6시간"), legend, head, sub, icon, R, six.map { model.hourLabel($0.label) }, chances, [1, 3, top], snowy ? "cm" : "mm")
         }
         if let mm = s.minutes, !mm.isEmpty { return minutesCard(s, mm, nowMin: nowMin, chanceTail: chanceTail(2)) }
         return nil
@@ -351,7 +354,7 @@ struct HomeView: View {
             sub = h.chance >= 10 ? L("시간별로는 %@쯤 비 예보 · 강수확률 %d%%", at, h.chance) : L("시간별로는 %@쯤 비 예보", at)
         }
         let span = mm.count
-        return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) }, [], [1, 3, 15], "mm")
+        return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) }, [], [1, 3, max(15, ceil((mm.max() ?? 0) / 5) * 5)], "mm")
     }
 
     private func nextHourCard(_ s: WeatherScene, head: (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String], chances: [Int?], steps: [Double], unit: String), ink: Ink) -> some View {
