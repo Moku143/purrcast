@@ -276,7 +276,7 @@ struct HomeView: View {
 
     /// Plus: rain coming soon. Korea → 기상청 초단기 next 6 hours; where Apple has minute-by-minute rain (Japan, the
     /// US, the UK, …) → the next hour by the minute; elsewhere → the next 6 hours from the hourly forecast.
-    private func nextHour(_ s: WeatherScene) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String], chances: [Int?])? {
+    private func nextHour(_ s: WeatherScene) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String], chances: [Int?], steps: [Double], unit: String)? {
         guard s.isPlus else { return nil }
         let nowMin: Int = WeatherScene.clockMinutes(s.clock) ?? 12 * 60
         // "강수확률 40% · " from the hours the card covers, left out when it would read 0 %
@@ -317,7 +317,9 @@ struct HomeView: View {
             let legend = s.nextSource == "met" ? "MET Norway · Plus" : s.nextSource == "apple" ? L("Apple 날씨 · Plus") : L("기상청 초단기 · Plus")
             // each hour's chance from the hourly forecast (the same rows the 시간별 card shows), under its bar
             let chances: [Int?] = six.map { r in s.hours.first { $0.label == r.label }?.chance }
-            return (L("다음 6시간"), legend, head, sub, icon, R, six.map { model.hourLabel($0.label) }, chances)
+            // the scale's lines: the amounts the words turn at (약한 · 보통 · 강한 비: 1 · 3 · 15mm; snow 1 · 3 · 6cm)
+            let snowy = six.contains { $0.snow } && !six.contains { $0.kind == 0 }
+            return (L("다음 6시간"), legend, head, sub, icon, R, six.map { model.hourLabel($0.label) }, chances, snowy ? [1, 3, 6] : [1, 3, 15], snowy ? "cm" : "mm")
         }
         if let mm = s.minutes, !mm.isEmpty { return minutesCard(s, mm, nowMin: nowMin, chanceTail: chanceTail(2)) }
         return nil
@@ -328,7 +330,7 @@ struct HomeView: View {
         v >= 10 ? String(Int(v.rounded())) : { let r = (v * 10).rounded() / 10; return r == r.rounded() ? String(Int(r)) : String(format: "%.1f", r) }()
     }
 
-    private func minutesCard(_ s: WeatherScene, _ mm: [Double], nowMin: Int, chanceTail: String) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String], chances: [Int?]) {
+    private func minutesCard(_ s: WeatherScene, _ mm: [Double], nowMin: Int, chanceTail: String) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String], chances: [Int?], steps: [Double], unit: String) {
         var head = L("1시간 동안 비 소식 없어요"), sub = "", icon = "cloud"
         if let st = mm.firstIndex(where: { $0 >= 0.1 }) {
             let en = mm[st...].firstIndex(where: { $0 < 0.1 }).map { $0 - st }
@@ -349,30 +351,30 @@ struct HomeView: View {
             sub = h.chance >= 10 ? L("시간별로는 %@쯤 비 예보 · 강수확률 %d%%", at, h.chance) : L("시간별로는 %@쯤 비 예보", at)
         }
         let span = mm.count
-        return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) }, [])
+        return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) }, [], [1, 3, 15], "mm")
     }
 
-    private func nextHourCard(_ s: WeatherScene, head: (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String], chances: [Int?]), ink: Ink) -> some View {
+    private func nextHourCard(_ s: WeatherScene, head: (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String], chances: [Int?], steps: [Double], unit: String), ink: Ink) -> some View {
         let six = head.bars.count <= 6          // hours as fat bars, minutes as thin ones
         return Card(ink: ink) {
             HStack(alignment: .firstTextBaseline) { Text(head.title).font(.px(13)); Spacer(); Text(head.legend).font(.ui(11)).foregroundStyle(ink.sub) }
             HStack(spacing: 8) { PixelIcon(name: head.icon, size: 20); Text(model.say(head.head)).font(.px(15)).id(head.head).transition(.opacity) }
             if !head.sub.isEmpty { Text(model.say(head.sub)).font(.ui(12)).foregroundStyle(ink.sub).padding(.leading, 28).padding(.top, -9).fixedSize(horizontal: false, vertical: true) }
             ZStack(alignment: .bottomLeading) {
-                // the three steps' lines a third apart (약 0.5mm · 보통 2.5mm · 강 6mm), the words centred in their column
+                // the three lines a third apart, each labelled with its amount (1 · 3 · 15mm; snow in cm), as the day
+                // sheet's charts label their grid
                 ForEach(0..<3, id: \.self) { gi in
-                    let labels = [L("약"), L("보통"), L("강")]
                     let y = 64 - Double(gi + 1) / 3 * 64
                     HStack(spacing: 4) {
                         Rectangle().fill(ink.line).frame(height: 1)
-                        Text(labels[gi]).font(.ui(10)).foregroundStyle(ink.sub).frame(width: 22).lineLimit(1).minimumScaleFactor(0.8)
+                        Text(Self.mmText(head.steps[gi]) + head.unit).font(.px(10)).foregroundStyle(ink.sub).frame(width: 34).lineLimit(1).minimumScaleFactor(0.7)
                     }.offset(y: y - 64)
                 }
                 HStack(alignment: .bottom, spacing: six ? 8 : 1) {
                     ForEach(Array(head.bars.enumerated()), id: \.offset) { i, v in
-                        GrowBar(height: v >= 0.1 ? max(3, Self.rainBarHeight(v) * 64) : 2, color: v >= 0.1 ? ink.blue : ink.track, radius: six ? 4 : 1, delay: Double(i) * (six ? 0.05 : 0.004))
+                        GrowBar(height: v >= 0.1 ? max(3, Self.rainBarHeight(v, steps: head.steps) * 64) : 2, color: v >= 0.1 ? ink.blue : ink.track, radius: six ? 4 : 1, delay: Double(i) * (six ? 0.05 : 0.004))
                     }
-                }.padding(.trailing, 26)
+                }.padding(.trailing, 38)
             }
             // bottom-aligned: with light rain the bars are only a few points tall, and a centred ZStack would
             // float the whole chart (강 line included) up into the words above it
@@ -385,7 +387,7 @@ struct HomeView: View {
                 HStack(alignment: .top, spacing: 8) {
                     ForEach(Array(head.ticks.enumerated()), id: \.offset) { i, t in
                         VStack(spacing: 6) {
-                            Text(t).font(.ui(10)).foregroundStyle(ink.sub).lineLimit(1).minimumScaleFactor(0.8)
+                            Text(t).font(.px(11)).foregroundStyle(ink.sub).lineLimit(1).minimumScaleFactor(0.8)
                             if withChance {
                                 let c = i < head.chances.count ? (head.chances[i] ?? 0) : 0
                                 Text(c >= 10 ? "\(c)%" : "–").font(.px(11)).foregroundStyle(c >= 10 ? ink.blue : ink.faint)
@@ -393,7 +395,7 @@ struct HomeView: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
-                }.padding(.trailing, 26)
+                }.padding(.trailing, 38)
                 // the bars start at 0.1mm, said small at the end
                 if withChance { Text(L("강수확률 · %@", L("0.1mm 이상만 표시"))).font(.ui(10)).foregroundStyle(ink.faint).padding(.top, -4) }
             } else {
@@ -402,17 +404,17 @@ struct HomeView: View {
                         Text(t).font(.ui(10)).foregroundStyle(ink.sub)
                         if i < head.ticks.count - 1 { Spacer() }
                     }
-                }.padding(.trailing, 26)
+                }.padding(.trailing, 38)
             }
         }
     }
 
-    /// A bar's height (0…1) on the three-step scale: each step's line a third up, the amount placed within its step
-    /// (0.5mm reaches the 약 line, 2.5mm the 보통 line, 6mm the 강 line and the top)
-    static func rainBarHeight(_ v: Double) -> Double {
-        let steps: [Double] = [0, 0.5, 2.5, 6]
-        for i in 0..<3 where v <= steps[i + 1] {
-            return (Double(i) + (v - steps[i]) / (steps[i + 1] - steps[i])) / 3
+    /// A bar's height (0…1) on the three-line scale: each line a third up, the amount placed within its band
+    /// (1mm reaches the first line, 3mm the second, 15mm the third and the top)
+    static func rainBarHeight(_ v: Double, steps: [Double]) -> Double {
+        let b = [0] + steps
+        for i in 0..<3 where v <= b[i + 1] {
+            return (Double(i) + (v - b[i]) / (b[i + 1] - b[i])) / 3
         }
         return 1
     }
