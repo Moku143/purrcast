@@ -7653,9 +7653,9 @@
   "updated": "06:00",
   "bubble": {
    "kind": "speech",
-   "tone": "coral",
+   "tone": "white",
    "icon": "mask",
-   "text": "황사!"
+   "text": "미세먼지 매우 나쁨 · 마스크 꼭 챙기세요"
   },
   "hours": [
    [

@@ -49,6 +49,8 @@ final class ScreenshotTests: XCTestCase {
         // the 미세먼지 card under a 황사 line (spring_dust: 매우 나쁨 / 나쁨)
         // a zoomed display (320 pt wide): the hero scales down, nothing is cut off
         shot("home-narrow", ["-scene", "combo", "-plus", "-char", "brit", "-narrow"])
+        // the longest bubble the server sends (미세먼지 매우 나쁨 · 마스크 꼭 챙기세요): the hero must stay the screen's width
+        shot("home-dust-top", ["-scene", "spring_dust", "-plus", "-char", "brit"])
         shot("home-dust", ["-scene", "spring_dust", "-plus"]) { app in
             for _ in 0..<2 { app.swipeUp() }; sleep(1)
         }
