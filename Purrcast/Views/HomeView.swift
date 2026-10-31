@@ -319,10 +319,7 @@ struct HomeView: View {
             let chances: [Int?] = six.map { r in s.hours.first { $0.label == r.label }?.chance }
             // the scale's lines: the amounts the words turn at (약한 · 보통 · 강한 비: 1 · 3 · 15mm; snow 1 · 3 · 6cm)
             let snowy = six.contains { $0.snow } && !six.contains { $0.kind == 0 }
-            // the top line rises above the heaviest hour when it is past the usual top (15mm · 6cm): to the next 5mm / 1cm
-            let peakAll = R.max() ?? 0
-            let top = snowy ? max(6, ceil(peakAll)) : max(15, ceil(peakAll / 5) * 5)
-            return (L("다음 6시간"), legend, head, sub, icon, R, six.map { model.hourLabel($0.label) }, chances, [1, 3, top], snowy ? "cm" : "mm")
+            return (L("다음 6시간"), legend, head, sub, icon, R, six.map { model.hourLabel($0.label) }, chances, Self.rainScale(R.max() ?? 0), snowy ? "cm" : "mm")
         }
         if let mm = s.minutes, !mm.isEmpty { return minutesCard(s, mm, nowMin: nowMin, chanceTail: chanceTail(2)) }
         return nil
@@ -354,7 +351,7 @@ struct HomeView: View {
             sub = h.chance >= 10 ? L("시간별로는 %@쯤 비 예보 · 강수확률 %d%%", at, h.chance) : L("시간별로는 %@쯤 비 예보", at)
         }
         let span = mm.count
-        return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) }, [], [1, 3, max(15, ceil((mm.max() ?? 0) / 5) * 5)], "mm")
+        return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) }, [], Self.rainScale(mm.max() ?? 0), "mm")
     }
 
     private func nextHourCard(_ s: WeatherScene, head: (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String], chances: [Int?], steps: [Double], unit: String), ink: Ink) -> some View {
@@ -364,8 +361,8 @@ struct HomeView: View {
             HStack(spacing: 8) { PixelIcon(name: head.icon, size: 20); Text(model.say(head.head)).font(.px(15)).id(head.head).transition(.opacity) }
             if !head.sub.isEmpty { Text(model.say(head.sub)).font(.ui(12)).foregroundStyle(ink.sub).padding(.leading, 28).padding(.top, -9).fixedSize(horizontal: false, vertical: true) }
             ZStack(alignment: .bottomLeading) {
-                // the three lines a third apart, each labelled with its amount (1 · 3 · 15mm; snow in cm), as the day
-                // sheet's charts label their grid
+                // the three lines a third apart, each labelled with its amount (the scale follows the forecast; snow in cm),
+                // as the day sheet's charts label their grid
                 ForEach(0..<3, id: \.self) { gi in
                     let y = 64 - Double(gi + 1) / 3 * 64
                     HStack(spacing: 4) {
@@ -412,15 +409,16 @@ struct HomeView: View {
         }
     }
 
-    /// A bar's height (0…1) on the three-line scale: each line a third up, the amount placed within its band
-    /// (1mm reaches the first line, 3mm the second, 15mm the third and the top)
-    static func rainBarHeight(_ v: Double, steps: [Double]) -> Double {
-        let b = [0] + steps
-        for i in 0..<3 where v <= b[i + 1] {
-            return (Double(i) + (v - b[i]) / (b[i + 1] - b[i])) / 3
-        }
-        return 1
+    /// The chart's three lines for the heaviest hour: a plain scale whose top is the first of 1.5 · 3 · 6 · 9 · 15 · 30 ·
+    /// 45 · 60 · 90 (mm, or cm of snow) at or above it, the lines at a third, two thirds and the top (1 · 2 · 3mm when
+    /// nothing is coming; 10 · 20 · 30mm for a 22mm hour) — the amounts change with the forecast, as the day sheet's charts do
+    static func rainScale(_ peak: Double) -> [Double] {
+        let tops: [Double] = [1.5, 3, 6, 9, 15, 30, 45, 60, 90]
+        let top = tops.first { $0 >= max(peak, 3) } ?? max(90, ceil(peak / 30) * 30)
+        return [top / 3, top * 2 / 3, top]
     }
+    /// A bar's height (0…1) on that scale
+    static func rainBarHeight(_ v: Double, steps: [Double]) -> Double { min(1, v / (steps.last ?? 1)) }
 
     private func hourlyCard(_ s: WeatherScene, ink: Ink) -> some View {
         Card(ink: ink) {
