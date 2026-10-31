@@ -20,8 +20,11 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - name: Xcode version
-        run: xcodebuild -version && xcrun simctl list runtimes | head -5
+      - name: Xcode 26 (the SDK TestFlight builds use, so the screenshots show what iOS 26 phones show)
+        run: |
+          latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$latest" ]; then sudo xcode-select -s "$latest"; else echo "::warning::No Xcode 26 on this runner, using the default"; fi
+          xcodebuild -version && xcrun simctl list runtimes | head -5
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
