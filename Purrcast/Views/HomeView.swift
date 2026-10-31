@@ -361,10 +361,10 @@ struct HomeView: View {
             HStack(spacing: 8) { PixelIcon(name: head.icon, size: 20); Text(model.say(head.head)).font(.px(15)).id(head.head).transition(.opacity) }
             if !head.sub.isEmpty { Text(model.say(head.sub)).font(.ui(12)).foregroundStyle(ink.sub).padding(.leading, 28).padding(.top, -9).fixedSize(horizontal: false, vertical: true) }
             ZStack(alignment: .bottomLeading) {
-                // the three lines a third apart, each labelled with its amount (the scale follows the forecast; snow in cm),
-                // as the day sheet's charts label their grid
+                // three lines — the heaviest hour at the top, its half and its quarter — each labelled with its amount
+                // (snow in cm), as the day sheet's charts label their grid
                 ForEach(0..<3, id: \.self) { gi in
-                    let y = 64 - Double(gi + 1) / 3 * 64
+                    let y = 64 - [0.25, 0.5, 1.0][gi] * 64
                     HStack(spacing: 4) {
                         Rectangle().fill(ink.line).frame(height: 1)
                         Text(Self.mmText(head.steps[gi]) + head.unit).font(.px(10)).foregroundStyle(ink.sub).frame(width: 34).lineLimit(1).minimumScaleFactor(0.7)
@@ -409,13 +409,11 @@ struct HomeView: View {
         }
     }
 
-    /// The chart's three lines for the heaviest hour: a plain scale whose top is the first of 1.5 · 3 · 6 · 9 · 15 · 30 ·
-    /// 45 · 60 · 90 (mm, or cm of snow) at or above it, the lines at a third, two thirds and the top (1 · 2 · 3mm when
-    /// nothing is coming; 10 · 20 · 30mm for a 22mm hour) — the amounts change with the forecast, as the day sheet's charts do
+    /// The chart's three lines: the top is the heaviest hour itself (rounded up to a whole mm, or cm of snow; 1 when
+    /// nothing is coming), the others its half and its quarter — 30mm → 7.5 · 15 · 30, 80mm → 20 · 40 · 80
     static func rainScale(_ peak: Double) -> [Double] {
-        let tops: [Double] = [1.5, 3, 6, 9, 15, 30, 45, 60, 90]
-        let top = tops.first { $0 >= max(peak, 3) } ?? max(90, ceil(peak / 30) * 30)
-        return [top / 3, top * 2 / 3, top]
+        let top = max(1, ceil(peak))
+        return [top / 4, top / 2, top]
     }
     /// A bar's height (0…1) on that scale
     static func rainBarHeight(_ v: Double, steps: [Double]) -> Double { min(1, v / (steps.last ?? 1)) }
