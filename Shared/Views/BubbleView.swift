@@ -46,7 +46,10 @@ struct BubbleView: View {
             .background(fill)
             .overlay(PixelBorder(px: px).stroke(outline, lineWidth: px))
             .clipShape(PixelBorder(px: px))
-            .alignmentGuide(.leading) { d in tailX.map { min(max($0, 12), d.width - 12) } ?? d.width / 2 }
+            // `tailX` is measured from where the box would start if it were centred on the target, i.e. the target's
+            // distance from the box's left edge once the box is held at the left: the middle while the box is centred
+            // on the target, the target itself once the box is too wide to centre
+            .alignmentGuide(.leading) { d in tailX.map { min(max(min($0, d.width / 2), 12), d.width - 12) } ?? d.width / 2 }
             Tail(kind: kind, fill: fill, outline: outline)
                 .frame(width: 14, height: kind == "thought" ? 14 : 8)
                 .alignmentGuide(.leading) { d in d.width / 2 }
