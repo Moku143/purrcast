@@ -276,7 +276,7 @@ struct HomeView: View {
 
     /// Plus: rain coming soon. Korea → 기상청 초단기 next 6 hours; where Apple has minute-by-minute rain (Japan, the
     /// US, the UK, …) → the next hour by the minute; elsewhere → the next 6 hours from the hourly forecast.
-    private func nextHour(_ s: WeatherScene) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String])? {
+    private func nextHour(_ s: WeatherScene) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String], chances: [Int?])? {
         guard s.isPlus else { return nil }
         let nowMin: Int = WeatherScene.clockMinutes(s.clock) ?? 12 * 60
         // "강수확률 40% · " from the hours the card covers, left out when it would read 0 %
@@ -287,9 +287,7 @@ struct HomeView: View {
         if s.nextSource != "kma", let mm = s.minutes, !mm.isEmpty { return minutesCard(s, mm, nowMin: nowMin, chanceTail: chanceTail(2)) }
         if let six = s.next6 {
             let R = six.map { $0.mm }
-            // no rain in the six hours — but the hourly forecast's chance, when there is one, so the two cards agree
-            // ("강수확률 30% · 비 예보는 없어요": a chance is not a forecast of rain)
-            var head = L("6시간 동안 비 소식 없어요"), sub = chanceTail(7).isEmpty ? "" : chanceTail(7) + L("0.1mm 이상 비 예보는 없어요"), icon = "cloud"
+            var head = L("6시간 동안 비 소식 없어요"), sub = "", icon = "cloud"
             if let st = R.firstIndex(where: { $0 >= 0.1 }) {
                 let en = R[st...].firstIndex(where: { $0 < 0.1 })
                 let last = en == nil ? R.count - 1 : en! - 1
@@ -317,7 +315,9 @@ struct HomeView: View {
                 icon = snow ? "snowflake" : sleet ? "sleet" : st == 0 ? "umbrella" : "umbrella_closed"
             }
             let legend = s.nextSource == "met" ? "MET Norway · Plus" : s.nextSource == "apple" ? L("Apple 날씨 · Plus") : L("기상청 초단기 · Plus")
-            return (L("다음 6시간"), legend, head, sub, icon, R, six.map { model.hourLabel($0.label) })
+            // each hour's chance from the hourly forecast (the same rows the 시간별 card shows), under its bar
+            let chances: [Int?] = six.map { r in s.hours.first { $0.label == r.label }?.chance }
+            return (L("다음 6시간"), legend, head, sub, icon, R, six.map { model.hourLabel($0.label) }, chances)
         }
         if let mm = s.minutes, !mm.isEmpty { return minutesCard(s, mm, nowMin: nowMin, chanceTail: chanceTail(2)) }
         return nil
@@ -328,7 +328,7 @@ struct HomeView: View {
         v >= 10 ? String(Int(v.rounded())) : { let r = (v * 10).rounded() / 10; return r == r.rounded() ? String(Int(r)) : String(format: "%.1f", r) }()
     }
 
-    private func minutesCard(_ s: WeatherScene, _ mm: [Double], nowMin: Int, chanceTail: String) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String]) {
+    private func minutesCard(_ s: WeatherScene, _ mm: [Double], nowMin: Int, chanceTail: String) -> (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String], chances: [Int?]) {
         var head = L("1시간 동안 비 소식 없어요"), sub = "", icon = "cloud"
         if let st = mm.firstIndex(where: { $0 >= 0.1 }) {
             let en = mm[st...].firstIndex(where: { $0 < 0.1 }).map { $0 - st }
@@ -349,10 +349,10 @@ struct HomeView: View {
             sub = h.chance >= 10 ? L("시간별로는 %@쯤 비 예보 · 강수확률 %d%%", at, h.chance) : L("시간별로는 %@쯤 비 예보", at)
         }
         let span = mm.count
-        return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) })
+        return (L("다음 1시간"), L("분 단위 · Plus"), head, sub, icon, mm, [L("지금")] + [1, 2, 3, 4].map { L("%d분", span * $0 / 4) }, [])
     }
 
-    private func nextHourCard(_ s: WeatherScene, head: (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String]), ink: Ink) -> some View {
+    private func nextHourCard(_ s: WeatherScene, head: (title: String, legend: String, head: String, sub: String, icon: String, bars: [Double], ticks: [String], chances: [Int?]), ink: Ink) -> some View {
         let six = head.bars.count <= 6          // hours as fat bars, minutes as thin ones
         return Card(ink: ink) {
             HStack(alignment: .firstTextBaseline) { Text(head.title).font(.px(13)); Spacer(); Text(head.legend).font(.ui(11)).foregroundStyle(ink.sub) }
@@ -383,6 +383,17 @@ struct HomeView: View {
                     if i < head.ticks.count - 1 { Spacer() }
                 }
             }.padding(.trailing, 26)
+            // the chance under each hour (as the 시간별 card shows it) when any hour has one: a chance with no bar
+            // is a chance, not a forecast of rain — and the bars start at 0.1mm, said small at the end
+            if head.chances.contains(where: { ($0 ?? 0) >= 10 }) {
+                HStack {
+                    ForEach(Array(head.chances.enumerated()), id: \.offset) { i, c in
+                        Text((c ?? 0) >= 10 ? "\(c ?? 0)%" : "–").font(.px(11)).foregroundStyle((c ?? 0) >= 10 ? ink.blue : ink.faint)
+                        if i < head.chances.count - 1 { Spacer() }
+                    }
+                }.padding(.trailing, 26).padding(.top, -4)
+                Text(L("강수확률 · %@", L("0.1mm 이상만 표시"))).font(.ui(10)).foregroundStyle(ink.faint).padding(.top, -4)
+            }
         }
     }
 
