@@ -12,6 +12,7 @@ struct PurrcastApp: App {
                 .environmentObject(model)
                 .environmentObject(purchases)
                 .preferredColorScheme(.light)
+                .dynamicTypeSize(.large)        // the pixel layout is drawn to the point; the system text-size setting does not resize it
                 .task {
                     #if DEBUG
                     let args = ProcessInfo.processInfo.arguments

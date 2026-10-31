@@ -13,10 +13,12 @@ struct HomeView: View {
     private func skyKey(_ s: WeatherScene) -> String { "\(s.time)|\(s.cover)|\(s.precip)|\(s.thunder)|\(s.aux)|\(s.clouds ?? -1)|\(s.fog)|\(s.gloom)" }
 
     var body: some View {
-        GeometryReader { g in page(topInset: g.safeAreaInsets.top) }
+        // the page is laid out at exactly the screen's width: no child can push it wider than the glass, whatever the
+        // device, its text-size setting or the OS version does
+        GeometryReader { g in page(width: g.size.width, topInset: g.safeAreaInsets.top) }
     }
 
-    private func page(topInset: CGFloat) -> some View {
+    private func page(width: CGFloat, topInset: CGFloat) -> some View {
         let s = model.scene
         let ink = Ink(night: s.isNight)
         let lv = Rules.clamp(s.level)
@@ -50,6 +52,7 @@ struct HomeView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.bottom, 44)
+                    .frame(width: width)
                 }
                 .coordinateSpace(name: "home")
                 .overlay(alignment: .top) {

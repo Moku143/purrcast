@@ -36,7 +36,7 @@ struct DayDetailView: View {
         var sel = picked ?? (index == 0 ? (hourly?.now ?? 12) : 12)
         if metric == .dust, let last = hourly?.dustLast { sel = min(sel, last) }   // no readings past the newest hour yet
         let ctx = DayCtx(scene: s, index: index, day: s.days[index], hourly: hourly, ink: ink, night: s.isNight, sel: sel, metric: metric, scrub: scrubbing, fine: fine)
-        return ScrollView(showsIndicators: false) {
+        return GeometryReader { g in ScrollView(showsIndicators: false) {
             VStack(spacing: 12) {
                 Capsule().fill(Color(red: 127 / 255, green: 135 / 255, blue: 160 / 255).opacity(0.45)).frame(width: 36, height: 5)
                 titleRow(ctx)
@@ -51,7 +51,8 @@ struct DayDetailView: View {
                 }
             }
             .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 40)
-        }
+            .frame(width: g.size.width)   // never wider than the sheet
+        } }
         .background(sheetBackground(s).ignoresSafeArea())
         .foregroundStyle(ink.ink)
         .onChange(of: start) { _, i in
