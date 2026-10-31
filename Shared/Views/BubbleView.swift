@@ -38,7 +38,7 @@ struct BubbleView: View {
                 if !text.isEmpty {
                     // one line when the width allows (widgets and the watch fix the size); a long line from the
                     // server wraps to two inside the width it is given instead of growing past it
-                    Text(text).font(.px(fontSize)).foregroundStyle(inkColor).lineLimit(2).multilineTextAlignment(.center)
+                    Text(text).font(.px(fontSize)).foregroundStyle(inkColor).lineLimit(3).multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }

@@ -33,14 +33,6 @@ struct HomeView: View {
             if model.hasData {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 12) {
-                        // how far the page has scrolled (drives the compact header)
-                        GeometryReader { g in
-                            let y = g.frame(in: .named("home")).minY
-                            Color.clear
-                                .onAppear { setScrolled(y) }
-                                .onChange(of: y) { _, v in setScrolled(v) }
-                        }
-                        .frame(height: 0)
                         heroScaled(s, ink: ink, level: lv, width: width, topInset: topInset)
                             .parallaxHero()
                         if let e = model.lastError { notice(e, ink: ink).transition(.move(edge: .top).combined(with: .opacity)) }
@@ -55,6 +47,16 @@ struct HomeView: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 44)
                     .frame(width: width)
+                    // how far the page has scrolled (drives the compact header) — behind the stack, so it takes no
+                    // room of its own: the sky picture starts at the very top
+                    .background(alignment: .top) {
+                        GeometryReader { g in
+                            let y = g.frame(in: .named("home")).minY
+                            Color.clear
+                                .onAppear { setScrolled(y) }
+                                .onChange(of: y) { _, v in setScrolled(v) }
+                        }
+                    }
                 }
                 .coordinateSpace(name: "home")
                 .overlay(alignment: .top) {
@@ -223,7 +225,8 @@ struct HomeView: View {
                 // the box sits over the character's head, but never past the hero's left edge or above its top: a long
                 // line (미세먼지 매우 나쁨 · 마스크 꼭 챙기세요) wraps inside the hero's width and its tail still points at the head.
                 // (A box allowed to grow past the edge once widened this whole stack, pushing the top row off the screen.)
-                BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: model.say(b.text), live: true, tailX: headX)
+                BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Self.bubbleLines(model.say(b.text)), live: true, tailX: headX)
+                    .fixedSize()
                     .alignmentGuide(.leading) { d in min(0, d.width / 2 - headX) }
                     .alignmentGuide(.top) { d in min(0, d.height - tipY) }
                     .id(b.text + b.icon)
@@ -242,6 +245,26 @@ struct HomeView: View {
                 .offset(x: -sidePad, y: -topInset)
                 .id("sky" + skyKey(s)).transition(.opacity)
         }
+    }
+
+    /// A long bubble line is broken into two or three short ones, so the box stays a small one over the character's head:
+    /// first at the server's " · " separators ("미세먼지 나쁨 · 마스크 챙기세요" → two lines), then at the middle space.
+    static func bubbleLines(_ text: String, maxChars: Int = 12) -> String {
+        guard text.count > maxChars else { return text }
+        var parts = text.components(separatedBy: " · ")
+        if parts.count == 1 {
+            // no separator: break the line at the space nearest its middle (once, twice when still long)
+            func halve(_ t: String) -> [String] {
+                guard t.count > maxChars else { return [t] }
+                let mid = t.index(t.startIndex, offsetBy: t.count / 2)
+                let before = t[..<mid].lastIndex(of: " "), after = t[mid...].firstIndex(of: " ")
+                let cut = [before, after].compactMap { $0 }.min { abs(t.distance(from: $0, to: mid)) < abs(t.distance(from: $1, to: mid)) }
+                guard let c = cut else { return [t] }
+                return [String(t[..<c]), String(t[t.index(after: c)...])]
+            }
+            parts = halve(text).flatMap { $0.count > maxChars * 2 ? halve($0) : [$0] }
+        }
+        return Array(parts.prefix(3)).joined(separator: "\n")
     }
 
     private func roundButton<C: View>(_ ink: Ink, id: String, label: String, action: @escaping () -> Void, @ViewBuilder content c: () -> C) -> some View {
