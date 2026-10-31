@@ -10,6 +10,10 @@ on:
         description: 'Quick run: one screenshot test only (e.g. test10Layout, test3Scroll); the watch build is skipped'
         required: false
         default: ''
+      device:
+        description: 'Simulator device name (default iPhone 16; e.g. iPhone 13 — created on the latest iOS runtime when missing)'
+        required: false
+        default: 'iPhone 16'
 
 permissions:
   contents: write
@@ -25,6 +29,14 @@ jobs:
           latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
           if [ -n "$latest" ]; then sudo xcode-select -s "$latest"; else echo "::warning::No Xcode 26 on this runner, using the default"; fi
           xcodebuild -version && xcrun simctl list runtimes | head -5
+      - name: Simulator device
+        run: |
+          dev="${{ github.event.inputs.device }}"; dev="${dev:-iPhone 16}"
+          if ! xcrun simctl list devices available | grep -q "^ *$dev ("; then
+            rt=$(xcrun simctl list runtimes | grep -E "^iOS" | tail -1 | grep -o "com.apple.CoreSimulator.SimRuntime[^ )]*")
+            xcrun simctl create "$dev" "$dev" "$rt" && echo "created $dev on $rt"
+          fi
+          echo "SIM_DEVICE=$dev" >> "$GITHUB_ENV"
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
@@ -33,7 +45,7 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild build -project Purrcast.xcodeproj -scheme Purrcast \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination "platform=iOS Simulator,name=${SIM_DEVICE:-iPhone 16},OS=latest" \
             CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log | grep -E "error:|warning: unre|BUILD " || true
           grep -q "BUILD SUCCEEDED" build.log
       - name: Screenshot tests
@@ -43,7 +55,7 @@ jobs:
           only=""
           if [ -n "${{ github.event.inputs.only }}" ]; then only="-only-testing:PurrcastUITests/ScreenshotTests/${{ github.event.inputs.only }} -only-testing:PurrcastTests"; fi
           xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast $only \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination "platform=iOS Simulator,name=${SIM_DEVICE:-iPhone 16},OS=latest" \
             -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST " || true
       - name: Export screenshots
         if: always()
