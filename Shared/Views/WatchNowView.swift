@@ -42,6 +42,7 @@ struct WatchNow: View {
                         BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9.5 * k).fixedSize().probe("bubble")
                             .scaleEffect(0.66, anchor: .bottom)
                             .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: catH))
+                            .offset(x: bubbleShiftX(snap.shownCharacter, rain, level: lv, spriteWidth: catW))
                     }
                 }
                 .frame(width: catW + 6, height: catH + 60, alignment: .bottom)

@@ -67,6 +67,12 @@ func bubbleBottom(_ c: PurrCharacter, _ rain: RainState, level: Int, spriteHeigh
     let top = CGFloat(rain == .umbrella ? a.umb_top[lv] : a.head_top[lv]) / Sprite.height
     return h * (1 - top) + gap
 }
+/// How far the bubble moves sideways from the sprite's middle to sit over the head (or the umbrella's tip when it is up)
+func bubbleShiftX(_ c: PurrCharacter, _ rain: RainState, level: Int, spriteWidth w: CGFloat) -> CGFloat {
+    let a = c.anchors, lv = Rules.clamp(level)
+    let x = rain == .umbrella ? Sprite.umbrellaTipX : CGFloat(a.head_cx[lv])
+    return (x - Sprite.width / 2) / Sprite.width * w
+}
 private func chanceNow(_ s: WeatherScene) -> Int { s.hours.prefix(6).map { $0.chance }.max() ?? 0 }
 
 /// Medium (2×4): the 2×2 face on the left, as wide as the widget is tall, and the next five days on the right on
@@ -128,6 +134,7 @@ struct HoursWidgetView: View {
                         BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize().probe("bubble")
                             .scaleEffect(0.64, anchor: .bottom)
                             .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: catH, gap: 3))
+                            .offset(x: bubbleShiftX(snap.shownCharacter, rain, level: lv, spriteWidth: catW))
                     }
                 }
                 .frame(width: catW + 40, height: catH + 40, alignment: .bottom)
@@ -203,6 +210,7 @@ private struct SmallFace: View {
                     BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize().probe("bubble")
                         .scaleEffect(0.66, anchor: .bottom)      // small enough that a warning name clears "-12°"
                         .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 84))
+                        .offset(x: bubbleShiftX(snap.shownCharacter, rain, level: lv, spriteWidth: 72))
                 }
             }
             .frame(width: 80, height: 118, alignment: .bottom)
