@@ -1,0 +1,1 @@
+run=41208657787 sha=91cd8efe7985f9a5989278be920f9518d2352512 device=iPhone 13 os=latest Sat Oct 31 14:19:48 UTC 2026
