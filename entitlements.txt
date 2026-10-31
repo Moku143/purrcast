@@ -1,0 +1,10 @@
+run=41206349954 build=38 Sat Oct 31 13:42:35 UTC 2026
+APP GROUP: in the build
+== app.purrcast.ios.widgets
+{"application-identifier":"9865Z67LR4.app.purrcast.ios.widgets","beta-reports-active":true,"get-task-allow":false,"com.apple.developer.team-identifier":"9865Z67LR4","com.apple.security.application-groups":["group.app.purrcast"]}
+== app.purrcast.ios.watchkitapp.widgets
+{"application-identifier":"9865Z67LR4.app.purrcast.ios.watchkitapp.widgets","beta-reports-active":true,"get-task-allow":false,"com.apple.developer.team-identifier":"9865Z67LR4","com.apple.security.application-groups":["group.app.purrcast.watch"]}
+== app.purrcast.ios.watchkitapp
+{"application-identifier":"9865Z67LR4.app.purrcast.ios.watchkitapp","beta-reports-active":true,"get-task-allow":false,"com.apple.developer.team-identifier":"9865Z67LR4","com.apple.security.application-groups":["group.app.purrcast.watch"]}
+== app.purrcast.ios
+{"application-identifier":"9865Z67LR4.app.purrcast.ios","beta-reports-active":true,"aps-environment":"production","get-task-allow":false,"com.apple.developer.team-identifier":"9865Z67LR4","com.apple.security.application-groups":["group.app.purrcast"]}
