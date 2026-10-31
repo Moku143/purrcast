@@ -517,7 +517,7 @@
 "내일은 %@ 예보예요." = "Tomorrow: %@.";
 "내일 %@ %@, %@ %@ 예보예요." = "Tomorrow: %@ %@, %@ %@.";
 "내일 %@ %@ 예보예요." = "Tomorrow: %@ %@.";
-"시간별 수치는 내일 측정되면 채워져요." = "Hourly readings fill in as they are measured tomorrow.";
+"아직 측정 전" = "Not measured yet";
 "시간별 자외선 지수" = "UV index by hour";
 "실제" = "Actual";
 "실제 %@" = "Actual %@";

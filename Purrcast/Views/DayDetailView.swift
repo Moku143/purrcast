@@ -45,14 +45,9 @@ struct DayDetailView: View {
                 if index == 0, let a = s.alert { alertLine(a, ctx) }
                 brief(ctx)
                 if let h = hourly {
-                    if metric == .dust && h.dustForecastOnly {
-                        // tomorrow's 미세먼지: the step forecast in the bubble and the scale — nothing measured yet to chart
-                        scaleCard(ctx, h).reveal(1)
-                    } else {
-                        chartCard(ctx, h).reveal(1)
-                        extremesRow(ctx, h).reveal(1)
-                        if !scaleItems(ctx, h).items.isEmpty { scaleCard(ctx, h).reveal(2) }
-                    }
+                    chartCard(ctx, h).reveal(1)
+                    extremesRow(ctx, h).reveal(1)
+                    if !scaleItems(ctx, h).items.isEmpty { scaleCard(ctx, h).reveal(2) }
                 }
             }
             .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 40)
@@ -572,7 +567,8 @@ struct DayDetailView: View {
                     Extreme(title: L("최저"), value: "\(Int(lo.0.rounded()))%", hour: lo.1)]
         case .dust:
             // today's highest and lowest readings so far (tomorrow's step is in the bubble)
-            let known = Array(c.dustVals.prefix((h.dustLast ?? 23) + 1))
+            let known = Array(c.dustVals.prefix(h.dustDrawn + 1))
+            if known.isEmpty { return [Extreme(title: L("최고"), value: "–", hour: nil), Extreme(title: L("최저"), value: "–", hour: nil)] }
             let hi = at(known, max: true), lo = at(known, max: false)
             return [Extreme(title: L("최고"), value: "\(Int(hi.0.rounded()))", hour: hi.1),
                     Extreme(title: L("최저"), value: "\(Int(lo.0.rounded()))", hour: lo.1)]
@@ -628,16 +624,7 @@ struct DayDetailView: View {
     private func scaleCard(_ c: DayCtx, _ h: DayHourly) -> some View {
         let sc = scaleItems(c, h)
         return VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Text(sc.title).font(.px(13)).lineLimit(1).minimumScaleFactor(0.75)
-                if metric == .dust && h.dustForecastOnly {
-                    Spacer(minLength: 4)
-                    HStack(spacing: 4) {
-                        chip(L("미세먼지"), on: !fine, c) { fine = false }
-                        chip(L("초미세"), on: fine, c) { fine = true }
-                    }
-                }
-            }
+            Text(sc.title).font(.px(13))
             HStack(spacing: 6) {
                 ForEach(Array(sc.items.enumerated()), id: \.offset) { i, it in
                     scaleBox(c, it, on: i == sc.cur)
@@ -764,7 +751,7 @@ struct DayDetailView: View {
     /// Like the UV chart: the curve coloured by each hour's step, the grid on the steps' bounds; hours without a
     /// reading yet (later today) are drawn in nothing, so the curve stops at the newest hour.
     private func dustSpec(_ c: DayCtx, _ h: DayHourly) -> DayChartSpec {
-        let vals = c.dustVals, last = h.dustLast ?? 23
+        let vals = c.dustVals, last = h.dustDrawn
         let b = DustScale.bounds(pm25: c.fine, who: c.who)
         let top = max(b[3] * 1.1, (vals.prefix(last + 1).max() ?? 0) * 1.15)
         var s = DayChartSpec(vals: vals, ymin: 0, ymax: top)
@@ -812,6 +799,7 @@ struct DayDetailView: View {
         case .humidity:
             return DayScrub(time: t, icon: "sweat", main: "\(Int(h.rh[i].rounded()))%", sub: L("이슬점 %@", model.deg(h.dew(i))))
         case .dust:
+            if i > h.dustDrawn { return DayScrub(time: t, icon: c.fine ? "pm25" : "pm10", main: "–", sub: L("아직 측정 전")) }
             let v = c.dustVals[i], g = DustScale.grade(v, pm25: c.fine, who: c.who)
             return DayScrub(time: t, icon: c.fine ? "pm25" : "pm10", main: String(Int(v.rounded())), sub: L(DustScale.words[g]), subColor: Color(hex: DustScale.colors[g]), subInk: Color(hex: DustScale.onColors[g]))
         }
@@ -982,7 +970,6 @@ struct DayDetailView: View {
                 t = L("내일 %@ %@ 예보예요.", L("초미세먼지"), L(DustScale.words[g25 ?? 0]))
             }
             t += " " + [L("공기가 맑아요."), L("괜찮은 편이에요."), L("마스크를 챙겨 주세요."), L("외출할 땐 마스크를 착용해 주세요.")][worst]
-            t += " " + L("시간별 수치는 내일 측정되면 채워져요.")
             return Brief(value: L("내일"), badge: L(DustScale.words[worst]), badgeColor: Color(hex: DustScale.colors[worst]), badgeInk: Color(hex: DustScale.onColors[worst]), summary: t)
         }
         let last = h.dustLast ?? 23
@@ -1029,7 +1016,15 @@ private struct DayCtx {
         return v.count == 24 ? v : Array(repeating: 0, count: 24)
     }
     var who: Bool { hourly?.dust?.who ?? false }
-    var dustMax: Double { dustVals.prefix((hourly?.dustLast ?? 23) + 1).max() ?? 0 }
+    /// Today's highest reading so far; tomorrow (forecast only): the middle of the forecast step, so the bar shows the step
+    var dustMax: Double {
+        if let h = hourly, h.dustForecastOnly {
+            let g = max(0, min(3, (fine ? h.dustTomorrow?.pm25Grade : h.dustTomorrow?.pm10Grade) ?? 0))
+            let b = DustScale.bounds(pm25: fine, who: who)
+            return (b[g] + b[g + 1]) / 2
+        }
+        return dustVals.prefix((hourly?.dustDrawn ?? 23) + 1).max() ?? 0
+    }
     var inv: Color { night ? Color(hex: "#141A36") : .white }
     var bubble: Color { night ? Color(hex: "#232B58") : .white }
     var shadow: Color { night ? Color.black.opacity(0.35) : Color(hex: "#1E2A44").opacity(0.18) }
@@ -1055,7 +1050,9 @@ private struct DayHourly {
     var temp: [Double] = [], feel: [Double] = [], chance: [Double] = [], wind: [Double] = [], gust: [Double] = []
     var uv: [Double] = [], rh: [Double] = [], mm: [Double] = [], dir: [Double] = []
     var pm10: [Double] = [], pm25: [Double] = []   // today's 미세먼지 readings by hour (Plus), held flat past the newest
-    var dustLast: Int?      // the newest hour with a reading
+    var dustLast: Int?      // the newest hour with a reading (nil on tomorrow's sheet: nothing measured yet)
+    /// The last hour the chart draws: -1 when there is nothing yet (the curve starts once readings come in)
+    var dustDrawn: Int { dustLast ?? (dustForecastOnly ? -1 : 23) }
     var dust: WeatherScene.Dust?
     var dustTomorrow: WeatherScene.Dust.Tomorrow?   // tomorrow: the step forecast only (no hours yet)
     var hasDust: Bool { dustLast != nil || dustTomorrow != nil }
