@@ -6,6 +6,9 @@ struct HomeView: View {
     @Binding var route: Route?
     @Binding var day: Int?
     private let heroH: CGFloat = 372
+    /// The hero is drawn for the design's 393-pt phone (361 pt inside the side padding) and scaled to the screen in
+    /// hand — a zoomed display (320 pt wide) or a small phone shows the same picture a little smaller, never cut off.
+    private let heroDesignW: CGFloat = 361
     @Environment(\.accessibilityReduceMotion) private var reduce
     @State private var scrolled = false
 
@@ -38,8 +41,7 @@ struct HomeView: View {
                                 .onChange(of: y) { _, v in setScrolled(v) }
                         }
                         .frame(height: 0)
-                        hero(s, ink: ink, level: lv, topInset: topInset)
-                            .frame(height: heroH)
+                        heroScaled(s, ink: ink, level: lv, width: width, topInset: topInset)
                             .parallaxHero()
                         if let e = model.lastError { notice(e, ink: ink).transition(.move(edge: .top).combined(with: .opacity)) }
                         if let a = s.alert { alertBanner(a, ink: ink).reveal(0).settleInScroll() }
@@ -144,7 +146,17 @@ struct HomeView: View {
         }
     }
 
-    private func hero(_ s: WeatherScene, ink: Ink, level: Int, topInset: CGFloat = 0) -> some View {
+    /// The hero at the design width, scaled to fit the screen (see `heroDesignW`); the sky behind it still spans the screen
+    private func heroScaled(_ s: WeatherScene, ink: Ink, level: Int, width: CGFloat, topInset: CGFloat) -> some View {
+        let avail = max(200, width - 32)
+        let k = min(1, avail / heroDesignW)
+        return hero(s, ink: ink, level: level, topInset: topInset / k, skyWidth: width / k, sidePad: 16 / k)
+            .frame(width: heroDesignW, height: heroH, alignment: .topLeading)
+            .scaleEffect(k, anchor: .topLeading)
+            .frame(width: avail, height: heroH * k, alignment: .topLeading)
+    }
+
+    private func hero(_ s: WeatherScene, ink: Ink, level: Int, topInset: CGFloat = 0, skyWidth: CGFloat = UIScreen.main.bounds.width, sidePad: CGFloat = 16) -> some View {
         let char = model.shownCharacter
         let rain = RainState(rawValue: s.rain) ?? .none
         let catW: CGFloat = 176, catH = catW * Sprite.height / Sprite.width
@@ -221,11 +233,11 @@ struct HomeView: View {
         .background(alignment: .topLeading) {
             // weather pixels (clouds, rain, snow, wind …), edge to edge from the very top of the screen (behind the
             // status bar and the place row too), two tiles high, fading out above the first card
-            SkyParticles(scene: s, width: UIScreen.main.bounds.width, tiles: 2)
-                .frame(width: UIScreen.main.bounds.width, height: heroH + topInset, alignment: .top)
+            SkyParticles(scene: s, width: skyWidth, tiles: 2)
+                .frame(width: skyWidth, height: heroH + topInset, alignment: .top)
                 .clipped()
                 .mask(LinearGradient(stops: [.init(color: .black, location: 0.7), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
-                .offset(x: -16, y: -topInset)
+                .offset(x: -sidePad, y: -topInset)
                 .id("sky" + skyKey(s)).transition(.opacity)
         }
     }

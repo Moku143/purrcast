@@ -6,9 +6,22 @@ struct PurrcastApp: App {
     @StateObject private var purchases = Purchases()
     @Environment(\.scenePhase) private var phase
 
+    /// -narrow (debug): the page in a 320 × 693-pt box — the width of a 6.1-inch phone with Display Zoom on — so the
+    /// screenshots show that nothing is cut off there
+    @ViewBuilder private func root() -> some View {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-narrow") {
+            RootView().frame(width: 320, height: 693).clipped()
+                .frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.black)
+        } else { RootView() }
+        #else
+        RootView()
+        #endif
+    }
+
     var body: some Scene {
         WindowGroup {
-            RootView()
+            root()
                 .environmentObject(model)
                 .environmentObject(purchases)
                 .preferredColorScheme(.light)
