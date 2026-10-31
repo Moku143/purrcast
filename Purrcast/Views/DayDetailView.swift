@@ -972,15 +972,17 @@ struct DayDetailView: View {
             t += " " + [L("공기가 맑아요."), L("괜찮은 편이에요."), L("마스크를 챙겨 주세요."), L("외출할 땐 마스크를 착용해 주세요.")][worst]
             return Brief(value: L("내일"), badge: L(DustScale.words[worst]), badgeColor: Color(hex: DustScale.colors[worst]), badgeInk: Color(hex: DustScale.onColors[worst]), summary: t)
         }
+        // today: the reading now and its step, when today's highest was (and how high), tomorrow's step forecast
         let last = h.dustLast ?? 23
         let known = Array(c.dustVals.prefix(last + 1))
-        let m = known.max() ?? 0, g = DustScale.grade(m, pm25: c.fine, who: c.who)
+        let m = known.max() ?? 0, peakAt = known.firstIndex(of: m) ?? last
         let now = known.last ?? 0, gn = DustScale.grade(now, pm25: c.fine, who: c.who)
         let what = c.fine ? L("초미세먼지") : L("미세먼지")
-        var t = gn == g ? L("%@ %@이에요.", what, L(DustScale.words[g])) : L("%@ %@까지 올랐다가 지금은 %@이에요.", what, L(DustScale.words[g]), L(DustScale.words[gn]))
+        var t = L("%@ %@이에요.", what, L(DustScale.words[gn]))
         t += " " + [L("공기가 맑아요."), L("괜찮은 편이에요."), L("마스크를 챙겨 주세요."), L("외출할 땐 마스크를 착용해 주세요.")][gn]
+        t += " " + (peakAt == last ? L("지금이 오늘 가장 높아요.") : L("%@에 %@로 가장 높았어요.", HourLabel.word(peakAt, clock12: model.clock12), String(Int(m.rounded()))))
         if let tm = c.fine ? h.dust?.tomorrow?.pm25Grade : h.dust?.tomorrow?.pm10Grade { t += " " + L("내일은 %@ 예보예요.", L(DustScale.words[max(0, min(3, tm))])) }
-        return Brief(value: L("최고 %@", String(Int(m.rounded()))), badge: L(DustScale.words[g]), badgeColor: Color(hex: DustScale.colors[g]), badgeInk: Color(hex: DustScale.onColors[g]), summary: t)
+        return Brief(value: L("지금 %@", String(Int(now.rounded()))), badge: L(DustScale.words[gn]), badgeColor: Color(hex: DustScale.colors[gn]), badgeInk: Color(hex: DustScale.onColors[gn]), summary: t)
     }
 
     private func humidityLevel(_ h: DayHourly) -> (k: Int, avg: Int, dew: Int) {
