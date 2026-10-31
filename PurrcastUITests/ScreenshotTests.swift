@@ -51,6 +51,8 @@ final class ScreenshotTests: XCTestCase {
         shot("home-narrow", ["-scene", "combo", "-plus", "-char", "brit", "-narrow"])
         // the longest bubble the server sends (미세먼지 매우 나쁨 · 마스크 꼭 챙기세요): the hero must stay the screen's width
         shot("home-dust-top", ["-scene", "spring_dust", "-plus", "-char", "brit"])
+        // no rain in the six hours but a chance in the hourly forecast: the card says both
+        shot("home-next6-dry", ["-scene", "maybe", "-plus"]) { app in app.swipeUp(); sleep(1) }
         shot("home-dust", ["-scene", "spring_dust", "-plus"]) { app in
             for _ in 0..<2 { app.swipeUp() }; sleep(1)
         }
@@ -60,6 +62,10 @@ final class ScreenshotTests: XCTestCase {
         }
         // tomorrow's sheet: the 미세먼지 tab with the step forecast and the scale (no chart yet)
         shot("day-dust-tomorrow", ["-scene", "spring_dust", "-plus", "-open", "day"], wait: 2) { app in
+            app.buttons["tab-dust"].firstMatch.tap(); sleep(1)
+        }
+        // abroad (OpenWeather, WHO steps): the same tab
+        shot("day-dust-jp", ["-scene", "tokyo_soon", "-plus", "-open", "today"], wait: 2) { app in
             app.buttons["tab-dust"].firstMatch.tap(); sleep(1)
         }
         shot("day-uv", ["-scene", "summer_heat", "-plus", "-open", "day"], wait: 2) { app in
