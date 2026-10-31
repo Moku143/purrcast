@@ -220,10 +220,12 @@ struct HomeView: View {
                 .animation(Motion.gentle, value: catLeft)
 
             if let b = s.bubble {
-                BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: model.say(b.text), live: true)
-                    .fixedSize()
-                    .alignmentGuide(.leading) { d in d.width / 2 - headX }
-                    .alignmentGuide(.top) { d in d.height - tipY }
+                // the box sits over the character's head, but never past the hero's left edge or above its top: a long
+                // line (미세먼지 매우 나쁨 · 마스크 꼭 챙기세요) wraps inside the hero's width and its tail still points at the head.
+                // (A box allowed to grow past the edge once widened this whole stack, pushing the top row off the screen.)
+                BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: model.say(b.text), live: true, tailX: headX)
+                    .alignmentGuide(.leading) { d in min(0, d.width / 2 - headX) }
+                    .alignmentGuide(.top) { d in min(0, d.height - tipY) }
                     .id(b.text + b.icon)
                     .transition(.opacity)
             }

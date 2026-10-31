@@ -9,6 +9,9 @@ struct BubbleView: View {
     var fontSize: CGFloat = 13
     /// In the app the bubble pops in and floats a little; widgets and the watch draw it still.
     var live = false
+    /// Where the tail points, measured from the bubble's left edge (nil: the middle). The home page passes the
+    /// character's head: a long line then keeps its box on the screen and only the tail moves over to the head.
+    var tailX: CGFloat? = nil
     @State private var shown = false
     @State private var bob = false
     @Environment(\.accessibilityReduceMotion) private var reduce
@@ -28,19 +31,25 @@ struct BubbleView: View {
     private let px: CGFloat = 2
 
     var body: some View {
-        VStack(spacing: 0) {
+        // the box and the tail line up on the tail's point: the box's `tailX` (clamped inside the box) over the tail's middle
+        VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 5) {
                 if icon != "none" { PixelIcon(name: icon, size: 16) }
                 if !text.isEmpty {
-                    Text(text).font(.px(fontSize)).foregroundStyle(inkColor).lineLimit(1).fixedSize()
+                    // one line when the width allows (widgets and the watch fix the size); a long line from the
+                    // server wraps to two inside the width it is given instead of growing past it
+                    Text(text).font(.px(fontSize)).foregroundStyle(inkColor).lineLimit(2).multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .padding(.horizontal, 9).padding(.vertical, 7)
             .background(fill)
             .overlay(PixelBorder(px: px).stroke(outline, lineWidth: px))
             .clipShape(PixelBorder(px: px))
+            .alignmentGuide(.leading) { d in tailX.map { min(max($0, 12), d.width - 12) } ?? d.width / 2 }
             Tail(kind: kind, fill: fill, outline: outline)
                 .frame(width: 14, height: kind == "thought" ? 14 : 8)
+                .alignmentGuide(.leading) { d in d.width / 2 }
         }
         .overlay(alignment: .top) {
             if kind == "shout" { BurstLines(color: outline).frame(width: 60, height: 20).offset(y: -22) }
