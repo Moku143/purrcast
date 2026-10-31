@@ -289,7 +289,7 @@ struct HomeView: View {
             let R = six.map { $0.mm }
             // no rain in the six hours — but the hourly forecast's chance, when there is one, so the two cards agree
             // ("강수확률 30% · 비 예보는 없어요": a chance is not a forecast of rain)
-            var head = L("6시간 동안 비 소식 없어요"), sub = chanceTail(7).isEmpty ? "" : chanceTail(7) + L("비 예보는 없어요"), icon = "cloud"
+            var head = L("6시간 동안 비 소식 없어요"), sub = chanceTail(7).isEmpty ? "" : chanceTail(7) + L("0.1mm 이상 비 예보는 없어요"), icon = "cloud"
             if let st = R.firstIndex(where: { $0 >= 0.1 }) {
                 let en = R[st...].firstIndex(where: { $0 < 0.1 })
                 let last = en == nil ? R.count - 1 : en! - 1

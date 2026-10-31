@@ -186,7 +186,7 @@
 "설정" = "Settings";
 "전일 대비" = "vs yesterday";
 "6시간 동안 비 소식 없어요" = "No rain in the next 6 hours";
-"비 예보는 없어요" = "No rain in the forecast";
+"0.1mm 이상 비 예보는 없어요" = "No rain of 0.1mm or more in the forecast";
 "지금 비" = "Raining now";
 "지금 비 · 시간당 %@mm" = "Raining now · %@mm/h";
 "지금 비 · %@" = "Raining now · %@";
