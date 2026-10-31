@@ -52,7 +52,7 @@ final class ScreenshotTests: XCTestCase {
         // the longest bubble the server sends (미세먼지 매우 나쁨 · 마스크 꼭 챙기세요): the hero must stay the screen's width
         shot("home-dust-top", ["-scene", "spring_dust", "-plus", "-char", "brit"])
         // no rain in the six hours but a chance in the hourly forecast: the card says both
-        shot("home-next6-dry", ["-scene", "maybe", "-plus"]) { app in app.swipeUp(); sleep(1) }
+        shot("home-next6-dry", ["-scene", "clear", "-plus"])
         shot("home-dust", ["-scene", "spring_dust", "-plus"]) { app in
             for _ in 0..<2 { app.swipeUp() }; sleep(1)
         }
