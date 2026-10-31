@@ -359,17 +359,18 @@ struct HomeView: View {
             HStack(spacing: 8) { PixelIcon(name: head.icon, size: 20); Text(model.say(head.head)).font(.px(15)).id(head.head).transition(.opacity) }
             if !head.sub.isEmpty { Text(model.say(head.sub)).font(.ui(12)).foregroundStyle(ink.sub).padding(.leading, 28).padding(.top, -9).fixedSize(horizontal: false, vertical: true) }
             ZStack(alignment: .bottomLeading) {
+                // the three steps' lines a third apart (약 0.5mm · 보통 2.5mm · 강 6mm), the words centred in their column
                 ForEach(0..<3, id: \.self) { gi in
-                    let labels = [L("약"), L("보통"), L("강")], levels: [Double] = [0.5, 2.5, 6.0]
-                    let y = 64 - min(1, levels[gi] / 6) * 64
+                    let labels = [L("약"), L("보통"), L("강")]
+                    let y = 64 - Double(gi + 1) / 3 * 64
                     HStack(spacing: 4) {
                         Rectangle().fill(ink.line).frame(height: 1)
-                        Text(labels[gi]).font(.ui(10)).foregroundStyle(ink.sub).frame(width: 22, alignment: .trailing)
+                        Text(labels[gi]).font(.ui(10)).foregroundStyle(ink.sub).frame(width: 22).lineLimit(1).minimumScaleFactor(0.8)
                     }.offset(y: y - 64)
                 }
                 HStack(alignment: .bottom, spacing: six ? 8 : 1) {
                     ForEach(Array(head.bars.enumerated()), id: \.offset) { i, v in
-                        GrowBar(height: v >= 0.1 ? max(3, min(1, v / 6) * 64) : 2, color: v >= 0.1 ? ink.blue : ink.track, radius: six ? 4 : 1, delay: Double(i) * (six ? 0.05 : 0.004))
+                        GrowBar(height: v >= 0.1 ? max(3, Self.rainBarHeight(v) * 64) : 2, color: v >= 0.1 ? ink.blue : ink.track, radius: six ? 4 : 1, delay: Double(i) * (six ? 0.05 : 0.004))
                     }
                 }.padding(.trailing, 26)
             }
@@ -404,6 +405,16 @@ struct HomeView: View {
                 }.padding(.trailing, 26)
             }
         }
+    }
+
+    /// A bar's height (0…1) on the three-step scale: each step's line a third up, the amount placed within its step
+    /// (0.5mm reaches the 약 line, 2.5mm the 보통 line, 6mm the 강 line and the top)
+    static func rainBarHeight(_ v: Double) -> Double {
+        let steps: [Double] = [0, 0.5, 2.5, 6]
+        for i in 0..<3 where v <= steps[i + 1] {
+            return (Double(i) + (v - steps[i]) / (steps[i + 1] - steps[i])) / 3
+        }
+        return 1
     }
 
     private func hourlyCard(_ s: WeatherScene, ink: Ink) -> some View {
