@@ -1023,7 +1023,11 @@ private struct DayCtx {
     var fine = true                              // 미세먼지 tab: PM2.5 or PM10
     var snowy: Bool { day.icon == "snowflake" }
     /// The 미세먼지 curve in use (PM2.5 or PM10), its scale (WHO abroad) and today's highest reading so far
-    var dustVals: [Double] { (fine ? hourly?.pm25 : hourly?.pm10) ?? Array(repeating: 0, count: 24) }
+    /// 24 values, zeros when the day has no readings (tomorrow's forecast-only tab)
+    var dustVals: [Double] {
+        let v = (fine ? hourly?.pm25 : hourly?.pm10) ?? []
+        return v.count == 24 ? v : Array(repeating: 0, count: 24)
+    }
     var who: Bool { hourly?.dust?.who ?? false }
     var dustMax: Double { dustVals.prefix((hourly?.dustLast ?? 23) + 1).max() ?? 0 }
     var inv: Color { night ? Color(hex: "#141A36") : .white }
