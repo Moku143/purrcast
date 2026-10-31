@@ -53,6 +53,8 @@ final class ScreenshotTests: XCTestCase {
         shot("home-dust-top", ["-scene", "spring_dust", "-plus", "-char", "brit"])
         // no rain in the six hours but a chance in the hourly forecast: the card says both
         shot("home-next6-dry", ["-scene", "clear", "-plus"])
+        // a typhoon hour past 15mm: the top line rises to it
+        shot("home-next6-heavy", ["-scene", "summer_typhoon", "-plus"])
         shot("home-dust", ["-scene", "spring_dust", "-plus"]) { app in
             for _ in 0..<2 { app.swipeUp() }; sleep(1)
         }
