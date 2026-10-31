@@ -13,10 +13,14 @@ struct HomeView: View {
     private func skyKey(_ s: WeatherScene) -> String { "\(s.time)|\(s.cover)|\(s.precip)|\(s.thunder)|\(s.aux)|\(s.clouds ?? -1)|\(s.fog)|\(s.gloom)" }
 
     var body: some View {
+        GeometryReader { g in page(topInset: g.safeAreaInsets.top) }
+    }
+
+    private func page(topInset: CGFloat) -> some View {
         let s = model.scene
         let ink = Ink(night: s.isNight)
         let lv = Rules.clamp(s.level)
-        ZStack(alignment: .top) {
+        return ZStack(alignment: .top) {
             background(level: lv, night: s.isNight).ignoresSafeArea()
                 .animation(Motion.fade, value: lv).animation(Motion.fade, value: s.isNight)
             SkyTint(scene: s).ignoresSafeArea()
@@ -32,7 +36,7 @@ struct HomeView: View {
                                 .onChange(of: y) { _, v in setScrolled(v) }
                         }
                         .frame(height: 0)
-                        hero(s, ink: ink, level: lv)
+                        hero(s, ink: ink, level: lv, topInset: topInset)
                             .frame(height: heroH)
                             .parallaxHero()
                         if let e = model.lastError { notice(e, ink: ink).transition(.move(edge: .top).combined(with: .opacity)) }
@@ -137,7 +141,7 @@ struct HomeView: View {
         }
     }
 
-    private func hero(_ s: WeatherScene, ink: Ink, level: Int) -> some View {
+    private func hero(_ s: WeatherScene, ink: Ink, level: Int, topInset: CGFloat = 0) -> some View {
         let char = model.shownCharacter
         let rain = RainState(rawValue: s.rain) ?? .none
         let catW: CGFloat = 176, catH = catW * Sprite.height / Sprite.width
@@ -212,12 +216,13 @@ struct HomeView: View {
         .animation(Motion.bouncy, value: s.bubble?.text)
         .frame(maxWidth: .infinity, minHeight: heroH, maxHeight: heroH, alignment: .topLeading)
         .background(alignment: .topLeading) {
-            // weather pixels (clouds, rain, snow, wind …), edge to edge, two tiles high, fading out above the first card
+            // weather pixels (clouds, rain, snow, wind …), edge to edge from the very top of the screen (behind the
+            // status bar and the place row too), two tiles high, fading out above the first card
             SkyParticles(scene: s, width: UIScreen.main.bounds.width, tiles: 2)
-                .frame(width: UIScreen.main.bounds.width, height: heroH, alignment: .top)
+                .frame(width: UIScreen.main.bounds.width, height: heroH + topInset, alignment: .top)
                 .clipped()
                 .mask(LinearGradient(stops: [.init(color: .black, location: 0.7), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
-                .offset(x: -16)
+                .offset(x: -16, y: -topInset)
                 .id("sky" + skyKey(s)).transition(.opacity)
         }
     }

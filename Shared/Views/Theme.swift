@@ -46,7 +46,9 @@ extension Font {
     private static func bump(_ size: CGFloat) -> CGFloat { size >= 9 && size <= 13 ? size + 1 : size }
     static func px(_ size: CGFloat) -> Font {
         let s = bump(size)
-        return FontPref.pixel ? .custom("PurrcastPixel-Medium", size: s) : .system(size: s * 1.04, weight: .bold, design: .rounded)
+        // fixed sizes: the pixel layout is drawn to the point, so the system's text-size setting must not scale it
+        // (`.custom(_:size:)` would follow Dynamic Type and push the page wider than the screen)
+        return FontPref.pixel ? .custom("PurrcastPixel-Medium", fixedSize: s) : .system(size: s * 1.04, weight: .bold, design: .rounded)
     }
     static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font { .system(size: bump(size), weight: weight) }
 }
