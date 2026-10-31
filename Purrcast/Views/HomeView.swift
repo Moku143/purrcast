@@ -377,22 +377,31 @@ struct HomeView: View {
             // float the whole chart (강 line included) up into the words above it
             .frame(maxWidth: .infinity, minHeight: 64, maxHeight: 64, alignment: .bottomLeading)
             .padding(.top, 10)          // room for the 강 line's label above the bars, clear of the words over it
-            HStack {
-                ForEach(Array(head.ticks.enumerated()), id: \.offset) { i, t in
-                    Text(t).font(.ui(10)).foregroundStyle(ink.sub)
-                    if i < head.ticks.count - 1 { Spacer() }
-                }
-            }.padding(.trailing, 26)
-            // the chance under each hour (as the 시간별 card shows it) when any hour has one: a chance with no bar
-            // is a chance, not a forecast of rain — and the bars start at 0.1mm, said small at the end
-            if head.chances.contains(where: { ($0 ?? 0) >= 10 }) {
-                HStack {
-                    ForEach(Array(head.chances.enumerated()), id: \.offset) { i, c in
-                        Text((c ?? 0) >= 10 ? "\(c ?? 0)%" : "–").font(.px(11)).foregroundStyle((c ?? 0) >= 10 ? ink.blue : ink.faint)
-                        if i < head.chances.count - 1 { Spacer() }
+            let withChance = six && head.chances.contains(where: { ($0 ?? 0) >= 10 })
+            if six {
+                // one column per bar (the bars' own spacing), the hour and its chance centred under it — the chance
+                // from the hourly forecast, as the 시간별 card shows it: a chance with no bar is not a forecast of rain
+                HStack(alignment: .top, spacing: 8) {
+                    ForEach(Array(head.ticks.enumerated()), id: \.offset) { i, t in
+                        VStack(spacing: 6) {
+                            Text(t).font(.ui(10)).foregroundStyle(ink.sub).lineLimit(1).minimumScaleFactor(0.8)
+                            if withChance {
+                                let c = i < head.chances.count ? (head.chances[i] ?? 0) : 0
+                                Text(c >= 10 ? "\(c)%" : "–").font(.px(11)).foregroundStyle(c >= 10 ? ink.blue : ink.faint)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                }.padding(.trailing, 26).padding(.top, -4)
-                Text(L("강수확률 · %@", L("0.1mm 이상만 표시"))).font(.ui(10)).foregroundStyle(ink.faint).padding(.top, -4)
+                }.padding(.trailing, 26)
+                // the bars start at 0.1mm, said small at the end
+                if withChance { Text(L("강수확률 · %@", L("0.1mm 이상만 표시"))).font(.ui(10)).foregroundStyle(ink.faint).padding(.top, -4) }
+            } else {
+                HStack {
+                    ForEach(Array(head.ticks.enumerated()), id: \.offset) { i, t in
+                        Text(t).font(.ui(10)).foregroundStyle(ink.sub)
+                        if i < head.ticks.count - 1 { Spacer() }
+                    }
+                }.padding(.trailing, 26)
             }
         }
     }
