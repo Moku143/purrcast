@@ -51,6 +51,11 @@ final class ScreenshotTests: XCTestCase {
         shot("home-narrow", ["-scene", "combo", "-plus", "-char", "brit", "-narrow"])
         // the longest bubble the server sends (미세먼지 매우 나쁨 · 마스크 꼭 챙기세요): the hero must stay the screen's width
         shot("home-dust-top", ["-scene", "spring_dust", "-plus", "-char", "brit"])
+        shot("home-dust-top-en", ["-scene", "spring_dust", "-plus", "-char", "brit", "-lang", "en"])
+        shot("home-dust-top-ja", ["-scene", "spring_dust", "-plus", "-char", "brit", "-lang", "ja"])
+        // the umbrella up: the bubble points at its tip
+        shot("home-umbrella-top", ["-scene", "spring_rain", "-plus", "-char", "cat"])
+        shot("home-rainsoon-top-ja", ["-scene", "maybe", "-plus", "-char", "abys", "-lang", "ja"])
         // no rain in the six hours but a chance in the hourly forecast: the card says both
         shot("home-next6-dry", ["-scene", "clear", "-plus"])
         // a typhoon hour past 15mm: the top line rises to it

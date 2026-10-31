@@ -35,6 +35,8 @@ enum Sprite {
     static let width: CGFloat = 480
     static let height: CGFloat = 560
     static let feetY: CGFloat = 554
+    /// The open umbrella's tip, x on the sprite (the same in every umbrella frame): the bubble points at it when it is up
+    static let umbrellaTipX: CGFloat = 195.5
 }
 
 enum RainState: String, Codable {

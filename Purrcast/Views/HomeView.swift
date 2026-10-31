@@ -170,6 +170,8 @@ struct HomeView: View {
         let a = char.anchors
         let catLeft = headX - CGFloat(a.head_cx[level]) * catW / Sprite.width
         let tipY = catTop + CGFloat(rain == .umbrella ? a.umb_top[level] : a.head_top[level]) / Sprite.height * catH - 4
+        // where the bubble points: the umbrella's tip when it is up (left of the head), else the head's centre
+        let tipX = rain == .umbrella ? catLeft + Sprite.umbrellaTipX / Sprite.width * catW : headX
 
         return ZStack(alignment: .topLeading) {
             // top row: place + buttons
@@ -225,9 +227,9 @@ struct HomeView: View {
                 // the box sits over the character's head, but never past the hero's left edge or above its top: a long
                 // line (미세먼지 매우 나쁨 · 마스크 꼭 챙기세요) wraps inside the hero's width and its tail still points at the head.
                 // (A box allowed to grow past the edge once widened this whole stack, pushing the top row off the screen.)
-                BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Self.bubbleLines(model.say(b.text)), live: true, tailX: headX)
+                BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Self.bubbleLines(model.say(b.text)), live: true, tailX: tipX)
                     .fixedSize()
-                    .alignmentGuide(.leading) { d in min(0, d.width / 2 - headX) }
+                    .alignmentGuide(.leading) { d in min(0, d.width / 2 - tipX) }
                     .alignmentGuide(.top) { d in min(0, d.height - tipY) }
                     .id(b.text + b.icon)
                     .transition(.opacity)
@@ -249,9 +251,12 @@ struct HomeView: View {
 
     /// A long bubble line is broken into two or three short ones, so the box stays a small one over the character's head:
     /// first at the server's " · " separators ("미세먼지 나쁨 · 마스크 챙기세요" → two lines), then at the middle space.
-    static func bubbleLines(_ text: String, maxChars: Int = 12) -> String {
+    static func bubbleLines(_ text: String, maxChars: Int? = nil) -> String {
+        // Korean and Japanese glyphs are about twice as wide as Latin ones
+        let maxChars = maxChars ?? (Lang.current == .en ? 22 : 12)
         guard text.count > maxChars else { return text }
         var parts = text.components(separatedBy: " · ")
+        if parts.count == 1 { parts = text.components(separatedBy: "・") }   // the Japanese separator
         if parts.count == 1 {
             // no separator: break the line at the space nearest its middle (once, twice when still long)
             func halve(_ t: String) -> [String] {

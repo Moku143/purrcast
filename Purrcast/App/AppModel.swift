@@ -76,6 +76,7 @@ final class AppModel: ObservableObject {
         let d = SharedStore.defaults
         let testing = pinned != nil || args.contains("-reset")
         if testing && !args.contains("-keepLanguage") { Lang.picked = nil }   // screenshots follow the simulator's language
+        if let l = arg("-lang"), let lang = Lang(rawValue: l) { Lang.picked = lang }   // -lang en: screenshots in that language
 
         let prov = WeatherSource.make(sceneOverride: pinned)
         provider = prov
