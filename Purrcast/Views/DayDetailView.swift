@@ -529,7 +529,7 @@ struct DayDetailView: View {
         case .wind: v = model.windText(Int(h.wind[i].rounded()))
         case .uv: v = "\(Int(h.uv[i].rounded()))"
         case .humidity: v = "\(Int(h.rh[i].rounded()))%"
-        case .dust: v = "\(Int(c.dustVals[i].rounded()))"
+        case .dust: v = i > h.dustDrawn ? "–" : "\(Int(c.dustVals[i].rounded()))"   // no reading yet (later today, tomorrow)
         }
         return Extreme(title: timeWord(c), value: v, hour: nil, isSel: true)
     }
