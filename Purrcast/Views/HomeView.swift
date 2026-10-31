@@ -361,10 +361,10 @@ struct HomeView: View {
             HStack(spacing: 8) { PixelIcon(name: head.icon, size: 20); Text(model.say(head.head)).font(.px(15)).id(head.head).transition(.opacity) }
             if !head.sub.isEmpty { Text(model.say(head.sub)).font(.ui(12)).foregroundStyle(ink.sub).padding(.leading, 28).padding(.top, -9).fixedSize(horizontal: false, vertical: true) }
             ZStack(alignment: .bottomLeading) {
-                // three lines — the heaviest hour at the top, its half and its quarter — each labelled with its amount
-                // (snow in cm), as the day sheet's charts label their grid
+                // three lines a third apart — the heaviest hour at the top — each labelled with its amount (snow in cm),
+                // as the day sheet's charts label their grid
                 ForEach(0..<3, id: \.self) { gi in
-                    let y = 64 - [0.25, 0.5, 1.0][gi] * 64
+                    let y = 64 - Double(gi + 1) / 3 * 64
                     HStack(spacing: 4) {
                         Rectangle().fill(ink.line).frame(height: 1)
                         Text(Self.mmText(head.steps[gi]) + head.unit).font(.px(10)).foregroundStyle(ink.sub).frame(width: 34).lineLimit(1).minimumScaleFactor(0.7)
@@ -409,11 +409,11 @@ struct HomeView: View {
         }
     }
 
-    /// The chart's three lines: the top is the heaviest hour itself (rounded up to a whole mm, or cm of snow; 1 when
-    /// nothing is coming), the others its half and its quarter — 30mm → 7.5 · 15 · 30, 80mm → 20 · 40 · 80
+    /// The chart's three lines: the heaviest hour at the top (rounded up to a whole mm, or cm of snow), the others at
+    /// two thirds and a third of it — 22mm → 7.3 · 14.7 · 22; nothing coming → the plain 10 · 20 · 30mm
     static func rainScale(_ peak: Double) -> [Double] {
-        let top = max(1, ceil(peak))
-        return [top / 4, top / 2, top]
+        let top = peak >= 0.1 ? ceil(peak) : 30
+        return [top / 3, top * 2 / 3, top]
     }
     /// A bar's height (0…1) on that scale
     static func rainBarHeight(_ v: Double, steps: [Double]) -> Double { min(1, v / (steps.last ?? 1)) }
