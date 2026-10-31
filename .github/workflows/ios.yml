@@ -14,6 +14,10 @@ on:
         description: 'Simulator device name (default iPhone 16; e.g. iPhone 13 — created on the latest iOS runtime when missing)'
         required: false
         default: 'iPhone 16'
+      os:
+        description: 'iOS runtime version (default: latest installed; e.g. 26.1 or 26.0 — a device on that runtime is created when missing)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -32,11 +36,22 @@ jobs:
       - name: Simulator device
         run: |
           dev="${{ github.event.inputs.device }}"; dev="${dev:-iPhone 16}"
-          if ! xcrun simctl list devices available | grep -q "^ *$dev ("; then
-            rt=$(xcrun simctl list runtimes | grep -E "^iOS" | tail -1 | grep -o "com.apple.CoreSimulator.SimRuntime[^ )]*")
-            xcrun simctl create "$dev" "$dev" "$rt" && echo "created $dev on $rt"
+          os="${{ github.event.inputs.os }}"
+          xcrun simctl list runtimes | grep -E "^iOS"
+          if [ -n "$os" ]; then
+            # a device on that exact runtime, named after it, so the destination is unambiguous
+            rt=$(xcrun simctl list runtimes | grep -E "^iOS $os" | tail -1 | grep -o "com.apple.CoreSimulator.SimRuntime[^ )]*")
+            [ -n "$rt" ] || { echo "::error::no iOS $os runtime on this runner"; exit 1; }
+            name="$dev iOS$os"
+            xcrun simctl list devices available | grep -q "^ *$name (" || xcrun simctl create "$name" "$dev" "$rt"
+            echo "SIM_DEVICE=$name" >> "$GITHUB_ENV"; echo "SIM_OS=$os" >> "$GITHUB_ENV"
+          else
+            if ! xcrun simctl list devices available | grep -q "^ *$dev ("; then
+              rt=$(xcrun simctl list runtimes | grep -E "^iOS" | tail -1 | grep -o "com.apple.CoreSimulator.SimRuntime[^ )]*")
+              xcrun simctl create "$dev" "$dev" "$rt" && echo "created $dev on $rt"
+            fi
+            echo "SIM_DEVICE=$dev" >> "$GITHUB_ENV"; echo "SIM_OS=latest" >> "$GITHUB_ENV"
           fi
-          echo "SIM_DEVICE=$dev" >> "$GITHUB_ENV"
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
@@ -45,7 +60,7 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild build -project Purrcast.xcodeproj -scheme Purrcast \
-            -destination "platform=iOS Simulator,name=${SIM_DEVICE:-iPhone 16},OS=latest" \
+            -destination "platform=iOS Simulator,name=${SIM_DEVICE:-iPhone 16},OS=${SIM_OS:-latest}" \
             CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log | grep -E "error:|warning: unre|BUILD " || true
           grep -q "BUILD SUCCEEDED" build.log
       - name: Screenshot tests
@@ -55,7 +70,7 @@ jobs:
           only=""
           if [ -n "${{ github.event.inputs.only }}" ]; then only="-only-testing:PurrcastUITests/ScreenshotTests/${{ github.event.inputs.only }} -only-testing:PurrcastTests"; fi
           xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast $only \
-            -destination "platform=iOS Simulator,name=${SIM_DEVICE:-iPhone 16},OS=latest" \
+            -destination "platform=iOS Simulator,name=${SIM_DEVICE:-iPhone 16},OS=${SIM_OS:-latest}" \
             -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST " || true
       - name: Export screenshots
         if: always()
@@ -122,7 +137,7 @@ jobs:
           grep -E "error:|warning: unre" build.log > out/errors.txt 2>/dev/null || true
           grep -E "error:" watch.log | sed 's/^/[watch] /' >> out/errors.txt 2>/dev/null || true
           grep -E "error:|failed|Test Case" test.log >> out/errors.txt 2>/dev/null || true
-          echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} device=${SIM_DEVICE} os=${SIM_OS} $(date -u)" > out/RUN.txt
           cd out && git init -q && git checkout -q -b ci-output
           git -c user.name=ci -c user.email=ci@purrcast config core.autocrlf false
           git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "ci output ${{ github.run_id }}"
