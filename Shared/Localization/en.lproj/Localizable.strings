@@ -514,12 +514,12 @@
 "괜찮은 편이에요." = "Fairly okay.";
 "마스크를 챙겨 주세요." = "Bring a mask.";
 "외출할 땐 마스크를 착용해 주세요." = "Wear a mask outdoors.";
-"내일은 %@ 예보예요." = "Tomorrow: %@.";
+"내일은 %@이에요." = "Tomorrow: %@.";
 "%@에 %@로 가장 높았어요." = "Highest at %@ (%@).";
 "지금이 오늘 가장 높아요." = "Right now is today's highest.";
 "지금 %@" = "Now %@";
-"내일 %@ %@, %@ %@ 예보예요." = "Tomorrow: %@ %@, %@ %@.";
-"내일 %@ %@ 예보예요." = "Tomorrow: %@ %@.";
+"내일 %@ %@, %@ %@이에요." = "Tomorrow: %@ %@, %@ %@.";
+"내일 %@ %@이에요." = "Tomorrow: %@ %@.";
 "아직 측정 전" = "Not measured yet";
 "시간별 자외선 지수" = "UV index by hour";
 "실제" = "Actual";

@@ -963,11 +963,11 @@ struct DayDetailView: View {
             let worst = max(g10 ?? 0, g25 ?? 0)
             var t: String
             if let a = g10, let b = g25 {
-                t = L("내일 %@ %@, %@ %@ 예보예요.", L("미세먼지"), L(DustScale.words[a]), L("초미세먼지"), L(DustScale.words[b]))
+                t = L("내일 %@ %@, %@ %@이에요.", L("미세먼지"), L(DustScale.words[a]), L("초미세먼지"), L(DustScale.words[b]))
             } else if let a = g10 {
-                t = L("내일 %@ %@ 예보예요.", L("미세먼지"), L(DustScale.words[a]))
+                t = L("내일 %@ %@이에요.", L("미세먼지"), L(DustScale.words[a]))
             } else {
-                t = L("내일 %@ %@ 예보예요.", L("초미세먼지"), L(DustScale.words[g25 ?? 0]))
+                t = L("내일 %@ %@이에요.", L("초미세먼지"), L(DustScale.words[g25 ?? 0]))
             }
             t += " " + [L("공기가 맑아요."), L("괜찮은 편이에요."), L("마스크를 챙겨 주세요."), L("외출할 땐 마스크를 착용해 주세요.")][worst]
             return Brief(value: L("내일"), badge: L(DustScale.words[worst]), badgeColor: Color(hex: DustScale.colors[worst]), badgeInk: Color(hex: DustScale.onColors[worst]), summary: t)
@@ -981,7 +981,7 @@ struct DayDetailView: View {
         var t = L("%@ %@이에요.", what, L(DustScale.words[gn]))
         t += " " + [L("공기가 맑아요."), L("괜찮은 편이에요."), L("마스크를 챙겨 주세요."), L("외출할 땐 마스크를 착용해 주세요.")][gn]
         t += " " + (peakAt == last ? L("지금이 오늘 가장 높아요.") : L("%@에 %@로 가장 높았어요.", HourLabel.word(peakAt, clock12: model.clock12), String(Int(m.rounded()))))
-        if let tm = c.fine ? h.dust?.tomorrow?.pm25Grade : h.dust?.tomorrow?.pm10Grade { t += " " + L("내일은 %@ 예보예요.", L(DustScale.words[max(0, min(3, tm))])) }
+        if let tm = c.fine ? h.dust?.tomorrow?.pm25Grade : h.dust?.tomorrow?.pm10Grade { t += " " + L("내일은 %@이에요.", L(DustScale.words[max(0, min(3, tm))])) }
         return Brief(value: L("지금 %@", String(Int(now.rounded()))), badge: L(DustScale.words[gn]), badgeColor: Color(hex: DustScale.colors[gn]), badgeInk: Color(hex: DustScale.onColors[gn]), summary: t)
     }
 
