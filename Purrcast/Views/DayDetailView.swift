@@ -140,8 +140,8 @@ struct DayDetailView: View {
         .accessibilityIdentifier("day-\(i)")
     }
 
-    /// Five tabs across the width; with today's 미세먼지 readings (Plus) a sixth, and the row scrolls sideways
-    /// (the chosen tab is brought into view)
+    /// All the tabs across the width — five, or six with today's 미세먼지 readings (Plus): a sixth tab past the edge
+    /// looked like no tab at all, so the row is divided among however many there are
     private func tabs(_ c: DayCtx) -> some View {
         var items: [(DayMetric, String, String)] = [
             (.temp, L("기온"), "thermo_hot"), (.rain, c.snowy ? L("눈") : L("비"), c.snowy ? "snowflake" : "umbrella"),
@@ -150,7 +150,7 @@ struct DayDetailView: View {
         if c.hourly?.hasDust == true { items.append((.dust, L("미세먼지"), "pm10")) }
         let on: DayMetric = metric == .feels ? .temp : metric
         return GeometryReader { g in
-            let w = (g.size.width - 6 * 4) / 5
+            let w = (g.size.width - 6 * CGFloat(items.count - 1)) / CGFloat(items.count)
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
@@ -159,7 +159,7 @@ struct DayDetailView: View {
                     .padding(.horizontal, 16)
                 }
                 .padding(.horizontal, -16)
-                .scrollDisabled(items.count <= 5)
+                .scrollDisabled(true)
                 .onChange(of: on) { _, m in withAnimation(Motion.gentle) { proxy.scrollTo(m, anchor: m == .dust ? UnitPoint.trailing : nil) } }
                 .onAppear { if on == .dust { proxy.scrollTo(on, anchor: .trailing) } }
             }
