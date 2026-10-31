@@ -515,6 +515,9 @@
 "마스크를 챙겨 주세요." = "Bring a mask.";
 "외출할 땐 마스크를 착용해 주세요." = "Wear a mask outdoors.";
 "내일은 %@ 예보예요." = "Tomorrow: %@.";
+"내일 %@ %@, %@ %@ 예보예요." = "Tomorrow: %@ %@, %@ %@.";
+"내일 %@ %@ 예보예요." = "Tomorrow: %@ %@.";
+"시간별 수치는 내일 측정되면 채워져요." = "Hourly readings fill in as they are measured tomorrow.";
 "시간별 자외선 지수" = "UV index by hour";
 "실제" = "Actual";
 "실제 %@" = "Actual %@";

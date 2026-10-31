@@ -45,9 +45,14 @@ struct DayDetailView: View {
                 if index == 0, let a = s.alert { alertLine(a, ctx) }
                 brief(ctx)
                 if let h = hourly {
-                    chartCard(ctx, h).reveal(1)
-                    extremesRow(ctx, h).reveal(1)
-                    if !scaleItems(ctx, h).items.isEmpty { scaleCard(ctx, h).reveal(2) }
+                    if metric == .dust && h.dustForecastOnly {
+                        // tomorrow's 미세먼지: the step forecast in the bubble and the scale — nothing measured yet to chart
+                        scaleCard(ctx, h).reveal(1)
+                    } else {
+                        chartCard(ctx, h).reveal(1)
+                        extremesRow(ctx, h).reveal(1)
+                        if !scaleItems(ctx, h).items.isEmpty { scaleCard(ctx, h).reveal(2) }
+                    }
                 }
             }
             .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 40)
@@ -57,7 +62,7 @@ struct DayDetailView: View {
         .foregroundStyle(ink.ink)
         .onChange(of: start) { _, i in
             picked = nil; scrubbing = false
-            if metric == .dust, DayHourly.make(scene: s, index: i)?.hasDust != true { metric = .temp }   // readings are today's only
+            if metric == .dust, DayHourly.make(scene: s, index: i)?.hasDust != true { metric = .temp }   // today's readings, tomorrow's forecast only
         }
     }
 
@@ -487,7 +492,8 @@ struct DayDetailView: View {
         case .dust:
             // the four steps of the scale in force (환경부 in Korea, WHO elsewhere) and the chosen hour's step
             let v = c.dustVals[max(0, min(23, c.sel))]
-            let cur = DustScale.grade(v, pm25: c.fine, who: c.who)
+            let cur = h.dustForecastOnly ? max(0, min(3, (c.fine ? h.dustTomorrow?.pm25Grade : h.dustTomorrow?.pm10Grade) ?? 0))
+                : DustScale.grade(v, pm25: c.fine, who: c.who)
             let items = (0..<4).map { ScaleItem(title: L(DustScale.words[$0]), sub: DustScale.range($0, pm25: c.fine, who: c.who), big: false) }
             return (c.who ? L("%@ 단계 · WHO", c.fine ? L("초미세먼지") : L("미세먼지")) : L("%@ 단계", c.fine ? L("초미세먼지") : L("미세먼지")), items, cur)
         case .humidity:
@@ -622,7 +628,16 @@ struct DayDetailView: View {
     private func scaleCard(_ c: DayCtx, _ h: DayHourly) -> some View {
         let sc = scaleItems(c, h)
         return VStack(alignment: .leading, spacing: 10) {
-            Text(sc.title).font(.px(13))
+            HStack(spacing: 8) {
+                Text(sc.title).font(.px(13)).lineLimit(1).minimumScaleFactor(0.75)
+                if metric == .dust && h.dustForecastOnly {
+                    Spacer(minLength: 4)
+                    HStack(spacing: 4) {
+                        chip(L("미세먼지"), on: !fine, c) { fine = false }
+                        chip(L("초미세"), on: fine, c) { fine = true }
+                    }
+                }
+            }
             HStack(spacing: 6) {
                 ForEach(Array(sc.items.enumerated()), id: \.offset) { i, it in
                     scaleBox(c, it, on: i == sc.cur)
@@ -954,6 +969,22 @@ struct DayDetailView: View {
     /// 미세먼지: today's highest reading so far with its step, then the newest hour's step (when it differs), the
     /// step's line and tomorrow's step from the forecast bulletin.
     private func briefDust(_ c: DayCtx, _ h: DayHourly) -> Brief {
+        if h.dustForecastOnly, let tm = h.dustTomorrow {
+            // tomorrow: the step forecast for both, the worse one as the badge
+            let g10 = tm.pm10Grade.map { max(0, min(3, $0)) }, g25 = tm.pm25Grade.map { max(0, min(3, $0)) }
+            let worst = max(g10 ?? 0, g25 ?? 0)
+            var t: String
+            if let a = g10, let b = g25 {
+                t = L("내일 %@ %@, %@ %@ 예보예요.", L("미세먼지"), L(DustScale.words[a]), L("초미세먼지"), L(DustScale.words[b]))
+            } else if let a = g10 {
+                t = L("내일 %@ %@ 예보예요.", L("미세먼지"), L(DustScale.words[a]))
+            } else {
+                t = L("내일 %@ %@ 예보예요.", L("초미세먼지"), L(DustScale.words[g25 ?? 0]))
+            }
+            t += " " + [L("공기가 맑아요."), L("괜찮은 편이에요."), L("마스크를 챙겨 주세요."), L("외출할 땐 마스크를 착용해 주세요.")][worst]
+            t += " " + L("시간별 수치는 내일 측정되면 채워져요.")
+            return Brief(value: L("내일"), badge: L(DustScale.words[worst]), badgeColor: Color(hex: DustScale.colors[worst]), badgeInk: Color(hex: DustScale.onColors[worst]), summary: t)
+        }
         let last = h.dustLast ?? 23
         let known = Array(c.dustVals.prefix(last + 1))
         let m = known.max() ?? 0, g = DustScale.grade(m, pm25: c.fine, who: c.who)
@@ -1022,7 +1053,10 @@ private struct DayHourly {
     var pm10: [Double] = [], pm25: [Double] = []   // today's 미세먼지 readings by hour (Plus), held flat past the newest
     var dustLast: Int?      // the newest hour with a reading
     var dust: WeatherScene.Dust?
-    var hasDust: Bool { dustLast != nil }
+    var dustTomorrow: WeatherScene.Dust.Tomorrow?   // tomorrow: the step forecast only (no hours yet)
+    var hasDust: Bool { dustLast != nil || dustTomorrow != nil }
+    /// Tomorrow's sheet: the step forecast with no readings to chart
+    var dustForecastOnly: Bool { dustLast == nil && dustTomorrow != nil }
     var hasMM = false       // the forecast has amounts (older answers only have the chance)
     var total = 0.0         // the day's amount, mm (cm on a snowy day)
     var dayProb = 0; var dayIcon = "cloud"; var snowy = false; var rainy = false
@@ -1081,6 +1115,10 @@ private struct DayHourly {
                 p10[hr] = a; p25[hr] = b
             }
             d.pm10 = p10; d.pm25 = p25; d.dustLast = lastH; d.dust = dust
+        }
+        // tomorrow: 에어코리아's step forecast (좋음 … 매우 나쁨) — the tab shows the step and the scale, no chart
+        if index == 1, let dust = s.dust, let tm = dust.tomorrow, tm.pm10Grade != nil || tm.pm25Grade != nil {
+            d.dustTomorrow = tm; d.dust = dust
         }
         // night icons from the sunset / sunrise tile when there is one ("17:52" → from 18 h)
         for t in s.tiles {

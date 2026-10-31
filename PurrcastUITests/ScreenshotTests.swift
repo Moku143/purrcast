@@ -58,6 +58,10 @@ final class ScreenshotTests: XCTestCase {
         shot("day-dust", ["-scene", "spring_dust", "-plus", "-open", "today"], wait: 2) { app in   // the readings are today's
             app.buttons["tab-dust"].firstMatch.tap(); sleep(1); app.swipeUp(); sleep(1)
         }
+        // tomorrow's sheet: the 미세먼지 tab with the step forecast and the scale (no chart yet)
+        shot("day-dust-tomorrow", ["-scene", "spring_dust", "-plus", "-open", "day"], wait: 2) { app in
+            app.buttons["tab-dust"].firstMatch.tap(); sleep(1)
+        }
         shot("day-uv", ["-scene", "summer_heat", "-plus", "-open", "day"], wait: 2) { app in
             app.buttons["tab-uv"].firstMatch.tap(); sleep(1); app.swipeUp(); sleep(1)
         }
