@@ -156,7 +156,7 @@ struct StoreShotView: View {
         return shot(L("비 오기 1시간 전"), L("미리 알려줘요"), bg: [], plus: true) {
             VStack(spacing: 14) {
                 // the phone in use: the island opens with the alert over whatever is on the screen
-                phone(dark: false, scale: 1.2, topInset: 54, island: AnyView(island(a, soon))) {
+                phone(dark: false, scale: 1.1, topInset: 54, island: AnyView(island(a, soon))) {
                     HomeView(route: .constant(nil), day: .constant(nil))
                 }
                 .frame(width: Self.canvas.width, height: 470, alignment: .top)
@@ -164,7 +164,7 @@ struct StoreShotView: View {
                 .mask(LinearGradient(stops: [.init(color: .black, location: 0.8), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
                 label(L("잠금 화면")).padding(.top, 8)
                 RainLockView(a: a, s: soon)
-                    .frame(width: 370)
+                    .frame(width: 336)
                     .background(Color(hex: "#141938").opacity(0.96), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
                     .scaleEffect(1.22).padding(.vertical, 18)
                     .shadow(color: .black.opacity(0.3), radius: 14, y: 8)
