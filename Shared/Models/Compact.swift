@@ -56,9 +56,23 @@ enum Compact {
         "\(head(s)) · \(deg(s.temp)) · \(tail(s, deg: deg))"
     }
 
-    /// For the small bubble above the character: only when it is a word or two.
+    /// For the small bubble above the character: a word or two on one line; a longer line broken at the server's
+    /// " · " (Japanese ・) into two short lines ("미세먼지 나쁨" / "마스크 챙기세요"); longer still → the icon alone.
     static func bubbleWord(_ s: WeatherScene, max: Int) -> String {
         let h = head(s)
-        return h.count <= max ? h : ""
+        if h.count <= max { return h }
+        let perLine = Lang.current == .en ? max * 3 : max + 3
+        var parts = h.components(separatedBy: " · ")
+        if parts.count == 1 { parts = h.components(separatedBy: "・") }
+        if parts.count == 1, h.count <= perLine * 2 {
+            // no separator: at the space nearest the middle
+            let mid = h.index(h.startIndex, offsetBy: h.count / 2)
+            let before = h[..<mid].lastIndex(of: " "), after = h[mid...].firstIndex(of: " ")
+            if let c = [before, after].compactMap({ $0 }).min(by: { abs(h.distance(from: $0, to: mid)) < abs(h.distance(from: $1, to: mid)) }) {
+                parts = [String(h[..<c]), String(h[h.index(after: c)...])]
+            }
+        }
+        if parts.count == 2, parts.allSatisfy({ $0.count <= perLine }) { return parts.joined(separator: "\n") }
+        return ""
     }
 }
