@@ -183,9 +183,11 @@ App Store Connect → 앱 → 구독:
 
 | 데이터 유형 | 수집 | 사용자와 연결 | 추적 | 목적 |
 |---|---|---|---|---|
-| 위치 · 대략적인 위치 | 예 | 아니요 | 아니요 | 앱 기능 |
+| 위치 · 대략적인 위치 | 예 | 예 | 아니요 | 앱 기능 |
+| 식별자 · 기기 ID | 예 | 예 | 아니요 | 앱 기능 |
 
-그 밖의 항목(연락처, 식별자, 사용 데이터, 진단 등)은 모두 수집 안 함. 결제는 Apple이 처리해요.
+왜 "연결 예"인가: 비 알림(Live Activity)을 앱을 열지 않아도 보내려고, 서버가 앱이 만든 무작위 기기 ID와 약 1km 좌표 · 푸시 토큰을 함께 45일 동안 보관해요(`server/src/push.js`). 이름 · Apple ID와는 관계없지만 Apple 기준으로는 기기와 연결된 데이터라 "예"가 안전해요.
+그 밖의 항목(연락처, 사용 데이터, 진단 등)은 모두 수집 안 함. 결제는 Apple이 처리해요.
 
 ## 심사 메모 (App Review Information → Notes)
 
@@ -193,7 +195,8 @@ App Store Connect → 앱 → 구독:
 Purrcast (Korean name: 그르릉날씨) is a weather app: a pixel cat changes clothes by the feels-like temperature and holds an umbrella when it rains.
 
 - No login. Location is used only to get the forecast for the current place (rounded to ~1 km); the user can turn it off and pick places instead.
-- Weather comes from our own server (KMA 기상청 for Korea, MET Norway elsewhere), credited in Settings > 데이터 출처.
+- Weather comes from our own server: KMA 기상청 for Korea (with Apple Weather for the later hours), Apple Weather (WeatherKit) elsewhere, MET Norway for the forecast comparison; air quality from AirKorea (Korea) and OpenWeather (elsewhere). Credited in Settings > Data sources.
+- For the rain alert on the Lock Screen / Dynamic Island, the app registers a random device ID, the place rounded to ~1 km and an ActivityKit push token with our server; it is deleted after 45 days without a check-in.
 - Purrcast Plus (auto-renewable subscription, yearly / monthly, free trial for new subscribers) unlocks: forecast refresh with every new run, the next-6-hours rain card, the Apple Watch app and complications, unlimited places, and two more characters. Purchase and restore are on the Plus screen (gear icon > Purrcast Plus, or the character button).
 - To test Plus, please use a Sandbox account. The Apple Watch app shows its content only with Plus and gets its data from the iPhone app.
 ```

@@ -93,7 +93,7 @@ struct RainWidget: Widget {
     }
 }
 
-/// Lock screen: 미세먼지 as a circle — the dust icon over the step's word, the step as the ring's length
+/// Lock screen: 미세먼지 in the circle's place — the dust icon over the step's word, nothing behind it
 struct DustWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastDust", provider: Provider()) { entry in

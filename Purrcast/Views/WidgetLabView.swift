@@ -116,8 +116,7 @@ struct WidgetLabView: View {
     private func glass<C: View>(_ id: String, _ w: CGFloat, _ h: CGFloat, circle: Bool = false, @ViewBuilder _ c: () -> C) -> some View {
         c().foregroundStyle(.white).frame(width: w, height: h)
             .padding(circle ? 0 : 8)
-            .background(circle ? AnyShapeStyle(Color.clear) : AnyShapeStyle(Color.white.opacity(0.14)))
-            .clipShape(RoundedRectangle(cornerRadius: circle ? w / 2 : 20, style: .continuous))
+            // straight on the wallpaper, as the phone shows them (no box behind the rectangle)
             .accessibilityElement(children: .contain).accessibilityIdentifier(id)
     }
 

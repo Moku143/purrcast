@@ -311,7 +311,9 @@ struct LockCircularView: View {
             Text("\(u(s.hi))").font(.ui(9)).foregroundStyle(.white.opacity(0.65))
         }
         .gaugeStyle(.accessoryCircular)
-        .tint(Gradient(colors: [.white.opacity(0.18), .white.opacity(0.95)]))   // from today's low (faint) to high (solid white)   // iOS draws lock widgets as frosted glass over the wallpaper; this matches it
+        // from today's low (faint) to the high (solid white): iOS draws lock-screen widgets in one tint, so the fade is
+        // in brightness, not colour
+        .tint(Gradient(stops: [.init(color: .white.opacity(0.06), location: 0), .init(color: .white.opacity(0.4), location: 0.45), .init(color: .white, location: 1)]))
         }
     }
 }
@@ -331,27 +333,20 @@ struct LockRainCircularView: View {
     }
 }
 
-/// Lock screen, circular: 미세먼지 — the same gauge as the temperature circle (the open arc with its dot), the dust
-/// icon over the step's word in the middle, the dot a quarter of the way per step (좋음 … 매우 나쁨)
+/// Lock screen, circular: 미세먼지 — just the dust icon over the step's word (좋음 · 보통 · 나쁨 · 매우 나쁨), straight on
+/// the wallpaper like the character in the rectangle: no ring, no disc behind it
 struct LockDustCircularView: View {
     let snap: WeatherSnapshot
     var body: some View {
         let d = snap.scene.dust
         let g = d.map { max(0, min(3, $0.grade)) }
-        ZStack {
-            AccessoryWidgetBackgroundCompat()
-            Gauge(value: g.map { Double($0) + 0.5 } ?? 0, in: 0...4) {
-                Text("")
-            } currentValueLabel: {
-                VStack(spacing: 1) {
-                    PixelIcon(name: d.map { DustFacts.icon($0) } ?? "pm10", size: 13).opacity(0.9)
-                    Text(g.map { L(DustScale.words[$0]) } ?? "–").font(.system(size: g == 3 ? 9 : 11, weight: .semibold))
-                        .lineLimit(1).minimumScaleFactor(0.6).foregroundStyle(.white.opacity(0.92))
-                }
-            }
-            .gaugeStyle(.accessoryCircular)
-            .tint(Gradient(colors: [.white.opacity(0.18), .white.opacity(0.95)]))
+        VStack(spacing: 3) {
+            PixelIcon(name: d.map { DustFacts.icon($0) } ?? "pm10", size: 26)
+            Text(g.map { L(DustScale.words[$0]) } ?? "–").font(.system(size: 14, weight: .semibold))
+                .lineLimit(1).minimumScaleFactor(0.6).foregroundStyle(.white.opacity(0.92))
         }
+        .padding(.horizontal, 2)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
