@@ -141,7 +141,7 @@ final class AppModel: ObservableObject {
         // one quiet retry before saying anything: a dropped connection or a slow moment upstream usually passes
         for attempt in 0..<2 {
             do {
-                let s = try await provider.forecast(for: place, plus: plus, previousLevel: lastLevel[place.id])
+                let s = try await provider.forecast(for: place, plus: plus, previousLevel: lastLevel[place.id], fresh: force)
                 guard mine == generation else { return }
                 raw = s; hasData = true; lastError = nil; lastRefresh = Date()
                 lastLevel[place.id] = s.level

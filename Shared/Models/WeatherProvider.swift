@@ -9,7 +9,14 @@ import Foundation
 protocol WeatherProvider {
     var name: String { get }
     var isSample: Bool { get }
-    func forecast(for place: Place, plus: Bool, previousLevel: Int?) async throws -> WeatherScene
+    /// `fresh`: the person asked (pull to refresh) — skip the URL cache and ask the server itself
+    func forecast(for place: Place, plus: Bool, previousLevel: Int?, fresh: Bool) async throws -> WeatherScene
+}
+
+extension WeatherProvider {
+    func forecast(for place: Place, plus: Bool, previousLevel: Int?) async throws -> WeatherScene {
+        try await forecast(for: place, plus: plus, previousLevel: previousLevel, fresh: false)
+    }
 }
 
 enum WeatherSource {
@@ -33,7 +40,7 @@ struct SampleWeatherProvider: WeatherProvider {
     var name: String { L("예시 날씨") }
     var isSample: Bool { true }
 
-    func forecast(for place: Place, plus: Bool, previousLevel: Int?) async throws -> WeatherScene {
+    func forecast(for place: Place, plus: Bool, previousLevel: Int?, fresh: Bool) async throws -> WeatherScene {
         var s = SceneLibrary.scene(sceneOverride ?? place.sample)
         s.place = place.name
         return s
@@ -48,7 +55,7 @@ struct ServerWeatherProvider: WeatherProvider {
     var name: String { L("기상청 · MET Norway") }
     var isSample: Bool { false }
 
-    func forecast(for place: Place, plus: Bool, previousLevel: Int?) async throws -> WeatherScene {
+    func forecast(for place: Place, plus: Bool, previousLevel: Int?, fresh: Bool) async throws -> WeatherScene {
         var c = URLComponents(url: baseURL.appendingPathComponent("v1/forecast"), resolvingAgainstBaseURL: false)!
         var q = [
             URLQueryItem(name: "lat", value: String(format: "%.2f", place.lat)),
@@ -65,6 +72,8 @@ struct ServerWeatherProvider: WeatherProvider {
         c.queryItems = q
         var req = URLRequest(url: c.url!, timeoutInterval: 20)   // the server gives up on a slow source after ~5 s
         req.setValue("application/json", forHTTPHeaderField: "Accept")
+        // the server's answers are cacheable for ten minutes (Plus) — a pull to refresh means "now", not the cached one
+        if fresh { req.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData }
         let (data, resp) = try await session.data(for: req)
         guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else { throw URLError(.badServerResponse) }
         var s = try JSONDecoder().decode(WeatherScene.self, from: data)
