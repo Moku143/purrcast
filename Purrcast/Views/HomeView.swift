@@ -5,7 +5,7 @@ struct HomeView: View {
     @EnvironmentObject var model: AppModel
     @Binding var route: Route?
     @Binding var day: Int?
-    /// The store pictures: "next6" draws only the next-six-hours and hourly cards, on no background of its own
+    /// The store pictures: "next6" draws only the next-six-hours, hourly and 10-day cards, on no background of its own
     var focus: String? = nil
     private let heroH: CGFloat = 372
     /// The hero is drawn for the design's 393-pt phone (361 pt inside the side padding) and scaled to the screen in
@@ -31,6 +31,7 @@ struct HomeView: View {
         return VStack(spacing: 12) {
             if let head = nextHour(s) { nextHourCard(s, head: head, ink: ink) }
             hourlyCard(s, ink: ink)
+            dailyCard(s, ink: ink)
         }
         .padding(.horizontal, 16)
         .frame(width: width)
