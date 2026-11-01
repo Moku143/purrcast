@@ -167,7 +167,7 @@ struct StoreShotView: View {
             ZStack(alignment: .bottomTrailing) {
                 zoomed(1.04, height: 600) { HomeView(route: .constant(nil), day: .constant(nil), focus: "next6") }
                 CharacterSprite(character: model.shownCharacter, level: Rules.clamp(model.scene.level), rain: .umbrella, width: 210, animate: false)
-                    .offset(x: -4, y: 150)
+                    .offset(x: 52, y: 118)
             }
         }
     }
@@ -175,11 +175,11 @@ struct StoreShotView: View {
     // MARK: 6 · 미세먼지도 한눈에
 
     private var dust: some View {
-        shot(L("미세먼지도"), L("한눈에"), bg: ["#F2A541", "#D9781F"]) {
+        shot(L("미세먼지도"), L("한눈에"), bg: ["#F2A541", "#D9781F"], highlight: Color(hex: "#5A2700")) {
             ZStack(alignment: .bottomLeading) {
                 zoomed(1.04, height: 600) { DayDetailView(start: 0, startMetric: .dust, focus: true) }
                     .background(Color(hex: "#FFF6E6"), in: RoundedRectangle(cornerRadius: 34, style: .continuous))
-                cat(model.scene, width: 200, bubbleSize: 0).offset(x: 8, y: 170)
+                cat(model.scene, width: 200, bubbleSize: 0).offset(x: 8, y: 96)
             }
         }
     }
@@ -246,9 +246,9 @@ struct StoreShotView: View {
 
     /// The caption (two lines, the app's pixel font; the second in the highlight colour) over the background, the
     /// page's picture under it, and — App Review 2.3.2 — the subscription named in small type at the bottom
-    private func shot<C: View>(_ l1: String, _ l2: String, bg: [String], light: Bool = true, plus: Bool = false, @ViewBuilder _ c: () -> C) -> some View {
+    private func shot<C: View>(_ l1: String, _ l2: String, bg: [String], light: Bool = true, plus: Bool = false, highlight: Color? = nil, @ViewBuilder _ c: () -> C) -> some View {
         let ink = light ? Color.white : Color(hex: "#1E2A44")
-        let hi = light ? yellow : Color(hex: "#E2603A")
+        let hi = highlight ?? (light ? yellow : Color(hex: "#E2603A"))
         return VStack(spacing: 0) {
             VStack(spacing: 10) {
                 Text(l1).font(.px(38)).foregroundStyle(ink)
