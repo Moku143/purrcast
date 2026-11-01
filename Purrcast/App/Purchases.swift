@@ -25,7 +25,10 @@ final class Purchases: ObservableObject {
     /// page turns it back on. An App Store build (production environment) never has it.
     @Published private(set) var testBuild = false
     @Published private(set) var testUntil: Date? = SharedStore.defaults.object(forKey: "testPlusUntil") as? Date
-    var testActive: Bool { testBuild && (testUntil.map { $0 > Date() } ?? false) }
+    /// Screenshots and UI tests (-scene) set the plan themselves (-plus): a test trial left from another run
+    /// (the unit tests start one in the same simulator) does not count there
+    private static let planPinned = ProcessInfo.processInfo.arguments.contains("-scene")
+    var testActive: Bool { testBuild && !Self.planPinned && (testUntil.map { $0 > Date() } ?? false) }
     /// The store has nothing to sell here, but this is a test build: offer the test Plus.
     var offersTestTrial: Bool { testBuild && loaded && products.isEmpty }
     /// turned off in 설정 on purpose: stays off until the Plus page turns it on again

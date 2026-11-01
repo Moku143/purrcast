@@ -86,7 +86,7 @@ struct StoreShotView: View {
     /// 4 · 언제, 얼마나 비가 오는지 — the home page scrolled to the next six hours
     private var nextHours: some View {
         shot(L("언제, 얼마나"), L("비가 오는지"), bg: ["#CDDCEF", "#93ABDB"], plus: true) {
-            phone(dark: model.scene.isNight, lift: 250) { HomeView(route: .constant(nil), day: .constant(nil)) }
+            phone(dark: false, lift: 330) { HomeView(route: .constant(nil), day: .constant(nil)) }
         }
     }
 
@@ -137,20 +137,21 @@ struct StoreShotView: View {
         }
     }
 
-    /// 8 · 세 마리 중에 골라요 — the three characters
+    /// 8 · 세 마리 중에 골라요 — the three characters, the cat in front
     private var characters: some View {
-        shot(L("세 마리 중에"), L("골라요"), bg: ["#FFEBB0", "#FFC2A8"], plus: true) {
-            HStack(alignment: .bottom, spacing: -22) {
-                ForEach([PurrCharacter.abys, .cat, .brit], id: \.self) { c in
-                    VStack(spacing: 10) {
-                        CharacterSprite(character: c, level: 6, rain: .none, width: c == .cat ? 172 : 150, animate: false)
-                        Text(model.name(of: c)).font(.px(20)).foregroundStyle(Color(hex: "#1E2A44"))
-                    }
-                    .zIndex(c == .cat ? 1 : 0)
-                }
+        func one(_ c: PurrCharacter, _ w: CGFloat) -> some View {
+            VStack(spacing: 8) {
+                CharacterSprite(character: c, level: 6, rain: .none, width: w, animate: false)
+                Text(model.name(of: c)).font(.px(20)).foregroundStyle(Color(hex: "#1E2A44"))
             }
-            .padding(.top, 80)
-            .frame(maxHeight: .infinity, alignment: .top)
+        }
+        return shot(L("세 마리 중에"), L("골라요"), bg: ["#FFEBB0", "#FFC2A8"], plus: true) {
+            ZStack {
+                one(.abys, 190).offset(x: -112, y: -60)
+                one(.brit, 190).offset(x: 112, y: -60)
+                one(.cat, 230).offset(y: 150)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
@@ -252,7 +253,7 @@ struct StoreShotView: View {
                 RainLockView(a: a, s: s)
                     .frame(width: 370)
                     .background(Color(hex: "#1A2046").opacity(0.92), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .padding(.bottom, 120)
+                    .padding(.bottom, 250)
             }
         }
     }
