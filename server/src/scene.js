@@ -102,8 +102,11 @@ export function buildScene(f, o) {
     return lead;
   };
   for (const [k, list] of [...byDay.entries()].slice(0, 10)) {
+    // the points' temperatures, and each 6-hourly point's window low / high (MET's long range) where it has them
     const temps = list.map((p) => p.temp);
-    let lo = Math.min(...temps), hi = Math.max(...temps);
+    const lows = list.map((p) => (p.step >= 6 && p.tmin != null ? p.tmin : p.temp));
+    const highs = list.map((p) => (p.step >= 6 && p.tmax != null ? p.tmax : p.temp));
+    let lo = Math.min(...temps, ...lows), hi = Math.max(...temps, ...highs);
     if (f.daily?.[k]?.lo != null) lo = f.daily[k].lo;
     if (f.daily?.[k]?.hi != null) hi = f.daily[k].hi;
     const lead = leadOf(list);

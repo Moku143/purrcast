@@ -39,6 +39,10 @@ export function parseMet(json) {
     out.push({
       t, step, source: 'met',
       temp: det.air_temperature ?? null,
+      // the 6-hour window's lowest / highest (the long-range points come six hours apart, so the instant values alone
+      // miss the pre-dawn low and the afternoon high): the day's range uses these
+      tmin: n6?.details?.air_temperature_min ?? null,
+      tmax: n6?.details?.air_temperature_max ?? null,
       rh: det.relative_humidity ?? null,
       dew: det.dew_point_temperature ?? null,
       wind: det.wind_speed ?? null,

@@ -993,3 +993,23 @@ test('Rain alert: device registration, the APNs token, and the half-hourly pass 
   out = await runActivities(env, { forecastRaw, fetcher: dead, now: at(13, 40) });
   assert.equal(out.errors, 1); assert.equal(JSON.parse(kv.get('dev:D1')).start, null);
 });
+
+test('MET long range: a 6-hourly point carries its window low / high, and the day takes them', () => {
+  // 48 hourly points, then four 6-hourly points for the next day (instant 2° at 03 / 09 / 15 / 21 h, lows to -3, highs to 7)
+  const json = met(at(0), flat(48, { temp: 5 }));
+  const day3 = new Date(at(0).getTime() + 48 * 3600000);
+  for (let i = 0; i < 4; i++) {
+    json.properties.timeseries.push({
+      time: new Date(day3.getTime() + i * 6 * 3600000).toISOString(),
+      data: { instant: { details: { air_temperature: 2, relative_humidity: 60, wind_speed: 3, cloud_area_fraction: 10 } },
+              next_6_hours: { summary: { symbol_code: 'clearsky_day' }, details: { precipitation_amount: 0, air_temperature_min: i === 0 ? -3 : 0, air_temperature_max: i === 2 ? 7 : 3 } } },
+    });
+  }
+  const m = parseMet(json);
+  const six = m.points.filter((p) => p.step === 6);
+  assert.equal(six.length, 3);   // the last point has nothing after it, so it counts as one hour
+  assert.equal(six[0].tmin, -3); assert.equal(six[2].tmax, 7);
+  const s = buildScene({ points: m.points }, { ...SEOUL, plan: 'free', now: at(13) });
+  const d = s.days[2];
+  assert.equal(d[3], -3); assert.equal(d[4], 7);
+});
