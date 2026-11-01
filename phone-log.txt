@@ -1,0 +1,24 @@
+getpwuid_r did not find a match for uid 501
+Timestamp                       Thread     Type        Activity             PID    TTL  
+2026-11-01 16:30:16.140016+0000 0xa649     Default     0x0                  11734  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] not sent: activated false paired false installed false
+2026-11-01 16:30:16.948223+0000 0xa649     Default     0x0                  11734  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] not sent: activated false paired false installed false
+2026-11-01 16:30:17.024304+0000 0xa649     Default     0x0                  11734  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] not sent: activated false paired false installed false
+2026-11-01 16:30:32.532829+0000 0xa649     Default     0x0                  11734  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] not sent: activated false paired false installed false
+2026-11-01 16:30:32.628554+0000 0xa649     Default     0x0                  11734  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] not sent: activated false paired false installed false
+2026-11-01 16:31:04.042189+0000 0xa67f     Default     0x48dad              11734  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] phone session activated 2 paired true installed false
+2026-11-01 16:31:04.043321+0000 0xa67f     Default     0x48dad              11734  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] not sent: activated true paired true installed false
+2026-11-01 16:33:59.492644+0000 0xbb20     Default     0x0                  11734  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5410 bytes, plus true, 비
+2026-11-01 16:36:46.236050+0000 0xf666     Default     0x0                  18466  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5227 bytes, plus true, 눈
+2026-11-01 16:36:46.423004+0000 0xf666     Default     0x0                  18466  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5227 bytes, plus true, 눈
+2026-11-01 16:36:46.551375+0000 0xf666     Default     0x0                  18466  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5254 bytes, plus true, 눈
+2026-11-01 16:36:46.627629+0000 0xf666     Default     0x0                  18466  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5254 bytes, plus true, 눈
+2026-11-01 16:36:46.690306+0000 0xf666     Default     0x0                  18466  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5253 bytes, plus true, 눈
+2026-11-01 16:36:46.944230+0000 0xf764     Default     0x68ee1              18466  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] phone session activated 2 paired true installed true
+2026-11-01 16:36:47.080895+0000 0xf764     Default     0x68ee1              18466  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5253 bytes, plus true, 눈
+2026-11-01 16:37:53.629352+0000 0x10249    Default     0x0                  19536  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5116 bytes, plus false, 눈
+2026-11-01 16:37:53.705990+0000 0x10252    Default     0x6d1af              19536  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] phone session activated 2 paired true installed true
+2026-11-01 16:37:53.795997+0000 0x10249    Default     0x0                  19536  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5116 bytes, plus false, 눈
+2026-11-01 16:37:53.919437+0000 0x10249    Default     0x0                  19536  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5143 bytes, plus false, 눈
+2026-11-01 16:37:53.930380+0000 0x10249    Default     0x0                  19536  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5143 bytes, plus false, 눈
+2026-11-01 16:37:54.034804+0000 0x10249    Default     0x0                  19536  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5143 bytes, plus false, 눈
+2026-11-01 16:37:55.121251+0000 0x10252    Default     0x6d1af              19536  0    Purrcast: (Purrcast.debug.dylib) [app.purrcast:watch] sent 5143 bytes, plus false, 눈

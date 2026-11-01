@@ -1,0 +1,4 @@
+16:29:34 1. phone: Plus · 비 · 고양이
+16:29:53    watch app opens with no example data: what the phone sent
+16:35:50 2. phone changes to 눈 · 브리티시 (the watch app stays open)
+16:37:42 3. phone without Plus

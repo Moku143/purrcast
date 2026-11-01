@@ -1,0 +1,20 @@
+getpwuid_r did not find a match for uid 501
+Timestamp                       Thread     Type        Activity             PID    TTL  
+2026-11-01 16:29:59.780407+0000 0xb1be     Default     0x4a913              12805  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch session activated 2, companion installed true
+2026-11-01 16:29:59.780676+0000 0xb1be     Default     0x4a913              12805  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: no snapshot in the context (0 keys)
+2026-11-01 16:32:26.655797+0000 0xd19c     Default     0x54e23              13708  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch session activated 2, companion installed true
+2026-11-01 16:32:26.656107+0000 0xd19c     Default     0x54e23              13708  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: no snapshot in the context (0 keys)
+2026-11-01 16:34:02.642322+0000 0xdbe1     Default     0x0                  13708  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: got 5410 bytes, plus true, 비
+2026-11-01 16:34:40.679924+0000 0xe5b1     Default     0x5e7f3              17126  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch session activated 2, companion installed true
+2026-11-01 16:34:41.505839+0000 0xe5b1     Default     0x5e7f3              17126  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: got 5410 bytes, plus true, 비
+2026-11-01 16:35:43.289220+0000 0xef5e     Default     0x641e3              17943  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch session activated 2, companion installed true
+2026-11-01 16:35:43.290705+0000 0xef5e     Default     0x641e3              17943  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: got 5410 bytes, plus true, 비
+2026-11-01 16:36:47.729117+0000 0xef5f     Default     0x0                  17943  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: got 5227 bytes, plus true, 눈
+2026-11-01 16:36:48.471937+0000 0xef64     Default     0x0                  17943  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: got 5227 bytes, plus true, 눈
+2026-11-01 16:36:48.566094+0000 0xef64     Default     0x0                  17943  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: got 5254 bytes, plus true, 눈
+2026-11-01 16:37:54.321586+0000 0xef5f     Default     0x0                  17943  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: got 5254 bytes, plus true, 눈
+2026-11-01 16:37:54.624182+0000 0xef5f     Default     0x0                  17943  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: got 5253 bytes, plus true, 눈
+2026-11-01 16:37:54.856173+0000 0xef5f     Default     0x0                  17943  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: got 5253 bytes, plus true, 눈
+2026-11-01 16:37:55.004107+0000 0xef5f     Default     0x0                  17943  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: got 5116 bytes, plus false, 눈
+2026-11-01 16:37:55.335383+0000 0xef6a     Default     0x0                  17943  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: got 5116 bytes, plus false, 눈
+2026-11-01 16:37:55.342271+0000 0xef6a     Default     0x0                  17943  0    PurrcastWatch: (PurrcastWatch.debug.dylib) [app.purrcast:watch] watch: got 5143 bytes, plus false, 눈
