@@ -29,10 +29,11 @@ struct StoreShotView: View {
         case 3: skies
         case 4: rainAlert
         case 5: nextHours
-        case 6: dust
-        case 7: widgets
-        case 8: lockScreen
-        case 9: watch
+        case 6: tenDays
+        case 7: dust
+        case 8: widgets
+        case 9: lockScreen
+        case 10: watch
         default: hero
         }
     }
@@ -41,7 +42,7 @@ struct StoreShotView: View {
     /// cool wash, the night pages go deep)
     private enum Tone {
         static let hero = ["#8DB6EC", "#5C8ED6"], skies = ["#86A2E2", "#5873C6"], rain = ["#3A4890", "#1A2050"]
-        static let hours = ["#7FAEE6", "#4C7CC6"], dust = ["#94A6DD", "#6878BE"], widgets = ["#86B9DF", "#5A8CC4"]
+        static let hours = ["#7FAEE6", "#4C7CC6"], days = ["#8FB2E8", "#6185CF"], dust = ["#94A6DD", "#6878BE"], widgets = ["#86B9DF", "#5A8CC4"]
         static let lock = ["#5B66A8", "#2E3470"], watch = ["#363B5E", "#121428"]
     }
 
@@ -63,14 +64,14 @@ struct StoreShotView: View {
         ]
         // bursting out over the head: where each one lands, its tilt and size (the words may run under the next)
         let spots: [(x: CGFloat, y: CGFloat, r: Double, k: CGFloat)] = [
-            (-96, 0, -9, 1.0), (92, 16, 8, 1.1), (-10, 58, -4, 1.05), (-74, 112, 6, 1.15),
-            (96, 128, -7, 1.05), (34, 186, 5, 1.2), (-92, 214, -6, 1.1),
+            (-100, 0, -9, 1.15), (100, 20, 8, 1.25), (-6, 70, -4, 1.2), (-90, 134, 6, 1.3),
+            (104, 150, -7, 1.2), (40, 214, 5, 1.35), (-96, 248, -6, 1.25),
         ]
         return shot(L("오늘 뭐 입지?"), L("캐릭터를 보면 알아요"), bg: Tone.hero) {
             VStack(spacing: -34) {
                 ZStack(alignment: .top) {
                     ForEach(Array(others.enumerated()), id: \.offset) { i, b in
-                        BubbleView(kind: b.0, tone: b.1, icon: b.2, text: b.3, fontSize: 24)
+                        BubbleView(kind: b.0, tone: b.1, icon: b.2, text: b.3, fontSize: 26)
                             .fixedSize()
                             .scaleEffect(spots[i].k)
                             .rotationEffect(.degrees(spots[i].r))
@@ -78,9 +79,9 @@ struct StoreShotView: View {
                             .zIndex(Double(i))
                     }
                 }
-                .frame(width: Self.canvas.width, height: 290, alignment: .top)
+                .frame(width: Self.canvas.width, height: 330, alignment: .top)
                 .zIndex(1)
-                cat(s, width: 300, bubbleSize: 24).zIndex(2)
+                cat(s, width: 290, bubbleSize: 28).zIndex(2)
             }
             .frame(maxHeight: .infinity, alignment: .bottom)
             .padding(.bottom, 14)
@@ -114,7 +115,7 @@ struct StoreShotView: View {
     /// Four weathers, each tile its own sky with the character dressed for it
     private var skies: some View {
         let keys = ["summer_heat", "spring_rain", "winter_snow", "summer_night"]
-        return shot(L("창밖 하늘을"), L("그대로 담았어요"), bg: Tone.skies) {
+        return shot(L("비·눈·별이"), L("화면에서 움직여요"), bg: Tone.skies) {
             LazyVGrid(columns: Array(repeating: GridItem(.fixed(194), spacing: 12), count: 2), spacing: 12) {
                 ForEach(keys, id: \.self) { k in skyTile(SceneLibrary.scene(k)) }
             }
@@ -155,17 +156,17 @@ struct StoreShotView: View {
         return shot(L("비 오기 1시간 전"), L("미리 알려줘요"), bg: [], plus: true) {
             VStack(spacing: 14) {
                 // the phone in use: the island opens with the alert over whatever is on the screen
-                phone(dark: false, scale: 1.0, topInset: 54, island: AnyView(island(a, soon))) {
+                phone(dark: false, scale: 1.2, topInset: 54, island: AnyView(island(a, soon))) {
                     HomeView(route: .constant(nil), day: .constant(nil))
                 }
-                .frame(height: 380, alignment: .top)
+                .frame(width: Self.canvas.width, height: 430, alignment: .top)
                 .clipped()
                 .mask(LinearGradient(stops: [.init(color: .black, location: 0.8), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
                 label(L("잠금 화면")).padding(.top, 8)
                 RainLockView(a: a, s: soon)
                     .frame(width: 370)
                     .background(Color(hex: "#141938").opacity(0.96), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .scaleEffect(1.1).padding(.vertical, 12)
+                    .scaleEffect(1.18).padding(.vertical, 16)
                     .shadow(color: .black.opacity(0.3), radius: 14, y: 8)
             }
             .padding(.top, 2)
@@ -181,13 +182,89 @@ struct StoreShotView: View {
 
     // MARK: 5 · 언제, 얼마나 비가 오는지
 
+    /// The next six hours, big: when it starts, a bar per hour with its amount, the hour and its chance
     private var nextHours: some View {
-        shot(L("언제, 얼마나"), L("비가 오는지"), bg: Tone.hours, plus: true) {
-            zoomed(1.09, height: 720) { HomeView(route: .constant(nil), day: .constant(nil), focus: "next6") }
+        let s = model.scene, six = s.next6 ?? []
+        let R = six.map { $0.mm }, peak = max(R.max() ?? 0, 1)
+        // the same words as the app's card: the first rainy stretch, "15~17시 비 예보"
+        let hr = { (i: Int) -> Int in HourLabel.hour(six[i].label) ?? 0 }
+        var head = L("6시간 동안 비 소식 없어요")
+        if let st = R.firstIndex(where: { $0 >= 0.1 }) {
+            let en = R[st...].firstIndex(where: { $0 < 0.1 }), last = en == nil ? R.count - 1 : en! - 1
+            head = st == 0 ? L("지금 %@ · 시간당 %@", L("비"), "\(HomeView.mmText(R[0]))mm")
+                : st == last ? L("%@쯤 %@ 예보", HourLabel.word(hr(st), clock12: model.clock12), L("비"))
+                : L("%@ %@ 예보", HourLabel.window(hr(st), hr(last), clock12: model.clock12), L("비"))
+        }
+        return shot(L("언제, 얼마나"), L("비가 오는지"), bg: Tone.hours, plus: true) {
+            VStack(alignment: .leading, spacing: 26) {
+                HStack(spacing: 12) {
+                    PixelIcon(name: "umbrella_closed", size: 34)
+                    Text(head).font(.px(28)).lineLimit(1).minimumScaleFactor(0.7)
+                }
+                HStack(alignment: .bottom, spacing: 12) {
+                    ForEach(Array(six.enumerated()), id: \.offset) { i, r in
+                        VStack(spacing: 8) {
+                            Text(r.mm >= 0.1 ? "\(HomeView.mmText(r.mm))mm" : " ").font(.px(16)).foregroundStyle(Color(hex: "#2F6BD8"))
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(r.mm >= 0.1 ? Color(hex: "#3D7BE8") : Color(hex: "#D8E2F4"))
+                                .frame(height: r.mm >= 0.1 ? max(14, r.mm / peak * 250) : 8)
+                            Text(model.hourLabel(r.label)).font(.px(17)).lineLimit(1).minimumScaleFactor(0.7)
+                            let c = s.hours.first { $0.label == r.label }?.chance ?? 0
+                            Text(c >= 10 ? "\(c)%" : "–").font(.px(16)).foregroundStyle(c >= 10 ? Color(hex: "#2F6BD8") : Color(hex: "#9AA6C0"))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+                .frame(height: 360, alignment: .bottom)
+            }
+            .foregroundStyle(Color(hex: "#1E2A44"))
+            .padding(24)
+            .frame(width: 400)
+            .background(Color.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 34, style: .continuous))
+            .shadow(color: .black.opacity(0.15), radius: 18, y: 10)
+            .padding(.top, 16)
         }
     }
 
-    // MARK: 6 · 미세먼지도 한눈에
+    // MARK: 6 · 열흘 뒤 날씨까지 미리 볼 수 있어요
+
+    /// The ten days, big: the day, its weather, the chance of rain, the low, the range and the high
+    private var tenDays: some View {
+        let days = model.scene.days
+        let lo = days.map(\.lo).min() ?? 0, hi = days.map(\.hi).max() ?? 1, span = CGFloat(max(1, hi - lo))
+        return shot(L("열흘 뒤 날씨까지"), L("미리 볼 수 있어요"), bg: Tone.days) {
+            VStack(spacing: 0) {
+                ForEach(Array(days.prefix(10).enumerated()), id: \.offset) { i, d in
+                    HStack(spacing: 10) {
+                        Text(d.name).font(.px(21)).frame(width: 50, alignment: .leading).lineLimit(1).minimumScaleFactor(0.6)
+                        PixelIcon(name: d.icon, size: 32)
+                        Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(15)).foregroundStyle(Color(hex: "#2F6BD8")).frame(width: 44, alignment: .leading)
+                        Text(model.deg(d.lo)).font(.px(20)).foregroundStyle(Color(hex: "#6B7894")).frame(width: 40, alignment: .trailing)
+                        GeometryReader { g in
+                            let x0 = CGFloat(d.lo - lo) / span * g.size.width, x1 = CGFloat(d.hi - lo) / span * g.size.width
+                            ZStack(alignment: .leading) {
+                                Capsule().fill(Color(hex: "#E3E8F2")).frame(height: 8)
+                                Capsule().fill(LinearGradient(colors: [Color(hex: "#6FA8FF"), Color(hex: "#FFA94D")], startPoint: .leading, endPoint: .trailing))
+                                    .frame(width: max(8, x1 - x0), height: 8).offset(x: x0)
+                            }
+                            .frame(maxHeight: .infinity)
+                        }
+                        Text(model.deg(d.hi)).font(.px(20)).frame(width: 40, alignment: .trailing)
+                    }
+                    .frame(height: 62)
+                    if i < min(days.count, 10) - 1 { Rectangle().fill(Color(hex: "#E8ECF4")).frame(height: 1) }
+                }
+            }
+            .foregroundStyle(Color(hex: "#1E2A44"))
+            .padding(.horizontal, 20).padding(.vertical, 8)
+            .frame(width: 404)
+            .background(Color.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 34, style: .continuous))
+            .shadow(color: .black.opacity(0.15), radius: 18, y: 10)
+            .padding(.top, 10)
+        }
+    }
+
+    // MARK: 7 · 미세먼지도 한눈에
 
     private var dust: some View {
         shot(L("미세먼지도"), L("한눈에"), bg: Tone.dust) {
@@ -257,10 +334,9 @@ struct StoreShotView: View {
         }
     }
 
+    /// A lock-screen widget as iOS draws it: straight on the wallpaper, nothing behind it
     private func glass<C: View>(_ w: CGFloat, _ h: CGFloat, circle: Bool = false, @ViewBuilder _ c: () -> C) -> some View {
-        c().foregroundStyle(.white).frame(width: w, height: h)
-            .padding(circle ? 0 : 8)
-            .background(Color.white.opacity(circle ? 0.12 : 0.16), in: RoundedRectangle(cornerRadius: circle ? w / 2 : 20, style: .continuous))
+        c().foregroundStyle(.white).frame(width: w, height: h).padding(circle ? 0 : 8)
     }
 
     // MARK: 9 · 애플워치에서도 캐릭터와 함께
