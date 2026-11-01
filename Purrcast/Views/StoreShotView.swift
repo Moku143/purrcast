@@ -191,10 +191,10 @@ struct StoreShotView: View {
 
     private var dust: some View {
         shot(L("미세먼지도"), L("한눈에"), bg: Tone.dust) {
-            ZStack(alignment: .bottomLeading) {
-                zoomed(1.04, height: 600) { DayDetailView(start: 0, startMetric: .dust, focus: true) }
+            ZStack(alignment: .bottomTrailing) {
+                zoomed(1.04, height: 560) { DayDetailView(start: 0, startMetric: .dust, focus: true) }
                     .background(Color(hex: "#FFF6E6"), in: RoundedRectangle(cornerRadius: 34, style: .continuous))
-                cat(model.scene, width: 200, bubbleSize: 0).offset(x: 8, y: 96)
+                cat(model.scene, width: 170, bubbleSize: 0).offset(x: -10, y: 176)
             }
         }
     }
@@ -234,7 +234,7 @@ struct StoreShotView: View {
     /// app's sky as the wallpaper, the character in front
     private var lockScreen: some View {
         let snap = model.snapshot, s = snap.scene, lv = Rules.clamp(s.level)
-        let w: CGFloat = 392, h: CGFloat = 470
+        let w: CGFloat = 392, h: CGFloat = 372
         return shot(L("잠금화면에서도"), L("바로 보여요"), bg: Tone.lock) {
             ZStack(alignment: .topLeading) {
                 ZStack(alignment: .top) {
@@ -248,7 +248,8 @@ struct StoreShotView: View {
                             glass(74, 74, circle: true) { LockCircularView(snap: snap) }
                             glass(74, 74, circle: true) { LockDustCircularView(snap: snap) }
                         }
-                        .padding(.top, 6)
+                        .scaleEffect(1.12)
+                        .padding(.top, 14)
                     }
                     .foregroundStyle(.white)
                     .padding(.top, 34)
@@ -257,8 +258,8 @@ struct StoreShotView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 40, style: .continuous).strokeBorder(Color.white.opacity(0.85), lineWidth: 5))
                 .shadow(color: .black.opacity(0.25), radius: 20, y: 12)
-                CharacterSprite(character: model.shownCharacter, level: lv, rain: RainState(rawValue: s.rain) ?? .none, width: 240, animate: false)
-                    .offset(x: 150, y: h - 150)
+                CharacterSprite(character: model.shownCharacter, level: lv, rain: RainState(rawValue: s.rain) ?? .none, width: 260, animate: false)
+                    .offset(x: 66, y: h - 40)
             }
             .frame(width: w)
             .padding(.top, 8)
