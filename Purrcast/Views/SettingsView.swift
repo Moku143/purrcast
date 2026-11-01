@@ -260,7 +260,7 @@ struct SettingsView: View {
     static var version: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0" }
 }
 
-/// 데이터 출처: the three sources, what each one is used for, and the attribution each licence asks for.
+/// 데이터 출처: the sources, what each one is used for, and the attribution each licence asks for.
 struct SourcesView: View {
     @EnvironmentObject var model: AppModel
     @Binding var route: Route?
@@ -269,6 +269,8 @@ struct SourcesView: View {
     private static let appleLegal = URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
     private static let kma = URL(string: "https://www.weather.go.kr")!
     private static let ccBy = URL(string: "https://creativecommons.org/licenses/by/4.0/")!
+    private static let airkorea = URL(string: "https://www.airkorea.or.kr")!
+    private static let openWeather = URL(string: "https://openweathermap.org/")!
 
     var body: some View {
         VStack(spacing: 0) {
@@ -280,6 +282,8 @@ struct SourcesView: View {
                     appleCard
                     kmaCard
                     metCard
+                    airKoreaCard
+                    openWeatherCard
                     otherCard
                 }
                 .padding(.horizontal, 16).padding(.bottom, 30)
@@ -357,6 +361,26 @@ struct SourcesView: View {
             line(L("예보 비교 · 예비 예보 · Data from MET Norway"))
             line(L("CC BY 4.0 · 그래프로 바꿔 씀"))
             link(L("라이선스 보기"), Self.ccBy)
+        }
+    }
+
+    private var airKoreaCard: some View {
+        card {
+            HStack(spacing: 8) { Text(L("에어코리아")).font(.ui(15, .bold)); GreyTag(text: L("한국")) }
+            line(L("미세먼지 · 초미세먼지: 가까운 측정소의 실시간 값과 예보"))
+            line(L("출처: 환경부 · 한국환경공단"))
+            line(L("실시간 측정값은 확정 전 자료라 나중에 바뀔 수 있어요"))
+            link(L("에어코리아"), Self.airkorea)
+        }
+    }
+
+    // OpenWeather's free plan asks for these words and a link to their site wherever the data shows
+    private var openWeatherCard: some View {
+        card {
+            HStack(spacing: 8) { Text("OpenWeather").font(.ui(15, .bold)); GreyTag(text: L("전 세계")) }
+            line(L("미세먼지 · 초미세먼지 (한국 밖)"))
+            Text("Weather data provided by OpenWeather").font(.ui(12, .semibold)).foregroundStyle(UI.ink)
+            link("openweathermap.org", Self.openWeather)
         }
     }
 

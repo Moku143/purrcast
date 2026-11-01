@@ -43,7 +43,7 @@ App Store Connect → 앱 → 각 칸에 그대로 넣으면 돼요. 글자 수�
 • 옷 15단계: 민소매부터 롱패딩·털 후드까지, 체감온도에 맞춰 갈아입어요
 • 우산 3단계: 지금 비가 오면 우산을 펴고, 곧 올 비는 가방에 챙기고, 애매하면 고민해요
 • 비 오는 시간을 미리: "15~17시 비 예보"처럼 알려 주고 우산을 챙겨요
-• 날씨 그림: 구름, 비, 눈, 바람, 안개, 별, 번개가 화면에서 움직여요
+• 날씨 그림: 구름이 흐르고, 비와 눈이 내리고, 별이 반짝이고, 번개가 쳐요
 • 시간별 · 10일 예보, 자외선 · 일출 · 일몰 · 습도 · 바람
 • 홈 화면 · 잠금 화면 위젯
 • 아침 요약 알림
@@ -79,7 +79,7 @@ Purrcast shows the weather through a pixel pet: it changes clothes with the feel
 • 15 outfits, from tank top to fur-hooded puffer
 • Umbrella states: raining now, rain later (packed in the bag), maybe
 • Rain ahead: "Rain 3–5PM" — and the umbrella goes in the bag
-• Living sky: clouds, rain, snow, wind, fog, stars and lightning move on screen
+• Living sky: clouds drift, rain and snow fall, stars twinkle, lightning flashes
 • Hourly and 10-day forecast, UV, sunrise and sunset, humidity, wind
 • Home Screen and Lock Screen widgets
 • Rain-soon alert and morning summary
@@ -116,7 +116,7 @@ Privacy Policy: https://moku143.github.io/purrcast/privacy.html
 • 服装15段階: タンクトップからファー付きフードのダウンまで、体感温度に合わせて着替えます
 • 傘の3段階: 今降っていれば傘をさし、これから降るならかばんに入れ、微妙なときは迷います
 • 雨の時間を前もって: 「15〜17時に雨の予報です」のように伝え、傘を準備します
-• 動く空: 雲、雨、雪、風、霧、星、雷が画面で動きます
+• 動く空: 雲が流れ、雨や雪が降り、星がまたたき、雷が光ります
 • 時間ごと・10日間の予報、紫外線・日の出・日の入り・湿度・風
 • ホーム画面・ロック画面ウィジェット
 • 雨の前の通知、朝のまとめ

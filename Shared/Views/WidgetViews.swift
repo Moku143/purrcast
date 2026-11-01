@@ -341,7 +341,9 @@ struct LockDustCircularView: View {
         let d = snap.scene.dust
         let g = d.map { max(0, min(3, $0.grade)) }
         VStack(spacing: 3) {
-            PixelIcon(name: d.map { DustFacts.icon($0) } ?? "pm10", size: 26)
+            // the icon in the lock-screen style the character uses: white, the outline cut out, mid tones see-through
+            Image("icon-\(d.map { DustFacts.icon($0) } ?? "pm10")-lock").interpolation(.none).resizable()
+                .frame(width: 26, height: 26).opacity(0.9)
             Text(g.map { L(DustScale.words[$0]) } ?? "–").font(.system(size: 14, weight: .semibold))
                 .lineLimit(1).minimumScaleFactor(0.6).foregroundStyle(.white.opacity(0.92))
         }

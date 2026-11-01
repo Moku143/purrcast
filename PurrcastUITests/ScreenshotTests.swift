@@ -236,6 +236,7 @@ final class ScreenshotTests: XCTestCase {
             ("paywall", ["-scene", "maybe", "-open", "paywall"], 0),
             ("appicon", ["-scene", "maybe", "-open", "appIcon"], 0),
             ("sources", ["-scene", "maybe", "-open", "sources"], 0),
+            ("sources-2", ["-scene", "maybe", "-open", "sources"], 2),
             ("widgetlab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab"], 0),
             ("widgetlab-dust", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "widgetLab"], 0),
             ("widgetlab-dust-en", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "widgetLab", "-lang", "en"], 0),

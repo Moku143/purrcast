@@ -115,7 +115,7 @@ struct StoreShotView: View {
     /// Four weathers, each tile its own sky with the character dressed for it
     private var skies: some View {
         let keys = ["summer_heat", "spring_rain", "winter_snow", "summer_night"]
-        return shot(L("비·눈·별이"), L("화면에서 움직여요"), bg: Tone.skies) {
+        return shot(L("구름이 흐르고"), L("비와 눈이 내려요"), bg: Tone.skies) {
             LazyVGrid(columns: Array(repeating: GridItem(.fixed(194), spacing: 12), count: 2), spacing: 12) {
                 ForEach(keys, id: \.self) { k in skyTile(SceneLibrary.scene(k)) }
             }
