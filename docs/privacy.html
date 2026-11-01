@@ -3,43 +3,58 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Purrcast 개인정보 처리방침</title>
+<title>Purrcast 개인정보 처리방침 · Privacy Policy</title>
 <style>
-  :root { --bg: #F4F6FA; --ink: #1A2440; --sub: #5B6680; --card: #fff; }
-  @media (prefers-color-scheme: dark) { :root { --bg: #121522; --ink: #EEF1FA; --sub: #A6AFC6; --card: #1C2032; } }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.65 -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+  :root { --bg: #F4F6FA; --ink: #1A2440; --sub: #5B6680; --card: #fff; --line: #E3E7F0; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #121522; --ink: #EEF1FA; --sub: #A6AFC6; --card: #1C2032; --line: #2C3248; } }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.65 -apple-system, "Apple SD Gothic Neo", "Hiragino Sans", "Noto Sans KR", sans-serif; }
   main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
-  h1 { font-size: 26px; margin: 0 0 4px; }
-  .date { color: var(--sub); font-size: 14px; margin-bottom: 24px; }
+  nav { display: flex; gap: 8px; margin: 0 0 20px; }
+  nav a { color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 14px; }
+  h1 { font-size: 26px; margin: 40px 0 4px; } h1:first-of-type { margin-top: 0; }
+  .date { color: var(--sub); font-size: 14px; margin-bottom: 20px; }
   section { background: var(--card); border-radius: 16px; padding: 18px 20px; margin: 12px 0; }
   h2 { font-size: 17px; margin: 0 0 6px; }
   p, li { color: var(--ink); } ul { padding-left: 20px; margin: 6px 0; }
   .sub { color: var(--sub); font-size: 14px; }
+  a { color: inherit; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Purrcast 개인정보 처리방침</h1>
+  <nav><a href="#ko">한국어</a><a href="#en">English</a><a href="#ja">日本語</a></nav>
+
+  <!-- 한국어 -->
+  <h1 id="ko">Purrcast 개인정보 처리방침</h1>
   <div class="date">시행일: 2026년 11월 1일</div>
 
   <section>
     <h2>한 줄 요약</h2>
-    <p>Purrcast는 회원가입이 없고, 이름·연락처 같은 개인정보를 모으지 않아요. 날씨를 알려 드리는 데 필요한 위치만 쓰고, 저장하지 않아요.</p>
+    <p>Purrcast는 회원가입이 없고 이름·이메일·연락처를 모으지 않아요. 날씨를 보여 드리고 비 알림을 보내는 데 필요한 만큼만, 약 1km로 줄인 위치를 씁니다. 광고도, 추적도 하지 않아요.</p>
   </section>
 
   <section>
     <h2>1. 쓰는 정보</h2>
     <ul>
-      <li><b>위치</b> — 허락하신 경우에만, 지금 위치의 날씨를 받기 위해 씁니다. 날씨 서버에는 소수점 둘째 자리(약 1km)로 줄인 좌표만 보내고, 서버는 이를 기록으로 남기지 않습니다.</li>
+      <li><b>위치</b> — 허락하신 경우에만 씁니다. 날씨 서버에는 소수점 둘째 자리(약 1km)로 줄인 좌표만 보내요. 날씨를 물어볼 때 보낸 좌표는 저장하지 않습니다.</li>
+      <li><b>비 알림용 기기 등록</b> — 앱을 열지 않아도 비 오기 전에 알려 드리기 위해(잠금 화면·Dynamic Island 알림), 앱이 서버에 다음을 등록합니다: 앱이 만든 무작위 기기 ID(이름·Apple ID와 관계없음), 약 1km 좌표와 시간대·지역 이름, 언어·캐릭터·요금제(무료/Plus)·비 알림 켬 여부, Apple 푸시 토큰. 이 정보는 비 알림을 보내는 데만 쓰고, 45일 동안 앱이 다시 확인하지 않으면 자동으로 지워집니다.</li>
+      <li><b>지역별 날씨 기록</b> — "어제보다 따뜻해요" 같은 비교를 위해 약 1km 칸별 기온과 날씨 응답을 서버에 잠시(최대 이틀) 보관합니다. 기기 ID와 연결하지 않아요.</li>
       <li><b>저장한 지역 · 설정 · 캐릭터 이름</b> — 기기 안에만 저장됩니다.</li>
       <li><b>구독</b> — 결제는 Apple이 처리합니다. Purrcast는 카드 정보를 받지 않고, 구독 중인지 여부만 Apple에게서 확인합니다.</li>
     </ul>
   </section>
 
   <section>
-    <h2>2. 다른 곳에 주는 정보</h2>
-    <p>없습니다. 날씨 데이터는 기상청과 MET Norway에서 받아 오지만, 그쪽에 여러분을 알아볼 수 있는 정보를 보내지 않습니다.</p>
-    <p class="sub">무료 버전에 광고가 들어가게 되면, 광고 회사와 무엇을 주고받는지 이 문서에 먼저 적고 앱에서 동의를 받습니다.</p>
+    <h2>2. 날씨 데이터를 받아 오는 곳</h2>
+    <p>날씨는 Purrcast 서버가 아래 곳에서 받아 옵니다. 어느 곳에도 기기 ID나 여러분을 알아볼 수 있는 정보는 보내지 않아요.</p>
+    <ul>
+      <li><b>기상청</b> — 예보 격자 번호와 예보 구역 코드만 (좌표는 보내지 않음)</li>
+      <li><b>에어코리아</b> — 가까운 측정소 이름만</li>
+      <li><b>Apple 날씨(WeatherKit)</b> · <b>MET Norway</b> · <b>OpenWeather</b> — 약 1km로 줄인 좌표</li>
+      <li><b>Apple 푸시 알림 서비스</b> — 알림을 보낼 때 푸시 토큰과 알림 내용</li>
+      <li><b>Cloudflare</b> — Purrcast 서버와 위 기기 등록을 보관하는 곳</li>
+    </ul>
+    <p class="sub">정보를 팔거나 광고에 쓰지 않습니다. 무료 버전에 광고가 들어가게 되면, 광고 회사와 무엇을 주고받는지 이 문서에 먼저 적고 앱에서 동의를 받습니다.</p>
   </section>
 
   <section>
@@ -49,7 +64,7 @@
 
   <section>
     <h2>4. 지우기</h2>
-    <p>앱을 지우면 기기에 저장된 정보도 모두 지워집니다. 따로 보관하는 정보가 없어 지워 달라고 요청하실 것도 없습니다.</p>
+    <p>앱을 지우면 기기에 저장된 정보가 모두 지워지고, 서버의 기기 등록은 45일 안에 자동으로 지워집니다. 그 전에 지우고 싶으시면 아래 메일로 알려 주세요.</p>
   </section>
 
   <section>
@@ -60,6 +75,112 @@
   <section>
     <h2>문의</h2>
     <p class="sub"><a href="mailto:oo0785@daum.net">oo0785@daum.net</a>으로 연락해 주세요.</p>
+  </section>
+
+  <!-- English -->
+  <h1 id="en">Purrcast Privacy Policy</h1>
+  <div class="date">Effective: November 1, 2026</div>
+
+  <section>
+    <h2>In short</h2>
+    <p>Purrcast has no sign-up and never asks for your name, email or contacts. It uses your location, rounded to about 1 km, only to show the weather and send rain alerts. No ads, no tracking.</p>
+  </section>
+
+  <section>
+    <h2>1. What we use</h2>
+    <ul>
+      <li><b>Location</b> — only if you allow it. Our weather server receives coordinates rounded to two decimals (about 1 km). Coordinates sent with a weather request are not stored.</li>
+      <li><b>Device registration for rain alerts</b> — so we can warn you before rain without the app open (Lock Screen and Dynamic Island), the app registers with our server: a random device ID the app creates (unrelated to your name or Apple ID), coordinates rounded to about 1 km with the time zone and place name, your language, character, plan (Free/Plus) and whether rain alerts are on, and an Apple push token. This is used only to send rain alerts and is deleted automatically if the app has not checked in for 45 days.</li>
+      <li><b>Weather by area</b> — to say things like "warmer than yesterday", the server briefly keeps (up to two days) temperatures and weather answers for each ~1 km area. These are not linked to any device ID.</li>
+      <li><b>Saved places, settings and character names</b> — stored only on your device.</li>
+      <li><b>Subscriptions</b> — payments are handled by Apple. Purrcast never receives card details; it only checks with Apple whether you are subscribed.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>2. Where the weather comes from</h2>
+    <p>The Purrcast server fetches weather from the services below. None of them receive your device ID or anything that identifies you.</p>
+    <ul>
+      <li><b>Korea Meteorological Administration</b> — only a forecast grid number and region code (no coordinates)</li>
+      <li><b>AirKorea</b> — only the name of the nearest station</li>
+      <li><b>Apple Weather (WeatherKit)</b> · <b>MET Norway</b> · <b>OpenWeather</b> — coordinates rounded to about 1 km</li>
+      <li><b>Apple Push Notification service</b> — the push token and the alert's content, when an alert is sent</li>
+      <li><b>Cloudflare</b> — hosts the Purrcast server and the device registrations above</li>
+    </ul>
+    <p class="sub">We do not sell data or use it for advertising. If the free version ever shows ads, this page will first say what is shared with the ad provider, and the app will ask for your consent.</p>
+  </section>
+
+  <section>
+    <h2>3. Notifications</h2>
+    <p>Rain, morning summary and weather warning notifications are sent only if you turn them on, and you can turn them off any time in Settings.</p>
+  </section>
+
+  <section>
+    <h2>4. Deleting</h2>
+    <p>Deleting the app removes everything stored on your device, and its registration on our server is deleted automatically within 45 days. To have it removed sooner, email us at the address below.</p>
+  </section>
+
+  <section>
+    <h2>5. Changes</h2>
+    <p>Changes to this policy will be posted on this page with a new effective date, and important changes will also be announced in the app.</p>
+  </section>
+
+  <section>
+    <h2>Contact</h2>
+    <p class="sub"><a href="mailto:oo0785@daum.net">oo0785@daum.net</a></p>
+  </section>
+
+  <!-- 日本語 -->
+  <h1 id="ja">Purrcast プライバシーポリシー</h1>
+  <div class="date">施行日：2026年11月1日</div>
+
+  <section>
+    <h2>まとめ</h2>
+    <p>Purrcastには会員登録がなく、名前・メール・連絡先を集めません。天気の表示と雨のお知らせに必要な分だけ、約1kmに丸めた位置情報を使います。広告もトラッキングもありません。</p>
+  </section>
+
+  <section>
+    <h2>1. 使う情報</h2>
+    <ul>
+      <li><b>位置情報</b> — 許可された場合のみ使います。天気サーバーには小数点以下2桁（約1km）に丸めた座標だけを送り、天気の問い合わせに使った座標は保存しません。</li>
+      <li><b>雨のお知らせ用の端末登録</b> — アプリを開いていなくても雨の前にお知らせするため（ロック画面・Dynamic Island）、アプリはサーバーに次の情報を登録します：アプリが作るランダムな端末ID（名前やApple IDとは無関係）、約1kmに丸めた座標・タイムゾーン・地域名、言語・キャラクター・プラン（無料/Plus）・雨のお知らせのオン/オフ、Appleのプッシュトークン。雨のお知らせにだけ使い、45日間アプリからの確認がなければ自動的に削除されます。</li>
+      <li><b>地域ごとの天気の記録</b> — 「昨日より暖かい」などの比較のため、約1kmの区画ごとの気温と天気の応答をサーバーに短期間（最大2日）保管します。端末IDとは結びつけません。</li>
+      <li><b>保存した地域・設定・キャラクター名</b> — 端末の中だけに保存されます。</li>
+      <li><b>サブスクリプション</b> — 決済はAppleが行います。Purrcastはカード情報を受け取らず、購読中かどうかだけをAppleに確認します。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>2. 天気データの取得先</h2>
+    <p>Purrcastのサーバーが下記から天気を取得します。どこにも端末IDや個人を特定できる情報は送りません。</p>
+    <ul>
+      <li><b>韓国気象庁</b> — 予報格子番号と予報区域コードのみ（座標は送りません）</li>
+      <li><b>AirKorea</b> — 最寄りの測定所名のみ</li>
+      <li><b>Apple天気（WeatherKit）</b>・<b>MET Norway</b>・<b>OpenWeather</b> — 約1kmに丸めた座標</li>
+      <li><b>Appleプッシュ通知サービス</b> — お知らせを送るときのプッシュトークンと内容</li>
+      <li><b>Cloudflare</b> — Purrcastのサーバーと上記の端末登録を保管</li>
+    </ul>
+    <p class="sub">情報を販売したり広告に使ったりしません。無料版に広告を入れる場合は、広告会社と何をやり取りするかを先にこのページに記載し、アプリで同意をいただきます。</p>
+  </section>
+
+  <section>
+    <h2>3. 通知</h2>
+    <p>雨・朝のまとめ・気象警報の通知は、オンにした場合のみ送り、設定からいつでもオフにできます。</p>
+  </section>
+
+  <section>
+    <h2>4. 削除</h2>
+    <p>アプリを削除すると端末内の情報はすべて消え、サーバーの端末登録も45日以内に自動的に削除されます。それより早く削除したい場合は、下記のメールでお知らせください。</p>
+  </section>
+
+  <section>
+    <h2>5. 変更</h2>
+    <p>このポリシーを変更する場合は、施行日とともにこのページに掲載し、重要な変更はアプリでもお知らせします。</p>
+  </section>
+
+  <section>
+    <h2>お問い合わせ</h2>
+    <p class="sub"><a href="mailto:oo0785@daum.net">oo0785@daum.net</a></p>
   </section>
 </main>
 </body>

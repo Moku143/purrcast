@@ -151,22 +151,22 @@ struct StoreShotView: View {
         let lv = Rules.clamp(model.scene.level)
         let a = RainActivityAttributes(place: model.currentPlace.short, character: model.shownCharacter.rawValue, level: lv)
         let now = Int(Date().timeIntervalSince1970)
-        let soon = RainActivityAttributes.ContentState(title: L("%@쯤 비 예보", HourLabel.word(18, clock12: model.clock12)), sub: "1mm · " + L("우산 챙기세요"),
-                                                       icon: "umbrella_closed", what: "rain", falling: false, mm: 1, start: now + 3600, end: now + 3 * 3600, endHour: 20)
+        let soon = RainActivityAttributes.ContentState(title: L("%@쯤 비 예보", HourLabel.word(16, clock12: model.clock12)), sub: "1mm · " + L("우산 챙기세요"),
+                                                       icon: "umbrella_closed", what: "rain", falling: false, mm: 1, start: now + 3600, end: now + 3 * 3600, endHour: 19)
         return shot(L("비 오기 1시간 전"), L("미리 알려줘요"), bg: [], plus: true) {
             VStack(spacing: 14) {
                 // the phone in use: the island opens with the alert over whatever is on the screen
                 phone(dark: false, scale: 1.2, topInset: 54, island: AnyView(island(a, soon))) {
                     HomeView(route: .constant(nil), day: .constant(nil))
                 }
-                .frame(width: Self.canvas.width, height: 430, alignment: .top)
+                .frame(width: Self.canvas.width, height: 470, alignment: .top)
                 .clipped()
                 .mask(LinearGradient(stops: [.init(color: .black, location: 0.8), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
                 label(L("잠금 화면")).padding(.top, 8)
                 RainLockView(a: a, s: soon)
                     .frame(width: 370)
                     .background(Color(hex: "#141938").opacity(0.96), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .scaleEffect(1.18).padding(.vertical, 16)
+                    .scaleEffect(1.22).padding(.vertical, 18)
                     .shadow(color: .black.opacity(0.3), radius: 14, y: 8)
             }
             .padding(.top, 2)
@@ -205,9 +205,10 @@ struct StoreShotView: View {
                     ForEach(Array(six.enumerated()), id: \.offset) { i, r in
                         VStack(spacing: 8) {
                             Text(r.mm >= 0.1 ? "\(HomeView.mmText(r.mm))mm" : " ").font(.px(16)).foregroundStyle(Color(hex: "#2F6BD8"))
+                                .lineLimit(1).minimumScaleFactor(0.6)
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
                                 .fill(r.mm >= 0.1 ? Color(hex: "#3D7BE8") : Color(hex: "#D8E2F4"))
-                                .frame(height: r.mm >= 0.1 ? max(14, r.mm / peak * 250) : 8)
+                                .frame(height: r.mm >= 0.1 ? max(14, r.mm / peak * 380) : 8)
                             Text(model.hourLabel(r.label)).font(.px(17)).lineLimit(1).minimumScaleFactor(0.7)
                             let c = s.hours.first { $0.label == r.label }?.chance ?? 0
                             Text(c >= 10 ? "\(c)%" : "–").font(.px(16)).foregroundStyle(c >= 10 ? Color(hex: "#2F6BD8") : Color(hex: "#9AA6C0"))
@@ -215,7 +216,7 @@ struct StoreShotView: View {
                         .frame(maxWidth: .infinity)
                     }
                 }
-                .frame(height: 360, alignment: .bottom)
+                .frame(height: 490, alignment: .bottom)
             }
             .foregroundStyle(Color(hex: "#1E2A44"))
             .padding(24)
