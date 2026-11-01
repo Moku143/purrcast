@@ -39,10 +39,47 @@ struct StoreShotView: View {
         }
     }
 
-    /// 1 · 오늘 뭐 입지? 고양이를 보면 알아요 — the home page
+    /// 1 · 오늘 뭐 입지? 고양이를 보면 알아요 — the app's sky over the whole picture, the character big with its
+    /// bubble, the temperature and the weather in words beside it
     private var hero: some View {
-        shot(L("오늘 뭐 입지?"), L("고양이를 보면 알아요"), bg: ["#D3E6F4", "#9DBBE6"]) {
-            phone(dark: model.scene.isNight) { HomeView(route: .constant(nil), day: .constant(nil)) }
+        let s = model.scene, lv = Rules.clamp(s.level), ink = Ink(night: s.isNight)
+        let rain = RainState(rawValue: s.rain) ?? .none
+        let catW: CGFloat = 300, catH = catW * Sprite.height / Sprite.width
+        let a = model.shownCharacter.anchors
+        let tipY = CGFloat(rain == .umbrella ? a.umb_top[lv] : a.head_top[lv]) / Sprite.height * catH
+        let tipX = (rain == .umbrella ? Sprite.umbrellaTipX : CGFloat(a.head_cx[lv])) / Sprite.width * catW
+        return shot(L("오늘 뭐 입지?"), L("고양이를 보면 알아요"), bg: [], light: s.isNight) {
+            ZStack(alignment: .topLeading) {
+                VStack(alignment: .trailing, spacing: 12) {
+                    Text(deg(s.temp)).font(.px(120))
+                    Text(s.cond).font(.px(26))
+                    Text(L("최고 %@ · 최저 %@", deg(s.hi), deg(s.lo))).font(.px(18))
+                }
+                .foregroundStyle(ink.ink)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, 30).padding(.top, 10)
+                ZStack(alignment: .topLeading) {
+                    CharacterSprite(character: model.shownCharacter, level: lv, rain: rain, mood: Mood(rawValue: s.mood ?? "normal") ?? .normal, width: catW, animate: false)
+                    if let b = s.bubble {
+                        BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: HomeView.bubbleLines(model.say(b.text)), fontSize: 21)
+                            .fixedSize()
+                            .alignmentGuide(.leading) { d in d.width / 2 - tipX }
+                            .alignmentGuide(.top) { d in d.height - tipY + 6 }
+                    }
+                }
+                .frame(width: catW, height: catH, alignment: .topLeading)
+                .padding(.leading, 24)
+                .frame(maxHeight: .infinity, alignment: .bottomLeading)
+                .padding(.bottom, 18)
+            }
+        }
+        .background {
+            ZStack {
+                SkyBase(level: lv, night: s.isNight)
+                SkyTint(scene: s)
+                SkyParticles(scene: s, width: Self.canvas.width, tiles: 3, animate: false)
+                    .frame(width: Self.canvas.width, height: Self.canvas.height, alignment: .top)
+            }
         }
     }
 
@@ -74,11 +111,34 @@ struct StoreShotView: View {
         let now = Int(Date().timeIntervalSince1970)
         let soon = RainActivityAttributes.ContentState(title: L("%@쯤 비 예보", HourLabel.word(18, clock12: model.clock12)), sub: "1mm · " + L("우산 챙기세요"),
                                                        icon: "umbrella_closed", what: "rain", falling: false, mm: 1, start: now + 3600, end: now + 3 * 3600, endHour: 20)
-        return shot(L("비 오기 1시간 전"), L("미리 알려줘요"), bg: ["#3A4478", "#1A2046"], light: true, plus: true) {
+        let k: CGFloat = 1.08
+        return shot(L("비 오기 1시간 전"), L("미리 알려줘요"), bg: [], light: true, plus: true) {
+            VStack(spacing: 14) {
+                label(L("다이내믹 아일랜드"))
+                island(a, soon).scaleEffect(k).frame(height: 132 * k).shadow(color: .black.opacity(0.35), radius: 18, y: 10)
+                label(L("잠금 화면")).padding(.top, 34)
+                VStack(spacing: 0) {
+                    Text("9:41").font(.system(size: 92, weight: .bold, design: .rounded)).foregroundStyle(.white.opacity(0.92))
+                    HStack(spacing: 14) {
+                        lockCircle { LockCircularView(snap: model.snapshot) }
+                        lockCircle { LockRainCircularView(snap: model.snapshot) }
+                        lockCircle { LockDustCircularView(snap: model.snapshot) }
+                    }
+                    .padding(.bottom, 26)
+                    RainLockView(a: a, s: soon)
+                        .frame(width: 370)
+                        .background(Color(hex: "#141938").opacity(0.95), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .scaleEffect(k).padding(.vertical, 8)
+                        .shadow(color: .black.opacity(0.3), radius: 14, y: 8)
+                }
+            }
+            .padding(.top, 18)
+        }
+        .background {
             ZStack(alignment: .top) {
-                phone(dark: true, statusBar: false) { lockScreen(a, soon) }
-                    .padding(.top, 54)
-                island(a, soon).scaleEffect(1.02).shadow(color: .black.opacity(0.35), radius: 18, y: 10)
+                LinearGradient(colors: [Color(hex: "#3A4478"), Color(hex: "#1A2046")], startPoint: .top, endPoint: .bottom)
+                SkyParticles(scene: SceneLibrary.scene("spring_rain"), width: Self.canvas.width, tiles: 3, animate: false)
+                    .frame(width: Self.canvas.width, height: Self.canvas.height, alignment: .top).opacity(0.45)
             }
         }
     }
@@ -86,14 +146,14 @@ struct StoreShotView: View {
     /// 4 · 언제, 얼마나 비가 오는지 — the home page scrolled to the next six hours
     private var nextHours: some View {
         shot(L("언제, 얼마나"), L("비가 오는지"), bg: ["#CDDCEF", "#93ABDB"], plus: true) {
-            phone(dark: false, lift: 330) { HomeView(route: .constant(nil), day: .constant(nil)) }
+            zoomed(1.06, height: 640) { HomeView(route: .constant(nil), day: .constant(nil), focus: "next6") }
         }
     }
 
     /// 5 · 미세먼지도 한눈에 — the day sheet's 미세먼지 tab
     private var dust: some View {
         shot(L("미세먼지도"), L("한눈에"), bg: ["#F4E9CF", "#DCC79B"]) {
-            phone(dark: false) { DayDetailView(start: 0, startMetric: .dust) }
+            zoomed(1.06, height: 700) { DayDetailView(start: 0, startMetric: .dust, focus: true) }
         }
     }
 
@@ -129,9 +189,10 @@ struct StoreShotView: View {
     private var watch: some View {
         let snap = model.snapshot
         return shot(L("애플워치에서도"), L("고양이와 함께"), bg: ["#3B3F5C", "#16182A"], light: true, plus: true) {
+            // the face with the complications big, the watch app beside it
             ZStack {
-                WatchCase(scale: 1.02) { WatchAppScreen(snap: snap) }.offset(x: -96, y: -70)
-                WatchCase(scale: 1.02) { WatchFacePreview(snap: snap) }.offset(x: 96, y: 150)
+                WatchCase(scale: 0.8) { WatchAppScreen(snap: snap) }.offset(x: -118, y: -150)
+                WatchCase(scale: 1.45) { WatchFacePreview(snap: snap) }.offset(x: 40, y: 110)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -158,6 +219,21 @@ struct StoreShotView: View {
 
     // MARK: parts
 
+    private func deg(_ v: Int) -> String { model.deg(v) }
+
+    /// A small grey heading over a part of the picture
+    private func label(_ t: String) -> some View {
+        Text(t).font(.ui(13, .semibold)).foregroundStyle(Color.white.opacity(0.65))
+    }
+
+    /// A part of the app laid out at the phone's width (402 pt) and shown `k` times larger, its top under the caption
+    private func zoomed<C: View>(_ k: CGFloat, height: CGFloat, @ViewBuilder _ c: () -> C) -> some View {
+        c().frame(width: 402, height: height / k, alignment: .top)
+            .scaleEffect(k, anchor: .top)
+            .frame(width: 402 * k, height: height, alignment: .top)
+            .padding(.top, 6)
+    }
+
     /// The caption (two lines, the app's pixel font) over a soft gradient, then the page's picture
     private func shot<C: View>(_ l1: String, _ l2: String, bg: [String], light: Bool = false, plus: Bool = false, @ViewBuilder _ c: () -> C) -> some View {
         let ink = light ? Color.white : Color(hex: "#1E2A44")
@@ -165,22 +241,22 @@ struct StoreShotView: View {
             VStack(spacing: 10) {
                 Text(l1).font(.px(36))
                 Text(l2).font(.px(36))
-                if plus {
-                    Text("Plus").font(.px(15)).foregroundStyle(light ? Color(hex: "#1A2046") : .white)
-                        .padding(.horizontal, 12).padding(.vertical, 5)
-                        .background(light ? Color.white : Color(hex: "#1E2A44"), in: Capsule())
-                        .padding(.top, 4)
-                }
             }
             .foregroundStyle(ink)
             .multilineTextAlignment(.center)
             .lineLimit(1).minimumScaleFactor(0.6)
             .padding(.horizontal, 24)
             .padding(.top, 62)
-            .frame(height: plus ? 228 : 200, alignment: .top)
+            .frame(height: 200, alignment: .top)
             c().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .background(LinearGradient(colors: bg.map { Color(hex: $0) }, startPoint: .top, endPoint: .bottom))
+        // App Review 2.3.2: what needs the subscription is said on the picture (small, at the bottom)
+        .overlay(alignment: .bottom) {
+            if plus {
+                Text(L("Plus 구독 기능")).font(.ui(13, .medium)).foregroundStyle(ink.opacity(0.7)).padding(.bottom, 22)
+            }
+        }
+        .background { if !bg.isEmpty { LinearGradient(colors: bg.map { Color(hex: $0) }, startPoint: .top, endPoint: .bottom) } }
     }
 
     /// An iPhone (402 × 874 screen at `phoneK`) running `content`, its bottom running off the picture; `lift` shows the
@@ -233,30 +309,6 @@ struct StoreShotView: View {
     /// Another app's place on the home screen: a plain frosted tile (no real app's icon)
     private var blankIcon: some View {
         RoundedRectangle(cornerRadius: 15, style: .continuous).fill(Color.white.opacity(0.45)).frame(width: 62, height: 62)
-    }
-
-    /// The lock screen: the date and time, three lock-screen circles, the rain card at the bottom
-    @ViewBuilder private func lockScreen(_ a: RainActivityAttributes, _ s: RainActivityAttributes.ContentState) -> some View {
-        let snap = model.snapshot
-        ZStack(alignment: .top) {
-            LinearGradient(colors: [Color(hex: "#5B66A8"), Color(hex: "#262C5C")], startPoint: .top, endPoint: .bottom)
-            VStack(spacing: 0) {
-                Text(Date.now.formatted(.dateTime.month().day().weekday(.wide).locale(Lang.current.locale)))
-                    .font(.system(size: 20, weight: .semibold)).foregroundStyle(.white.opacity(0.9)).padding(.top, 70)
-                Text("9:41").font(.system(size: 104, weight: .bold, design: .rounded)).foregroundStyle(.white.opacity(0.95))
-                HStack(spacing: 14) {
-                    lockCircle { LockCircularView(snap: snap) }
-                    lockCircle { LockRainCircularView(snap: snap) }
-                    lockCircle { LockDustCircularView(snap: snap) }
-                }
-                .padding(.top, 4)
-                Spacer()
-                RainLockView(a: a, s: s)
-                    .frame(width: 370)
-                    .background(Color(hex: "#1A2046").opacity(0.92), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .padding(.bottom, 250)
-            }
-        }
     }
 
     private func lockCircle<C: View>(@ViewBuilder _ c: () -> C) -> some View {

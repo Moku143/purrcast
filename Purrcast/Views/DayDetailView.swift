@@ -12,6 +12,8 @@ struct DayDetailView: View {
     @State var start: Int
     /// The tab the sheet opens on (the store screenshots open 미세먼지)
     var startMetric: DayMetric = .temp
+    /// The store pictures: only the summary bubble, the chart and the boxes under it, on no background of its own
+    var focus = false
     @State private var metric: DayMetric = .temp
     @State private var fine = true           // 미세먼지 tab: PM2.5 (초미세) or PM10
     @State private var picked: Int?          // hour chosen on the chart; nil → now (today) or noon
@@ -40,22 +42,24 @@ struct DayDetailView: View {
         let ctx = DayCtx(scene: s, index: index, day: s.days[index], hourly: hourly, ink: ink, night: s.isNight, sel: sel, metric: metric, scrub: scrubbing, fine: fine)
         return GeometryReader { g in ScrollView(showsIndicators: false) {
             VStack(spacing: 12) {
-                Capsule().fill(Color(red: 127 / 255, green: 135 / 255, blue: 160 / 255).opacity(0.45)).frame(width: 36, height: 5)
-                titleRow(ctx)
-                strip(ctx)
-                tabs(ctx)
-                if index == 0, let a = s.alert { alertLine(a, ctx) }
+                if !focus {
+                    Capsule().fill(Color(red: 127 / 255, green: 135 / 255, blue: 160 / 255).opacity(0.45)).frame(width: 36, height: 5)
+                    titleRow(ctx)
+                    strip(ctx)
+                    tabs(ctx)
+                    if index == 0, let a = s.alert { alertLine(a, ctx) }
+                }
                 brief(ctx)
                 if let h = hourly {
                     chartCard(ctx, h).reveal(1)
                     extremesRow(ctx, h).reveal(1)
-                    if !scaleItems(ctx, h).items.isEmpty { scaleCard(ctx, h).reveal(2) }
+                    if !focus, !scaleItems(ctx, h).items.isEmpty { scaleCard(ctx, h).reveal(2) }
                 }
             }
             .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 40)
             .frame(width: g.size.width)   // never wider than the sheet
         } }
-        .background(sheetBackground(s).ignoresSafeArea())
+        .background { if !focus { sheetBackground(s).ignoresSafeArea() } }
         .foregroundStyle(ink.ink)
         .onAppear { if startMetric != .temp, metric == .temp { metric = startMetric } }
         .onChange(of: start) { _, i in
