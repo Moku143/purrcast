@@ -19,6 +19,9 @@ enum Compact {
             if keep.contains(t) || t.hasSuffix(L("주의보")) || t.hasSuffix(L("경보")) || t.hasSuffix(L("특보")) { return t }
             let forecast = L(" 예보"), expected = L(" 예정")
             if t.hasSuffix(forecast) { return String(t.dropLast(forecast.count)) }   // "15~17시 비 예보" → "15~17시 비"
+            // "미세먼지 나쁨 · 마스크 챙기세요" → "미세먼지 나쁨": the name before the advice
+            if let first = t.components(separatedBy: " · ").first, first != t { return first }
+            if let first = t.components(separatedBy: "・").first, first != t { return first }
             if t.hasSuffix(expected) { return String(t.dropLast(expected.count)) }   // an older server: "… 예정"
             switch t {
             case L("바람 세요"): return L("강한 바람")
@@ -61,9 +64,11 @@ enum Compact {
     static func bubbleWord(_ s: WeatherScene, max: Int) -> String {
         let h = head(s)
         if h.count <= max { return h }
-        let perLine = Lang.current == .en ? max * 3 : max + 3
-        var parts = h.components(separatedBy: " · ")
-        if parts.count == 1 { parts = h.components(separatedBy: "・") }
+        let perLine = Lang.current == .en ? max * 3 : max + 6   // "미세먼지 매우 나쁨" · "PM2.5 とても悪い" · "Very poor air"
+        // the whole line (name · advice) when its two halves are short enough, else the name broken at its middle
+        let raw = s.bubble?.text.replacingOccurrences(of: "!", with: "").trimmingCharacters(in: .whitespaces) ?? h
+        var parts = raw.components(separatedBy: " · ")
+        if parts.count == 1 { parts = raw.components(separatedBy: "・") }
         if parts.count == 1, h.count <= perLine * 2 {
             // no separator: at the space nearest the middle
             let mid = h.index(h.startIndex, offsetBy: h.count / 2)
