@@ -314,9 +314,9 @@ struct SourcesView: View {
         let name = model.currentPlace.name
         if model.isSample { return L("지금은 예시 날씨예요. 서버가 연결되면 아래 출처의 예보를 보여 드려요.") }
         if model.currentPlace.region == "kr" {
-            return L("지금 위치(%@)는 기상청으로 예보를 보여주고, Apple 날씨와 MET Norway는 예보 비교에 써요. 해외에선 Apple 날씨가 기본이에요.", name)
+            return L("지금 위치(%@)는 기상청 예보가 기본이고, 기상청 예보가 없는 뒤쪽 시간과 자외선은 Apple 날씨로 채워요. MET Norway는 예보 비교에 써요. 미세먼지는 에어코리아예요. 해외에선 Apple 날씨가 기본이에요.", name)
         }
-        return L("지금 위치(%@)는 Apple 날씨로 예보를 보여주고, MET Norway는 예보 비교와 예비로 써요. 한국에선 기상청이 기본이에요.", name)
+        return L("지금 위치(%@)는 Apple 날씨로 예보를 보여주고, MET Norway는 예보 비교와 예비로 써요. 미세먼지는 OpenWeather예요. 한국에선 기상청이 기본이에요.", name)
     }
 
     private var note: some View {
@@ -341,7 +341,7 @@ struct SourcesView: View {
             }
             .foregroundStyle(UI.ink).padding(.horizontal, 8).padding(.vertical, 4)
             .overlay(RoundedRectangle(cornerRadius: 5).stroke(UI.sub, style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
-            line(L("기본 예보 (한국 밖) · 한국에선 예보 비교"))
+            line(L("기본 예보 (한국 밖) · 한국에선 뒤쪽 시간 · 자외선 · 예보 비교"))
             link(L("Apple 날씨 출처 안내"), Self.appleLegal)
         }
     }
@@ -349,7 +349,7 @@ struct SourcesView: View {
     private var kmaCard: some View {
         card {
             HStack(spacing: 8) { Text(L("기상청")).font(.ui(15, .bold)); GreyTag(text: L("한국")) }
-            line(L("기본 예보 · 기상특보 · 예보 비교 · 다음 6시간(Plus)"))
+            line(L("기본 예보 · 10일 예보 · 기상특보 · 예보 비교 · 다음 6시간(Plus)"))
             line(L("공공누리 제1유형(출처표시)"))
             link(L("기상청 날씨누리"), Self.kma)
         }
