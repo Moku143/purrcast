@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { toGrid, amount, num, parseForecast, parseNow, parseWarnings, splitAreas, vilageBase, ultraBase, kmaXmlError, kmaOK } from '../src/providers/kma.js';
+import { toGrid, amount, num, parseForecast, parseNow, parseWarnings, splitAreas, vilageBase, ultraBase, kmaXmlError, kmaOK, midRegions, midBase, parseMidTa, parseMidLand, midIcon } from '../src/providers/kma.js';
 import { parseMet, metUrl } from '../src/providers/met.js';
 import { parseWeatherKit, weatherKitUrl, weatherKitToken, hasWeatherKit, resetWeatherKitTokens } from '../src/providers/weatherkit.js';
 import { buildScene, validateScene } from '../src/scene.js';
@@ -1012,4 +1012,29 @@ test('MET long range: a 6-hourly point carries its window low / high, and the da
   const s = buildScene({ points: m.points }, { ...SEOUL, plan: 'free', now: at(13) });
   const d = s.days[2];
   assert.equal(d[3], -3); assert.equal(d[4], 7);
+});
+
+test('KMA 중기예보: the city and region for a place, the issue in use, the days it gives', () => {
+  assert.deepEqual(midRegions(37.49, 126.84), { ta: '11B10101', land: '11B00000', city: '서울' });   // 구로: Seoul, though 인천's point is nearer
+  assert.equal(midRegions(35.18, 129.08).ta, '11H20201');
+  assert.equal(midRegions(33.25, 126.56).land, '11G00000');
+  assert.deepEqual(midBase(new Date('2026-11-01T09:30:00Z')), { tmFc: '202611011800', date: '20261101' });   // 18:30 KST
+  assert.deepEqual(midBase(new Date('2026-11-01T09:05:00Z')), { tmFc: '202611010600', date: '20261101' });   // 18:05: not out yet
+  assert.deepEqual(midBase(new Date('2026-10-31T20:00:00Z')), { tmFc: '202610311800', date: '20261031' });   // 05:00 KST
+  const ta = parseMidTa({ response: { header: { resultCode: '00' }, body: { items: { item: [{ taMin3: -3, taMax3: 7, taMin4: 0, taMax4: 9, taMin10: 2, taMax10: 13 }] } } } }, '20261101');
+  assert.deepEqual(ta['20261104'], { lo: -3, hi: 7 });
+  assert.deepEqual(ta['20261111'], { lo: 2, hi: 13 });
+  const land = parseMidLand({ response: { body: { items: { item: [{ rnSt3Am: 10, rnSt3Pm: 20, wf3Am: '맑음', wf3Pm: '구름많음', rnSt8: 60, wf8: '흐리고 비' }] } } } }, '20261101');
+  assert.deepEqual(land['20261104'], { pop: 20, icon: 'partly_cloudy' });
+  assert.deepEqual(land['20261109'], { pop: 60, icon: 'raincloud' });
+  assert.equal(midIcon('구름많고 비', '흐리고 눈'), 'snowflake');
+});
+
+test('a day with its own daily forecast (중기예보) shows that chance and sky, not the hourly points\'', () => {
+  const hrs = flat(72, { temp: 10, pop: 0 });
+  const k = '20261023';
+  const s = buildScene({ points: parseMet(met(at(0), hrs)).points, daily: { [k]: { lo: -3, hi: 7, pop: 60, icon: 'raincloud' } } }, { ...SEOUL, plan: 'free', now: at(13) });
+  const d = s.days[2];
+  assert.deepEqual(d.slice(2), [60, -3, 7]);
+  assert.equal(d[1], 'raincloud');
 });

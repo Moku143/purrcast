@@ -251,3 +251,102 @@ export function parseWarnings(json, placeName) {
   out.sort((a, b) => b.severity - a.severity);
   return out.filter((w, i) => out.findIndex((x) => x.name === w.name) === i);
 }
+
+// MARK: 중기예보 (days 4–10: daily low / high per city, morning / afternoon sky and chance per region)
+
+/** The 기온 cities (regId) the 중기예보 is made for: the nearest one stands in for the place. */
+export const MID_TA_CITIES = [
+  ['11B10101', '서울', 37.57, 126.98], ['11B20201', '인천', 37.46, 126.71], ['11B20601', '수원', 37.26, 127.03],
+  ['11B20305', '파주', 37.76, 126.78], ['11B20302', '고양', 37.66, 126.83], ['11B20605', '성남', 37.42, 127.13],
+  ['11B20701', '이천', 37.27, 127.44], ['11B20702', '양평', 37.49, 127.49], ['11D10301', '춘천', 37.88, 127.73],
+  ['11D10401', '원주', 37.34, 127.95], ['11D20501', '강릉', 37.75, 128.88], ['11D20401', '속초', 38.21, 128.59],
+  ['11C20401', '대전', 36.35, 127.38], ['11C20404', '세종', 36.48, 127.29], ['11C20101', '천안', 36.81, 127.11],
+  ['11C10301', '청주', 36.64, 127.49], ['11C10101', '충주', 36.99, 127.93], ['11F20501', '광주', 35.16, 126.85],
+  ['11F10201', '전주', 35.82, 127.15], ['21F10501', '군산', 35.97, 126.74], ['21F20801', '목포', 34.81, 126.39],
+  ['11F20401', '여수', 34.76, 127.66], ['11H10701', '대구', 35.87, 128.60], ['11H10201', '포항', 36.02, 129.37],
+  ['11H10501', '안동', 36.57, 128.73], ['11H20201', '부산', 35.18, 129.08], ['11H20101', '울산', 35.54, 129.31],
+  ['11H20301', '창원', 35.23, 128.68], ['11H20701', '진주', 35.18, 128.11], ['11G00201', '제주', 33.50, 126.53],
+  ['11G00401', '서귀포', 33.25, 126.56],
+];
+/** The 육상 regions (regId) by the city prefix of its 기온 code. */
+const MID_LAND_BY_PREFIX = { '11B': '11B00000', '11D1': '11D10000', '11D2': '11D20000', '11C2': '11C20000', '11C1': '11C10000',
+  '11F2': '11F20000', '21F2': '11F20000', '11F1': '11F10000', '21F1': '11F10000', '11H1': '11H10000', '11H2': '11H20000', '11G': '11G00000' };
+
+export function midRegions(lat, lon) {
+  // the metropolitan cities first (their districts can lie nearer another city's point: 구로 is nearer 인천's than 서울's)
+  const boxes = [['11B10101', 37.42, 37.72, 126.76, 127.19], ['11B20201', 37.35, 37.60, 126.37, 126.80], ['11H20201', 35.03, 35.40, 128.75, 129.32],
+    ['11H10701', 35.60, 36.02, 128.35, 128.78], ['11C20401', 36.18, 36.50, 127.24, 127.56], ['11F20501', 35.05, 35.26, 126.64, 127.02], ['11H20101', 35.40, 35.72, 128.97, 129.47]];
+  for (const [id, la0, la1, lo0, lo1] of boxes) {
+    if (lat >= la0 && lat <= la1 && lon >= lo0 && lon <= lo1) {
+      const c = MID_TA_CITIES.find((x) => x[0] === id);
+      return { ta: id, land: MID_LAND_BY_PREFIX[id.slice(0, 4)] ?? MID_LAND_BY_PREFIX[id.slice(0, 3)], city: c[1] };
+    }
+  }
+  let best = null, bd = Infinity;
+  for (const c of MID_TA_CITIES) {
+    const d = (c[2] - lat) ** 2 + ((c[3] - lon) * Math.cos(lat * Math.PI / 180)) ** 2;
+    if (d < bd) { bd = d; best = c; }
+  }
+  const ta = best[0];
+  const land = MID_LAND_BY_PREFIX[ta.slice(0, 4)] ?? MID_LAND_BY_PREFIX[ta.slice(0, 3)] ?? '11B00000';
+  return { ta, land, city: best[1] };
+}
+
+/** The latest 중기예보 issue (06 h and 18 h KST, out ~10 min after): { tmFc: 'YYYYMMDDHHmm', date: 'YYYYMMDD' }. */
+export function midBase(now) {
+  const p = local(back(now, 10), TZ);
+  if (p.h >= 18) return { tmFc: `${ymd(p)}1800`, date: ymd(p) };
+  if (p.h >= 6) return { tmFc: `${ymd(p)}0600`, date: ymd(p) };
+  const y = local(back(now, 24 * 60), TZ);
+  return { tmFc: `${ymd(y)}1800`, date: ymd(y) };
+}
+
+export function midUrl(op, key, params) {
+  const q = new URLSearchParams({ pageNo: '1', numOfRows: '10', dataType: 'JSON', ...params });
+  return `${BASE}/MidFcstInfoService/${op}?serviceKey=${encodeURIComponent(key)}&${q}`;
+}
+
+/** The day `n` (3…10) after the issue date, as a day key. */
+function midDay(date, n) {
+  const d = new Date(Date.UTC(+date.slice(0, 4), +date.slice(4, 6) - 1, +date.slice(6, 8) + n));
+  return d.toISOString().slice(0, 10).replace(/-/g, '');
+}
+
+/** getMidTa → { 'YYYYMMDD': { lo, hi } } for days 3…10 of the issue. */
+export function parseMidTa(json, date) {
+  const it = items(json)[0];
+  const out = {};
+  if (!it) return out;
+  for (let n = 3; n <= 10; n++) {
+    const lo = num(it[`taMin${n}`]), hi = num(it[`taMax${n}`]);
+    if (lo != null || hi != null) out[midDay(date, n)] = { lo, hi };
+  }
+  return out;
+}
+
+/** The 중기 sky words → the app's icon: 맑음 · 구름많음 · 흐림 · 구름많고 비 · 흐리고 눈 · 소나기 … (the worse of morning / afternoon). */
+export function midIcon(...words) {
+  let ic = 'sun';
+  for (const w of words.filter(Boolean)) {
+    const one = /눈/.test(w) ? 'snowflake' : /비|소나기/.test(w) ? 'raincloud' : /흐림/.test(w) ? 'cloud' : /구름/.test(w) ? 'partly_cloudy' : 'sun';
+    ic = worse(ic, one);
+  }
+  return ic;
+}
+const ICON_RANK_MID = { sun: 0, partly_cloudy: 1, cloud: 2, raincloud: 3, snowflake: 4 };
+const worse = (a, b) => (ICON_RANK_MID[a] >= ICON_RANK_MID[b] ? a : b);
+
+/** getMidLandFcst → { 'YYYYMMDD': { pop, icon } } for days 3…10 (3…7 have morning / afternoon, 8…10 one value). */
+export function parseMidLand(json, date) {
+  const it = items(json)[0];
+  const out = {};
+  if (!it) return out;
+  for (let n = 3; n <= 10; n++) {
+    const am = n <= 7 ? it[`rnSt${n}Am`] : it[`rnSt${n}`], pm = n <= 7 ? it[`rnSt${n}Pm`] : null;
+    const wa = n <= 7 ? it[`wf${n}Am`] : it[`wf${n}`], wp = n <= 7 ? it[`wf${n}Pm`] : null;
+    const pops = [am, pm].map(num).filter((v) => v != null);
+    if (!pops.length && !wa && !wp) continue;
+    out[midDay(date, n)] = { pop: pops.length ? Math.max(...pops) : null, icon: midIcon(wa, wp) };
+  }
+  return out;
+}

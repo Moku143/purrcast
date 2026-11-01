@@ -17,7 +17,7 @@ Accept: application/json
 | param  | meaning |
 |--------|---------|
 | lat, lon | place, rounded to 2 decimals (~1 km) by the app and again by the server |
-| region | `kr` (기상청 + MET Norway, six-hour rain), `jp` / `other` (Apple WeatherKit: minute rain where Apple has it, MET Norway without a key) |
+| region | `kr` (기상청 단기·중기예보, six-hour rain; Apple WeatherKit for the hours past the 단기예보 and UV), `jp` / `other` (Apple WeatherKit: minute rain where Apple has it, MET Norway without a key) |
 | tz     | IANA time zone of the place; every clock time in the answer is local to it |
 | plan   | `free` → one forecast a day (Korea: the 06:00 forecast; Apple countries: the first answer after 06:00, kept for the day), no `minutes` / `next6`, and one `dust` reading a day (the first after 06:00, kept) without `hours`; `plus` → latest run, with them, and `dust` refreshed hourly with today's `hours` |
 | lang   | `ko` (default) · `en` · `ja`; any other value → `en`. Changes the words in the answer only — see [Languages](#languages) |
@@ -140,7 +140,7 @@ the rules and the contract against fake upstreams; `scripts/live-check.mjs` agai
 
 | region | main source (`src`) | adds | fallback |
 |---|---|---|---|
-| `kr` | **기상청 (KMA)** 단기예보; Plus: 초단기실황 (`now`), 초단기예보 (`next6`), 기상특보 (`alert`) | MET Norway: days 4–10, UV, gusts, fog | MET Norway (no key, or KMA down) → then WeatherKit if configured |
+| `kr` | **기상청 (KMA)** 단기예보 + 중기예보 (days 4–10: low / high, chance, sky); Plus: 초단기실황 (`now`), 초단기예보 (`next6`), 기상특보 (`alert`) | Apple WeatherKit: the hours after the 단기예보 (day sheets), UV, gusts, fog | WeatherKit (KMA down) → MET Norway (everything down); MET is otherwise the comparison card only |
 | `jp`, `other` | **Apple WeatherKit** currentWeather (`now`), forecastHourly (hours, `next6`), forecastDaily (lo / hi), forecastNextHour (`minutes`, only where Apple has it), weatherAlerts (`alert`, in the request `lang`) | — | MET Norway (no key, 401, or any error) |
 
 * **기상청 (KMA)** — needs a data.go.kr service key (free). 공공누리 제1유형 (출처표시).

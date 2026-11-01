@@ -2,9 +2,10 @@
 //   GET /v1/forecast?lat=&lon=&region=kr|jp|other&tz=&plan=free|plus&lang=ko[&outfitPrev=0..14][&prev=0..9][&name=서울 마포구][&v=2]
 //   v: what the app knows. 2 = the 'sleet' icon (진눈깨비); older apps (no v) get 'snowflake' in its place.
 //   GET /health
-// Korea: 기상청 단기예보 (+ Plus: 초단기실황 · 초단기예보 · 특보), days 4–10 and UV from MET Norway.
+// Korea: 기상청 단기예보 (+ Plus: 초단기실황 · 초단기예보 · 특보) and 중기예보 for days 4–10; Apple WeatherKit fills the hours
+// after the 단기예보 and the UV / gusts KMA has none of.
 // Elsewhere: Apple WeatherKit (current, hourly, daily, next-hour minutes, alerts) when its key is set.
-// MET Norway is the fallback everywhere: no key, or a source failing, falls back to it.
+// MET Norway is the comparison card's second opinion and the last-resort fallback: no key, or every source failing, falls back to it.
 //
 // Bindings (wrangler.toml / secrets): KMA_SERVICE_KEY (secret), AIRKOREA_SERVICE_KEY (secret, 미세먼지 in Korea; the same
 // data.go.kr key works once 에어코리아 is approved for it), OPENWEATHER_KEY (secret, air quality elsewhere),
@@ -14,7 +15,7 @@
 // FREE_DAY (KV namespace: the free plan's one Apple forecast a day per ~1 km cell; the Server workflow creates it).
 
 import { metUrl, parseMet } from './providers/met.js';
-import { toGrid, vilageBase, eveBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError } from './providers/kma.js';
+import { toGrid, vilageBase, eveBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError, midUrl, midBase, midRegions, parseMidTa, parseMidLand } from './providers/kma.js';
 import { hasWeatherKit, weatherKitUrl, weatherKitToken, parseWeatherKit, packWeatherKit, unpackWeatherKit } from './providers/weatherkit.js';
 import { stationsUrl, realtimeUrl, forecastUrl, alarmUrl, airkoreaOK, nearestStation, parseRealtime, parseHistory, todayHours, forecastRegion, parseForecast as parseDustForecast, parseAlarms } from './providers/airkorea.js';
 import { owNowUrl, owForecastUrl, owHistoryUrl, owOK, parseOwNow, parseOwTomorrow, parseOwHours } from './providers/openweather.js';
@@ -184,18 +185,25 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch,
     if (met.error) throw met.error;
     f = { points: met.points, updated: met.updated, nextSource: 'met', src: 'met' };
     if (q.plan === 'plus') f.next6 = met.points.filter((p) => p.t > now).slice(0, 6);
-  } else if (f.src === 'kma' && !met.error) {
-    // KMA hourly for the first ~4 days (day 5 is 3-hourly and in words), MET after; MET's UV / gusts / fog where KMA has none
-    const cut = now.getTime() + 4 * 86400000;
-    f.points = f.points.filter((p) => p.t.getTime() < cut);
-    const lastKma = f.points[f.points.length - 1]?.t ?? now;
-    let j = 0;
-    const mp = met.points;
-    f.points = f.points.map((p) => {
-      while (j + 1 < mp.length && Math.abs(mp[j + 1].t - p.t) <= Math.abs(mp[j].t - p.t)) j++;   // both lists are sorted
-      const m = mp.length && Math.abs(mp[j].t - p.t) <= 3 * 3600000 ? mp[j] : null;
-      return m ? { ...p, uvClear: m.uvClear, gust: p.gust ?? m.gust, fog: m.fog, fogPct: m.fogPct, dew: p.dew ?? m.dew } : p;
-    }).concat(mp.filter((p) => p.t > lastKma));
+  } else if (f.src === 'kma') {
+    // KMA hourly for the first ~4 days (day 5 is 3-hourly and in words); the hours after come from Apple (the
+    // 중기예보's daily low / high, chance and sky take over those days), with Apple's UV / gusts / fog where KMA has
+    // none. MET stands in only when Apple does not answer.
+    let other = null;
+    if (appleP) { const a = await appleP; if (!a.error) other = a.points; }
+    if (!other && !met.error) other = met.points;
+    if (other) {
+      const cut = now.getTime() + 4 * 86400000;
+      f.points = f.points.filter((p) => p.t.getTime() < cut);
+      const lastKma = f.points[f.points.length - 1]?.t ?? now;
+      let j = 0;
+      const mp = other;
+      f.points = f.points.map((p) => {
+        while (j + 1 < mp.length && Math.abs(mp[j + 1].t - p.t) <= Math.abs(mp[j].t - p.t)) j++;   // both lists are sorted
+        const m = mp.length && Math.abs(mp[j].t - p.t) <= 3 * 3600000 ? mp[j] : null;
+        return m ? { ...p, uvClear: m.uvClear, gust: p.gust ?? m.gust, fog: m.fog, fogPct: m.fogPct, dew: p.dew ?? m.dew } : p;
+      }).concat(mp.filter((p) => p.t > lastKma));
+    }
   }
 
   // 예보 비교: the other sources' next 24 h go to the comparison card only (the main source drives everything else)
@@ -303,6 +311,12 @@ async function korea(q, env, now, fetcher, ctx) {
   // midnight (the day sheet) and today's low / high. They never change, so they are cached for hours (and shared).
   const same = (a, b) => a.date === b.date && a.time === b.time;
   const earlier = [vilageBase(now, 5), eveBase(now)].filter((b, i, all) => !same(b, vb) && all.findIndex((x) => same(x, b)) === i);
+  // the 중기예보 (days 4–10: the city's low / high, the region's sky and chance) alongside, never fatal
+  const mb = midBase(now), mr = midRegions(q.lat, q.lon);
+  const midP = Promise.allSettled([
+    getJSON(midUrl('getMidTa', key, { regId: mr.ta, tmFc: mb.tmFc }), { ttl: 3 * 3600, fetcher, ok: kmaOK, ctx, kma: true }),
+    getJSON(midUrl('getMidLandFcst', key, { regId: mr.land, tmFc: mb.tmFc }), { ttl: 3 * 3600, fetcher, ok: kmaOK, ctx, kma: true }),
+  ]);
   const [vilRaw, ...early] = await Promise.allSettled([
     get('getVilageFcst', { base_date: vb.date, base_time: vb.time }, plus ? 1800 : 6 * 3600),
     ...earlier.map((b) => get('getVilageFcst', { base_date: b.date, base_time: b.time }, 12 * 3600)),
@@ -319,6 +333,22 @@ async function korea(q, env, now, fetcher, ctx) {
     const first = f.points[0]?.t ?? Infinity;
     f.points = e.points.filter((p) => p.t < first && dayKey(p.t, 'Asia/Seoul') >= today).concat(f.points);
     for (const [k, d] of Object.entries(e.daily)) if (k >= today) f.daily[k] = { lo: f.daily[k]?.lo ?? d.lo, hi: f.daily[k]?.hi ?? d.hi };
+  }
+  // 중기예보 for the days the 단기예보 does not reach: its low / high, chance and sky are the day's (as the KMA app shows)
+  const [ta, land] = await midP;
+  if (ta.status === 'fulfilled' || land.status === 'fulfilled') {
+    const temps = ta.status === 'fulfilled' ? parseMidTa(ta.value, mb.date) : {};
+    const skies = land.status === 'fulfilled' ? parseMidLand(land.value, mb.date) : {};
+    if (ta.status === 'rejected') console.log('KMA 중기 기온 failed:', ta.reason?.message);
+    if (land.status === 'rejected') console.log('KMA 중기 육상 failed:', land.reason?.message);
+    const lastKmaDay = dayKey(f.points[f.points.length - 1]?.t ?? now, 'Asia/Seoul');
+    for (const k of new Set([...Object.keys(temps), ...Object.keys(skies)])) {
+      if (k <= lastKmaDay && f.daily[k]?.lo != null && f.daily[k]?.hi != null) continue;   // the 단기예보's own days
+      const d = f.daily[k] ?? {};
+      if (temps[k]) { d.lo = temps[k].lo ?? d.lo; d.hi = temps[k].hi ?? d.hi; }
+      if (skies[k] && k > lastKmaDay) { d.pop = skies[k].pop; d.icon = skies[k].icon; }
+      f.daily[k] = d;
+    }
   }
   if (plus) {
     const [ultra, ncst, warn] = await Promise.allSettled([

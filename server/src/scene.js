@@ -110,11 +110,14 @@ export function buildScene(f, o) {
     if (f.daily?.[k]?.lo != null) lo = f.daily[k].lo;
     if (f.daily?.[k]?.hi != null) hi = f.daily[k].hi;
     const lead = leadOf(list);
-    const chance = Math.max(0, ...list.map(popOf), lead ? popOf(lead) : 0);
+    let chance = Math.max(0, ...list.map(popOf), lead ? popOf(lead) : 0);
     const dayPts = list.filter((p) => { const h = local(p.t, tz).h; return h >= 6 && h <= 20; });
     let ic = 'sun';
     for (const p of (dayPts.length ? dayPts : list)) ic = R.worse(ic, R.icon({ ...p, mm: p.mm >= 0.1 ? p.mm : 0, type: p.mm >= 0.1 ? p.type : 'none' }, false));
     if (ic === 'sun' && chance >= 60) ic = 'raincloud';
+    // a daily forecast of its own (KMA's 중기예보): its chance and sky are the day's
+    if (f.daily?.[k]?.pop != null) chance = f.daily[k].pop;
+    if (f.daily?.[k]?.icon) ic = f.daily[k].icon;
     const name = days.length === 0 ? S.today : S.weekday(local(list[0].t, tz).wdEn);
     days.push([name, ic, ri(chance), ri(Math.min(lo, hi)), ri(Math.max(lo, hi))]);
   }
