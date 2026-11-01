@@ -89,6 +89,7 @@ export function readQuery(sp) {
     plan: sp.get('plan') === 'plus' ? 'plus' : 'free',
     prev: Number.isInteger(prev) && prev >= 0 && prev <= 9 ? prev : null,
     outfitPrev: Number.isInteger(outfitPrev) && outfitPrev >= 0 && outfitPrev <= 14 ? outfitPrev : null,
+    debug: sp.get('debug') === '1',   // adds `debug` (which upstream answered) to the answer
     name: sp.get('name') || '',
     lang: normLang(sp.get('lang')),   // ko (default) | en | ja; anything else → en
     v: parseInt(sp.get('v'), 10) || 1,
@@ -218,6 +219,7 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch,
   const yday = await history(env, q, now, f, ctx);
   f.dust = await dustP;
   const scene = buildScene(f, { lat: q.lat, lon: q.lon, tz: q.tz, plan: q.plan, prev: q.prev, outfitPrev: q.outfitPrev, yday, now, lang: q.lang });
+  if (q.debug) scene.debug = { ...(f.debug ?? {}), src: f.src, points: f.points.length, apple: appleP ? !(await appleP).error : null, met: !met.error };
   return raw ? { scene, f } : scene;   // raw: the Live Activity pass reads the hourly points too
 }
 
@@ -336,6 +338,8 @@ async function korea(q, env, now, fetcher, ctx) {
   }
   // 중기예보 for the days the 단기예보 does not reach: its low / high, chance and sky are the day's (as the KMA app shows)
   const [ta, land] = await midP;
+  f.debug = { mid: mb.tmFc, midCity: mr.city, midTa: ta.status === 'fulfilled' ? `${Object.keys(parseMidTa(ta.value, mb.date)).length} days` : String(ta.reason?.message),
+              midLand: land.status === 'fulfilled' ? `${Object.keys(parseMidLand(land.value, mb.date)).length} days` : String(land.reason?.message) };
   if (ta.status === 'fulfilled' || land.status === 'fulfilled') {
     const temps = ta.status === 'fulfilled' ? parseMidTa(ta.value, mb.date) : {};
     const skies = land.status === 'fulfilled' ? parseMidLand(land.value, mb.date) : {};
