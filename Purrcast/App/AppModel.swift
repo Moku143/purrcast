@@ -266,7 +266,7 @@ final class AppModel: ObservableObject {
     var snapshot: WeatherSnapshot {
         WeatherSnapshot(scene: scene, character: character, plus: plus, characterName: name(of: shownCharacter),
                         placeShort: currentPlace.short, saved: Date(), place: currentPlace, plusUntil: plusUntil,
-                        unitF: unitF, clock12: clock12, isSample: isSample, lang: language)
+                        unitF: unitF, clock12: clock12, isSample: isSample, lang: Lang.current.rawValue)   // the language the app shows (the watch shows the same)
     }
 
     /// A new language: saved place names follow it, the example scene too, and the forecast is asked for again

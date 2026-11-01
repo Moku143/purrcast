@@ -542,6 +542,16 @@
 "Plus 구독 기능" = "Plus subscription feature";
 "하늘이 바뀌면" = "When the sky changes,";
 "고양이도 바뀌어요" = "so does the cat";
+"비 오면 우산," = "Umbrella for rain,";
+"눈 오면 털모자" = "a beanie for snow";
+"잠금화면에서도" = "On your Lock Screen,";
+"바로 보여요" = "no unlock needed";
+"폭염!" = "Heat wave!";
+"일교차 커요!" = "Big temp swing!";
+"미세먼지 나쁨 · 마스크 챙기세요" = "Poor air · Bring a mask";
+"천둥번개!" = "Lightning!";
+"폭설!" = "Heavy snow!";
+"안개가 짙어요!" = "Thick fog!";
 "시간별 자외선 지수" = "UV index by hour";
 "실제" = "Actual";
 "실제 %@" = "Actual %@";

@@ -191,7 +191,8 @@ final class ScreenshotTests: XCTestCase {
             (5, ["-scene", "seoul_soon", "-plus", "-char", "cat"]),
             (6, ["-scene", "spring_dust", "-plus", "-char", "cat"]),
             (7, ["-scene", "maybe", "-plus", "-char", "cat"]),
-            (8, ["-scene", "spring_rain", "-plus", "-char", "cat"]),
+            (8, ["-scene", "maybe", "-char", "cat"]),
+            (9, ["-scene", "spring_rain", "-plus", "-char", "cat"]),
         ]
         for lang in ["ko", "en", "ja"] {
             for (n, args) in pages { shot("frame-\(lang)-\(n)", args + ["-storeShot", String(n)], wait: 3, lang: lang) }

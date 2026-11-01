@@ -31,62 +31,77 @@ struct StoreShotView: View {
         case 5: nextHours
         case 6: dust
         case 7: widgets
-        case 8: watch
+        case 8: lockScreen
+        case 9: watch
         default: hero
         }
     }
 
+    /// One family of colours for every page: the app's sky, lighter or deeper (the outfit page keeps its own warm-to-
+    /// cool wash, the night pages go deep)
+    private enum Tone {
+        static let hero = ["#8DB6EC", "#5C8ED6"], skies = ["#86A2E2", "#5873C6"], rain = ["#3A4890", "#1A2050"]
+        static let hours = ["#7FAEE6", "#4C7CC6"], dust = ["#94A6DD", "#6878BE"], widgets = ["#86B9DF", "#5A8CC4"]
+        static let lock = ["#5B66A8", "#2E3470"], watch = ["#363B5E", "#121428"]
+    }
+
     // MARK: 1 · 오늘 뭐 입지? 고양이를 보면 알아요
 
-    /// The app's sky in a big rounded window, the temperature in it, the character in front, its feet over the
-    /// window's edge
+    /// The character at the bottom and, over its head, the bubbles it says on other days popping up one over another
+    /// (each half under the next: the icons show, the words may not); today's bubble in front, on its head
     private var hero: some View {
-        let s = model.scene, lv = Rules.clamp(s.level), ink = Ink(night: s.isNight)
-        let w: CGFloat = 392, h: CGFloat = 560
-        return shot(L("오늘 뭐 입지?"), L("고양이를 보면 알아요"), bg: ["#5AA2EE", "#2E6FCB"]) {
-            ZStack(alignment: .topLeading) {
-                ZStack(alignment: .topTrailing) {
-                    SkyBase(level: lv, night: s.isNight)
-                    SkyTint(scene: s)
-                    SkyParticles(scene: s, width: w, tiles: 2, animate: false).frame(width: w, height: h, alignment: .top)
-                    VStack(alignment: .trailing, spacing: 8) {
-                        Text(model.deg(s.temp)).font(.px(104))
-                        Text(s.cond).font(.px(24))
-                        Text(L("최고 %@ · 최저 %@", model.deg(s.hi), model.deg(s.lo))).font(.px(16))
+        let s = model.scene
+        // what it says on other days, top (back) to bottom (front)
+        let others: [(String, String, String, String)] = [
+            ("speech", "white", "cloud", L("안개가 짙어요!")),
+            ("shout", "coral", "lightning", L("천둥번개!")),
+            ("speech", "sky", "snowflake", L("폭설!")),
+            ("speech", "white", "mask", L("미세먼지 나쁨 · 마스크 챙기세요")),
+            ("speech", "night", "daynight", L("일교차 커요!")),
+            ("shout", "coral", "thermo_hot", L("폭염!")),
+            ("speech", "sky", "umbrella_closed", L("%@ %@ 예보", HourLabel.window(16, 19, clock12: model.clock12), L("비"))),
+        ]
+        let xs: [CGFloat] = [-70, 64, -36, 46, -62, 58, -24]
+        let rot: [Double] = [-4, 3, -2, 4, -3, 2, -1]
+        return shot(L("오늘 뭐 입지?"), L("고양이를 보면 알아요"), bg: Tone.hero) {
+            VStack(spacing: -26) {
+                ZStack {
+                    ForEach(Array(others.enumerated()), id: \.offset) { i, b in
+                        BubbleView(kind: b.0, tone: b.1, icon: b.2, text: b.3, fontSize: 20)
+                            .fixedSize()
+                            .rotationEffect(.degrees(rot[i]))
+                            .offset(x: xs[i], y: CGFloat(i) * 36)
+                            .zIndex(Double(i))
                     }
-                    .foregroundStyle(ink.ink)
-                    .padding(.top, 26).padding(.trailing, 26)
                 }
-                .frame(width: w, height: h)
-                .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 40, style: .continuous).strokeBorder(Color.white, lineWidth: 6))
-                .shadow(color: .black.opacity(0.22), radius: 20, y: 12)
-                cat(s, width: 286, bubbleSize: 20)
-                    .offset(x: 6, y: h + 36 - 286 * Sprite.height / Sprite.width)
+                .frame(height: 36 * CGFloat(others.count) + 30, alignment: .top)
+                .zIndex(1)
+                cat(s, width: 300, bubbleSize: 20).zIndex(2)
             }
-            .frame(width: w)
-            .padding(.top, 4)
+            .frame(maxHeight: .infinity, alignment: .bottom)
+            .padding(.bottom, 14)
         }
     }
 
     // MARK: 2 · 체감온도에 맞춰 옷을 갈아입어요
 
+    /// Nine of the fifteen outfits, hot to cold, each on its own colour
     private var outfits: some View {
-        let steps: [(Int, Int)] = [(1, 34), (3, 25), (6, 17), (8, 10), (11, 1), (14, -12)]
+        let steps: [(Int, Int)] = [(0, 36), (2, 30), (3, 25), (5, 19), (6, 17), (8, 10), (10, 4), (12, -2), (14, -12)]
         return shot(L("체감온도에 맞춰"), L("옷을 갈아입어요"), bg: ["#FFD9BF", "#B7C6EA"], light: false) {
-            LazyVGrid(columns: Array(repeating: GridItem(.fixed(128), spacing: 8), count: 3), spacing: 18) {
+            LazyVGrid(columns: Array(repeating: GridItem(.fixed(130), spacing: 8), count: 3), spacing: 12) {
                 ForEach(steps, id: \.0) { lv, t in
-                    VStack(spacing: 6) {
-                        CharacterSprite(character: model.shownCharacter, level: lv, rain: .none, width: 128, animate: false)
-                            .frame(width: 128, height: 150, alignment: .bottom)
+                    VStack(spacing: 4) {
+                        CharacterSprite(character: model.shownCharacter, level: lv, rain: .none, width: 130, animate: false)
+                            .frame(width: 130, height: 152, alignment: .bottom)
                         Text("\(t)°").font(.px(24)).foregroundStyle(Color(hex: "#1E2A44"))
                     }
-                    .padding(.vertical, 10)
-                    .frame(width: 128)
+                    .padding(.vertical, 8)
+                    .frame(width: 130)
                     .background(Color(hex: Rules.background[lv]).opacity(0.85), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
                 }
             }
-            .padding(.top, 34)
+            .padding(.top, 20)
         }
     }
 
@@ -95,7 +110,7 @@ struct StoreShotView: View {
     /// Four weathers, each tile its own sky with the character dressed for it
     private var skies: some View {
         let keys = ["summer_heat", "spring_rain", "winter_snow", "summer_night"]
-        return shot(L("하늘이 바뀌면"), L("고양이도 바뀌어요"), bg: ["#8A6CF0", "#5B3FC4"]) {
+        return shot(L("비 오면 우산,"), L("눈 오면 털모자"), bg: Tone.skies) {
             LazyVGrid(columns: Array(repeating: GridItem(.fixed(194), spacing: 12), count: 2), spacing: 12) {
                 ForEach(keys, id: \.self) { k in skyTile(SceneLibrary.scene(k)) }
             }
@@ -153,7 +168,7 @@ struct StoreShotView: View {
         }
         .background {
             ZStack(alignment: .top) {
-                LinearGradient(colors: [Color(hex: "#3A4890"), Color(hex: "#1A2050")], startPoint: .top, endPoint: .bottom)
+                LinearGradient(colors: Tone.rain.map { Color(hex: $0) }, startPoint: .top, endPoint: .bottom)
                 SkyParticles(scene: SceneLibrary.scene("spring_rain"), width: Self.canvas.width, tiles: 3, animate: false)
                     .frame(width: Self.canvas.width, height: Self.canvas.height, alignment: .top).opacity(0.5)
             }
@@ -163,7 +178,7 @@ struct StoreShotView: View {
     // MARK: 5 · 언제, 얼마나 비가 오는지
 
     private var nextHours: some View {
-        shot(L("언제, 얼마나"), L("비가 오는지"), bg: ["#3FA9E8", "#1D74C2"], plus: true) {
+        shot(L("언제, 얼마나"), L("비가 오는지"), bg: Tone.hours, plus: true) {
             ZStack(alignment: .bottomTrailing) {
                 zoomed(1.04, height: 600) { HomeView(route: .constant(nil), day: .constant(nil), focus: "next6") }
                 CharacterSprite(character: model.shownCharacter, level: Rules.clamp(model.scene.level), rain: .umbrella, width: 210, animate: false)
@@ -175,7 +190,7 @@ struct StoreShotView: View {
     // MARK: 6 · 미세먼지도 한눈에
 
     private var dust: some View {
-        shot(L("미세먼지도"), L("한눈에"), bg: ["#F2A541", "#D9781F"], highlight: Color(hex: "#5A2700")) {
+        shot(L("미세먼지도"), L("한눈에"), bg: Tone.dust) {
             ZStack(alignment: .bottomLeading) {
                 zoomed(1.04, height: 600) { DayDetailView(start: 0, startMetric: .dust, focus: true) }
                     .background(Color(hex: "#FFF6E6"), in: RoundedRectangle(cornerRadius: 34, style: .continuous))
@@ -188,7 +203,7 @@ struct StoreShotView: View {
 
     private var widgets: some View {
         let snap = model.snapshot
-        return shot(L("홈 화면에서"), L("바로 확인해요"), bg: ["#4CC38A", "#23955F"]) {
+        return shot(L("홈 화면에서"), L("바로 확인해요"), bg: Tone.widgets) {
             phone(dark: false) {
                 ZStack(alignment: .top) {
                     LinearGradient(colors: [Color(hex: "#B9D3F2"), Color(hex: "#E8D9F2")], startPoint: .top, endPoint: .bottom)
@@ -213,12 +228,55 @@ struct StoreShotView: View {
         }
     }
 
-    // MARK: 8 · 애플워치에서도 고양이와 함께
+    // MARK: 8 · 잠금화면에서도 바로 보여요
+
+    /// The top of a lock screen, large: the inline line over the time, the rectangle and two circles under it, the
+    /// app's sky as the wallpaper, the character in front
+    private var lockScreen: some View {
+        let snap = model.snapshot, s = snap.scene, lv = Rules.clamp(s.level)
+        let w: CGFloat = 392, h: CGFloat = 470
+        return shot(L("잠금화면에서도"), L("바로 보여요"), bg: Tone.lock) {
+            ZStack(alignment: .topLeading) {
+                ZStack(alignment: .top) {
+                    LinearGradient(colors: [Color(hex: "#6E7FC4"), Color(hex: "#39437E")], startPoint: .top, endPoint: .bottom)
+                    SkyParticles(scene: s, width: w, tiles: 2, animate: false).frame(width: w, height: h, alignment: .top).opacity(0.7)
+                    VStack(spacing: 6) {
+                        Text(LockText.inline(snap)).font(.system(size: 17, weight: .semibold)).lineLimit(1)
+                        Text("9:41").font(.system(size: 100, weight: .bold, design: .rounded)).padding(.top, -8)
+                        HStack(alignment: .top, spacing: 10) {
+                            glass(166, 74) { LockRectangularView(snap: snap) }
+                            glass(74, 74, circle: true) { LockCircularView(snap: snap) }
+                            glass(74, 74, circle: true) { LockDustCircularView(snap: snap) }
+                        }
+                        .padding(.top, 6)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.top, 34)
+                }
+                .frame(width: w, height: h)
+                .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 40, style: .continuous).strokeBorder(Color.white.opacity(0.85), lineWidth: 5))
+                .shadow(color: .black.opacity(0.25), radius: 20, y: 12)
+                CharacterSprite(character: model.shownCharacter, level: lv, rain: RainState(rawValue: s.rain) ?? .none, width: 240, animate: false)
+                    .offset(x: 150, y: h - 150)
+            }
+            .frame(width: w)
+            .padding(.top, 8)
+        }
+    }
+
+    private func glass<C: View>(_ w: CGFloat, _ h: CGFloat, circle: Bool = false, @ViewBuilder _ c: () -> C) -> some View {
+        c().foregroundStyle(.white).frame(width: w, height: h)
+            .padding(circle ? 0 : 8)
+            .background(Color.white.opacity(circle ? 0.12 : 0.16), in: RoundedRectangle(cornerRadius: circle ? w / 2 : 20, style: .continuous))
+    }
+
+    // MARK: 9 · 애플워치에서도 고양이와 함께
 
     /// Two faces with the complications, the watch app, and the complications themselves large
     private var watch: some View {
         let snap = model.snapshot
-        return shot(L("애플워치에서도"), L("고양이와 함께"), bg: ["#363B5E", "#121428"], plus: true) {
+        return shot(L("애플워치에서도"), L("고양이와 함께"), bg: Tone.watch, plus: true) {
             VStack(spacing: 18) {
                 HStack(spacing: 10) {
                     WatchCase(scale: 0.93) { WatchFacePreview(snap: snap) }
