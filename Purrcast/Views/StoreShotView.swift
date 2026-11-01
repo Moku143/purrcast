@@ -143,6 +143,7 @@ struct StoreShotView: View {
             VStack(spacing: 8) {
                 CharacterSprite(character: c, level: 6, rain: .none, width: w, animate: false)
                 Text(model.name(of: c)).font(.px(20)).foregroundStyle(Color(hex: "#1E2A44"))
+                    .lineLimit(1).minimumScaleFactor(0.6).frame(width: 200)
             }
         }
         return shot(L("세 마리 중에"), L("골라요"), bg: ["#FFEBB0", "#FFC2A8"], plus: true) {

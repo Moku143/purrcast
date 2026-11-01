@@ -34,7 +34,7 @@ struct RainBar: View {
             HStack {
                 Text(L("지금")).font(.ui(10)).foregroundStyle(Color(hex: "#9AA3C7"))
                 Spacer()
-                Text(L("%d시", s.endHour)).font(.ui(10)).foregroundStyle(Color(hex: "#9AA3C7"))
+                Text(HourLabel.word(s.endHour, clock12: Lang.current == .en)).font(.ui(10)).foregroundStyle(Color(hex: "#9AA3C7"))
             }
         }
     }
