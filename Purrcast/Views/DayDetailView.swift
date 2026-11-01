@@ -10,6 +10,8 @@ struct DayDetailView: View {
     @EnvironmentObject var model: AppModel
     @Environment(\.dismiss) private var dismiss
     @State var start: Int
+    /// The tab the sheet opens on (the store screenshots open 미세먼지)
+    var startMetric: DayMetric = .temp
     @State private var metric: DayMetric = .temp
     @State private var fine = true           // 미세먼지 tab: PM2.5 (초미세) or PM10
     @State private var picked: Int?          // hour chosen on the chart; nil → now (today) or noon
@@ -55,6 +57,7 @@ struct DayDetailView: View {
         } }
         .background(sheetBackground(s).ignoresSafeArea())
         .foregroundStyle(ink.ink)
+        .onAppear { if startMetric != .temp, metric == .temp { metric = startMetric } }
         .onChange(of: start) { _, i in
             picked = nil; scrubbing = false
             if metric == .dust, DayHourly.make(scene: s, index: i)?.hasDust != true { metric = .temp }   // today's readings, tomorrow's forecast only

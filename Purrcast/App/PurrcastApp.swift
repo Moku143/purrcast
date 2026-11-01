@@ -10,7 +10,11 @@ struct PurrcastApp: App {
     /// screenshots show that nothing is cut off there
     @ViewBuilder private func root() -> some View {
         #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("-narrow") {
+        let args = ProcessInfo.processInfo.arguments
+        if let i = args.firstIndex(of: "-storeShot"), i + 1 < args.count, let n = Int(args[i + 1]) {
+            // the App Store pictures: full screen, no status bar or home indicator of the simulator's own
+            StoreShotView(page: n).statusBarHidden(true).persistentSystemOverlays(.hidden)
+        } else if args.contains("-narrow") {
             RootView().frame(width: 320, height: 693).clipped()
                 .frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.black)
         } else { RootView() }

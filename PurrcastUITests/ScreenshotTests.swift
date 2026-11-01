@@ -181,6 +181,23 @@ final class ScreenshotTests: XCTestCase {
         shot("store-6-day", ["-scene", "clear", "-plus", "-char", "abys", "-open", "day"], wait: 2)
     }
 
+    /// The App Store pictures (6.9-inch simulator: 1320 × 2868), the caption and the app's own views, in each language
+    func test11StoreFrames() {
+        let pages: [(Int, [String])] = [
+            (1, ["-scene", "maybe", "-char", "cat"]),
+            (2, ["-scene", "clear", "-char", "cat"]),
+            (3, ["-scene", "maybe", "-plus", "-char", "cat"]),
+            (4, ["-scene", "seoul_soon", "-plus", "-char", "abys"]),
+            (5, ["-scene", "spring_dust", "-plus", "-char", "cat"]),
+            (6, ["-scene", "maybe", "-plus", "-char", "cat"]),
+            (7, ["-scene", "spring_rain", "-plus", "-char", "cat"]),
+            (8, ["-scene", "clear", "-plus", "-char", "cat"]),
+        ]
+        for lang in ["ko", "en", "ja"] {
+            for (n, args) in pages { shot("frame-\(lang)-\(n)", args + ["-storeShot", String(n)], wait: 3, lang: lang) }
+        }
+    }
+
     /// iOS's note when the icon changes: set plainly ("loud") it shows; when the icon follows a character ("quiet") it
     /// should not. The attachment names say whether an alert was found in the app (app1) or on SpringBoard (sb1).
     func test9IconNote() {
