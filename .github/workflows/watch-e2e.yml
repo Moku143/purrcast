@@ -1,0 +1,112 @@
+name: Watch end-to-end (paired simulators)
+
+# Manual: Actions → Watch end-to-end → Run workflow.
+# A paired iPhone + Apple Watch simulator: the iPhone app (with the watch app inside, as the App Store ships it) is
+# installed on the phone, the phone app sends its forecast over WatchConnectivity, and the watch app — started with
+# no example data of its own — shows what arrived. Both screens are recorded; the videos and pictures go to the
+# watch-e2e branch.
+#   1. phone: Plus, 비 (spring_rain), 고양이 → watch: now · hours · 10 days
+#   2. phone changes to 눈 (winter_snow), 브리티시 → the open watch app follows
+#   3. phone without Plus → the watch shows its Plus screen
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  e2e:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode 26
+        run: |
+          latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          [ -n "$latest" ] && sudo xcode-select -s "$latest"; xcodebuild -version
+      - run: brew install xcodegen && xcodegen generate
+      - name: Build the iPhone app (the watch app is built and embedded with it)
+        run: |
+          set -o pipefail
+          xcodebuild build -project Purrcast.xcodeproj -scheme Purrcast -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath dd CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log | grep -E "error:|BUILD " || true
+          grep -q "BUILD SUCCEEDED" build.log
+          APP=dd/Build/Products/Debug-iphonesimulator/Purrcast.app
+          ls "$APP/Watch" || { echo "::error::no watch app inside the iPhone app"; exit 1; }
+          echo "APP=$APP" >> "$GITHUB_ENV"
+      - name: Paired simulators
+        run: |
+          IOS_RT=$(xcrun simctl list runtimes | grep -E "^iOS" | tail -1 | grep -o "com.apple.CoreSimulator.SimRuntime[^ )]*")
+          WOS_RT=$(xcrun simctl list runtimes | grep -E "^watchOS" | tail -1 | grep -o "com.apple.CoreSimulator.SimRuntime[^ )]*")
+          WTYPE=$(xcrun simctl list devicetypes | grep -E "Apple Watch Series (1[0-9]) \(46mm\)" | tail -1 | grep -o "com.apple.CoreSimulator.SimDeviceType[^ )]*")
+          [ -n "$WTYPE" ] || WTYPE=$(xcrun simctl list devicetypes | grep -E "Apple Watch Series" | tail -1 | grep -o "com.apple.CoreSimulator.SimDeviceType[^ )]*")
+          echo "iOS $IOS_RT · watchOS $WOS_RT · $WTYPE"
+          P=$(xcrun simctl create "E2E iPhone" "iPhone 16" "$IOS_RT")
+          W=$(xcrun simctl create "E2E Watch" "$WTYPE" "$WOS_RT")
+          PAIR=$(xcrun simctl pair "$W" "$P")
+          echo "phone $P · watch $W · pair $PAIR"
+          xcrun simctl boot "$P"; xcrun simctl boot "$W"
+          xcrun simctl bootstatus "$P" -b; xcrun simctl bootstatus "$W" -b
+          xcrun simctl pair_activate "$PAIR" || true
+          xcrun simctl list pairs
+          echo "P=$P" >> "$GITHUB_ENV"; echo "W=$W" >> "$GITHUB_ENV"
+      - name: Install (the phone installs its watch app on the paired watch)
+        run: |
+          xcrun simctl install "$P" "$APP"
+          sleep 20
+          if xcrun simctl listapps "$W" | grep -q "app.purrcast.ios.watchkitapp"; then echo "watch app installed by the phone"; echo "COMPANION=yes" >> "$GITHUB_ENV"
+          else echo "::warning::the phone did not install the watch app; installing it directly"; xcrun simctl install "$W" "$APP"/Watch/*.app; echo "COMPANION=no" >> "$GITHUB_ENV"; fi
+          xcrun simctl listapps "$W" | grep -i purrcast || true
+      - name: Run and record
+        run: |
+          mkdir -p out
+          xcrun simctl io "$W" recordVideo --codec=h264 --force out/watch.mp4 & WREC=$!
+          xcrun simctl io "$P" recordVideo --codec=h264 --force out/phone.mp4 & PREC=$!
+          sleep 3
+          L='-AppleLanguages (ko) -AppleLocale ko_KR'
+          note() { echo "$(date +%T) $*" | tee -a out/steps.txt; }
+          shotw() { xcrun simctl io "$W" screenshot "out/$1-watch.png" >/dev/null 2>&1 || true; xcrun simctl io "$P" screenshot "out/$1-phone.png" >/dev/null 2>&1 || true; }
+
+          note "1. phone: Plus · 비 · 고양이"
+          xcrun simctl launch --terminate-running-process "$P" app.purrcast.ios -scene spring_rain -plus -char cat $L
+          sleep 15
+          note "   watch app opens with no example data: what the phone sent"
+          xcrun simctl launch --terminate-running-process "$W" app.purrcast.ios.watchkitapp
+          sleep 10; shotw 1-now
+          xcrun simctl launch --terminate-running-process "$W" app.purrcast.ios.watchkitapp -page 1
+          sleep 6; shotw 1-hours
+          xcrun simctl launch --terminate-running-process "$W" app.purrcast.ios.watchkitapp -page 2
+          sleep 6; shotw 1-days
+          xcrun simctl launch --terminate-running-process "$W" app.purrcast.ios.watchkitapp
+          sleep 5
+
+          note "2. phone changes to 눈 · 브리티시 (the watch app stays open)"
+          xcrun simctl launch --terminate-running-process "$P" app.purrcast.ios -scene winter_snow -plus -char brit $L
+          sleep 20; shotw 2-snow
+
+          note "3. phone without Plus"
+          xcrun simctl launch --terminate-running-process "$P" app.purrcast.ios -scene winter_snow -char brit $L
+          sleep 20; shotw 3-free
+
+          kill -INT $WREC $PREC; wait $WREC $PREC 2>/dev/null || true
+          ls -la out
+      - name: Side by side
+        if: always()
+        run: |
+          brew install ffmpeg >/dev/null 2>&1 || true
+          if [ -f out/phone.mp4 ] && [ -f out/watch.mp4 ] && command -v ffmpeg >/dev/null; then
+            ffmpeg -y -loglevel error -i out/phone.mp4 -i out/watch.mp4 -filter_complex \
+              "[0:v]scale=-2:900,fps=15[p];[1:v]scale=-2:520,fps=15,pad=iw+60:900:30:190:color=0x1A1A22[w];[p][w]hstack=inputs=2,format=yuv420p" \
+              -c:v libx264 -crf 30 -preset veryfast out/side-by-side.mp4 || true
+          fi
+          ls -la out
+      - name: Publish to the watch-e2e branch
+        if: always()
+        run: |
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} companion=${COMPANION:-?} $(date -u)" > out/RUN.txt
+          cp build.log out/ 2>/dev/null || true
+          find out -size +45M -delete
+          cd out && git init -q && git checkout -q -b watch-e2e
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "watch e2e ${{ github.run_id }}"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} watch-e2e
