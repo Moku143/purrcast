@@ -524,7 +524,7 @@
 "내일 %@ %@이에요." = "Tomorrow: %@ %@.";
 "아직 측정 전" = "Not measured yet";
 "오늘 뭐 입지?" = "What to wear today?";
-"고양이를 보면 알아요" = "Just look at the cat";
+"캐릭터를 보면 알아요" = "Just look at your buddy";
 "체감온도에 맞춰" = "Dressed for";
 "옷을 갈아입어요" = "the feels-like temperature";
 "비 오기 1시간 전" = "An hour before the rain,";
@@ -536,14 +536,12 @@
 "홈 화면에서" = "Right on your";
 "바로 확인해요" = "Home Screen";
 "애플워치에서도" = "On your Apple Watch,";
-"고양이와 함께" = "the cat comes along";
+"캐릭터와 함께" = "your buddy comes along";
 "세 마리 중에" = "Pick your";
 "골라요" = "favorite cat";
 "Plus 구독 기능" = "Plus subscription feature";
-"하늘이 바뀌면" = "When the sky changes,";
-"고양이도 바뀌어요" = "so does the cat";
-"비 오면 우산," = "Umbrella for rain,";
-"눈 오면 털모자" = "a beanie for snow";
+"창밖 하늘을" = "The sky outside,";
+"그대로 담았어요" = "just as it is";
 "잠금화면에서도" = "On your Lock Screen,";
 "바로 보여요" = "no unlock needed";
 "폭염!" = "Heat wave!";

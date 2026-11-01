@@ -61,22 +61,26 @@ struct StoreShotView: View {
             ("shout", "coral", "thermo_hot", L("폭염!")),
             ("speech", "sky", "umbrella_closed", L("%@ %@ 예보", HourLabel.window(16, 19, clock12: model.clock12), L("비"))),
         ]
-        let xs: [CGFloat] = [-70, 64, -36, 46, -62, 58, -24]
-        let rot: [Double] = [-4, 3, -2, 4, -3, 2, -1]
-        return shot(L("오늘 뭐 입지?"), L("고양이를 보면 알아요"), bg: Tone.hero) {
-            VStack(spacing: -26) {
-                ZStack {
+        // bursting out over the head: where each one lands, its tilt and size (the words may run under the next)
+        let spots: [(x: CGFloat, y: CGFloat, r: Double, k: CGFloat)] = [
+            (-96, 0, -9, 1.0), (92, 16, 8, 1.1), (-10, 58, -4, 1.05), (-74, 112, 6, 1.15),
+            (96, 128, -7, 1.05), (34, 186, 5, 1.2), (-92, 214, -6, 1.1),
+        ]
+        return shot(L("오늘 뭐 입지?"), L("캐릭터를 보면 알아요"), bg: Tone.hero) {
+            VStack(spacing: -34) {
+                ZStack(alignment: .top) {
                     ForEach(Array(others.enumerated()), id: \.offset) { i, b in
-                        BubbleView(kind: b.0, tone: b.1, icon: b.2, text: b.3, fontSize: 20)
+                        BubbleView(kind: b.0, tone: b.1, icon: b.2, text: b.3, fontSize: 24)
                             .fixedSize()
-                            .rotationEffect(.degrees(rot[i]))
-                            .offset(x: xs[i], y: CGFloat(i) * 36)
+                            .scaleEffect(spots[i].k)
+                            .rotationEffect(.degrees(spots[i].r))
+                            .offset(x: spots[i].x, y: spots[i].y)
                             .zIndex(Double(i))
                     }
                 }
-                .frame(height: 36 * CGFloat(others.count) + 30, alignment: .top)
+                .frame(width: Self.canvas.width, height: 290, alignment: .top)
                 .zIndex(1)
-                cat(s, width: 300, bubbleSize: 20).zIndex(2)
+                cat(s, width: 300, bubbleSize: 24).zIndex(2)
             }
             .frame(maxHeight: .infinity, alignment: .bottom)
             .padding(.bottom, 14)
@@ -110,7 +114,7 @@ struct StoreShotView: View {
     /// Four weathers, each tile its own sky with the character dressed for it
     private var skies: some View {
         let keys = ["summer_heat", "spring_rain", "winter_snow", "summer_night"]
-        return shot(L("비 오면 우산,"), L("눈 오면 털모자"), bg: Tone.skies) {
+        return shot(L("창밖 하늘을"), L("그대로 담았어요"), bg: Tone.skies) {
             LazyVGrid(columns: Array(repeating: GridItem(.fixed(194), spacing: 12), count: 2), spacing: 12) {
                 ForEach(keys, id: \.self) { k in skyTile(SceneLibrary.scene(k)) }
             }
@@ -148,23 +152,23 @@ struct StoreShotView: View {
         let now = Int(Date().timeIntervalSince1970)
         let soon = RainActivityAttributes.ContentState(title: L("%@쯤 비 예보", HourLabel.word(18, clock12: model.clock12)), sub: "1mm · " + L("우산 챙기세요"),
                                                        icon: "umbrella_closed", what: "rain", falling: false, mm: 1, start: now + 3600, end: now + 3 * 3600, endHour: 20)
-        let k: CGFloat = 1.08
         return shot(L("비 오기 1시간 전"), L("미리 알려줘요"), bg: [], plus: true) {
-            ZStack(alignment: .top) {
-                VStack(spacing: 12) {
-                    label(L("다이내믹 아일랜드"))
-                    island(a, soon).scaleEffect(k).frame(height: 132 * k).shadow(color: .black.opacity(0.35), radius: 18, y: 10)
-                    label(L("잠금 화면")).padding(.top, 22)
-                    RainLockView(a: a, s: soon)
-                        .frame(width: 370)
-                        .background(Color(hex: "#141938").opacity(0.96), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                        .scaleEffect(k).padding(.vertical, 10)
-                        .shadow(color: .black.opacity(0.3), radius: 14, y: 8)
+            VStack(spacing: 14) {
+                // the phone in use: the island opens with the alert over whatever is on the screen
+                phone(dark: false, scale: 1.0, topInset: 54, island: AnyView(island(a, soon))) {
+                    HomeView(route: .constant(nil), day: .constant(nil))
                 }
-                CharacterSprite(character: model.shownCharacter, level: lv, rain: .umbrella, width: 250, animate: false)
-                    .offset(x: 80, y: 360)
+                .frame(height: 380, alignment: .top)
+                .clipped()
+                .mask(LinearGradient(stops: [.init(color: .black, location: 0.8), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
+                label(L("잠금 화면")).padding(.top, 8)
+                RainLockView(a: a, s: soon)
+                    .frame(width: 370)
+                    .background(Color(hex: "#141938").opacity(0.96), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .scaleEffect(1.1).padding(.vertical, 12)
+                    .shadow(color: .black.opacity(0.3), radius: 14, y: 8)
             }
-            .padding(.top, 10)
+            .padding(.top, 2)
         }
         .background {
             ZStack(alignment: .top) {
@@ -179,11 +183,7 @@ struct StoreShotView: View {
 
     private var nextHours: some View {
         shot(L("언제, 얼마나"), L("비가 오는지"), bg: Tone.hours, plus: true) {
-            ZStack(alignment: .bottomTrailing) {
-                zoomed(1.04, height: 600) { HomeView(route: .constant(nil), day: .constant(nil), focus: "next6") }
-                CharacterSprite(character: model.shownCharacter, level: Rules.clamp(model.scene.level), rain: .umbrella, width: 210, animate: false)
-                    .offset(x: 52, y: 118)
-            }
+            zoomed(1.09, height: 720) { HomeView(route: .constant(nil), day: .constant(nil), focus: "next6") }
         }
     }
 
@@ -191,11 +191,8 @@ struct StoreShotView: View {
 
     private var dust: some View {
         shot(L("미세먼지도"), L("한눈에"), bg: Tone.dust) {
-            ZStack(alignment: .bottomTrailing) {
-                zoomed(1.04, height: 560) { DayDetailView(start: 0, startMetric: .dust, focus: true) }
-                    .background(Color(hex: "#FFF6E6"), in: RoundedRectangle(cornerRadius: 34, style: .continuous))
-                cat(model.scene, width: 170, bubbleSize: 0).offset(x: -10, y: 176)
-            }
+            zoomed(1.09, height: 700) { DayDetailView(start: 0, startMetric: .dust, focus: true) }
+                .background(Color(hex: "#FFF6E6"), in: RoundedRectangle(cornerRadius: 34, style: .continuous))
         }
     }
 
@@ -234,35 +231,29 @@ struct StoreShotView: View {
     /// app's sky as the wallpaper, the character in front
     private var lockScreen: some View {
         let snap = model.snapshot, s = snap.scene, lv = Rules.clamp(s.level)
-        let w: CGFloat = 392, h: CGFloat = 372
-        return shot(L("잠금화면에서도"), L("바로 보여요"), bg: Tone.lock) {
-            ZStack(alignment: .topLeading) {
-                ZStack(alignment: .top) {
-                    LinearGradient(colors: [Color(hex: "#6E7FC4"), Color(hex: "#39437E")], startPoint: .top, endPoint: .bottom)
-                    SkyParticles(scene: s, width: w, tiles: 2, animate: false).frame(width: w, height: h, alignment: .top).opacity(0.7)
-                    VStack(spacing: 6) {
-                        Text(LockText.inline(snap)).font(.system(size: 17, weight: .semibold)).lineLimit(1)
-                        Text("9:41").font(.system(size: 100, weight: .bold, design: .rounded)).padding(.top, -8)
-                        HStack(alignment: .top, spacing: 10) {
-                            glass(166, 74) { LockRectangularView(snap: snap) }
-                            glass(74, 74, circle: true) { LockCircularView(snap: snap) }
-                            glass(74, 74, circle: true) { LockDustCircularView(snap: snap) }
-                        }
-                        .scaleEffect(1.12)
-                        .padding(.top, 14)
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.top, 34)
+        return shot(L("잠금화면에서도"), L("바로 보여요"), bg: []) {
+            VStack(spacing: 6) {
+                Text(LockText.inline(snap)).font(.system(size: 19, weight: .semibold)).lineLimit(1)
+                Text("9:41").font(.system(size: 112, weight: .bold, design: .rounded)).padding(.top, -10)
+                HStack(alignment: .top, spacing: 10) {
+                    glass(166, 74) { LockRectangularView(snap: snap) }
+                    glass(74, 74, circle: true) { LockCircularView(snap: snap) }
+                    glass(74, 74, circle: true) { LockDustCircularView(snap: snap) }
                 }
-                .frame(width: w, height: h)
-                .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 40, style: .continuous).strokeBorder(Color.white.opacity(0.85), lineWidth: 5))
-                .shadow(color: .black.opacity(0.25), radius: 20, y: 12)
-                CharacterSprite(character: model.shownCharacter, level: lv, rain: RainState(rawValue: s.rain) ?? .none, width: 260, animate: false)
-                    .offset(x: 66, y: h - 40)
+                .scaleEffect(1.15)
+                .padding(.top, 16)
+                CharacterSprite(character: model.shownCharacter, level: lv, rain: RainState(rawValue: s.rain) ?? .none, width: 270, animate: false)
+                    .padding(.top, 40)
             }
-            .frame(width: w)
-            .padding(.top, 8)
+            .foregroundStyle(.white)
+            .padding(.top, 14)
+        }
+        .background {
+            ZStack(alignment: .top) {
+                LinearGradient(colors: Tone.lock.map { Color(hex: $0) }, startPoint: .top, endPoint: .bottom)
+                SkyParticles(scene: s, width: Self.canvas.width, tiles: 3, animate: false)
+                    .frame(width: Self.canvas.width, height: Self.canvas.height, alignment: .top).opacity(0.5)
+            }
         }
     }
 
@@ -272,12 +263,12 @@ struct StoreShotView: View {
             .background(Color.white.opacity(circle ? 0.12 : 0.16), in: RoundedRectangle(cornerRadius: circle ? w / 2 : 20, style: .continuous))
     }
 
-    // MARK: 9 · 애플워치에서도 고양이와 함께
+    // MARK: 9 · 애플워치에서도 캐릭터와 함께
 
     /// Two faces with the complications, the watch app, and the complications themselves large
     private var watch: some View {
         let snap = model.snapshot
-        return shot(L("애플워치에서도"), L("고양이와 함께"), bg: Tone.watch, plus: true) {
+        return shot(L("애플워치에서도"), L("캐릭터와 함께"), bg: Tone.watch, plus: true) {
             VStack(spacing: 18) {
                 HStack(spacing: 10) {
                     WatchCase(scale: 0.93) { WatchFacePreview(snap: snap) }
@@ -360,15 +351,18 @@ struct StoreShotView: View {
             .padding(.top, 6)
     }
 
-    /// An iPhone (402 × 874 screen at 0.8) running `content`, its bottom running off the picture
-    private func phone<C: View>(dark: Bool, @ViewBuilder _ content: () -> C) -> some View {
-        let w: CGFloat = 402, h: CGFloat = 874, k: CGFloat = 0.8, bezel: CGFloat = 11
+    /// An iPhone (402 × 874 screen at `k`) running `content`, its bottom running off the picture; `island` in place
+    /// of the closed one (a Live Activity opening it), `topInset` the room the page leaves for the status bar
+    private func phone<C: View>(dark: Bool, scale k: CGFloat = 0.8, topInset: CGFloat = 0, island: AnyView? = nil, @ViewBuilder _ content: () -> C) -> some View {
+        let w: CGFloat = 402, h: CGFloat = 874, bezel: CGFloat = 11
         return ZStack(alignment: .top) {
             content()
+                .safeAreaInset(edge: .top, spacing: 0) { Color.clear.frame(height: topInset) }
                 .frame(width: w, height: h, alignment: .top)
                 .clipped()
             statusBar(dark: dark)
-            Capsule().fill(Color.black).frame(width: 126, height: 37).padding(.top, 11)   // the island
+            if let island { island.padding(.top, 9).shadow(color: .black.opacity(0.3), radius: 12, y: 6) }
+            else { Capsule().fill(Color.black).frame(width: 126, height: 37).padding(.top, 11) }
         }
         .frame(width: w, height: h)
         .clipShape(RoundedRectangle(cornerRadius: 55, style: .continuous))
