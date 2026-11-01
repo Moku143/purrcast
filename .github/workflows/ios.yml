@@ -229,9 +229,14 @@ jobs:
           sleep 20; shotw 3-free
 
           kill -INT $WREC $PREC; wait $WREC $PREC 2>/dev/null || true
+          # what each side's WatchConnectivity said (WatchBridge / WatchLink log under app.purrcast)
+          xcrun simctl spawn "$P" log show --last 30m --info --predicate 'subsystem == "app.purrcast"' > out/phone-log.txt 2>&1 || true
+          xcrun simctl spawn "$W" log show --last 30m --info --predicate 'subsystem == "app.purrcast"' > out/watch-log.txt 2>&1 || true
+          xcrun simctl spawn "$P" log show --last 30m --predicate 'process == "Purrcast" AND (eventMessage CONTAINS[c] "WCSession" OR eventMessage CONTAINS[c] "watch")' > out/phone-wc.txt 2>&1 || true
+          tail -20 out/phone-log.txt out/watch-log.txt
           ls -la out
       - name: Side by side
-        if: always()
+        if: always() && false
         run: |
           brew install ffmpeg >/dev/null 2>&1 || true
           if [ -f out/phone.mp4 ] && [ -f out/watch.mp4 ] && command -v ffmpeg >/dev/null; then

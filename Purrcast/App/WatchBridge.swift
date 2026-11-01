@@ -1,5 +1,8 @@
 import Foundation
 import WatchConnectivity
+import os
+
+private let log = Logger(subsystem: "app.purrcast", category: "watch")
 
 /// Phone side of the watch link: sends the latest snapshot as the application context (the watch always gets
 /// the newest one, even if it was asleep). Keeps the last snapshot and resends it once the session is up and
@@ -25,11 +28,22 @@ final class WatchBridge: NSObject, WCSessionDelegate {
         guard let snap, WCSession.isSupported() else { return }
         let s = WCSession.default
         guard s.activationState == .activated, s.isPaired, s.isWatchAppInstalled,
-              let data = try? JSONEncoder().encode(snap) else { return }
-        try? s.updateApplicationContext(["snapshot": data])
+              let data = try? JSONEncoder().encode(snap) else {
+            log.notice("not sent: activated \(s.activationState == .activated) paired \(s.isPaired) installed \(s.isWatchAppInstalled)")
+            return
+        }
+        do {
+            try s.updateApplicationContext(["snapshot": data])
+            log.notice("sent \(data.count) bytes, plus \(snap.plusActive), \(snap.scene.cond, privacy: .public)")
+        } catch {
+            log.error("send failed: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
-    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) { push() }
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        log.notice("phone session activated \(activationState.rawValue) paired \(session.isPaired) installed \(session.isWatchAppInstalled)")
+        push()
+    }
     func sessionWatchStateDidChange(_ session: WCSession) { push() }
     func sessionDidBecomeInactive(_ session: WCSession) {}
     func sessionDidDeactivate(_ session: WCSession) { WCSession.default.activate() }

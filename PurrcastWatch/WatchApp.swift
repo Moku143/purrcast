@@ -1,5 +1,8 @@
 import SwiftUI
 import WatchConnectivity
+import os
+
+private let log = Logger(subsystem: "app.purrcast", category: "watch")
 #if canImport(WidgetKit)
 import WidgetKit
 #endif
@@ -41,7 +44,11 @@ final class WatchLink: NSObject, ObservableObject, WCSessionDelegate {
     }
 
     private func take(_ ctx: [String: Any]) {
-        guard let data = ctx["snapshot"] as? Data, let s = try? JSONDecoder().decode(WeatherSnapshot.self, from: data) else { return }
+        guard let data = ctx["snapshot"] as? Data, let s = try? JSONDecoder().decode(WeatherSnapshot.self, from: data) else {
+            log.notice("watch: no snapshot in the context (\(ctx.count) keys)")
+            return
+        }
+        log.notice("watch: got \(data.count) bytes, plus \(s.plusActive), \(s.scene.cond, privacy: .public)")
         if let l = s.lang { Lang.picked = Lang(rawValue: l) }   // the phone's 설정 → 언어 (complications read it from the group too)
         SharedStore.save(s)
         #if canImport(WidgetKit)
@@ -51,6 +58,7 @@ final class WatchLink: NSObject, ObservableObject, WCSessionDelegate {
     }
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        log.notice("watch session activated \(activationState.rawValue), companion installed \(session.isCompanionAppInstalled)")
         take(session.receivedApplicationContext)
     }
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) { take(applicationContext) }
