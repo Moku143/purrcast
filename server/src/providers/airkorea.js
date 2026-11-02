@@ -196,3 +196,68 @@ export function airMap(nationJson, index, lat, lon, box = { dLat: 0.45, dLon: 0.
   }
   return { kind: 'cai', at, me, points };
 }
+
+// ── 대기질 (the sheet behind the map) ──────────────────────────────────────────────────────────────────────────────
+
+/** 통합대기환경지수 breakpoints per pollutant (1-hour values; PM as measured), index 0 · 50 · 100 · 250 · 500. */
+const CAI_BP = { so2: [0, 0.02, 0.05, 0.15, 1], co: [0, 2, 9, 15, 50], o3: [0, 0.03, 0.09, 0.15, 0.6], no2: [0, 0.03, 0.06, 0.2, 2], pm10: [0, 30, 80, 150, 600], pm25: [0, 15, 35, 75, 500] };
+/** One pollutant's index on the 통합대기환경지수 scale (0–500), or null. */
+export function subIndex(key, v) {
+  const b = CAI_BP[key];
+  if (v == null || !b) return null;
+  for (let i = 0; i < 4; i++) if (v <= b[i + 1]) return Math.round(CAI_BOUNDS[i] + ((v - b[i]) / (b[i + 1] - b[i])) * (CAI_BOUNDS[i + 1] - CAI_BOUNDS[i]));
+  return 500;
+}
+
+/** "2026-11-02 18:00" → "2026-11-01 18:00": the same hour, the day before (에어코리아 writes midnight as "… 24:00" of the
+ *  day that ends, which this keeps). */
+export function dayBefore(at) {
+  const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2})/.exec(at || '');
+  if (!m) return null;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]) - 86400000), p = (n) => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} ${m[4]}`;
+}
+
+/** The sheet for the nearest station, from its last readings (newest first): the index now, its step, the pollutant
+ *  behind it, every pollutant (O3 · NO2 · SO2 in ppb, CO in ppm, PM in ㎍/㎥) and the index at the same hour yesterday. */
+export function airDetail(json, station) {
+  const rows = items(json);
+  const row = rows.find((r) => num(r.khaiValue) != null) ?? rows.find((r) => num(r.pm10Value) != null || num(r.pm25Value) != null);
+  if (!row) return null;
+  const v = { pm10: num(row.pm10Value), pm25: num(row.pm25Value), o3: num(row.o3Value), no2: num(row.no2Value), so2: num(row.so2Value), co: num(row.coValue) };
+  let main = null, top = -1;
+  for (const k of ['pm25', 'pm10', 'o3', 'no2', 'co', 'so2']) { const x = subIndex(k, v[k]); if (x != null && x > top) { top = x; main = k; } }
+  const value = num(row.khaiValue) ?? (top >= 0 ? top : null);
+  if (value == null) return null;
+  const ppb = (x) => (x == null ? null : Math.round(x * 1000));
+  const list = [['pm10', v.pm10, '㎍/㎥'], ['pm25', v.pm25, '㎍/㎥'], ['o3', ppb(v.o3), 'ppb'], ['no2', ppb(v.no2), 'ppb'], ['so2', ppb(v.so2), 'ppb'], ['co', v.co, 'ppm']]
+    .filter(([, x]) => x != null);
+  const ya = dayBefore(row.dataTime), y = ya ? rows.find((r) => r.dataTime === ya) : null, yv = y ? num(y.khaiValue) : null;
+  return {
+    value, level: Math.min(levelOf(value, CAI_BOUNDS), 3.99), grade: gradeCAI(value), main, station: station ?? null, at: row.dataTime || '',
+    yday: yv == null ? null : { value: yv, level: Math.min(levelOf(yv, CAI_BOUNDS), 3.99) },
+    items: list,
+  };
+}
+
+/** Outside Korea, from OpenWeather's components (㎍/㎥) now and 24 hours ago: PM on WHO's steps, the worse PM as the
+ *  pollutant behind it, every pollutant OpenWeather gives. */
+export function owDetail(now, before) {
+  const c = now?.list?.[0]?.components;
+  if (!c) return null;
+  const level = pmLevel(c.pm2_5, c.pm10);
+  if (level == null) return null;
+  const lv = Math.min(level, 3.99);
+  const r = (x) => (Number.isFinite(x) ? Math.round(x * 10) / 10 : null);
+  const a = levelOf(c.pm2_5, [0, 15, 37.5, 75, 150]), b = levelOf(c.pm10, [0, 45, 75, 150, 300]);
+  const yc = before?.list?.[0]?.components;
+  const yl = yc ? pmLevel(yc.pm2_5, yc.pm10) : null;
+  const list = [['pm10', r(c.pm10), '㎍/㎥'], ['pm25', r(c.pm2_5), '㎍/㎥'], ['o3', r(c.o3), '㎍/㎥'], ['no2', r(c.no2), '㎍/㎥'], ['so2', r(c.so2), '㎍/㎥'], ['co', r(c.co), '㎍/㎥']]
+    .filter(([, x]) => x != null);
+  return {
+    value: null, level: lv, grade: Math.floor(lv), main: (b ?? -1) > (a ?? -1) ? 'pm10' : 'pm25', station: null,
+    at: new Date((now.list[0].dt || 0) * 1000).toISOString(),
+    yday: yl == null ? null : { value: null, level: Math.min(yl, 3.99) },
+    items: list,
+  };
+}

@@ -10,7 +10,7 @@ import { strings, normLang, warningName, hourLabel } from '../src/i18n.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike, humidityWord, windWord } from '../src/physics.js';
 import worker, { forecast, readQuery, resetCache, setUpstreamTimeout, legacyIcons, airMapAnswer } from '../src/index.js';
-import { sidoShort, stationIndex, airMap, gradeCAI, nationUrl, levelOf, pmLevel } from '../src/providers/airkorea.js';
+import { sidoShort, stationIndex, airMap, gradeCAI, nationUrl, levelOf, pmLevel, subIndex, dayBefore, airDetail, owDetail } from '../src/providers/airkorea.js';
 import { beforeEach } from 'node:test';
 beforeEach(() => { resetCache(); resetWeatherKitTokens(); });
 
@@ -1085,10 +1085,32 @@ test('대기질 지도 abroad: OpenWeather at a grid around the place, PM on WHO
   };
   const m = await airMapAnswer(new URLSearchParams('lat=35.68&lon=139.69&region=jp'), { OPENWEATHER_KEY: 'K' }, null, fetcher);
   assert.equal(m.kind, 'pm');
-  assert.equal(urls.length, 17);   // the place and a 4 × 4 grid
+  assert.equal(urls.length, 18);   // the place, a 4 × 4 grid and yesterday at the place
+  assert.equal(m.detail.main, 'pm25');
   assert.equal(m.me.grade, 0);
   assert.equal(m.points.length, 17);
   assert.ok(m.points.some((p) => p[2] >= 2));   // the north is 나쁨
   assert.deepEqual(m.points.find((p) => p[0] === 36.1).slice(0, 2), [36.1, 139.2]);   // grid points snapped to 0.1°
+});
+
+test('대기질 sheet: the index now and yesterday at this hour, the pollutant behind it, every pollutant in its unit', () => {
+  assert.equal(dayBefore('2026-11-01 18:00'), '2026-10-31 18:00');
+  assert.equal(dayBefore('2026-03-01 24:00'), '2026-02-28 24:00');
+  assert.deepEqual([subIndex('pm10', 30), subIndex('pm10', 55), subIndex('o3', 0.09), subIndex('pm25', 10)], [50, 75, 100, 33]);
+  const ok = (item) => ({ response: { header: { resultCode: '00' }, body: { items: item } } });
+  const rows = [
+    { dataTime: '2026-11-02 19:00', khaiValue: '-', pm10Value: '-' },   // not in yet
+    { dataTime: '2026-11-02 18:00', khaiValue: '89', khaiGrade: '2', pm10Value: '46', pm25Value: '10', o3Value: '0.038', no2Value: '0.011', so2Value: '0.002', coValue: '0.4' },
+    { dataTime: '2026-11-01 18:00', khaiValue: '61', pm10Value: '30' },
+  ];
+  const d = airDetail(ok(rows), '철산동');
+  assert.equal(d.value, 89); assert.equal(d.grade, 1); assert.equal(d.main, 'pm10'); assert.equal(d.station, '철산동');
+  assert.deepEqual(d.yday, { value: 61, level: 1.22 });
+  assert.deepEqual(d.items, [['pm10', 46, '㎍/㎥'], ['pm25', 10, '㎍/㎥'], ['o3', 38, 'ppb'], ['no2', 11, 'ppb'], ['so2', 2, 'ppb'], ['co', 0.4, 'ppm']]);
+  const ow = (pm25, pm10) => ({ list: [{ dt: 1762070400, components: { pm2_5: pm25, pm10, o3: 61.2, no2: 12.3, so2: 1.1, co: 230.4 } }] });
+  const o = owDetail(ow(20, 30), ow(5, 10));
+  assert.equal(o.value, null); assert.equal(o.grade, 1); assert.equal(o.main, 'pm25');
+  assert.ok(o.yday.level < o.level);
+  assert.deepEqual(o.items.map((x) => x[0]), ['pm10', 'pm25', 'o3', 'no2', 'so2', 'co']);
 });
 

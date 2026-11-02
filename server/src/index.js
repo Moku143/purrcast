@@ -17,7 +17,7 @@
 import { metUrl, parseMet } from './providers/met.js';
 import { toGrid, vilageBase, eveBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError, midUrl, midBase, midRegions, parseMidTa, parseMidLand } from './providers/kma.js';
 import { hasWeatherKit, weatherKitUrl, weatherKitToken, parseWeatherKit, packWeatherKit, unpackWeatherKit } from './providers/weatherkit.js';
-import { stationsUrl, realtimeUrl, forecastUrl, alarmUrl, nationUrl, airkoreaOK, nearestStation, parseRealtime, parseHistory, todayHours, forecastRegion, parseForecast as parseDustForecast, parseAlarms, stationIndex, airMap, pmLevel } from './providers/airkorea.js';
+import { stationsUrl, realtimeUrl, forecastUrl, alarmUrl, nationUrl, airkoreaOK, nearestStation, parseRealtime, parseHistory, todayHours, forecastRegion, parseForecast as parseDustForecast, parseAlarms, stationIndex, airMap, pmLevel, airDetail, owDetail } from './providers/airkorea.js';
 import { owNowUrl, owForecastUrl, owHistoryUrl, owOK, parseOwNow, parseOwTomorrow, parseOwHours } from './providers/openweather.js';
 import { buildScene, validateScene } from './scene.js';
 import { local, pad2, dayKey } from './time.js';
@@ -79,7 +79,14 @@ export async function airMapAnswer(sp, env, ctx, fetcher = fetch) {
       getJSON(stationsUrl(key), { ttl: 86400, fetcher, ok: airkoreaOK, ctx, kma: true }),
       getJSON(nationUrl(key), { ttl: 1800, fetcher, ok: airkoreaOK, ctx, kma: true }),
     ]);
-    return airMap(nation, stationIndex(st), lat, lon);
+    const m = airMap(nation, stationIndex(st), lat, lon);
+    // the sheet: the same station the 미세먼지 card reads (its last day of readings, the URL the card already caches)
+    const near = nearestStation(st, lat, lon);
+    if (near) {
+      try { m.detail = airDetail(await getJSON(realtimeUrl(key, near.name), { ttl: 3600, fetcher, ok: airkoreaOK, ctx, kma: true }), near.name); }
+      catch (e) { console.log('airmap detail failed:', e.message); }
+    }
+    return m;
   }
   if (!env.OPENWEATHER_KEY) throw Object.assign(new Error('no air quality source'), { status: 503 });
   const key = env.OPENWEATHER_KEY, r1 = (v) => Math.round(v * 10) / 10;
@@ -99,7 +106,14 @@ export async function airMapAnswer(sp, env, ctx, fetcher = fetch) {
     else points.push([spots[i][0], spots[i][1], lv, null]);
   });
   if (!me && !points.length) throw Object.assign(new Error('no air quality data'), { status: 502 });
-  return { kind: 'pm', at: at ? at.toISOString() : '', me, points: me ? [[lat, lon, me.level, null], ...points] : points };
+  // the sheet: every pollutant at the place, and the same hour yesterday
+  let detail = null;
+  if (got[0].status === 'fulfilled') {
+    const t = Math.floor(Date.now() / 1000) - 86400;
+    const before = await getJSON(owHistoryUrl(key, lat, lon, t - 1800, t + 1800), { ttl: 3600, fetcher, ok: owOK, ctx }).catch(() => null);
+    detail = owDetail(got[0].value, before);
+  }
+  return { kind: 'pm', at: at ? at.toISOString() : '', me, points: me ? [[lat, lon, me.level, null], ...points] : points, detail };
 }
 
 /** POST: the app registers (or re-registers) its device for Live Activities; DELETE ?id= forgets it. */

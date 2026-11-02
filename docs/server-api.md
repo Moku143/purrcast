@@ -210,6 +210,12 @@ Korea always cover 00–24 h: the earlier runs (05 h, yesterday 23 h) fill what 
 plus how far into it (0 좋음 · 1 보통 · 2 나쁨 · 3 매우 나쁨; 통합지수 edges 50 · 100 · 250 · 500), for the map's colours;
 `value` is the 통합대기환경지수 in Korea and `null` elsewhere (`kind: "pm"`). No source for the place: 503.
 
+`detail` — the 대기질 sheet behind the map: `{ value, level, grade, main, station, at, yday: { value, level } | null,
+items: [[key, value, unit]] }` with `key` pm10 · pm25 · o3 · no2 · so2 · co. Korea: the station the 미세먼지 card reads
+(its last day of readings), O3 · NO2 · SO2 in ppb, CO in ppm, `main` the pollutant with the highest 통합지수 sub-index,
+`yday` the same hour yesterday. Elsewhere: OpenWeather's components in ㎍/㎥, `main` the worse PM, `yday` from its
+history 24 hours ago.
+
 ## Rain alert push (Plus) — `POST /v1/devices`
 
 The app registers its device for the rain alert. Body (JSON):
