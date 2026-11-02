@@ -21,6 +21,8 @@ final class WatchLink: NSObject, ObservableObject, WCSessionDelegate {
     @Published var snap: WeatherSnapshot
     /// The page the app opens on (screenshots only; 0 = now).
     var startPage = 0
+    /// -storeShot: the App Store pictures — that one page, without the page dots or the scroll bar
+    var storeShot = false
 
     override init() {
         #if DEBUG
@@ -31,6 +33,7 @@ final class WatchLink: NSObject, ObservableObject, WCSessionDelegate {
         // screenshots: -lang ko|en|ja pins the language, -page 0|1|2 opens a page, -locked shows the free screen
         if let i = args.firstIndex(of: "-lang"), i + 1 < args.count, let l = Lang(rawValue: args[i + 1]) { Lang.current = l }
         if let i = args.firstIndex(of: "-page"), i + 1 < args.count { startPage = Int(args[i + 1]) ?? 0 }
+        storeShot = args.contains("-storeShot")
         if let i = args.firstIndex(of: "-scene"), i + 1 < args.count {
             // screenshots: a fixed example, Plus on
             var s = SceneLibrary.scene(args[i + 1]); s.place = Place.here.name
@@ -70,7 +73,17 @@ struct WatchRoot: View {
     @EnvironmentObject var link: WatchLink
     @State private var page: Int?
     var body: some View {
-        if link.snap.plusActive {
+        if link.snap.plusActive && link.storeShot {
+            // one page in a pager that shows no dots, so it sits on the screen exactly as in the app
+            TabView {
+                switch link.startPage {
+                case 1: WatchHours(snap: link.snap, bars: false)
+                case 2: WatchDays(snap: link.snap, bars: false)
+                default: WatchNow(snap: link.snap)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+        } else if link.snap.plusActive {
             TabView(selection: Binding(get: { page ?? link.startPage }, set: { page = $0 })) {
                 WatchNow(snap: link.snap).tag(0)
                 WatchHours(snap: link.snap).tag(1)
@@ -85,6 +98,7 @@ struct WatchRoot: View {
 
 struct WatchHours: View {
     let snap: WeatherSnapshot
+    var bars = true
     var body: some View {
         let s = snap.scene
         List {
@@ -99,12 +113,14 @@ struct WatchHours: View {
                 .padding(.trailing, 6)      // the numbers clear the scroll indicator by the crown
             }
         }
+        .scrollIndicators(bars ? .automatic : .hidden)
         .navigationTitle(L("시간별"))
     }
 }
 
 struct WatchDays: View {
     let snap: WeatherSnapshot
+    var bars = true
     var body: some View {
         List {
             ForEach(Array(snap.scene.days.enumerated()), id: \.offset) { _, d in
@@ -118,6 +134,7 @@ struct WatchDays: View {
                 .padding(.trailing, 6)      // the numbers clear the scroll indicator by the crown
             }
         }
+        .scrollIndicators(bars ? .automatic : .hidden)
         .navigationTitle(L("10일"))
     }
 }

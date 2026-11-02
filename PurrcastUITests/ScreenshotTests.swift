@@ -266,6 +266,17 @@ final class ScreenshotTests: XCTestCase {
         shot("widgetlab-smog", ["-scene", "winter_smog", "-plus", "-char", "cat", "-open", "widgetLab"], wait: 2)
     }
 
+    /// The Apple Watch App Store faces (on a 2× phone: cut out at 416 × 496): the analog and the modular face with the
+    /// complications, on the 장맛비 day, in each language
+    func test16WatchStore() {
+        for lang in ["ko", "en", "ja"] {
+            for face in ["analog", "modular"] {
+                let args = ["-scene", "summer_monsoon", "-plus", "-char", "cat", "-watchFace", face, "-storeTime", "10:09"] + (lang == "en" ? ["-clock12"] : [])
+                shot("watchface-\(lang)-\(face)", args, wait: 2, lang: lang)
+            }
+        }
+    }
+
     func test10Layout() {
         var screens: [(String, [String], Int)] = [
             ("home-1", ["-scene", "maybe", "-plus", "-char", "cat"], 0),

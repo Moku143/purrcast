@@ -10,7 +10,7 @@ struct WatchFacePreview: View {
     private var dateText: String {
         let f = DateFormatter(); f.locale = Lang.current.locale
         f.setLocalizedDateFormatFromTemplate("EEEd")
-        return f.string(from: Date())
+        return f.string(from: WatchClock.date)
     }
 
     var body: some View {
@@ -61,7 +61,7 @@ struct WatchAnalogPreview: View {
                         ctx.stroke(p, with: .color(i % 5 == 0 ? .white : .white.opacity(0.35)),
                                    style: StrokeStyle(lineWidth: (i % 5 == 0 ? 3 : 1.2) * k, lineCap: .round))
                     }
-                    let now = Calendar.current.dateComponents([.hour, .minute, .second], from: Date())
+                    let now = Calendar.current.dateComponents([.hour, .minute, .second], from: WatchClock.date)
                     let hr = Double((now.hour ?? 10) % 12) * 30 + Double(now.minute ?? 9) * 0.5, mn = Double(now.minute ?? 9) * 6, sc = Double(now.second ?? 36) * 6
                     let hands: [(len: Double, deg: Double, width: Double, color: Color)] =
                         [(42, hr, 6, .white), (68, mn, 4, .white), (76, sc, 1.6, Color(hex: "#FF9F43"))]
@@ -90,11 +90,38 @@ struct WatchAnalogPreview: View {
     }
 }
 
-/// The time the pictures show: now, as the watch would (12- or 24-hour).
+/// The time the pictures show: now, as the watch would (12- or 24-hour), or a set time for the App Store pictures
+/// (-storeTime 10:09, debug builds).
 enum WatchClock {
+    static var date: Date {
+        #if DEBUG
+        let a = ProcessInfo.processInfo.arguments
+        if let i = a.firstIndex(of: "-storeTime"), i + 1 < a.count {
+            let p = a[i + 1].split(separator: ":").compactMap { Int($0) }
+            if p.count == 2, let d = Calendar.current.date(bySettingHour: p[0], minute: p[1], second: 36, of: Date()) { return d }
+        }
+        #endif
+        return Date()
+    }
     static func now(clock12: Bool) -> String {
         let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = clock12 ? "h:mm" : "HH:mm"
-        return f.string(from: Date())
+        return f.string(from: date)
+    }
+}
+
+/// The App Store pictures of the faces (-watchFace analog | modular, debug builds): the face at the 46-mm watch's
+/// size (208 × 248 pt) in the middle of a black screen. On a 2× phone that is the store's 416 × 496 pixels, cut out.
+struct WatchFaceShot: View {
+    @EnvironmentObject var model: AppModel
+    let kind: String
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            Group {
+                if kind == "modular" { WatchFacePreview(snap: model.snapshot) } else { WatchAnalogPreview(snap: model.snapshot) }
+            }
+            .frame(width: 208, height: 248)
+        }
     }
 }
 

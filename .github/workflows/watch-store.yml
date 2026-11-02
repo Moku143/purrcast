@@ -1,0 +1,103 @@
+name: Watch store pictures
+
+# The Apple Watch App Store pictures (416 × 496, Series 10/11/12 46 mm) in Korean, English and Japanese:
+# the analog and the modular face with the complications (drawn by the phone app on a 2× iPhone and cut out), and the
+# watch app's three pages from the watch simulator without the page dots or scroll bar.
+# Started by pushing to the watch-store-run branch; the raw pictures go to watch-store-out-faces / watch-store-out-app.
+on:
+  push:
+    branches: [watch-store-run]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  faces:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode 26
+        run: |
+          latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$latest" ]; then sudo xcode-select -s "$latest"; fi
+      - name: A 2× iPhone
+        run: |
+          dev="iPhone SE (3rd generation)"
+          if ! xcrun simctl list devices available | grep -q "^ *$dev ("; then
+            rt=$(xcrun simctl list runtimes | grep -E "^iOS" | tail -1 | grep -o "com.apple.CoreSimulator.SimRuntime[^ )]*")
+            xcrun simctl create "$dev" "com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation" "$rt"
+          fi
+          xcrun simctl list devices available | grep "SE"
+      - name: Generate project
+        run: brew install xcodegen && xcodegen generate
+      - name: Faces
+        run: |
+          set -o pipefail
+          xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast \
+            -only-testing:PurrcastUITests/ScreenshotTests/test16WatchStore \
+            -destination "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=latest" \
+            -resultBundlePath Faces.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST " || true
+          mkdir -p raw shots
+          xcrun xcresulttool export attachments --path Faces.xcresult --output-path raw || true
+          python3 - <<'PY'
+          import json, os, shutil
+          try: m = json.load(open('raw/manifest.json'))
+          except Exception: m = []
+          for t in m:
+              for a in t.get('attachments', []):
+                  src = os.path.join('raw', a['exportedFileName'])
+                  if not src.lower().endswith('.png'): continue
+                  name = (a.get('suggestedHumanReadableName') or a['exportedFileName']).split('_0_')[0]
+                  shutil.copy(src, os.path.join('shots', name if name.endswith('.png') else name + '.png'))
+          print(sorted(os.listdir('shots')))
+          PY
+      - name: Publish
+        if: always()
+        run: |
+          mkdir -p out && cp -r shots out/ 2>/dev/null; cp test.log out/ 2>/dev/null || true
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt
+          cd out && git init -q && git checkout -q -b b
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "watch store faces"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} b:watch-store-out-faces
+
+  app:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode 26
+        run: |
+          latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$latest" ]; then sudo xcode-select -s "$latest"; fi
+      - name: Generate project
+        run: brew install xcodegen && xcodegen generate
+      - name: Watch app pages
+        run: |
+          set -o pipefail
+          mkdir -p shots
+          xcodebuild build -project Purrcast.xcodeproj -scheme PurrcastWatch \
+            -destination 'generic/platform=watchOS Simulator' -derivedDataPath wdd \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee watch.log | grep -E "error:|BUILD " || true
+          grep -q "BUILD SUCCEEDED" watch.log
+          APP=$(find wdd/Build/Products -maxdepth 2 -name "PurrcastWatch.app" | head -1)
+          DEV=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; v=[x for k,l in d.items() if 'watchOS' in k for x in l]; print(next((x for x in v if '46mm' in x['name']), v[0])['udid'])")
+          xcrun simctl list devices available | grep -i watch
+          xcrun simctl boot "$DEV" || true
+          xcrun simctl bootstatus "$DEV" -b || sleep 30
+          xcrun simctl status_bar "$DEV" override --time "10:09" || echo "no status bar override on the watch"
+          xcrun simctl install "$DEV" "$APP"
+          shot() { xcrun simctl launch --terminate-running-process "$DEV" app.purrcast.ios.watchkitapp "${@:2}" || true; sleep 8; xcrun simctl io "$DEV" screenshot "shots/$1.png" || true; }
+          for L in ko en ja; do
+            clock=""; [ "$L" = "en" ] && clock="-clock12"
+            for p in 0 1 2; do shot "watchapp-$L-$p" -lang $L -scene clear -char cat -page $p -storeShot $clock; done
+          done
+      - name: Publish
+        if: always()
+        run: |
+          mkdir -p out && cp -r shots out/ 2>/dev/null; cp watch.log out/ 2>/dev/null || true
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt
+          cd out && git init -q && git checkout -q -b b
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "watch store app"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} b:watch-store-out-app
