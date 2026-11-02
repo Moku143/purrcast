@@ -12,6 +12,10 @@ on:
         description: 'Languages (JSON list)'
         required: false
         default: '["ko","en","ja"]'
+      parts:
+        description: 'Halves (JSON list)'
+        required: false
+        default: '["a","b"]'
 
 permissions:
   contents: write
@@ -23,8 +27,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lang: ${{ fromJSON(github.event.inputs.langs || '["ko","en","ja"]') }}
-        part: [a, b]
+        # a push re-takes these (edit to re-take a few); a dispatch takes the inputs
+        lang: ${{ fromJSON(github.event.inputs.langs || '["ja"]') }}
+        part: ${{ fromJSON(github.event.inputs.parts || '["a"]') }}
     steps:
       - uses: actions/checkout@v4
       - name: Xcode 26
