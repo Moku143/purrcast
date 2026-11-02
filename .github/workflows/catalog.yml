@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   phone:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 130
     strategy:
       fail-fast: false
