@@ -260,6 +260,12 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    func test15WidgetAir() {
+        // the home-screen widgets and the watch on a 황사 day (기상청 황사경보) and on a 미세먼지 day (smog, no 황사)
+        shot("widgetlab-yellow", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "widgetLab"], wait: 2)
+        shot("widgetlab-smog", ["-scene", "winter_smog", "-plus", "-char", "cat", "-open", "widgetLab"], wait: 2)
+    }
+
     func test10Layout() {
         var screens: [(String, [String], Int)] = [
             ("home-1", ["-scene", "maybe", "-plus", "-char", "cat"], 0),
