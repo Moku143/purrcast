@@ -318,18 +318,17 @@ struct LockCircularView: View {
     }
 }
 
-/// Lock screen, circular: chance of rain
+/// Lock screen, circular: chance of rain — the app's umbrella (in the lock-screen style) over the percentage,
+/// straight on the wallpaper like the 미세먼지 circle
 struct LockRainCircularView: View {
     let snap: WeatherSnapshot
     var body: some View {
         let c = chanceNow(snap.scene)
-        ZStack {
-            AccessoryWidgetBackgroundCompat()
-            VStack(spacing: 0) {
-                Image(systemName: "umbrella").font(.system(size: 14, weight: .medium)).opacity(0.75)
-                Text("\(c)%").font(.system(size: 14, weight: .semibold)).opacity(0.92)
-            }
+        VStack(spacing: 3) {
+            Image("icon-umbrella-lock").interpolation(.none).resizable().frame(width: 26, height: 26).opacity(0.9)
+            Text("\(c)%").font(.system(size: 14, weight: .semibold)).foregroundStyle(.white.opacity(0.92))
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -341,7 +340,7 @@ struct LockDustCircularView: View {
         let d = snap.scene.dust
         let g = d.map { max(0, min(3, $0.grade)) }
         VStack(spacing: 3) {
-            // the icon in the lock-screen style the character uses: white, the outline cut out, mid tones see-through
+            // the icon in the lock-screen style: white, the outline as its edge, the fills see-through
             Image("icon-\(d.map { DustFacts.icon($0) } ?? "pm10")-lock").interpolation(.none).resizable()
                 .frame(width: 26, height: 26).opacity(0.9)
             Text(g.map { L(DustScale.words[$0]) } ?? "–").font(.system(size: 14, weight: .semibold))

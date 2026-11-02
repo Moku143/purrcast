@@ -449,6 +449,8 @@
 "출처: 환경부 · 한국환경공단" = "Source: Ministry of Environment · Korea Environment Corporation";
 "실시간 측정값은 확정 전 자료라 나중에 바뀔 수 있어요" = "Live readings are provisional and may change later";
 "미세먼지 · 초미세먼지 (한국 밖)" = "PM10 · PM2.5 (outside Korea)";
+"오늘 기온" = "Today's temperature";
+"지금 기온과 오늘 최저 · 최고" = "Now, with today's low and high";
 "기상청 날씨누리" = "KMA weather site";
 "예보 비교 · 예비 예보 · Data from MET Norway" = "Forecast comparison · Backup forecast · Data from MET Norway";
 "CC BY 4.0 · 그래프로 바꿔 씀" = "CC BY 4.0 · Redrawn as charts";

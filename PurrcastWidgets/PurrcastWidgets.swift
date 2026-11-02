@@ -45,7 +45,6 @@ struct HomeWidgetView: View {
         switch family {
         case .systemMedium: MediumWidgetView(snap: entry.snap)
         case .accessoryRectangular: LockRectangularView(snap: entry.snap)
-        case .accessoryCircular: LockCircularView(snap: entry.snap)
         case .accessoryInline: Text(LockText.inline(entry.snap))
         default: SmallWidgetView(snap: entry.snap)
         }
@@ -62,7 +61,20 @@ struct PurrcastWidget: Widget {
         }
         .configurationDisplayName(Brand.name)
         .description(L("옷차림으로 보는 지금 날씨"))
-        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular, .accessoryInline])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryInline])
+    }
+}
+
+/// Lock screen: the temperature circle on its own (today's range as a ring, now in the middle)
+struct TempWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "PurrcastTemp", provider: Provider()) { entry in
+            LockCircularView(snap: entry.snap)
+                .containerBackground(for: .widget) { Color.clear }
+        }
+        .configurationDisplayName(L("오늘 기온"))
+        .description(L("지금 기온과 오늘 최저 · 최고"))
+        .supportedFamilies([.accessoryCircular])
     }
 }
 
@@ -88,7 +100,6 @@ struct RainWidget: Widget {
                 .containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(L("비 올 확률"))
-        .description(L("앞으로 몇 시간 안에 비 올 확률"))
         .supportedFamilies([.accessoryCircular])
     }
 }
@@ -115,6 +126,7 @@ struct PurrcastWidgetBundle: WidgetBundle {
     var body: some Widget {
         PurrcastWidget()
         HoursWidget()
+        TempWidget()
         RainWidget()
         DustWidget()
         RainLiveActivity()
