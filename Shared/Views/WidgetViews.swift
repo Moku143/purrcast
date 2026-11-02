@@ -307,13 +307,17 @@ struct LockCircularView: View {
             let d = min(g.size.width, g.size.height), k = d / 54, lw = 4.5 * k, r = 22 * k
             let c = CGPoint(x: g.size.width / 2, y: g.size.height / 2)
             let a = (-120 + 240 * frac) * .pi / 180
+            let dot = CGPoint(x: c.x + r * CGFloat(sin(a)), y: c.y - r * CGFloat(cos(a)))
             ZStack {
-                GaugeArc(radius: r).stroke(Color.white.opacity(0.2), style: StrokeStyle(lineWidth: lw, lineCap: .round))
-                GaugeArc(radius: r).stroke(LinearGradient(colors: [.white.opacity(0.35), .white], startPoint: .leading, endPoint: .trailing),
-                                          style: StrokeStyle(lineWidth: lw, lineCap: .round))
-                Circle().fill(Color.black).overlay(Circle().stroke(Color.white, lineWidth: 1.8 * k))
-                    .frame(width: 7 * k, height: 7 * k)
-                    .position(x: c.x + r * CGFloat(sin(a)), y: c.y - r * CGFloat(cos(a)))
+                // the arc with a hole where now is, then a thin ring around the hole: the wallpaper shows through it
+                ZStack {
+                    GaugeArc(radius: r).stroke(Color.white.opacity(0.2), style: StrokeStyle(lineWidth: lw, lineCap: .round))
+                    GaugeArc(radius: r).stroke(LinearGradient(colors: [.white.opacity(0.35), .white], startPoint: .leading, endPoint: .trailing),
+                                              style: StrokeStyle(lineWidth: lw, lineCap: .round))
+                    Circle().frame(width: 9.5 * k, height: 9.5 * k).position(dot).blendMode(.destinationOut)
+                }
+                .compositingGroup()
+                Circle().stroke(Color.white, lineWidth: 1.8 * k).frame(width: 7 * k, height: 7 * k).position(dot)
                 HangingDegree(text: "\(u(s.temp))", font: pixel ? .px(13 * k) : .system(size: 13 * k, weight: .semibold))
                     .foregroundStyle(.white).position(x: c.x, y: c.y + 1 * k)
                 Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(.white.opacity(0.6))
