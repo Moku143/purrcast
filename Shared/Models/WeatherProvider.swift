@@ -16,6 +16,9 @@ protocol WeatherProvider {
 }
 
 extension WeatherProvider {
+    func forecast(for place: Place, plus: Bool, previousLevel: Int?) async throws -> WeatherScene {
+        try await forecast(for: place, plus: plus, previousLevel: previousLevel, fresh: false)
+    }
     /// Without the server: a made-up field around the place (the example weather)
     func airMap(for place: Place) async throws -> AirMap { AirMap.sample(lat: place.lat, lon: place.lon, korea: place.region == "kr") }
 }
@@ -27,9 +30,6 @@ extension SampleWeatherProvider {
         return AirMap.sample(lat: place.lat, lon: place.lon, korea: place.region == "kr", pm10: d?.pm10, pm25: d?.pm25)
     }
 
-    func forecast(for place: Place, plus: Bool, previousLevel: Int?) async throws -> WeatherScene {
-        try await forecast(for: place, plus: plus, previousLevel: previousLevel, fresh: false)
-    }
 }
 
 enum WeatherSource {
