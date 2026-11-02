@@ -24,6 +24,7 @@ const WARN = {
   태풍주의보: ['Typhoon Advisory', '台風注意報'], 태풍경보: ['Typhoon Warning', '台風警報'],
   건조주의보: ['Dry Weather Advisory', '乾燥注意報'], 건조경보: ['Dry Weather Warning', '乾燥警報'],
   풍랑주의보: ['High Seas Advisory', '波浪注意報'], 풍랑경보: ['High Seas Warning', '波浪警報'],
+  황사경보: ['Yellow Dust Warning', '黄砂警報'],
 };
 
 // en clock words: 12-hour, "2PM" · "12AM"

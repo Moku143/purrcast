@@ -143,7 +143,7 @@ export function bubble(c, lang = c.lang ?? 'ko') {
     const w = warnings[0].name;   // the KMA name (or Apple's own description): icons are chosen from it, the text is its translation
     const k = warningKind(w);
     const ic = k === 'typhoon' || k === 'wind' ? 'wind' : k === 'rain' ? 'raincloud' : k === 'snow' ? 'snowflake'
-      : k === 'heat' ? 'thermo_hot' : k === 'cold' ? 'thermo_cold' : k === 'dry' ? 'sun_strong' : 'exclaim';
+      : k === 'heat' ? 'thermo_hot' : k === 'cold' ? 'thermo_cold' : k === 'dry' ? 'sun_strong' : k === 'dust' ? 'mask' : 'exclaim';
     return B('shout', 'coral', ic, S.warning(w));
   }
   if (thunder) return B('shout', 'coral', 'lightning', T.thunder);

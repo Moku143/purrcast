@@ -348,7 +348,9 @@ test('words per language: condition, when, hour, rain kind, feels, humidity, win
 test('warnings translate by the glossary table, unknown names pass through', () => {
   assert.equal(warningName('호우주의보', 'en'), 'Heavy Rain Advisory'); assert.equal(warningName('호우주의보', 'ja'), '大雨注意報');
   assert.equal(warningName('태풍경보', 'en'), 'Typhoon Warning'); assert.equal(warningName('강풍경보', 'ja'), '暴風警報');
-  assert.equal(warningName('호우주의보', 'ko'), '호우주의보'); assert.equal(warningName('황사경보', 'en'), '황사경보');
+  assert.equal(warningName('호우주의보', 'ko'), '호우주의보'); assert.equal(warningName('해일경보', 'en'), '해일경보');
+  assert.equal(warningName('황사경보', 'en'), 'Yellow Dust Warning'); assert.equal(warningName('황사경보', 'ja'), '黄砂警報');
+  assert.equal(bubble({ warnings: [{ name: '황사경보', severity: 2 }], feels: 10 }, 'ko').icon, 'mask');
   const b = bubble({ warnings: [{ name: '대설경보', severity: 2 }], feels: 0 }, 'en');
   assert.deepEqual(b, { kind: 'shout', tone: 'coral', icon: 'snowflake', text: 'Heavy Snow Warning' });
   assert.equal(alertNote('대설주의보', { total: 6, pr: 'snow', nowWet: true, when: '', endH: 18, hi: 0, lo: -5 }, 'en'), '6cm today, snow until around 6PM, watch your step');

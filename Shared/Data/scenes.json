@@ -7797,10 +7797,14 @@
   "clock": "13:20",
   "updated": "06:00",
   "bubble": {
-   "kind": "speech",
-   "tone": "white",
+   "kind": "shout",
+   "tone": "coral",
    "icon": "mask",
-   "text": "미세먼지 매우 나쁨 · 마스크 꼭 챙기세요"
+   "text": "황사!"
+  },
+  "alert": {
+   "name": "황사경보",
+   "note": "황사가 심해요, 마스크 챙기세요"
   },
   "hours": [
    [

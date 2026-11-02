@@ -16,7 +16,7 @@ enum Compact {
     /// True for the 미세먼지 bubble ("미세먼지 나쁨 · 마스크 챙기세요"); a real 황사 (기상청) is weather and stays.
     static func isDustBubble(_ s: WeatherScene) -> Bool {
         guard let b = s.bubble, b.icon == "mask" else { return false }
-        return !b.text.contains(L("황사"))
+        return !b.text.lowercased().contains(L("황사").lowercased())
     }
 
     /// The first word: the alert name when there is one, the weather otherwise. `weather`: the weather widgets
