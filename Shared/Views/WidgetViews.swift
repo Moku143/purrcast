@@ -335,7 +335,7 @@ struct LockCircularView: View {
             // the digits a touch left of the middle with the "°" hanging off them: the small raised degree makes a
             // whole-centred "18°" look pushed left, digits-only centring looks pushed right — this sits between
             let f: Font = pixel ? .px(13 * k) : .system(size: 13 * k, weight: .semibold)
-            HangingDegree(text: "\(u(s.temp))", font: f).offset(x: -1.3 * k)
+            return HangingDegree(text: "\(u(s.temp))", font: f).offset(x: -1.3 * k)
         } under: { k in
             Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(.white.opacity(0.6))
         }
