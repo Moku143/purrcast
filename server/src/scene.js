@@ -43,6 +43,9 @@ export function buildScene(f, o) {
   }
   const ahead = pts.slice(ci + 1).filter((p) => p.t - nowT < 13 * 3600000);
   const next12 = [cur, ...ahead].slice(0, 13);
+  // the hourly row on the home screen runs a full day ahead (past midnight whatever the hour); the words about
+  // rain, the totals and the bubble keep to the next 12 hours
+  const next24 = [cur, ...pts.slice(ci + 1).filter((p) => p.t - nowT < 25 * 3600000)].slice(0, 25);
 
   const night = isNight(nowT, lat, lon, tz);
   const feelsRaw = feelsLike(cur.temp, cur.rh, cur.wind);
@@ -124,8 +127,8 @@ export function buildScene(f, o) {
   const today = days[0] || [S.today, 'sun', 0, ri(cur.temp), ri(cur.temp)];
   const hi = Math.max(today[4], ri(cur.temp)), lo = Math.min(today[3], ri(cur.temp));
 
-  // hourly rows: 지금 + 12 hours
-  const hours = next12.map((p, i) => [
+  // hourly rows: 지금 + 24 hours
+  const hours = next24.map((p, i) => [
     i === 0 ? S.now : S.hour(H(p)),
     R.icon(p, isNight(p.t, lat, lon, tz)),
     ri(i === 0 ? cur.temp : p.temp),
@@ -139,7 +142,7 @@ export function buildScene(f, o) {
   const rainNote = nowWet ? S.nowWetNote(pr === 'snow' || pr === 'heavysnow' ? S.what.snow : pr === 'sleet' ? S.what.sleet : S.what.rain, amt)
     : startP ? `${S.expect(when, S.what[next])} · ${amt}` : S.noRain12h;
   const todayPts = pts.filter((p) => dayKey(p.t, tz) === dayKey(nowT, tz));
-  const uvs = (todayPts.length ? todayPts : next12).map((p) => uvUnderCloud(p.uvClear, p.cloud)).filter((v) => v != null);
+  const uvs = (todayPts.length ? todayPts : next12).map((p) => uvUnderCloud(p.uvClear, p.uvCloud ?? p.cloud)).filter((v) => v != null);
   const uv = uvs.length ? Math.round(Math.max(...uvs)) : null;
   const sunToday = sunDay(nowT, lat, lon, tz);
   const sunTomorrow = sunDay(new Date(nowT.getTime() + 86400000), lat, lon, tz);
@@ -219,7 +222,7 @@ export function buildScene(f, o) {
       seen.add(h);
       const from = isLead ? start : +p.t, until = Math.min(+p.t + (p.step || 1) * HOUR, end);
       const own = isLead ? list[0] : p;   // the curves' values
-      const uvv = uvUnderCloud(own.uvClear, own.cloud);
+      const uvv = uvUnderCloud(own.uvClear, own.uvCloud ?? own.cloud);
       const dir = ri((((p.dir ?? own.dir ?? cur.dir ?? 0) % 360) + 360) % 360) % 360;
       rows.push([S.hour(h), r1(own.temp), ri(popOf(p)), r1(p.wind ?? own.wind ?? 0), r1(h >= 6 && h <= 18 ? uvv ?? 0 : 0), ri(own.rh ?? 0),
         r1((p.mm || 0) * Math.max(0, until - from) / HOUR), r1(Math.max(gustOf(p) ?? 0, p.wind ?? 0)), dir]);

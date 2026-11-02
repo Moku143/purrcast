@@ -263,7 +263,9 @@ export async function forecast(q, env, ctx, { now = new Date(), fetcher = fetch,
       f.points = f.points.map((p) => {
         while (j + 1 < mp.length && Math.abs(mp[j + 1].t - p.t) <= Math.abs(mp[j].t - p.t)) j++;   // both lists are sorted
         const m = mp.length && Math.abs(mp[j].t - p.t) <= 3 * 3600000 ? mp[j] : null;
-        return m ? { ...p, uvClear: m.uvClear, gust: p.gust ?? m.gust, fog: m.fog, fogPct: m.fogPct, dew: p.dew ?? m.dew } : p;
+        // the UV comes with the sky it was worked out under (Apple's uvIndex is under Apple's cloud): put back under
+        // 기상청's clearer sky, an overcast Apple hour's UV 3 would come out as 10
+        return m ? { ...p, uvClear: m.uvClear, uvCloud: m.cloud, gust: p.gust ?? m.gust, fog: m.fog, fogPct: m.fogPct, dew: p.dew ?? m.dew } : p;
       }).concat(mp.filter((p) => p.t > lastKma));
     }
   }

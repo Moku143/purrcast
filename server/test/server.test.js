@@ -143,12 +143,22 @@ test('scene: clear dry day — no umbrella, no bubble, sun tile, valid for the a
   const s = buildScene({ points: m.points, updated: at(13) }, { ...SEOUL, plan: 'free', now: at(13, 40) });
   validateScene(s);
   assert.equal(s.time, 'day'); assert.equal(s.cover, 'clear'); assert.equal(s.rain, 'none'); assert.equal(s.bubble, null);
-  assert.equal(s.level, 4); assert.equal(s.outfit, outfit(s.feels)); assert.equal(s.temp, 18); assert.equal(s.hours.length, 13); assert.equal(s.hours[0][0], '지금');
+  assert.equal(s.level, 4); assert.equal(s.outfit, outfit(s.feels)); assert.equal(s.temp, 18); assert.equal(s.hours.length, 25); assert.equal(s.hours[0][0], '지금'); assert.equal(s.hours[24][0], '13시', 'a full day ahead');
   assert.equal(s.hours[1][0], '14시'); assert.equal(s.tiles[2].label, '일몰'); assert.equal(s.updated, '06:00');
   assert.equal(s.cond, '맑음');
   assert.equal(s.dayDetail.length, s.days.length); assert.equal(s.dayDetail[1].length, 24, 'an hourly forecast: every hour of the day');
   assert.deepEqual(s.dayDetail[1].map((r) => r[0]).slice(0, 3), ['0시', '1시', '2시']); assert.equal(s.dayDetail[1][12][0], '12시');
   assert.deepEqual(s.dayDetail[1][12].slice(6), [0, 4.8, 225], 'dry hour: no rain, gust 1.6 × 3 m/s, wind from the south-west');
+});
+
+test('Korea: the UV keeps the sky it came with (기상청 clear, Apple overcast with UV 3 → 3, not 10)', () => {
+  const m = parseMet(met(at(13), flat(40)));
+  const k = 1 - 0.75 * Math.pow(0.98, 3.4);   // Apple's uvIndex 3 under 98 % cloud, as weatherkit.js turns it back to clear sky
+  const pts = m.points.map((p) => ({ ...p, cloud: 0, uvClear: 3 / k, uvCloud: 98 }));
+  const s = buildScene({ points: pts, updated: at(13) }, { ...SEOUL, plan: 'plus', now: at(13, 40) });
+  const uv = Math.max(...s.dayDetail[1].map((r) => r[4]));
+  assert.ok(uv <= 3.05, `UV ${uv}`);
+  assert.ok(s.tiles.find((t) => t.kind === 'uv').uv <= 3, 'the tile too');
 });
 
 test('day sheet chance: 30 % at 13 h between 20 % hours is on the sheet at 13 h, as in the day row', () => {
