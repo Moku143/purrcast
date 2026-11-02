@@ -54,6 +54,10 @@ struct DayDetailView: View {
                     chartCard(ctx, h).reveal(1)
                     extremesRow(ctx, h).reveal(1)
                     if !focus, !scaleItems(ctx, h).items.isEmpty { scaleCard(ctx, h).reveal(2) }
+                    // 대기질 지도 (Plus) under today's 미세먼지
+                    if !focus, metric == .dust, index == 0, s.isPlus {
+                        AirMapCard(place: model.currentPlace, night: s.isNight).dayCard(ctx).reveal(3)
+                    }
                 }
             }
             .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 40)

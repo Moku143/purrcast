@@ -85,6 +85,7 @@ final class AppModel: ObservableObject {
         if !testing, let data = d.data(forKey: "places"), let p = try? JSONDecoder().decode([Place].self, from: data), !p.isEmpty {
             loadedPlaces = p
         }
+        if let id = arg("-place"), let p = Place.catalog.first(where: { $0.id == id }) { loadedPlaces = [p] }   // screenshots abroad
         places = loadedPlaces
 
         // what to show before the first answer: the last forecast for this place (server mode), or the example

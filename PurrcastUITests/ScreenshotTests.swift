@@ -221,6 +221,16 @@ final class ScreenshotTests: XCTestCase {
 
     /// The layout board: each screen's screenshot and every element on it with its frame (points), as
     /// layout-<screen>.png + layout-<screen>.json. Scrolling screens are taken at a few scroll positions.
+    func test12AirMap() {
+        // the 대기질 지도 under today's 미세먼지 (Korea: 통합대기환경지수 at the stations; abroad: PM at a grid), map tiles given time
+        shot("day-airmap", ["-scene", "winter_smog", "-plus", "-open", "today"], wait: 2) { app in
+            app.buttons["tab-dust"].firstMatch.tap(); sleep(1); for _ in 0..<3 { app.swipeUp() }; sleep(5)
+        }
+        shot("day-airmap-jp", ["-scene", "tokyo_soon", "-plus", "-open", "today", "-place", "tokyo"], wait: 2, lang: "ja") { app in
+            app.buttons["tab-dust"].firstMatch.tap(); sleep(1); for _ in 0..<3 { app.swipeUp() }; sleep(5)
+        }
+    }
+
     func test10Layout() {
         var screens: [(String, [String], Int)] = [
             ("home-1", ["-scene", "maybe", "-plus", "-char", "cat"], 0),

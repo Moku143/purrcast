@@ -455,6 +455,11 @@
 "일출 · 일몰" = "Sunrise · Sunset";
 "다음 일출 또는 일몰 시각" = "The next sunrise or sunset";
 "지금 바람이 부는 방향과 세기" = "Where the wind is blowing and how hard";
+"대기질 지도" = "Air quality map";
+"통합대기환경지수" = "Air quality index (CAI)";
+"미세먼지 · 초미세먼지 기준" = "By PM10 · PM2.5";
+"나의 위치" = "My location";
+"지금은 지도를 불러오지 못했어요" = "Couldn't load the map right now";
 "미세먼지 · 초미세먼지 등급 · Plus에서 쓸 수 있어요" = "PM10 · PM2.5 level · with Plus";
 "기상청 날씨누리" = "KMA weather site";
 "예보 비교 · 예비 예보 · Data from MET Norway" = "Forecast comparison · Backup forecast · Data from MET Norway";

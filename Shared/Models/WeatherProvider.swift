@@ -11,9 +11,14 @@ protocol WeatherProvider {
     var isSample: Bool { get }
     /// `fresh`: the person asked (pull to refresh) — skip the URL cache and ask the server itself
     func forecast(for place: Place, plus: Bool, previousLevel: Int?, fresh: Bool) async throws -> WeatherScene
+    /// The 대기질 지도 (Plus): air quality around the place
+    func airMap(for place: Place) async throws -> AirMap
 }
 
 extension WeatherProvider {
+    /// Without the server: a made-up field around the place (the example weather)
+    func airMap(for place: Place) async throws -> AirMap { AirMap.sample(lat: place.lat, lon: place.lon, korea: place.region == "kr") }
+
     func forecast(for place: Place, plus: Bool, previousLevel: Int?) async throws -> WeatherScene {
         try await forecast(for: place, plus: plus, previousLevel: previousLevel, fresh: false)
     }
@@ -81,5 +86,24 @@ struct ServerWeatherProvider: WeatherProvider {
         s.id = place.id
         if s.place == nil { s.place = place.name }
         return s
+    }
+}
+
+extension ServerWeatherProvider {
+    /// GET {base}/v1/airmap?lat=..&lon=..&region=.. → the 대기질 지도 (docs/server-api.md)
+    func airMap(for place: Place) async throws -> AirMap {
+        var c = URLComponents(url: baseURL.appendingPathComponent("v1/airmap"), resolvingAgainstBaseURL: false)!
+        c.queryItems = [
+            URLQueryItem(name: "lat", value: String(format: "%.2f", place.lat)),
+            URLQueryItem(name: "lon", value: String(format: "%.2f", place.lon)),
+            URLQueryItem(name: "region", value: place.region),
+        ]
+        var req = URLRequest(url: c.url!, timeoutInterval: 20)
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        let (data, resp) = try await session.data(for: req)
+        guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else { throw URLError(.badServerResponse) }
+        let m = try JSONDecoder().decode(AirMap.self, from: data)
+        guard !m.points.isEmpty else { throw URLError(.cannotParseResponse) }
+        return m
     }
 }
