@@ -35,8 +35,9 @@ final class WatchLink: NSObject, ObservableObject, WCSessionDelegate {
             // screenshots: a fixed example, Plus on
             var s = SceneLibrary.scene(args[i + 1]); s.place = Place.here.name
             let c = args.firstIndex(of: "-char").flatMap { $0 + 1 < args.count ? PurrCharacter(rawValue: args[$0 + 1]) : nil } ?? .cat
-            snap = WeatherSnapshot(scene: s, character: c, plus: !args.contains("-locked"), characterName: c.defaultName, placeShort: Place.here.short, saved: Date())
-            snap.clock12 = args.contains("-clock12")     // an English phone sends 3PM
+            var w = WeatherSnapshot(scene: s, character: c, plus: !args.contains("-locked"), characterName: c.defaultName, placeShort: Place.here.short, saved: Date())
+            w.clock12 = args.contains("-clock12")        // an English phone sends 3PM
+            snap = w
         } else {
             snap = SharedStore.load() ?? .waiting
         }
