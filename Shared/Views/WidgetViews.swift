@@ -294,11 +294,11 @@ struct LockRectangularView: View {
 }
 
 /// Lock screen, circular: the watch's temperature gauge in the lock screen's one colour — today's low → high as a
-/// 240° arc brightening toward the high, a hollow ring at now, the temperature (pixel type, the degree sign hanging
-/// off) in the middle and "low · high" under it; straight on the wallpaper, nothing behind it
+/// 240° arc brightening toward the high, a hollow ring at now (a hole in the arc: the lock screen shows no black),
+/// the temperature in the middle and "low · high" under it; straight on the wallpaper, nothing behind it
 struct LockCircularView: View {
     let snap: WeatherSnapshot
-    var pixel = true
+    var pixel = false     // the lock screen's own type, like the clock; the lab can still show the pixel number
     var body: some View {
         let s = snap.scene, u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
         let lo = min(s.lo, s.temp), hi = max(s.hi, s.temp)
@@ -318,8 +318,9 @@ struct LockCircularView: View {
                 }
                 .compositingGroup()
                 Circle().stroke(Color.white, lineWidth: 1.8 * k).frame(width: 7 * k, height: 7 * k).position(dot)
-                HangingDegree(text: "\(u(s.temp))", font: pixel ? .px(13 * k) : .system(size: 13 * k, weight: .semibold))
-                    .foregroundStyle(.white).position(x: c.x, y: c.y + 1 * k)
+                // "18°" as a whole in the middle of the ring
+                Text("\(u(s.temp))°").font(pixel ? .px(13 * k) : .system(size: 13 * k, weight: .semibold))
+                    .foregroundStyle(.white).fixedSize().position(x: c.x, y: c.y + 1 * k)
                 Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(.white.opacity(0.6))
                     .position(x: c.x, y: c.y + 19 * k)
             }

@@ -101,14 +101,21 @@ struct WidgetLabView: View {
                 // the temperature circle: as it was · now (pixel number) · now (system number)
                 HStack(alignment: .top, spacing: 10) {
                     glass("lab-lock-temp-old", 72, 72, circle: true) { LockCircularSystemView(snap: snap) }
-                    glass("lab-lock-temp-px", 72, 72, circle: true) { LockCircularView(snap: snap) }
-                    glass("lab-lock-temp-sys", 72, 72, circle: true) { LockCircularView(snap: snap, pixel: false) }
+                    glass("lab-lock-temp-sys", 72, 72, circle: true) { LockCircularView(snap: snap) }
+                    glass("lab-lock-temp-cold", 72, 72, circle: true) { LockCircularView(snap: Self.shifted(snap, -9)) }
                 }
                 .padding(.top, 10)
                 Text(L("위: 사각 · 기온 · 비 확률 — 아래: 미세먼지 (매우 나쁨 · 보통 · 좋음 · 나쁨)")).font(.ui(11)).foregroundStyle(.white.opacity(0.6)).padding(.top, 6)
             }
             .padding(.top, 70)
         }
+    }
+
+    /// The snapshot some degrees warmer or colder (one-digit and below-zero numbers on the lab)
+    static func shifted(_ base: WeatherSnapshot, _ by: Int) -> WeatherSnapshot {
+        var n = base
+        n.scene.temp += by; n.scene.lo += by; n.scene.hi += by
+        return n
     }
 
     /// The snapshot with its 미세먼지 at another step (for the lab's row of circles)
