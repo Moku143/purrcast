@@ -4,6 +4,8 @@
 //   대기오염정보 getMsrstnAcctoRtmsDnstyInfo: the station's last 24 hourly readings (PM10 · PM2.5 ㎍/㎥)
 //   대기오염정보 getMinuDustFrcstDspth: today's forecast bulletin — tomorrow's grade per region (PM10 · PM2.5)
 //   미세먼지 경보 getUlfptcaAlarmInfo: 주의보 / 경보 in force per province
+//   대기오염정보 getCtprvnRltmMesureDnsty (sidoName 전국): every station's latest hour, with 통합대기환경지수 (khaiValue)
+//     — the 대기질 지도 (Plus), joined with the station positions above
 // Needs a data.go.kr service key (the same account key as 기상청): AIRKOREA_SERVICE_KEY. Licence: 공공누리 제1유형.
 
 const BASE = 'https://apis.data.go.kr/B552584';
@@ -15,6 +17,7 @@ export function airkoreaUrl(svc, op, key, params) {
 export const stationsUrl = (key) => airkoreaUrl('MsrstnInfoInqireSvc', 'getMsrstnList', key, { numOfRows: '1000', ver: '1.1' });   // 1.1: dmX / dmY in their right places
 export const realtimeUrl = (key, station) => airkoreaUrl('ArpltnInforInqireSvc', 'getMsrstnAcctoRltmMesureDnsty', key, { stationName: station, dataTerm: 'DAILY', ver: '1.5', numOfRows: '30' });   // 1.5: with PM2.5
 export const forecastUrl = (key, ymd, code) => airkoreaUrl('ArpltnInforInqireSvc', 'getMinuDustFrcstDspth', key, { searchDate: ymd, InformCode: code });
+export const nationUrl = (key) => airkoreaUrl('ArpltnInforInqireSvc', 'getCtprvnRltmMesureDnsty', key, { sidoName: '전국', ver: '1.5', numOfRows: '1000' });
 export const alarmUrl = (key, year) => airkoreaUrl('UlfptcaAlarmInqireSvc', 'getUlfptcaAlarmInfo', key, { year: String(year), numOfRows: '200' });
 
 export const items = (json) => {
@@ -130,4 +133,52 @@ export function todayHours(history, todayYmd) {
     out.push([hr, h.pm10, h.pm25]);
   }
   return out;
+}
+
+// ── 대기질 지도 ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+const SIDO = [['충청북', '충북'], ['충청남', '충남'], ['전라북', '전북'], ['전북특', '전북'], ['전라남', '전남'], ['경상북', '경북'], ['경상남', '경남']];
+/** "서울특별시 …" / "충청북도 …" / "강원특별자치도 …" / "서울" → "서울" / "충북" / "강원": the short 시도 name 에어코리아 uses. */
+export function sidoShort(s) {
+  const t = String(s || '').trim().split(/\s+/)[0] || '';
+  for (const [p, k] of SIDO) if (t.startsWith(p)) return k;
+  return t.slice(0, 2);
+}
+
+/** The station positions, by "시도 측정소" (names repeat across 시도: 중구, 동구 …) and by the bare name where it is unique. */
+export function stationIndex(json) {
+  const by = new Map(), names = new Map();
+  for (const it of items(json)) {
+    const a = parseFloat(it.dmX), b = parseFloat(it.dmY);
+    if (!Number.isFinite(a) || !Number.isFinite(b) || !it.stationName) continue;
+    const p = a > 100 ? [b, a] : [a, b];
+    by.set(`${sidoShort(it.addr)} ${it.stationName}`, p);
+    names.set(it.stationName, names.has(it.stationName) ? null : p);
+  }
+  return { by, names };
+}
+
+/** 통합대기환경지수 steps, 0 좋음 (0–50) · 1 보통 (51–100) · 2 나쁨 (101–250) · 3 매우 나쁨 (251–500). */
+export const gradeCAI = (v) => (v == null ? null : v <= 50 ? 0 : v <= 100 ? 1 : v <= 250 ? 2 : 3);
+const r4 = (v) => Math.round(v * 1e4) / 1e4;
+
+/** The map near a place: every station with an index inside the box as [lat, lon, index, step], the station nearest
+ *  the place ({ cai, grade, station, km }) and the newest hour among them. */
+export function airMap(nationJson, index, lat, lon, box = { dLat: 0.45, dLon: 0.55 }) {
+  const points = [];
+  let me = null, at = '';
+  for (const it of items(nationJson)) {
+    const cai = num(it.khaiValue);
+    if (cai == null) continue;
+    const p = index.by.get(`${sidoShort(it.sidoName)} ${it.stationName}`) ?? index.names.get(it.stationName);
+    if (!p) continue;
+    const [y, x] = p;
+    const kg = parseInt(it.khaiGrade, 10);
+    const grade = kg >= 1 && kg <= 4 ? kg - 1 : gradeCAI(cai);
+    if (it.dataTime && it.dataTime > at) at = it.dataTime;
+    const d = km(lat, lon, y, x);
+    if (!me || d < me.km) me = { cai, grade, station: it.stationName, km: Math.round(d * 10) / 10 };
+    if (Math.abs(y - lat) <= box.dLat && Math.abs(x - lon) <= box.dLon) points.push([r4(y), r4(x), cai, grade]);
+  }
+  return { at, me, points };
 }

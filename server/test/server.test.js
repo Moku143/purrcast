@@ -9,7 +9,8 @@ import { level, outfit, bubble, uvNote, whenWord, alertNote, condition, rainKind
 import { strings, normLang, warningName, hourLabel } from '../src/i18n.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike, humidityWord, windWord } from '../src/physics.js';
-import worker, { forecast, readQuery, resetCache, setUpstreamTimeout, legacyIcons } from '../src/index.js';
+import worker, { forecast, readQuery, resetCache, setUpstreamTimeout, legacyIcons, airMapAnswer } from '../src/index.js';
+import { sidoShort, stationIndex, airMap, gradeCAI, nationUrl } from '../src/providers/airkorea.js';
 import { beforeEach } from 'node:test';
 beforeEach(() => { resetCache(); resetWeatherKitTokens(); });
 
@@ -1038,3 +1039,37 @@ test('a day with its own daily forecast (중기예보) shows that chance and sky
   assert.deepEqual(d.slice(2), [60, -3, 7]);
   assert.equal(d[1], 'raincloud');
 });
+
+test('대기질 지도: stations joined by 시도 and name, the box around the place, the nearest station, the 통합지수 steps', () => {
+  assert.equal(sidoShort('서울특별시 중구 덕수궁길 15'), '서울');
+  assert.equal(sidoShort('충청북도 청주시'), '충북');
+  assert.equal(sidoShort('강원특별자치도 춘천시'), '강원');
+  assert.equal(sidoShort('전북특별자치도 전주시'), '전북');
+  assert.equal(sidoShort('경기'), '경기');
+  const ok = (item) => ({ response: { header: { resultCode: '00' }, body: { items: item } } });
+  const stations = ok([
+    { stationName: '중구', addr: '서울 중구 덕수궁길 15', dmX: '37.5643', dmY: '126.975' },
+    { stationName: '중구', addr: '부산 중구 광복로', dmX: '35.1', dmY: '129.03' },
+    { stationName: '마포구', addr: '서울특별시 마포구 포은로', dmX: '126.9046', dmY: '37.5555' },   // the old order: dmX the longitude
+    { stationName: '춘천', addr: '강원특별자치도 춘천시', dmX: '37.88', dmY: '127.73' },
+  ]);
+  const nation = ok([
+    { sidoName: '서울', stationName: '중구', khaiValue: '62', khaiGrade: '2', dataTime: '2026-11-02 17:00' },
+    { sidoName: '부산', stationName: '중구', khaiValue: '140', khaiGrade: '3', dataTime: '2026-11-02 17:00' },
+    { sidoName: '서울', stationName: '마포구', khaiValue: '48', khaiGrade: '', dataTime: '2026-11-02 18:00' },
+    { sidoName: '강원', stationName: '춘천', khaiValue: '-', khaiGrade: '', dataTime: '2026-11-02 18:00' },   // no index: left out
+  ]);
+  const m = airMap(nation, stationIndex(stations), 37.56, 126.91);
+  assert.equal(m.at, '2026-11-02 18:00');
+  assert.deepEqual(m.points, [[37.5643, 126.975, 62, 1], [37.5555, 126.9046, 48, 0]]);   // 부산 중구 is outside the box
+  assert.equal(m.me.station, '마포구');
+  assert.equal(m.me.grade, 0);
+  assert.deepEqual([0, 50, 51, 100, 101, 250, 251].map(gradeCAI), [0, 0, 1, 1, 2, 2, 3]);
+  assert.match(nationUrl('K'), /getCtprvnRltmMesureDnsty\?serviceKey=K&.*sidoName=%EC%A0%84%EA%B5%AD/);
+});
+
+test('대기질 지도 answer: Korea only, needs the 에어코리아 key', async () => {
+  await assert.rejects(airMapAnswer(new URLSearchParams('lat=35.68&lon=139.69'), { AIRKOREA_SERVICE_KEY: 'K' }), /Korea only/);
+  await assert.rejects(airMapAnswer(new URLSearchParams('lat=37.56&lon=126.91'), {}), /no air quality source/);
+});
+

@@ -17,7 +17,7 @@
 import { metUrl, parseMet } from './providers/met.js';
 import { toGrid, vilageBase, eveBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError, midUrl, midBase, midRegions, parseMidTa, parseMidLand } from './providers/kma.js';
 import { hasWeatherKit, weatherKitUrl, weatherKitToken, parseWeatherKit, packWeatherKit, unpackWeatherKit } from './providers/weatherkit.js';
-import { stationsUrl, realtimeUrl, forecastUrl, alarmUrl, airkoreaOK, nearestStation, parseRealtime, parseHistory, todayHours, forecastRegion, parseForecast as parseDustForecast, parseAlarms } from './providers/airkorea.js';
+import { stationsUrl, realtimeUrl, forecastUrl, alarmUrl, nationUrl, airkoreaOK, nearestStation, parseRealtime, parseHistory, todayHours, forecastRegion, parseForecast as parseDustForecast, parseAlarms, stationIndex, airMap } from './providers/airkorea.js';
 import { owNowUrl, owForecastUrl, owHistoryUrl, owOK, parseOwNow, parseOwTomorrow, parseOwHours } from './providers/openweather.js';
 import { buildScene, validateScene } from './scene.js';
 import { local, pad2, dayKey } from './time.js';
@@ -35,6 +35,12 @@ export default {
       return json(out);
     }
     if (url.pathname === '/v1/devices') return devices(request, env);
+    if (url.pathname === '/v1/airmap') {
+      try {
+        const out = await airMapAnswer(url.searchParams, env, ctx);
+        return json(out, 200, { 'cache-control': 'public, max-age=900' });
+      } catch (e) { return json({ error: String(e.message || e) }, e.status || 502); }
+    }
     if (url.pathname !== '/v1/forecast') return json({ error: 'not found' }, 404);
     try {
       const q = readQuery(url.searchParams);
@@ -57,6 +63,20 @@ export default {
     console.log('activities:', JSON.stringify(out));
   },
 };
+
+/** GET /v1/airmap?lat=&lon= — the 대기질 지도 (Plus, Korea): 에어코리아's latest hour for every station near the place,
+ *  with 통합대기환경지수, and the station nearest it. The whole country is fetched once and kept for half an hour. */
+export async function airMapAnswer(sp, env, ctx, fetcher = fetch) {
+  const lat = Math.round(parseFloat(sp.get('lat')) * 100) / 100, lon = Math.round(parseFloat(sp.get('lon')) * 100) / 100;
+  if (!(lat >= 32 && lat <= 39.5 && lon >= 123.5 && lon <= 132)) throw Object.assign(new Error('Korea only'), { status: 400 });
+  if (!env.AIRKOREA_SERVICE_KEY) throw Object.assign(new Error('no air quality source'), { status: 503 });
+  const key = env.AIRKOREA_SERVICE_KEY;
+  const [st, nation] = await Promise.all([
+    getJSON(stationsUrl(key), { ttl: 86400, fetcher, ok: airkoreaOK, ctx, kma: true }),
+    getJSON(nationUrl(key), { ttl: 1800, fetcher, ok: airkoreaOK, ctx, kma: true }),
+  ]);
+  return airMap(nation, stationIndex(st), lat, lon);
+}
 
 /** POST: the app registers (or re-registers) its device for Live Activities; DELETE ?id= forgets it. */
 async function devices(request, env) {
