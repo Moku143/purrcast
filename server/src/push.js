@@ -1,22 +1,27 @@
-// The rain alert (Plus) as a Live Activity push: the app registers its device (a push-to-start token, iOS 17.2+);
-// every half hour the Worker's cron looks at each device's place and, when rain (or snow) is due within the hour
-// or falling now, starts the activity once over APNs — on the Dynamic Island / lock screen for a few minutes
-// (DISMISS_AFTER), with the alert banner — and says nothing more about that rain. Needs an APNs key: APNS_KEY (the
+// Short alerts (Plus) as Live Activity pushes: the app registers its device (a push-to-start token, iOS 17.2+);
+// every half hour the Worker's cron looks at each device's place and starts a short activity over APNs — on the
+// Dynamic Island / lock screen for a few minutes (DISMISS_AFTER), with the alert banner — for, once each:
+//   · an official warning in force (기상청 특보, 황사경보 among them) and 에어코리아's 미세먼지 주의보 / 경보
+//   · rain, snow or sleet an hour before it starts, and again when it starts
+//   · 미세먼지 climbing to 나쁨 or 매우 나쁨 (not at night)
+// At most one per pass, the most urgent first, so a busy day never piles them up. Needs an APNs key: APNS_KEY (the
 // .p8 text), APNS_KEY_ID, APPLE_TEAM_ID.
 //
-// Device records live in the DEVICES KV namespace: dev:<id> → { id, start (push-to-start token), act (the running
-// activity's update token), key (which rain the activity is about), until (ms), lat, lon, tz, region, lang, name,
-// char, plan, at (ms) }.
+// Device records live in the DEVICES KV namespace: dev:<id> → { id, start (push-to-start token), act, lat, lon, tz,
+// region, lang, name, char, plan, rain (비 오기 전 on), alert (기상특보 on), sent: { eventKey: until ms }, dustG (the
+// 미세먼지 step last seen), at (ms) }.
 
 import { strings } from './i18n.js';
 import { local, dayKey } from './time.js';
+import { warningKind } from './rules.js';
 
 export const APNS_HOST = 'https://api.push.apple.com';
 export const BUNDLE_ID = 'app.purrcast.ios';
 export const ATTRIBUTES_TYPE = 'RainActivityAttributes';
 const MAX_HOURS = 8;   // ActivityKit ends an activity after 8 hours anyway
 export const WITHIN_HOURS = 1;       // the alert comes when the rain is this close
-export const DISMISS_AFTER = 10 * 60; // seconds the activity stays on the island / lock screen
+export const DISMISS_AFTER = 5 * 60;  // seconds the activity stays on the island / lock screen: in and out
+const QUIET = [22, 7];               // 미세먼지 waits out the night (the place's clock); warnings and rain do not
 
 export const hasAPNs = (env) => !!(env.APNS_KEY && env.APNS_KEY_ID && env.APPLE_TEAM_ID);
 
@@ -162,6 +167,7 @@ export function readDevice(body) {
   if (body.char != null) out.char = String(body.char).slice(0, 16);
   if (body.plan != null) out.plan = body.plan === 'plus' ? 'plus' : 'free';
   if (body.rain != null) out.rain = !!body.rain;
+  if (body.alert != null) out.alert = !!body.alert;
   return out;
 }
 
@@ -176,10 +182,64 @@ export async function saveDevice(store, dev, now = new Date()) {
   return merged;
 }
 
+const KIND_ICON = { typhoon: 'wind', wind: 'wind', rain: 'raincloud', snow: 'snowflake', heat: 'thermo_hot', cold: 'thermo_cold', dry: 'sun_strong', dust: 'mask' };
+
+/** A short alert's content-state: no rain bar (start and end are the few minutes it is shown) */
+function shortState(title, sub, icon, what, now, tz) {
+  const t = Math.floor(now.getTime() / 1000);
+  return { title, sub, icon, what, falling: false, mm: 0, start: t, end: t + DISMISS_AFTER, endHour: local(now, tz).h };
+}
+
+/**
+ * What is worth a short alert for this device now, most urgent first (경보 · rain · 주의보 · 미세먼지 주의보 / 경보 ·
+ * 미세먼지 climbing): [{ key, keep (ms before the same key may be
+ * said again), state }]. `raw` is { scene, f } for its place; `dev` its record (lang, tz, rain / alert toggles, dustG).
+ */
+export function alertEvents(raw, dev, { now }) {
+  const S = strings(dev.lang || 'ko'), tz = dev.tz || 'Asia/Seoul', out = [];
+  const f = raw?.f || {}, scene = raw?.scene || {};
+  const day = 24 * 3600000;
+  if (dev.alert !== false) {
+    // official warnings in force (기상청 특보 — 황사경보 among them): each once, again only a day after it has gone
+    for (const w of f.warnings || []) {
+      const k = warningKind(w.name), name = S.warning(w.name);
+      const yellow = k === 'dust' && /황사|dust|黄砂/i.test(String(w.name));
+      const sub = scene.alert?.name === name && scene.alert?.note ? scene.alert.note
+        : k === 'dust' ? (yellow ? S.alert.yellowDust : S.alert.fineDust) : S.alert.takeCare;
+      out.push({ key: `w:${w.name}`, keep: day, rank: (w.severity ?? 1) >= 2 ? 0 : 2, state: shortState(name, sub, KIND_ICON[k] ?? 'exclaim', yellow ? 'yellow' : 'alert', now, tz) });
+    }
+    // 에어코리아's 미세먼지 / 초미세먼지 주의보 · 경보
+    const al = f.dust?.alarm;
+    if (al) {
+      const [t, sub] = String(al.kind === 'warning' ? S.dust.warning : S.dust.watch).split(/ · |・/);
+      const title = al.item === 'PM25' && S.dust.pm25 !== S.dust.pm10 ? t.replace(S.dust.pm10, S.dust.pm25) : t;
+      out.push({ key: `a:${al.item}:${al.kind}`, keep: day, rank: 3, state: shortState(title, sub || '', 'mask', 'dust', now, tz) });
+    }
+  }
+  if (dev.rain !== false) {
+    // rain, snow or sleet: an hour before it starts, and again when it starts
+    const act = rainActivity(f, { now, tz, lang: dev.lang || 'ko' });
+    if (act) out.push({ key: `p:${act.key}:${act.falling ? 'now' : 'soon'}`, keep: Math.max(act.end - now.getTime(), 0) + 3600000, rank: 1, state: act.state });
+  }
+  if (dev.alert !== false) {
+    // 미세먼지 climbing to 나쁨 or worse: once per step it reaches (a 황사 warning already said it; not at night)
+    const d = scene.dust, g = d?.grade;
+    const h = local(now, tz).h, quiet = h >= QUIET[0] || h < QUIET[1];
+    if (g != null && g >= 2 && g > (dev.dustG ?? 0) && !quiet && !out.some((e) => e.state.what === 'yellow' || e.state.what === 'dust')) {
+      const fine = (d.pm25Grade ?? -1) > (d.pm10Grade ?? -1);
+      const note = String(S.dust.note[g] || '').split(/ · |・/);
+      out.push({ key: `d:${dayKey(now, tz)}:${g}`, keep: day, rank: 4, dust: g,
+        state: shortState(`${fine ? S.dust.pm25 : S.dust.pm10} ${S.dust.grade[g]}`, note[1] || note[0] || '', 'mask', 'dust', now, tz) });
+    }
+  }
+  // 경보 first, then the rain (it will not wait), then 주의보, 미세먼지 주의보 / 경보, 미세먼지 climbing
+  return out.sort((a, b) => a.rank - b.rank);
+}
+
 /**
  * The half-hourly pass: every Plus device with a push-to-start token gets its place's forecast (shared per ~1 km
- * cell); rain within the hour that the device has not been told about yet is pushed once. `forecastRaw(q)` gives
- * { scene, f } for a place. Returns counts.
+ * cell); of what is worth an alert there, the most urgent one it has not been told yet is pushed — one per pass.
+ * `forecastRaw(q)` gives { scene, f } for a place. Returns counts.
  */
 export async function runActivities(env, { forecastRaw, fetcher = fetch, now = new Date() }) {
   const store = env.DEVICES;
@@ -191,6 +251,7 @@ export async function runActivities(env, { forecastRaw, fetcher = fetch, now = n
     if (!raws.has(ck)) raws.set(ck, forecastRaw({ lat: dev.lat, lon: dev.lon, tz: dev.tz, region: dev.region, plan: 'plus', lang: dev.lang, name: dev.name, prev: null, outfitPrev: null, v: 2 }).catch((e) => ({ error: e })));
     return raws.get(ck);
   };
+  const t = now.getTime();
   let cursor;
   do {
     const page = await store.list({ prefix: 'dev:', cursor, limit: 200 });
@@ -200,20 +261,34 @@ export async function runActivities(env, { forecastRaw, fetcher = fetch, now = n
       try { dev = await store.get(k.name, 'json'); } catch { continue; }
       if (!dev) continue;
       out.devices++;
-      if (dev.plan !== 'plus' || !dev.start || dev.rain === false) { out.skipped++; continue; }
+      if (dev.plan !== 'plus' || !dev.start || (dev.rain === false && dev.alert === false)) { out.skipped++; continue; }
       const raw = await rawFor(dev);
       if (!raw || raw.error) { out.errors++; continue; }
-      const act = rainActivity(raw.f, { now, tz: dev.tz, lang: dev.lang });
       try {
-        if (act && dev.key !== act.key) {
-          // this rain has not been announced: once, then remember it until the rain is past
-          const body = activityBody('start', { state: act.state, place: dev.name || '', char: dev.char, level: raw.scene?.level, now, end: act.end });
+        const sent = Object.fromEntries(Object.entries(dev.sent || {}).filter(([, until]) => until > t));
+        const events = alertEvents(raw, dev, { now });
+        // a warning still in force stays "said" for as long as it lasts (and a day after)
+        for (const e of events) if (sent[e.key] && e.key.startsWith('w:')) sent[e.key] = Math.max(sent[e.key], t + e.keep);
+        const next = events.find((e) => !sent[e.key]);
+        const g = raw.scene?.dust?.grade;
+        const h = local(now, dev.tz || 'Asia/Seoul').h, quiet = h >= QUIET[0] || h < QUIET[1];
+        // the step last seen: it goes down at any hour, up only when it could be said (so a climb at night is told in the morning)
+        let dustG = dev.dustG ?? 0;
+        if (g != null && (g < dustG || !quiet)) dustG = g;
+        let changed = dustG !== (dev.dustG ?? 0) || Object.keys(sent).length !== Object.keys(dev.sent || {}).length;
+        if (next) {
+          const body = activityBody('start', { state: next.state, place: dev.name || '', char: dev.char, level: raw.scene?.level, now });
           const r = await sendLiveActivity(env, dev.start, body, { fetcher, now });
-          if (r.ok) { out.started++; await store.put(k.name, JSON.stringify({ ...dev, key: act.key, until: act.end }), { expirationTtl: DEV_TTL }); }
-          else { out.errors++; if (r.dead) await store.put(k.name, JSON.stringify({ ...dev, start: null }), { expirationTtl: DEV_TTL }); console.log('APNs start failed:', r.status, r.reason); }
-        } else {
-          out.skipped++;
-          if (!act && dev.key && dev.until && dev.until < now.getTime()) await store.put(k.name, JSON.stringify({ ...dev, key: null, until: null }), { expirationTtl: DEV_TTL });
+          if (r.ok) { out.started++; sent[next.key] = t + next.keep; changed = true; }
+          else {
+            out.errors++; console.log('APNs start failed:', r.status, r.reason);
+            if (r.dead) { dev.start = null; changed = true; }
+            if (next.dust) dustG = dev.dustG ?? 0;   // not told: try again next pass
+          }
+        } else out.skipped++;
+        if (changed) {
+          const { key, until, ...rest } = dev;   // the old single-rain memory is replaced by `sent`
+          await store.put(k.name, JSON.stringify({ ...rest, sent, dustG }), { expirationTtl: DEV_TTL });
         }
       } catch (e) { out.errors++; console.log('activity failed:', e.message); }
     }

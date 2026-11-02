@@ -919,7 +919,7 @@ test('Abroad: scene.dust from OpenWeather with Apple or MET weather', async () =
 });
 
 // ---- Live Activities (push.js) ----
-import { rainActivity, activityBody, readDevice, saveDevice, runActivities, apnsToken, resetApnsToken, DISMISS_AFTER } from '../src/push.js';
+import { rainActivity, activityBody, readDevice, saveDevice, runActivities, apnsToken, resetApnsToken, DISMISS_AFTER, alertEvents } from '../src/push.js';
 
 test('Rain alert (Live Activity): rain within the hour → start text; falling now → until-when text; snow in cm; nothing when dry', () => {
   const now = at(13, 40);
@@ -976,15 +976,19 @@ test('Rain alert: device registration, the APNs token, and the half-hourly pass 
   assert.equal(sent[0].url, 'https://api.push.apple.com/3/device/' + 'ab'.repeat(32));
   assert.equal(sent[0].headers['apns-topic'], 'app.purrcast.ios.push-type.liveactivity'); assert.equal(sent[0].headers['apns-push-type'], 'liveactivity');
   assert.equal(sent[0].body.aps.event, 'start'); assert.equal(sent[0].body.aps.attributes.level, 6);
-  assert.equal(JSON.parse(kv.get('dev:D1')).key, '20261021:14:rain');
-  // the same rain half an hour later: said already, nothing more
-  out = await runActivities(env, { forecastRaw, fetcher, now: at(14, 10) });
+  assert.ok(JSON.parse(kv.get('dev:D1')).sent['p:20261021:14:rain:soon']);
+  // the same rain half an hour before it: said already, nothing more
+  out = await runActivities(env, { forecastRaw, fetcher, now: at(13, 55) });
   assert.equal(out.started, 0); assert.equal(sent.length, 1);
-  // the rain is past: the memory clears, so the next rain is announced again
-  out = await runActivities(env, { forecastRaw: async () => ({ scene: {}, f: { points: pts([[15, 0], [16, 0], [17, 0]]) } }), fetcher, now: at(15, 40) });
-  assert.equal(JSON.parse(kv.get('dev:D1')).key, null);
+  // when it starts: once more ("지금 비")
+  out = await runActivities(env, { forecastRaw, fetcher, now: at(14, 10) });
+  assert.equal(out.started, 1); assert.equal(sent[1].body.aps.alert.title, '지금 비 · 1.2mm');
+  out = await runActivities(env, { forecastRaw, fetcher, now: at(14, 40) });
+  assert.equal(out.started, 0);
+  // the next rain is announced again
   out = await runActivities(env, { forecastRaw: async () => ({ scene: {}, f: { points: pts([[16, 0], [17, 2], [18, 0]]) } }), fetcher, now: at(16, 10) });
-  assert.equal(out.started, 1); assert.equal(sent[1].body.aps.alert.title, '17시쯤 비 예보');
+  assert.equal(out.started, 1); assert.equal(sent[2].body.aps.alert.title, '17시쯤 비 예보');
+  assert.equal(sent[2].body.aps['dismissal-date'] - sent[2].body.aps.timestamp, DISMISS_AFTER);
   // the 비 오기 전 toggle off: nothing is sent
   await saveDevice(store, readDevice({ id: 'D1', lat: 37.49, lon: 126.84, rain: false }), now);
   out = await runActivities(env, { forecastRaw: async () => ({ scene: {}, f: { points: pts([[16, 0], [17, 2], [18, 0]]) } }), fetcher, now: at(16, 40) });
@@ -992,7 +996,7 @@ test('Rain alert: device registration, the APNs token, and the half-hourly pass 
   await saveDevice(store, readDevice({ id: 'D1', lat: 37.49, lon: 126.84, rain: true }), now);
   // a dead push-to-start token (410) is dropped
   const dead = async () => ({ ok: false, status: 410, json: async () => ({ reason: 'Unregistered' }) });
-  await store.put('dev:D1', JSON.stringify({ ...JSON.parse(kv.get('dev:D1')), key: null, until: null }));
+  await store.put('dev:D1', JSON.stringify({ ...JSON.parse(kv.get('dev:D1')), sent: {} }));
   out = await runActivities(env, { forecastRaw, fetcher: dead, now: at(13, 40) });
   assert.equal(out.errors, 1); assert.equal(JSON.parse(kv.get('dev:D1')).start, null);
 });
@@ -1112,5 +1116,39 @@ test('대기질 sheet: the index now and yesterday at this hour, the pollutant b
   assert.equal(o.value, null); assert.equal(o.grade, 1); assert.equal(o.main, 'pm25');
   assert.ok(o.yday.level < o.level);
   assert.deepEqual(o.items.map((x) => x[0]), ['pm10', 'pm25', 'o3', 'no2', 'so2', 'co']);
+});
+
+test('Short alerts: warnings (황사경보 too), 미세먼지 주의보, rain soon / now, 미세먼지 climbing — one per pass, each once', async () => {
+  const pts = (spec) => spec.map(([hh, mm, type]) => ({ t: at(hh), mm, type: type || (mm > 0 ? 'rain' : 'none') }));
+  const dev = { lang: 'ko', tz: TZ, rain: true, alert: true, dustG: 1 };
+  const raw = {
+    scene: { level: 6, alert: { name: '황사경보', note: '황사가 심해요, 마스크 챙기세요' }, dust: { grade: 3, pm10Grade: 3, pm25Grade: 2 } },
+    f: { warnings: [{ name: '황사경보', severity: 2 }, { name: '강풍주의보', severity: 1 }], dust: { alarm: { kind: 'watch', item: 'PM25' } }, points: pts([[13, 0], [14, 1.2], [15, 0]]) },
+  };
+  const ev = alertEvents(raw, dev, { now: at(13, 40) });
+  assert.deepEqual(ev.map((e) => e.key), ['w:황사경보', 'p:20261021:14:rain:soon', 'w:강풍주의보', 'a:PM25:watch']);   // no 미세먼지 climb: the 황사 warning said it
+  assert.deepEqual([ev[0].state.title, ev[0].state.sub, ev[0].state.icon, ev[0].state.what], ['황사경보', '황사가 심해요, 마스크 챙기세요', 'mask', 'yellow']);
+  assert.deepEqual([ev[2].state.title, ev[2].state.icon, ev[2].state.what], ['강풍주의보', 'wind', 'alert']);
+  assert.deepEqual([ev[3].state.title, ev[3].state.sub], ['초미세먼지 주의보', '외출할 땐 마스크를 착용해 주세요']);
+  assert.equal(ev[0].state.end - ev[0].state.start, DISMISS_AFTER);
+  // 미세먼지 climbing: once per step, not at night, in English too
+  const air = (g, p10, p25) => ({ scene: { dust: { grade: g, pm10Grade: p10, pm25Grade: p25 } }, f: { points: pts([[13, 0], [14, 0]]) } });
+  assert.deepEqual(alertEvents(air(2, 1, 2), { ...dev, dustG: 1 }, { now: at(13, 40) }).map((e) => e.state.title), ['초미세먼지 나쁨']);
+  assert.deepEqual(alertEvents(air(2, 2, 1), { ...dev, lang: 'en', dustG: 0 }, { now: at(13, 40) }).map((e) => e.state.title), ['PM10 Poor']);
+  assert.equal(alertEvents(air(2, 2, 1), { ...dev, dustG: 2 }, { now: at(13, 40) }).length, 0, 'already 나쁨: said');
+  assert.equal(alertEvents(air(3, 3, 1), { ...dev, dustG: 1 }, { now: at(23, 10) }).length, 0, 'not at night');
+  assert.equal(alertEvents(air(3, 3, 1), { ...dev, alert: false, dustG: 1 }, { now: at(13, 40) }).length, 0, '기상특보 off');
+  // the pass: one per run, most urgent first, each once
+  const kv = new Map();
+  const store = { get: async (k) => (kv.has(k) ? JSON.parse(kv.get(k)) : null), put: async (k, v) => { kv.set(k, v); }, delete: async () => {},
+    list: async () => ({ keys: [...kv.keys()].map((name) => ({ name })), list_complete: true }) };
+  await saveDevice(store, readDevice({ id: 'D9', lat: 37.49, lon: 126.84, tz: TZ, region: 'kr', lang: 'ko', name: '오류동', plan: 'plus', start: 'cd'.repeat(32), rain: true, alert: true }), at(13, 0));
+  const env = { DEVICES: store, APNS_KEY: (await testP8()).pem, APNS_KEY_ID: 'KEY1234567', APPLE_TEAM_ID: 'TEAM123456' };
+  resetApnsToken();
+  const got = [];
+  const fetcher = async (url, init) => { got.push(JSON.parse(init.body).aps.alert.title); return { ok: true, status: 200, json: async () => ({}) }; };
+  for (const [hh, mm] of [[13, 10], [13, 40], [14, 10], [14, 40], [15, 10]]) await runActivities(env, { forecastRaw: async () => raw, fetcher, now: at(hh, mm) });
+  assert.deepEqual(got, ['황사경보', '14시쯤 비 예보', '지금 비 · 1.2mm', '강풍주의보', '초미세먼지 주의보']);   // 경보, the rain, then the rest
+  assert.equal(readDevice({ id: 'x', lat: 1, lon: 1, alert: false }).alert, false);
 });
 

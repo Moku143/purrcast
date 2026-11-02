@@ -5,8 +5,11 @@ import SwiftUI
 // renders them at their real sizes for the layout board).
 
 enum RainLiveWords {
-    /// The compact island has room for a few characters: "6시 비" / "비 1mm"
+    /// A short alert (기상특보 · 황사 · 미세먼지), not rain: no bar, no umbrella
+    static func isAlert(_ s: RainActivityAttributes.ContentState) -> Bool { ["alert", "yellow", "dust"].contains(s.what) }
+    /// The compact island has room for a few characters: "6시 비" / "비 1mm" / "황사경보"
     static func short(_ s: RainActivityAttributes.ContentState) -> String {
+        if isAlert(s) { return s.title }
         if s.falling { return s.mm >= 0.1 ? "\(s.what == "snow" ? L("눈") : L("비")) \(mmText(s.mm))\(s.what == "snow" ? "cm" : "mm")" : (s.what == "snow" ? L("눈") : L("비")) }
         return s.title.replacingOccurrences(of: L(" 예보"), with: "")
     }
@@ -18,7 +21,7 @@ struct RainCat: View {
     let a: RainActivityAttributes; let s: RainActivityAttributes.ContentState; var width: CGFloat = 56
     var body: some View {
         let c = PurrCharacter(rawValue: a.character) ?? .cat
-        CharacterSprite(character: c, level: Rules.clamp(a.level), rain: s.falling ? .umbrella : .bag, width: width, animate: false)
+        CharacterSprite(character: c, level: Rules.clamp(a.level), rain: RainLiveWords.isAlert(s) ? .none : s.falling ? .umbrella : .bag, width: width, animate: false)
             .frame(width: width, alignment: .bottom)
     }
 }
@@ -49,7 +52,7 @@ struct RainLockView: View {
             VStack(alignment: .leading, spacing: 5) {
                 Text(s.title).font(.px(17)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.7)
                 Text(a.place.isEmpty ? s.sub : "\(a.place) · \(s.sub)").font(.ui(12)).foregroundStyle(Color(hex: "#C9D0F0")).lineLimit(2).minimumScaleFactor(0.8)
-                RainBar(s: s)
+                if !RainLiveWords.isAlert(s) { RainBar(s: s) }
             }
         }
         .padding(.horizontal, 16).padding(.vertical, 12)

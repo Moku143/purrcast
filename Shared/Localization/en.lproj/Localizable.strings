@@ -465,6 +465,12 @@
 "오존" = "Ozone";
 "10㎛ 이하 미세먼지" = "Particles under 10 µm";
 "2.5㎛ 이하 초미세먼지" = "Particles under 2.5 µm";
+"비·눈이 오기 1시간 전과 올 때 잠깐 알려 드려요" = "A quick heads-up an hour before rain or snow, and when it starts";
+"기상특보 · 미세먼지" = "Warnings · Air quality";
+"특보·황사·미세먼지 주의보가 내려지거나 미세먼지가 나빠지면 잠깐 알려 드려요" = "A quick heads-up when a warning, yellow dust or a fine dust advisory is issued, or the air turns poor";
+"황사경보" = "Yellow Dust Warning";
+"호우경보" = "Heavy Rain Warning";
+"황사가 심해요, 마스크 챙기세요" = "Heavy yellow dust, take a mask";
 "이산화질소" = "Nitrogen dioxide";
 "아황산가스" = "Sulfur dioxide";
 "일산화탄소" = "Carbon monoxide";

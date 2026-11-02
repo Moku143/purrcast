@@ -54,7 +54,7 @@ final class LiveActivities {
         let body: [String: Any] = [
             "id": Self.deviceID, "lat": (p.lat * 100).rounded() / 100, "lon": (p.lon * 100).rounded() / 100, "tz": p.timeZone,
             "region": p.region, "lang": Lang.current.code, "name": p.short, "char": model.shownCharacter.rawValue,
-            "plan": model.plus ? "plus" : "free", "start": start, "rain": model.notifyRain,
+            "plan": model.plus ? "plus" : "free", "start": start, "rain": model.notifyRain, "alert": model.notifyAlert,
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: body, options: [.sortedKeys]) else { return }
         let key = String(decoding: data, as: UTF8.self)

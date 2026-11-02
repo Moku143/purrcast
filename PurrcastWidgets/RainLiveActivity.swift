@@ -2,9 +2,10 @@ import WidgetKit
 import SwiftUI
 import ActivityKit
 
-/// The rain Live Activity: the character in today's outfit with the umbrella beside "6시쯤 비 예보 · 1mm · 우산
-/// 챙기세요" and a bar that fills as the rain approaches (la-final mock: A compact, B expanded, C raining, D lock screen).
-/// Started, updated and ended by the server over APNs (Plus); the app only hands over its tokens.
+/// The short alerts (Plus) as a Live Activity: rain and snow — the character in today's outfit with the umbrella
+/// beside "6시쯤 비 예보 · 1mm · 우산 챙기세요" and a bar that fills as the rain approaches (la-final mock: A compact,
+/// B expanded, C raining, D lock screen) — and 기상특보 · 황사 · 미세먼지 (the character, the name and what to do, no
+/// bar). Started by the server over APNs for a few minutes; the app only hands over its tokens.
 struct RainLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: RainActivityAttributes.self) { context in
@@ -25,7 +26,7 @@ struct RainLiveActivity: Widget {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    RainBar(s: s).padding(.horizontal, 4).padding(.top, 2)
+                    if !RainLiveWords.isAlert(s) { RainBar(s: s).padding(.horizontal, 4).padding(.top, 2) }
                 }
             } compactLeading: {
                 RainCat(a: a, s: s, width: 22)

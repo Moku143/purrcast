@@ -365,6 +365,7 @@ final class AppModel: ObservableObject {
 
     /// A toggle went on: ask for permission if nobody asked yet, then plan.
     private func notificationsChanged(turnedOn: Bool) {
+        Task { await LiveActivities.shared.register(self) }   // the server's short alerts follow the toggles
         guard turnedOn else { planNotifications(); return }
         UNUserNotificationCenter.current().getNotificationSettings { s in
             if s.authorizationStatus == .notDetermined {

@@ -246,6 +246,9 @@ final class ScreenshotTests: XCTestCase {
         shot("home-smog", ["-scene", "winter_smog", "-plus", "-char", "cat"], wait: 2)
         shot("home-yellow", ["-scene", "spring_dust", "-plus", "-char", "cat"], wait: 2)
         shot("home-yellow-2", ["-scene", "spring_dust", "-plus", "-char", "cat"], wait: 2) { app in app.swipeUp(); sleep(1) }
+        // the island's short alerts: rain, snow, 황사경보, 미세먼지, a 경보
+        shot("livelab-alerts", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "liveLab"], wait: 2)
+        shot("livelab-alerts-2", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "liveLab"], wait: 2) { app in app.swipeUp(); sleep(1) }
     }
 
     func test10Layout() {

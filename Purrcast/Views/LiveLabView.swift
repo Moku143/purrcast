@@ -19,10 +19,21 @@ struct LiveLabView: View {
                 label(L("다이내믹 아일랜드"))
                 island(a, soon).accessibilityIdentifier("lab-live-island")
                 compact(a, falling).accessibilityIdentifier("lab-live-compact")
+                // the short alerts with no rain bar: 황사경보 · 초미세먼지 climbing · a 경보 · snow on its way
+                label(L("기상특보 · 미세먼지"))
+                island(a, alert(L("황사경보"), L("황사가 심해요, 마스크 챙기세요"), "mask", "yellow", now))
+                lockCard(a, alert(L("초미세먼지") + " " + L("나쁨"), L("마스크를 챙겨 주세요"), "mask", "dust", now))
+                island(a, alert(L("호우경보"), L("우산·우비 챙기세요"), "raincloud", "alert", now))
+                compact(a, alert(L("황사경보"), "", "mask", "yellow", now))
+                island(a, RainActivityAttributes.ContentState(title: L("%@쯤 %@ 예보", HourLabel.word(18, clock12: model.clock12), L("눈")), sub: L("약 %@cm", "1") + " · " + L("미끄러우니 조심하세요"), icon: "snowflake", what: "snow", falling: false, mm: 1, start: now + 3600, end: now + 3 * 3600, endHour: 20))
             }
             .padding(.vertical, 24).frame(maxWidth: .infinity)
         }
         .background(Color(hex: "#2B3355"))
+    }
+
+    private func alert(_ title: String, _ sub: String, _ icon: String, _ what: String, _ now: Int) -> RainActivityAttributes.ContentState {
+        RainActivityAttributes.ContentState(title: title, sub: sub, icon: icon, what: what, falling: false, mm: 0, start: now, end: now + 300, endHour: 0)
     }
 
     private func label(_ t: String) -> some View {
@@ -48,7 +59,7 @@ struct LiveLabView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            RainBar(s: s).padding(.horizontal, 4).padding(.top, 2)
+            if !RainLiveWords.isAlert(s) { RainBar(s: s).padding(.horizontal, 4).padding(.top, 2) }
         }
         .padding(.horizontal, 16).padding(.vertical, 14)
         .frame(width: 371)
