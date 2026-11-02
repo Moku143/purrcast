@@ -222,7 +222,11 @@ enum Sky {
         ax.sort { pri.firstIndex(of: $0)! < pri.firstIndex(of: $1)! }
         for (k, a) in ax.prefix(2).enumerated() {
             let only: ((SkyItem) -> Bool)? = (a == "heat" && night) ? { $0.t != "static" } : nil
-            if wet { add(a, tint: false, only: only, keep: k > 0 ? 4 : 2) }
+            if wet {
+                add(a, tint: false, only: only, keep: k > 0 ? 4 : 2)
+                // the rain does not wash the air out of the picture: 미세먼지 / 황사 keep a lighter veil
+                if a == "haze" || a == "dust", let t = withAlpha(data[a]?.tint, factor: 0.55) { tints.append(t) }
+            }
             else if k > 0 { add(a, tint: false, only: only, keep: 2) }
             else { add(a, only: only) }
         }
