@@ -13,8 +13,16 @@ enum Compact {
     /// The same names in the current language.
     static var keep: Set<String> { Set(keepKeys.map { L($0) }) }
 
-    /// The first word: the alert name when there is one, the weather otherwise.
-    static func head(_ s: WeatherScene) -> String {
+    /// True for the 미세먼지 bubble ("미세먼지 나쁨 · 마스크 챙기세요"); a real 황사 (기상청) is weather and stays.
+    static func isDustBubble(_ s: WeatherScene) -> Bool {
+        guard let b = s.bubble, b.icon == "mask" else { return false }
+        return !b.text.contains(L("황사"))
+    }
+
+    /// The first word: the alert name when there is one, the weather otherwise. `weather`: the weather widgets
+    /// (the lock-screen rectangle and line) leave 미세먼지 out — it has its own circle.
+    static func head(_ s: WeatherScene, weather: Bool = false) -> String {
+        if weather && isDustBubble(s) { return condWord(s) }
         if let t = s.bubble?.text.replacingOccurrences(of: "!", with: "").trimmingCharacters(in: .whitespaces), !t.isEmpty {
             if keep.contains(t) || t.hasSuffix(L("주의보")) || t.hasSuffix(L("경보")) || t.hasSuffix(L("특보")) { return t }
             let forecast = L(" 예보"), expected = L(" 예정")
@@ -41,22 +49,22 @@ enum Compact {
     }
 
     /// The second word: the one thing most worth knowing next to the temperature.
-    /// 우산 (rain now or expected) · 체감 N° (feels 3° off) · 큰 일교차 · 바람 · 안개 · 최고/최저.
-    static func tail(_ s: WeatherScene, deg: (Int) -> String) -> String {
-        let h = head(s)
+    /// 우산 (rain now or expected) · 체감 N° (feels 3° off) · 큰 일교차 · 바람 · 안개 · 최고/최저. (Bad 미세먼지 is not
+    /// 황사: 황사 only shows when 기상청 says so, as the head.)
+    static func tail(_ s: WeatherScene, deg: (Int) -> String, weather: Bool = false) -> String {
+        let h = head(s, weather: weather)
         let rain = RainState(rawValue: s.rain) ?? .none
         if (rain == .umbrella || rain == .bag) && !h.localizedCaseInsensitiveContains(L("우산")) { return L("우산") }
         if abs(s.feels - s.temp) >= 3 { return L("체감 %@", deg(s.feels)) }
         if s.hi - s.lo >= 10 && !h.localizedCaseInsensitiveContains(L("일교차")) { return L("큰 일교차") }
         if s.aux == "wind" && !h.localizedCaseInsensitiveContains(L("바람")) { return L("바람") }
         if s.aux == "fog" && !h.localizedCaseInsensitiveContains(L("안개")) { return L("안개") }
-        if s.aux == "dust" && !h.localizedCaseInsensitiveContains(L("황사")) { return L("황사") }
         return s.temp >= (s.hi + s.lo) / 2 ? L("최저 %@", deg(s.lo)) : L("최고 %@", deg(s.hi))
     }
 
     /// "비 · 16° · 우산": the one line for inline complications and the lock screen.
-    static func line(_ s: WeatherScene, deg: (Int) -> String) -> String {
-        "\(head(s)) · \(deg(s.temp)) · \(tail(s, deg: deg))"
+    static func line(_ s: WeatherScene, deg: (Int) -> String, weather: Bool = false) -> String {
+        "\(head(s, weather: weather)) · \(deg(s.temp)) · \(tail(s, deg: deg, weather: weather))"
     }
 
     /// For the small bubble above the character: a word or two on one line; a longer line broken at the server's

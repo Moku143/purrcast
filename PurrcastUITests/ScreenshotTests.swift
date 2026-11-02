@@ -244,6 +244,8 @@ final class ScreenshotTests: XCTestCase {
             ("watchlab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage3"], 0),
             ("watchlab-dust", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage3"], 0),
             ("locklab", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage4"], 0),
+            ("locklab-en", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage4", "-lang", "en"], 0),
+            ("locklab-ja", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage4", "-lang", "ja"], 0),
             ("livelab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "liveLab"], 0),
             ("widgetlab-2", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage2"], 0),
         ]

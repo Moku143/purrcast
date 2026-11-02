@@ -285,31 +285,28 @@ struct LockRectangularView: View {
                 .probe("lockCat")
             VStack(alignment: .leading, spacing: 1) {
                 Text(snap.deg(s.temp)).font(.system(size: 15, weight: .semibold)).opacity(0.92).probe("lockTemp")
-                Text(LockText.line(s)).font(.ui(12, .medium)).lineLimit(1).minimumScaleFactor(0.7).opacity(0.85).probe("lockLine")
-                Text("\(Compact.tail(s, deg: snap.deg)) · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.ui(11)).opacity(0.65).probe("lockTail")
+                Text(Compact.head(s, weather: true)).font(.ui(12, .medium)).lineLimit(1).minimumScaleFactor(0.7).opacity(0.85).probe("lockLine")
+                Text("\(Compact.tail(s, deg: snap.deg, weather: true)) · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.ui(11)).opacity(0.65).probe("lockTail")
             }
             Spacer(minLength: 0)
         }
     }
 }
 
-/// Lock screen, circular: the watch's temperature gauge in the lock screen's one colour — today's low → high as a
-/// 240° arc brightening toward the high, a hollow ring at now (a hole in the arc: the lock screen shows no black),
-/// the temperature in the middle and "low · high" under it; straight on the wallpaper, nothing behind it
-struct LockCircularView: View {
-    let snap: WeatherSnapshot
-    var pixel = false     // the lock screen's own type, like the clock; the lab can still show the pixel number
+/// The ring the lock-screen temperature and UV circles share (the watch gauge's shape, in the lock screen's one
+/// colour): a 240° arc open at the bottom, brightening to the right, a hollow ring at `frac` — a hole in the arc, as
+/// the lock screen draws no black — and whatever goes in the middle and under it (sized by `k`, 1 at 54 pt).
+struct LockRing<Middle: View, Under: View>: View {
+    let frac: Double
+    let middle: (CGFloat) -> Middle
+    let under: (CGFloat) -> Under
     var body: some View {
-        let s = snap.scene, u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
-        let lo = min(s.lo, s.temp), hi = max(s.hi, s.temp)
-        let frac = max(0, min(1, Double(s.temp - lo) / Double(max(1, hi - lo))))
         GeometryReader { g in
             let d = min(g.size.width, g.size.height), k = d / 54, lw = 4.5 * k, r = 22 * k
             let c = CGPoint(x: g.size.width / 2, y: g.size.height / 2)
-            let a = (-120 + 240 * frac) * .pi / 180
+            let a = (-120 + 240 * max(0, min(1, frac))) * .pi / 180
             let dot = CGPoint(x: c.x + r * CGFloat(sin(a)), y: c.y - r * CGFloat(cos(a)))
             ZStack {
-                // the arc with a hole where now is, then a thin ring around the hole: the wallpaper shows through it
                 ZStack {
                     GaugeArc(radius: r).stroke(Color.white.opacity(0.2), style: StrokeStyle(lineWidth: lw, lineCap: .round))
                     GaugeArc(radius: r).stroke(LinearGradient(colors: [.white.opacity(0.35), .white], startPoint: .leading, endPoint: .trailing),
@@ -318,13 +315,85 @@ struct LockCircularView: View {
                 }
                 .compositingGroup()
                 Circle().stroke(Color.white, lineWidth: 1.8 * k).frame(width: 7 * k, height: 7 * k).position(dot)
-                // "18°" as a whole in the middle of the ring
-                Text("\(u(s.temp))°").font(pixel ? .px(13 * k) : .system(size: 13 * k, weight: .semibold))
-                    .foregroundStyle(.white).fixedSize().position(x: c.x, y: c.y + 1 * k)
-                Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(.white.opacity(0.6))
-                    .position(x: c.x, y: c.y + 19 * k)
+                // a little above the middle: the ring is open at the bottom, so its weight sits higher
+                middle(k).foregroundStyle(.white).fixedSize().position(x: c.x, y: c.y - 2.5 * k)
+                under(k).position(x: c.x, y: c.y + 17 * k)
             }
         }
+    }
+}
+
+/// Lock screen, circular: today's low → high on the ring, now as the ring's hollow dot, "18°" in the middle and
+/// "low · high" under it; straight on the wallpaper, nothing behind it
+struct LockCircularView: View {
+    let snap: WeatherSnapshot
+    var pixel = false     // the lock screen's own type, like the clock; the lab can still show the pixel number
+    var body: some View {
+        let s = snap.scene, u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
+        let lo = min(s.lo, s.temp), hi = max(s.hi, s.temp)
+        LockRing(frac: Double(s.temp - lo) / Double(max(1, hi - lo))) { k in
+            Text("\(u(s.temp))°").font(pixel ? .px(13 * k) : .system(size: 13 * k, weight: .semibold))
+        } under: { k in
+            Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(.white.opacity(0.6))
+        }
+    }
+}
+
+/// Lock screen, circular: today's highest UV index on the same ring (0 … 11+), the number in the middle and a small
+/// sun under it instead of numbers
+struct LockUVCircularView: View {
+    let snap: WeatherSnapshot
+    var body: some View {
+        let uv = snap.scene.tiles.first { $0.kind == "uv" }?.uv ?? 0
+        LockRing(frac: Double(min(uv, 11)) / 11) { k in
+            Text("\(uv)").font(.system(size: 14 * k, weight: .semibold))
+        } under: { k in
+            Image("icon-sun-lock").interpolation(.none).resizable().frame(width: 9 * k, height: 9 * k).opacity(0.85)
+        }
+    }
+}
+
+/// Lock screen, circular: the next sunrise or sunset — its icon (a half sun on the horizon, the arrow up or down)
+/// over the time. Worked out on the phone from the place, so it turns over right when the sun rises or sets;
+/// without a place, the forecast's own sun tile.
+struct LockSunCircularView: View {
+    let snap: WeatherSnapshot
+    var now = Date()
+    var body: some View {
+        let next: (sunset: Bool, time: String) = {
+            if let p = snap.place, let tz = TimeZone(identifier: p.timeZone), let n = SunTimes.next(after: now, lat: p.lat, lon: p.lon, tz: tz) {
+                let f = DateFormatter()
+                f.locale = Locale(identifier: Lang.current.code); f.timeZone = tz
+                f.setLocalizedDateFormatFromTemplate(snap.clock12 ? "hmm" : "HHmm")
+                return (n.sunset, f.string(from: n.at))
+            }
+            let t = snap.scene.tiles.first { $0.icon == "sunset" || $0.icon == "sunrise" }
+            return (t?.icon != "sunrise", t?.value ?? "–")
+        }()
+        VStack(spacing: 3) {
+            Image(next.sunset ? "icon-sunset-lock" : "icon-sunrise-lock").interpolation(.none).resizable().frame(width: 26, height: 26).opacity(0.9)
+            Text(next.time).font(.system(size: 14, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.6).foregroundStyle(.white.opacity(0.92))
+        }
+        .padding(.horizontal, 2)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// Lock screen, circular: the wind — an arrow pointing where it blows, the speed (in the app's wind unit) under it
+struct LockWindCircularView: View {
+    let snap: WeatherSnapshot
+    var body: some View {
+        let w = snap.scene.wind
+        VStack(spacing: 3) {
+            // the forecast gives where the wind comes from; the arrow points the way it goes
+            Image(systemName: "location.north.fill").font(.system(size: 20, weight: .semibold))
+                .rotationEffect(.degrees(Double(w.deg) + 180)).opacity(w.speed > 0 ? 0.9 : 0.4)
+                .frame(width: 26, height: 26)
+            Text(snap.windText(w.speed)).font(.system(size: 14, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.6)
+                .foregroundStyle(.white.opacity(0.92))
+        }
+        .padding(.horizontal, 2)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -342,8 +411,9 @@ struct LockRainCircularView: View {
     }
 }
 
-/// Lock screen, circular: 미세먼지 — just the dust icon over the step's word (좋음 · 보통 · 나쁨 · 매우 나쁨), straight on
-/// the wallpaper like the character in the rectangle: no ring, no disc behind it
+/// Lock screen, circular: 미세먼지 (Plus — the free plan's forecast is the morning one, not the live readings) — just
+/// the dust icon over the step's word (좋음 · 보통 · 나쁨 · 매우 나쁨), straight on the wallpaper like the character in the
+/// rectangle; on the free plan the icon over "Plus"
 struct LockDustCircularView: View {
     let snap: WeatherSnapshot
     var body: some View {
@@ -353,7 +423,7 @@ struct LockDustCircularView: View {
             // the icon in the character's lock-screen style: white, the outline cut out, mid tones see-through
             Image("icon-\(d.map { DustFacts.icon($0) } ?? "pm10")-lock").interpolation(.none).resizable()
                 .frame(width: 26, height: 26).opacity(0.9)
-            Text(g.map { L(DustScale.words[$0]) } ?? "–").font(.system(size: 14, weight: .semibold))
+            Text(snap.plusActive ? (g.map { L(DustScale.words[$0]) } ?? "–") : "Plus").font(.system(size: 14, weight: .semibold))
                 .lineLimit(1).minimumScaleFactor(0.6).foregroundStyle(.white.opacity(0.92))
         }
         .padding(.horizontal, 2)
@@ -369,6 +439,7 @@ enum LockText {
     /// One word for the lock screen: the alert name when there is one (호우주의보, 한파 …), the weather otherwise.
     /// (no "!" and no emoji: the lock screen shows one colour and stays calm)
     static func line(_ s: WeatherScene) -> String { Compact.head(s) }
-    /// Inline lock widget and watch inline complication: "비 · 16° · 우산" — words with the temperature between them.
-    static func inline(_ snap: WeatherSnapshot) -> String { Compact.line(snap.scene, deg: snap.deg) }
+    /// Inline lock widget and watch inline complication: "비 · 16° · 우산" — words with the temperature between them;
+    /// the weather only (미세먼지 has its own circle).
+    static func inline(_ snap: WeatherSnapshot) -> String { Compact.line(snap.scene, deg: snap.deg, weather: true) }
 }

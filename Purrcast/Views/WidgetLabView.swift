@@ -105,10 +105,25 @@ struct WidgetLabView: View {
                     glass("lab-lock-temp-cold", 72, 72, circle: true) { LockCircularView(snap: Self.shifted(snap, -9)) }
                 }
                 .padding(.top, 10)
+                // 자외선 · 일출/일몰 · 바람 · 미세먼지 on the free plan
+                HStack(alignment: .top, spacing: 10) {
+                    glass("lab-lock-uv", 72, 72, circle: true) { LockUVCircularView(snap: snap) }
+                    glass("lab-lock-sun", 72, 72, circle: true) { LockSunCircularView(snap: snap) }
+                    glass("lab-lock-wind", 72, 72, circle: true) { LockWindCircularView(snap: snap) }
+                    glass("lab-lock-dust-free", 72, 72, circle: true) { LockDustCircularView(snap: Self.free(snap)) }
+                }
+                .padding(.top, 10)
                 Text(L("위: 사각 · 기온 · 비 확률 — 아래: 미세먼지 (매우 나쁨 · 보통 · 좋음 · 나쁨)")).font(.ui(11)).foregroundStyle(.white.opacity(0.6)).padding(.top, 6)
             }
             .padding(.top, 70)
         }
+    }
+
+    /// The snapshot on the free plan
+    static func free(_ base: WeatherSnapshot) -> WeatherSnapshot {
+        var n = base
+        n.plus = false
+        return n
     }
 
     /// The snapshot some degrees warmer or colder (one-digit and below-zero numbers on the lab)

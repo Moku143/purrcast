@@ -18,12 +18,14 @@ struct WeatherSnapshot: Codable {
     var clock12: Bool = false
     var isSample: Bool = false          // example weather (no server yet)
     var lang: String? = nil             // 설정 → 언어 on the phone ("" = the device's); the watch follows it
+    var windUnit: String = "m/s"        // 설정 → 바람 단위: m/s · km/h · mph (the lock-screen wind circle)
 
     init(scene: WeatherScene, character: PurrCharacter, plus: Bool, characterName: String, placeShort: String, saved: Date,
-         place: Place? = nil, plusUntil: Date? = nil, unitF: Bool = false, clock12: Bool = false, isSample: Bool = false, lang: String? = nil) {
+         place: Place? = nil, plusUntil: Date? = nil, unitF: Bool = false, clock12: Bool = false, isSample: Bool = false, lang: String? = nil,
+         windUnit: String = "m/s") {
         self.scene = scene; self.character = character; self.plus = plus; self.characterName = characterName
         self.placeShort = placeShort; self.saved = saved; self.place = place; self.plusUntil = plusUntil
-        self.unitF = unitF; self.clock12 = clock12; self.isSample = isSample; self.lang = lang
+        self.unitF = unitF; self.clock12 = clock12; self.isSample = isSample; self.lang = lang; self.windUnit = windUnit
     }
 
     init(from decoder: Decoder) throws {
@@ -40,6 +42,7 @@ struct WeatherSnapshot: Codable {
         clock12 = (try? c.decode(Bool.self, forKey: .clock12)) ?? false
         isSample = (try? c.decode(Bool.self, forKey: .isSample)) ?? false
         lang = try? c.decode(String.self, forKey: .lang)
+        windUnit = (try? c.decode(String.self, forKey: .windUnit)) ?? "m/s"
     }
 
     /// Plus, unless the paid period has ended since the app last ran.
@@ -48,6 +51,14 @@ struct WeatherSnapshot: Codable {
     var shownCharacter: PurrCharacter { plusActive ? character : .cat }
 
     func deg(_ v: Int) -> String { "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)°" }
+    /// "4m/s" (or km/h · mph, as set in the app)
+    func windText(_ ms: Int) -> String {
+        switch windUnit {
+        case "km/h": return "\(Int((Double(ms) * 3.6).rounded()))km/h"
+        case "mph": return "\(Int((Double(ms) * 2.237).rounded()))mph"
+        default: return "\(ms)m/s"
+        }
+    }
     /// "15시" → "오후 3시" when the 12-hour setting is on (and in the app's language)
     func hourLabel(_ l: String) -> String { HourLabel.display(l, clock12: clock12) }
 

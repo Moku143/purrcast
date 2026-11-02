@@ -21,8 +21,15 @@ struct Provider: TimelineProvider {
         Task {
             let snap = await fetch() ?? SharedStore.load() ?? .waiting
             // free: the morning forecast, refreshed a few times a day; Plus: every 30 minutes
-            let next = Calendar.current.date(byAdding: .minute, value: snap.plusActive ? 30 : 180, to: Date()) ?? Date().addingTimeInterval(1800)
-            completion(Timeline(entries: [WeatherEntry(date: Date(), snap: snap)], policy: .after(next)))
+            let now = Date()
+            let next = Calendar.current.date(byAdding: .minute, value: snap.plusActive ? 30 : 180, to: now) ?? now.addingTimeInterval(1800)
+            var entries = [WeatherEntry(date: now, snap: snap)]
+            // the sunrise / sunset circle turns over right when the sun rises or sets, before the next refresh
+            if let p = snap.place, let tz = TimeZone(identifier: p.timeZone),
+               let sun = SunTimes.next(after: now, lat: p.lat, lon: p.lon, tz: tz), sun.at < next {
+                entries.append(WeatherEntry(date: sun.at.addingTimeInterval(30), snap: snap))
+            }
+            completion(Timeline(entries: entries, policy: .after(next)))
         }
     }
 
@@ -104,14 +111,50 @@ struct RainWidget: Widget {
     }
 }
 
-/// Lock screen: 미세먼지 in the circle's place — the dust icon over the step's word, nothing behind it
+/// Lock screen: today's highest UV index on the temperature circle's ring
+struct UVWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "PurrcastUV", provider: Provider()) { entry in
+            LockUVCircularView(snap: entry.snap).containerBackground(for: .widget) { Color.clear }
+        }
+        .configurationDisplayName(L("자외선"))
+        .description(L("오늘 가장 높은 자외선 지수"))
+        .supportedFamilies([.accessoryCircular])
+    }
+}
+
+/// Lock screen: the next sunrise or sunset — its icon over the time
+struct SunWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "PurrcastSun", provider: Provider()) { entry in
+            LockSunCircularView(snap: entry.snap, now: entry.date).containerBackground(for: .widget) { Color.clear }
+        }
+        .configurationDisplayName(L("일출 · 일몰"))
+        .description(L("다음 일출 또는 일몰 시각"))
+        .supportedFamilies([.accessoryCircular])
+    }
+}
+
+/// Lock screen: the wind — an arrow the way it blows, the speed under it
+struct WindWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "PurrcastWind", provider: Provider()) { entry in
+            LockWindCircularView(snap: entry.snap).containerBackground(for: .widget) { Color.clear }
+        }
+        .configurationDisplayName(L("바람"))
+        .description(L("지금 바람이 부는 방향과 세기"))
+        .supportedFamilies([.accessoryCircular])
+    }
+}
+
+/// Lock screen (Plus): 미세먼지 in the circle's place — the dust icon over the step's word, nothing behind it
 struct DustWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastDust", provider: Provider()) { entry in
             DustLockView(snap: entry.snap).containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(L("미세먼지"))
-        .description(L("미세먼지 · 초미세먼지 등급"))
+        .description(L("미세먼지 · 초미세먼지 등급 (Plus)"))
         .supportedFamilies([.accessoryCircular])
     }
 }
@@ -129,6 +172,9 @@ struct PurrcastWidgetBundle: WidgetBundle {
         TempWidget()
         RainWidget()
         DustWidget()
+        UVWidget()
+        SunWidget()
+        WindWidget()
         RainLiveActivity()
     }
 }

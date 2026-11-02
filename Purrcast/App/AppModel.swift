@@ -35,7 +35,7 @@ final class AppModel: ObservableObject {
     // settings
     @Published var unitF: Bool { didSet { persist(); publish() } }
     @Published var clock12: Bool { didSet { persist(); publish() } }
-    @Published var wind: WindUnit { didSet { persist() } }
+    @Published var wind: WindUnit { didSet { persist(); publish() } }
     @Published var pixelFont: Bool { didSet { FontPref.pixel = pixelFont; persist() } }
     @Published var useLocation: Bool { didSet { persist(); if useLocation { location.ask() }; Task { await refresh(force: true) } } }
     @Published var notifyRain: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyRain && !oldValue) } }
@@ -266,7 +266,8 @@ final class AppModel: ObservableObject {
     var snapshot: WeatherSnapshot {
         WeatherSnapshot(scene: scene, character: character, plus: plus, characterName: name(of: shownCharacter),
                         placeShort: currentPlace.short, saved: Date(), place: currentPlace, plusUntil: plusUntil,
-                        unitF: unitF, clock12: clock12, isSample: isSample, lang: Lang.current.rawValue)   // the language the app shows (the watch shows the same)
+                        unitF: unitF, clock12: clock12, isSample: isSample, lang: Lang.current.rawValue,   // the language the app shows (the watch shows the same)
+                        windUnit: windUnit)
     }
 
     /// A new language: saved place names follow it, the example scene too, and the forecast is asked for again
