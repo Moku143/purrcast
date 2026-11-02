@@ -24,7 +24,8 @@ final class CatalogTests: XCTestCase {
 
     private func attach(_ app: XCUIApplication, _ name: String) {
         let a = XCTAttachment(screenshot: app.screenshot())
-        a.name = name
+        // no dots: the exporter reads ".03" as a file extension and drops it
+        a.name = name.replacingOccurrences(of: ".", with: "~")
         a.lifetime = .keepAlways
         add(a)
     }
@@ -115,6 +116,9 @@ final class CatalogTests: XCTestCase {
                 self.tap(app, "search")
                 let f = app.textFields["search-field"].firstMatch
                 if f.waitForExistence(timeout: 2) { f.typeText(q); sleep(2) }
+                // the keyboard's one-time "slide to type" tip
+                let tip = app.buttons["Continue"].firstMatch
+                if tip.exists { tip.tap(); sleep(1) }
                 take()
             }
         }

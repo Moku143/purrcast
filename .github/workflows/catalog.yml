@@ -19,7 +19,7 @@ permissions:
 jobs:
   phone:
     runs-on: macos-15
-    timeout-minutes: 100
+    timeout-minutes: 130
     strategy:
       fail-fast: false
       matrix:
@@ -85,6 +85,7 @@ jobs:
           git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} b:catalog-out-${{ matrix.lang }}-${{ matrix.part }}
 
   watch:
+    if: github.event_name == 'workflow_dispatch'      # a push re-takes only the phone screens
     runs-on: macos-15
     timeout-minutes: 60
     strategy:
