@@ -98,11 +98,11 @@ struct WidgetLabView: View {
                     glass("lab-lock-dust-4", 72, 72, circle: true) { LockDustCircularView(snap: Self.dusted(snap, grade: 2)) }
                 }
                 .padding(.top, 14)
-                // the temperature circle: as it was · now (pixel number) · now (system number)
+                // a cold day's temperature circle · the sun circle at noon (the sunset next) and at 22:00 (the sunrise next)
                 HStack(alignment: .top, spacing: 10) {
-                    glass("lab-lock-temp-old", 72, 72, circle: true) { LockCircularSystemView(snap: snap) }
-                    glass("lab-lock-temp-sys", 72, 72, circle: true) { LockCircularView(snap: snap) }
                     glass("lab-lock-temp-cold", 72, 72, circle: true) { LockCircularView(snap: Self.shifted(snap, -9)) }
+                    glass("lab-lock-sun-day", 72, 72, circle: true) { LockSunCircularView(snap: snap, now: Self.today(at: 12, snap)) }
+                    glass("lab-lock-sun-night", 72, 72, circle: true) { LockSunCircularView(snap: snap, now: Self.today(at: 22, snap)) }
                 }
                 .padding(.top, 10)
                 // 자외선 · 일출/일몰 · 바람 · 미세먼지 on the free plan
@@ -117,6 +117,13 @@ struct WidgetLabView: View {
             }
             .padding(.top, 70)
         }
+    }
+
+    /// Today at that hour, at the snapshot's place
+    static func today(at hour: Int, _ snap: WeatherSnapshot) -> Date {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = snap.place.flatMap { TimeZone(identifier: $0.timeZone) } ?? .current
+        return cal.date(bySettingHour: hour, minute: 0, second: 0, of: Date()) ?? Date()
     }
 
     /// The snapshot on the free plan
@@ -206,30 +213,5 @@ struct WidgetLabView: View {
             .background(LinearGradient(colors: [Color(hex: "#5B5FA8"), Color(hex: "#2E2F66")], startPoint: .top, endPoint: .bottom))
             .clipShape(RoundedRectangle(cornerRadius: circle ? w / 2 + 6 : 12, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier(id)
-    }
-}
-
-/// The lock-screen temperature circle as it was (the system gauge), kept on the lab to compare.
-struct LockCircularSystemView: View {
-    let snap: WeatherSnapshot
-    var body: some View {
-        let s = snap.scene
-        let u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
-        ZStack {
-        // straight on the wallpaper like the rain and 미세먼지 circles: the ring only, nothing behind it
-        Gauge(value: Double(s.temp), in: Double(min(s.lo, s.temp))...Double(max(s.hi, s.temp, s.lo + 1))) {
-            Text("°")
-        } currentValueLabel: {
-            Text("\(u(s.temp))").font(.system(size: 18, weight: .semibold)).foregroundStyle(.white.opacity(0.92))
-        } minimumValueLabel: {
-            Text("\(u(s.lo))").font(.ui(9)).foregroundStyle(.white.opacity(0.65))
-        } maximumValueLabel: {
-            Text("\(u(s.hi))").font(.ui(9)).foregroundStyle(.white.opacity(0.65))
-        }
-        .gaugeStyle(.accessoryCircular)
-        // from today's low (faint) to the high (solid white): iOS draws lock-screen widgets in one tint, so the fade is
-        // in brightness, not colour
-        .tint(Gradient(stops: [.init(color: .white.opacity(0.06), location: 0), .init(color: .white.opacity(0.4), location: 0.45), .init(color: .white, location: 1)]))
-        }
     }
 }

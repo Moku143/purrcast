@@ -286,8 +286,17 @@ enum Sky {
 
     /// The layers for a forecast.
     static func compose(_ s: WeatherScene) -> (tints: [String], items: [SkyItem]) {
-        compose(time: s.time, cover: s.cover, precip: s.precip, thunder: s.thunder == "on", aux: [s.aux], mm: s.hours.first?.mm ?? 0,
+        compose(time: s.time, cover: s.cover, precip: s.precip, thunder: s.thunder == "on", aux: [skyAux(s)], mm: s.hours.first?.mm ?? 0,
                 clouds: s.clouds, fog: s.fog, gloom: s.gloom)
+    }
+
+    /// The server's "dust" means the 미세먼지 grade is bad. That draws as a grey haze; the sandy yellow sky is kept for
+    /// 황사, which only 기상청 declares (its warning shows in the alert, the 미세먼지 card's note or the bubble).
+    static func skyAux(_ s: WeatherScene) -> String {
+        guard s.aux == "dust" else { return s.aux }
+        let said = [s.alert?.name, s.alert?.note, s.dust?.note, s.bubble?.text].compactMap { $0?.lowercased() }
+        let yellow = ["황사", "黄砂", "yellow dust", "asian dust"]
+        return said.contains { t in yellow.contains { t.contains($0) } } ? "dust" : "haze"
     }
 
     /// "rgba(255,236,150,0.16)" / "#525C86" → Color

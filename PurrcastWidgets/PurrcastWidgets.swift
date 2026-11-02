@@ -125,14 +125,14 @@ struct UVWidget: Widget {
     }
 }
 
-/// Lock screen: sunrise and sunset, each with its icon and time
+/// Lock screen: the next sunrise or sunset — its icon over the time
 struct SunWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastSun", provider: Provider()) { entry in
             LockSunCircularView(snap: entry.snap, now: entry.date).containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(L("일출 · 일몰"))
-        .description(L("일출과 일몰 시각"))
+        .description(L("다음 일출 또는 일몰 시각"))
         .supportedFamilies([.accessoryCircular])
     }
 }
