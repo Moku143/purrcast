@@ -15,7 +15,7 @@ export function airkoreaUrl(svc, op, key, params) {
   return `${BASE}/${svc}/${op}?serviceKey=${encodeURIComponent(key)}&${q}`;
 }
 export const stationsUrl = (key) => airkoreaUrl('MsrstnInfoInqireSvc', 'getMsrstnList', key, { numOfRows: '1000', ver: '1.1' });   // 1.1: dmX / dmY in their right places
-export const realtimeUrl = (key, station) => airkoreaUrl('ArpltnInforInqireSvc', 'getMsrstnAcctoRltmMesureDnsty', key, { stationName: station, dataTerm: 'DAILY', ver: '1.5', numOfRows: '30' });   // 1.5: with PM2.5
+export const realtimeUrl = (key, station) => airkoreaUrl('ArpltnInforInqireSvc', 'getMsrstnAcctoRltmMesureDnsty', key, { stationName: station, dataTerm: 'MONTH', ver: '1.5', numOfRows: '30' });   // 1.5: with PM2.5; MONTH, newest first: the last 30 hours (DAILY stops at 24, short of this hour yesterday)
 export const forecastUrl = (key, ymd, code) => airkoreaUrl('ArpltnInforInqireSvc', 'getMinuDustFrcstDspth', key, { searchDate: ymd, InformCode: code });
 export const nationUrl = (key) => airkoreaUrl('ArpltnInforInqireSvc', 'getCtprvnRltmMesureDnsty', key, { sidoName: '전국', ver: '1.5', numOfRows: '1000' });
 export const alarmUrl = (key, year) => airkoreaUrl('UlfptcaAlarmInqireSvc', 'getUlfptcaAlarmInfo', key, { year: String(year), numOfRows: '200' });

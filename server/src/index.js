@@ -110,7 +110,10 @@ export async function airMapAnswer(sp, env, ctx, fetcher = fetch) {
   let detail = null;
   if (got[0].status === 'fulfilled') {
     const t = Math.floor(Date.now() / 1000) - 86400;
-    const before = await getJSON(owHistoryUrl(key, lat, lon, t - 1800, t + 1800), { ttl: 3600, fetcher, ok: owOK, ctx }).catch(() => null);
+    // the hour nearest this time yesterday (the history is hourly and can lag: a wider window, the closest one kept)
+    const hist = await getJSON(owHistoryUrl(key, lat, lon, t - 3 * 3600, t + 3600), { ttl: 3600, fetcher, ok: owOK, ctx }).catch(() => null);
+    const near = hist?.list?.length ? hist.list.reduce((a, b) => (Math.abs(b.dt - t) < Math.abs(a.dt - t) ? b : a)) : null;
+    const before = near ? { list: [near] } : null;
     detail = owDetail(got[0].value, before);
   }
   return { kind: 'pm', at: at ? at.toISOString() : '', me, points: me ? [[lat, lon, me.level, null], ...points] : points, detail };
