@@ -192,18 +192,23 @@ Korea always cover 00–24 h: the earlier runs (05 h, yesterday 23 h) fill what 
 - 적용: 홈 말풍선 · 특보 띠 · 다음 6시간 카드 · 타일 설명 · 날짜 상세 · 알림. 위젯 · 워치 · 특보 이름은 단어라 그대로.
 - 예: 비 예보예요. 우산을 챙겨 주세요. → 비 예보입니다. 우산을 챙겨 주십시오. / 비 예보야. 우산을 챙겨.
 
-## 대기질 지도 (Plus, Korea) — `GET /v1/airmap?lat=&lon=`
+## 대기질 지도 (Plus) — `GET /v1/airmap?lat=&lon=&region=`
 
-에어코리아 시도별 실시간 측정정보 (`sidoName=전국`, every station's latest hour with 통합대기환경지수), joined with the
-측정소 positions (by 시도 + 측정소 name; names repeat across 시도). Fetched for the whole country at most every half hour.
+- **Korea** (`region=kr`): 에어코리아 시도별 실시간 측정정보 (`sidoName=전국`, every station's latest hour with
+  통합대기환경지수), joined with the 측정소 positions (by 시도 + 측정소 name; names repeat across 시도). The whole country
+  is fetched at most every half hour.
+- **Elsewhere**: OpenWeather air pollution at the place and a 4 × 4 grid over the same box (grid points snapped to 0.1°
+  so nearby places share them; kept an hour); PM2.5 and PM10 on WHO's steps, the worse of the two.
 
 ```json
-{ "at": "2026-11-02 18:00", "me": { "cai": 48, "grade": 0, "station": "마포구", "km": 0.4 },
-  "points": [[37.5643, 126.975, 62, 1], [37.5555, 126.9046, 48, 0]] }
+{ "kind": "cai", "at": "2026-11-02 18:00",
+  "me": { "value": 48, "level": 0.96, "grade": 0, "station": "마포구", "km": 0.4 },
+  "points": [[37.5643, 126.975, 1.24, 62], [37.5555, 126.9046, 0.96, 48]] }
 ```
 
-`points`: `[lat, lon, 통합대기환경지수, step]` for the stations within ±0.45° latitude / ±0.55° longitude of the place;
-step 0 좋음 (0–50) · 1 보통 (51–100) · 2 나쁨 (101–250) · 3 매우 나쁨 (251+). Outside Korea: 400; no key: 503.
+`points`: `[lat, lon, level, value]` within ±0.45° latitude / ±0.55° longitude of the place. `level` 0–4 is the step
+plus how far into it (0 좋음 · 1 보통 · 2 나쁨 · 3 매우 나쁨; 통합지수 edges 50 · 100 · 250 · 500), for the map's colours;
+`value` is the 통합대기환경지수 in Korea and `null` elsewhere (`kind: "pm"`). No source for the place: 503.
 
 ## Rain alert push (Plus) — `POST /v1/devices`
 

@@ -160,10 +160,23 @@ export function stationIndex(json) {
 
 /** 통합대기환경지수 steps, 0 좋음 (0–50) · 1 보통 (51–100) · 2 나쁨 (101–250) · 3 매우 나쁨 (251–500). */
 export const gradeCAI = (v) => (v == null ? null : v <= 50 ? 0 : v <= 100 ? 1 : v <= 250 ? 2 : 3);
+/** Where a value sits on its steps as one number for the map's colours: 0–4, the step plus how far into it (bounds:
+ *  the steps' edges, e.g. 통합지수 0 · 50 · 100 · 250 · 500). */
+export function levelOf(v, bounds) {
+  if (v == null) return null;
+  for (let i = 0; i < 4; i++) if (v <= bounds[i + 1]) return Math.round((i + (v - bounds[i]) / (bounds[i + 1] - bounds[i])) * 100) / 100;
+  return 4;
+}
+export const CAI_BOUNDS = [0, 50, 100, 250, 500];
+/** Outside Korea: PM2.5 and PM10 on WHO's steps (as the 미세먼지 card abroad), the worse of the two. */
+export const pmLevel = (pm25, pm10) => {
+  const a = levelOf(pm25, [0, 15, 37.5, 75, 150]), b = levelOf(pm10, [0, 45, 75, 150, 300]);
+  return a == null ? b : b == null ? a : Math.max(a, b);
+};
 const r4 = (v) => Math.round(v * 1e4) / 1e4;
 
-/** The map near a place: every station with an index inside the box as [lat, lon, index, step], the station nearest
- *  the place ({ cai, grade, station, km }) and the newest hour among them. */
+/** The map near a Korean place: every station with an index inside the box as [lat, lon, level 0–4, 통합지수], the
+ *  station nearest the place ({ value, level, grade, station, km }) and the newest hour among them. */
 export function airMap(nationJson, index, lat, lon, box = { dLat: 0.45, dLon: 0.55 }) {
   const points = [];
   let me = null, at = '';
@@ -177,8 +190,9 @@ export function airMap(nationJson, index, lat, lon, box = { dLat: 0.45, dLon: 0.
     const grade = kg >= 1 && kg <= 4 ? kg - 1 : gradeCAI(cai);
     if (it.dataTime && it.dataTime > at) at = it.dataTime;
     const d = km(lat, lon, y, x);
-    if (!me || d < me.km) me = { cai, grade, station: it.stationName, km: Math.round(d * 10) / 10 };
-    if (Math.abs(y - lat) <= box.dLat && Math.abs(x - lon) <= box.dLon) points.push([r4(y), r4(x), cai, grade]);
+    const level = Math.min(levelOf(cai, CAI_BOUNDS), 3.99);
+    if (!me || d < me.km) me = { value: cai, level, grade, station: it.stationName, km: Math.round(d * 10) / 10 };
+    if (Math.abs(y - lat) <= box.dLat && Math.abs(x - lon) <= box.dLon) points.push([r4(y), r4(x), level, cai]);
   }
-  return { at, me, points };
+  return { kind: 'cai', at, me, points };
 }

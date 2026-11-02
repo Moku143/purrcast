@@ -17,7 +17,7 @@
 import { metUrl, parseMet } from './providers/met.js';
 import { toGrid, vilageBase, eveBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError, midUrl, midBase, midRegions, parseMidTa, parseMidLand } from './providers/kma.js';
 import { hasWeatherKit, weatherKitUrl, weatherKitToken, parseWeatherKit, packWeatherKit, unpackWeatherKit } from './providers/weatherkit.js';
-import { stationsUrl, realtimeUrl, forecastUrl, alarmUrl, nationUrl, airkoreaOK, nearestStation, parseRealtime, parseHistory, todayHours, forecastRegion, parseForecast as parseDustForecast, parseAlarms, stationIndex, airMap } from './providers/airkorea.js';
+import { stationsUrl, realtimeUrl, forecastUrl, alarmUrl, nationUrl, airkoreaOK, nearestStation, parseRealtime, parseHistory, todayHours, forecastRegion, parseForecast as parseDustForecast, parseAlarms, stationIndex, airMap, pmLevel } from './providers/airkorea.js';
 import { owNowUrl, owForecastUrl, owHistoryUrl, owOK, parseOwNow, parseOwTomorrow, parseOwHours } from './providers/openweather.js';
 import { buildScene, validateScene } from './scene.js';
 import { local, pad2, dayKey } from './time.js';
@@ -64,18 +64,42 @@ export default {
   },
 };
 
-/** GET /v1/airmap?lat=&lon= — the 대기질 지도 (Plus, Korea): 에어코리아's latest hour for every station near the place,
- *  with 통합대기환경지수, and the station nearest it. The whole country is fetched once and kept for half an hour. */
+/** GET /v1/airmap?lat=&lon=&region= — the 대기질 지도 (Plus).
+ *  Korea (region=kr): 에어코리아's latest hour for every station near the place, with 통합대기환경지수 — the whole country
+ *  is fetched once and kept for half an hour. Elsewhere: OpenWeather's air at a 4 × 4 grid over the same box (plus the
+ *  place itself), each grid point snapped to 0.1° so nearby places share them, kept an hour; PM2.5 and PM10 on WHO's
+ *  steps. Either way: { kind, at, me: { value?, level, grade }, points: [[lat, lon, level 0–4, value|null]] }. */
 export async function airMapAnswer(sp, env, ctx, fetcher = fetch) {
   const lat = Math.round(parseFloat(sp.get('lat')) * 100) / 100, lon = Math.round(parseFloat(sp.get('lon')) * 100) / 100;
-  if (!(lat >= 32 && lat <= 39.5 && lon >= 123.5 && lon <= 132)) throw Object.assign(new Error('Korea only'), { status: 400 });
-  if (!env.AIRKOREA_SERVICE_KEY) throw Object.assign(new Error('no air quality source'), { status: 503 });
-  const key = env.AIRKOREA_SERVICE_KEY;
-  const [st, nation] = await Promise.all([
-    getJSON(stationsUrl(key), { ttl: 86400, fetcher, ok: airkoreaOK, ctx, kma: true }),
-    getJSON(nationUrl(key), { ttl: 1800, fetcher, ok: airkoreaOK, ctx, kma: true }),
-  ]);
-  return airMap(nation, stationIndex(st), lat, lon);
+  if (!(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)) throw Object.assign(new Error('lat / lon missing or out of range'), { status: 400 });
+  const kr = sp.get('region') === 'kr' && lat >= 32 && lat <= 39.5 && lon >= 123.5 && lon <= 132;
+  if (kr && env.AIRKOREA_SERVICE_KEY) {
+    const key = env.AIRKOREA_SERVICE_KEY;
+    const [st, nation] = await Promise.all([
+      getJSON(stationsUrl(key), { ttl: 86400, fetcher, ok: airkoreaOK, ctx, kma: true }),
+      getJSON(nationUrl(key), { ttl: 1800, fetcher, ok: airkoreaOK, ctx, kma: true }),
+    ]);
+    return airMap(nation, stationIndex(st), lat, lon);
+  }
+  if (!env.OPENWEATHER_KEY) throw Object.assign(new Error('no air quality source'), { status: 503 });
+  const key = env.OPENWEATHER_KEY, r1 = (v) => Math.round(v * 10) / 10;
+  const spots = [[lat, lon]];
+  for (const dy of [-0.4, -0.13, 0.13, 0.4]) for (const dx of [-0.5, -0.17, 0.17, 0.5]) spots.push([r1(lat + dy), r1(lon + dx)]);
+  const got = await Promise.allSettled(spots.map(([y, x]) => getJSON(owNowUrl(key, y, x), { ttl: 3600, fetcher, ok: owOK, ctx })));
+  const points = [];
+  let me = null, at = null;
+  got.forEach((g, i) => {
+    if (g.status !== 'fulfilled') return;
+    const c = parseOwNow(g.value);
+    const level = c ? pmLevel(c.pm25, c.pm10) : null;
+    if (level == null) return;
+    const lv = Math.min(level, 3.99), grade = Math.floor(lv);
+    if (!at || c.at > at) at = c.at;
+    if (i === 0) me = { value: null, level: lv, grade };
+    else points.push([spots[i][0], spots[i][1], lv, null]);
+  });
+  if (!me && !points.length) throw Object.assign(new Error('no air quality data'), { status: 502 });
+  return { kind: 'pm', at: at ? at.toISOString() : '', me, points: me ? [[lat, lon, me.level, null], ...points] : points };
 }
 
 /** POST: the app registers (or re-registers) its device for Live Activities; DELETE ?id= forgets it. */

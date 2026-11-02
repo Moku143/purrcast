@@ -10,7 +10,7 @@ import { strings, normLang, warningName, hourLabel } from '../src/i18n.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike, humidityWord, windWord } from '../src/physics.js';
 import worker, { forecast, readQuery, resetCache, setUpstreamTimeout, legacyIcons, airMapAnswer } from '../src/index.js';
-import { sidoShort, stationIndex, airMap, gradeCAI, nationUrl } from '../src/providers/airkorea.js';
+import { sidoShort, stationIndex, airMap, gradeCAI, nationUrl, levelOf, pmLevel } from '../src/providers/airkorea.js';
 import { beforeEach } from 'node:test';
 beforeEach(() => { resetCache(); resetWeatherKitTokens(); });
 
@@ -1061,15 +1061,32 @@ test('대기질 지도: stations joined by 시도 and name, the box around the p
   ]);
   const m = airMap(nation, stationIndex(stations), 37.56, 126.91);
   assert.equal(m.at, '2026-11-02 18:00');
-  assert.deepEqual(m.points, [[37.5643, 126.975, 62, 1], [37.5555, 126.9046, 48, 0]]);   // 부산 중구 is outside the box
+  assert.deepEqual(m.points, [[37.5643, 126.975, 1.24, 62], [37.5555, 126.9046, 0.96, 48]]);   // 부산 중구 is outside the box
+  assert.equal(m.kind, 'cai');
   assert.equal(m.me.station, '마포구');
   assert.equal(m.me.grade, 0);
   assert.deepEqual([0, 50, 51, 100, 101, 250, 251].map(gradeCAI), [0, 0, 1, 1, 2, 2, 3]);
   assert.match(nationUrl('K'), /getCtprvnRltmMesureDnsty\?serviceKey=K&.*sidoName=%EC%A0%84%EA%B5%AD/);
 });
 
-test('대기질 지도 answer: Korea only, needs the 에어코리아 key', async () => {
-  await assert.rejects(airMapAnswer(new URLSearchParams('lat=35.68&lon=139.69'), { AIRKOREA_SERVICE_KEY: 'K' }), /Korea only/);
-  await assert.rejects(airMapAnswer(new URLSearchParams('lat=37.56&lon=126.91'), {}), /no air quality source/);
+test('대기질 지도 abroad: OpenWeather at a grid around the place, PM on WHO steps; no key → 503', async () => {
+  await assert.rejects(airMapAnswer(new URLSearchParams('lat=35.68&lon=139.69'), {}), /no air quality source/);
+  assert.equal(levelOf(25, [0, 15, 37.5, 75, 150]), 1.44);
+  assert.equal(pmLevel(10, 100), 2.33);
+  assert.equal(pmLevel(null, null), null);
+  const urls = [];
+  const fetcher = async (u) => {
+    urls.push(u);
+    const lat = parseFloat(new URL(u).searchParams.get('lat'));
+    const pm25 = lat > 35.68 ? 40 : 8;   // dirtier to the north
+    return new Response(JSON.stringify({ list: [{ dt: 1762070400, main: { aqi: 2 }, components: { pm2_5: pm25, pm10: 20 } }] }), { status: 200 });
+  };
+  const m = await airMapAnswer(new URLSearchParams('lat=35.68&lon=139.69&region=jp'), { OPENWEATHER_KEY: 'K' }, null, fetcher);
+  assert.equal(m.kind, 'pm');
+  assert.equal(urls.length, 17);   // the place and a 4 × 4 grid
+  assert.equal(m.me.grade, 0);
+  assert.equal(m.points.length, 17);
+  assert.ok(m.points.some((p) => p[2] >= 2));   // the north is 나쁨
+  assert.deepEqual(m.points.find((p) => p[0] === 36.1).slice(0, 2), [36.1, 139.2]);   // grid points snapped to 0.1°
 });
 
