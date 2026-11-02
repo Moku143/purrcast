@@ -38,6 +38,7 @@ final class AppModel: ObservableObject {
     @Published var wind: WindUnit { didSet { persist(); publish() } }
     /// The 대기질 지도 and its sheet (Plus), for the place on screen
     @Published var airMap: AirMap?
+    @Published var airMapFailed = false     // no map for this place (no source there, or the server is unreachable): the card hides
     private var airMapKey = ""
     @Published var pixelFont: Bool { didSet { FontPref.pixel = pixelFont; persist() } }
     @Published var useLocation: Bool { didSet { persist(); if useLocation { location.ask() }; Task { await refresh(force: true) } } }
@@ -246,7 +247,9 @@ final class AppModel: ObservableObject {
         guard key != airMapKey else { return }
         if !airMapKey.hasPrefix(place.id + "|") { airMap = nil }
         airMapKey = key
-        if let m = try? await provider.airMap(for: place), currentPlace.id == place.id { airMap = m } else if airMap == nil { airMapKey = "" }
+        if let m = try? await provider.airMap(for: place) {
+            if currentPlace.id == place.id { airMap = m; airMapFailed = false }
+        } else if airMap == nil { airMapKey = ""; airMapFailed = true }
     }
 
     func windText(_ ms: Int) -> String { windNumber(ms) + windUnit }
