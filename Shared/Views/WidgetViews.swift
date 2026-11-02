@@ -353,29 +353,42 @@ struct LockUVCircularView: View {
     }
 }
 
-/// Lock screen, circular: the next sunrise or sunset — its icon (a half sun on the horizon, the arrow up or down)
-/// over the time. Worked out on the phone from the place, so it turns over right when the sun rises or sets;
-/// without a place, the forecast's own sun tile.
+/// Lock screen, circular: sunrise and sunset, one over the other — each its icon (a half sun on the horizon, the
+/// arrow up or down) and its time. Today's pair until the sun has set, then tomorrow's; worked out on the phone from
+/// the place (no AM/PM: a sunrise is in the morning), so it turns over right at sunset. Without a place (or where the
+/// sun stays up or down all day), the forecast's own sun tile.
 struct LockSunCircularView: View {
     let snap: WeatherSnapshot
     var now = Date()
     var body: some View {
-        let next: (sunset: Bool, time: String) = {
-            if let p = snap.place, let tz = TimeZone(identifier: p.timeZone), let n = SunTimes.next(after: now, lat: p.lat, lon: p.lon, tz: tz) {
-                let f = DateFormatter()
-                f.locale = Locale(identifier: Lang.current.code); f.timeZone = tz
-                f.setLocalizedDateFormatFromTemplate(snap.clock12 ? "hmm" : "HHmm")
-                return (n.sunset, f.string(from: n.at))
-            }
-            let t = snap.scene.tiles.first { $0.icon == "sunset" || $0.icon == "sunrise" }
-            return (t?.icon != "sunrise", t?.value ?? "–")
+        let pair: (rise: String, set: String)? = {
+            guard let p = snap.place, let tz = TimeZone(identifier: p.timeZone),
+                  var day = SunTimes.day(now, lat: p.lat, lon: p.lon, tz: tz) else { return nil }
+            if day.set <= now, let next = SunTimes.day(now.addingTimeInterval(86400), lat: p.lat, lon: p.lon, tz: tz) { day = next }
+            let f = DateFormatter()
+            f.locale = Locale(identifier: "en_US_POSIX"); f.timeZone = tz
+            f.dateFormat = snap.clock12 ? "h:mm" : "HH:mm"
+            return (f.string(from: day.rise), f.string(from: day.set))
         }()
-        VStack(spacing: 3) {
-            Image(next.sunset ? "icon-sunset-lock" : "icon-sunrise-lock").interpolation(.none).resizable().frame(width: 26, height: 26).opacity(0.9)
-            Text(next.time).font(.system(size: 14, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.6).foregroundStyle(.white.opacity(0.92))
+        Group {
+            if let pair {
+                VStack(alignment: .leading, spacing: 3) {
+                    row("icon-sunrise-lock", pair.rise)
+                    row("icon-sunset-lock", pair.set)
+                }
+            } else {
+                let t = snap.scene.tiles.first { $0.icon == "sunset" || $0.icon == "sunrise" }
+                row(t?.icon == "sunrise" ? "icon-sunrise-lock" : "icon-sunset-lock", t?.value ?? "–")
+            }
         }
-        .padding(.horizontal, 2)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    private func row(_ icon: String, _ time: String) -> some View {
+        HStack(spacing: 3) {
+            Image(icon).interpolation(.none).resizable().frame(width: 16, height: 16).opacity(0.9)
+            Text(time).font(.system(size: 13, weight: .semibold)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                .foregroundStyle(.white.opacity(0.92))
+        }
     }
 }
 
@@ -413,18 +426,22 @@ struct LockRainCircularView: View {
 
 /// Lock screen, circular: 미세먼지 (Plus — the free plan's forecast is the morning one, not the live readings) — just
 /// the dust icon over the step's word (좋음 · 보통 · 나쁨 · 매우 나쁨), straight on the wallpaper like the character in the
-/// rectangle; on the free plan the icon over "Plus"
+/// rectangle; on the free plan the icon faint over "Plus"
 struct LockDustCircularView: View {
     let snap: WeatherSnapshot
+    /// The widget gallery shows what the circle looks like with Plus (its description says it is a Plus widget)
+    var preview = false
     var body: some View {
         let d = snap.scene.dust
         let g = d.map { max(0, min(3, $0.grade)) }
+        let open = snap.plusActive || preview
         VStack(spacing: 3) {
-            // the icon in the character's lock-screen style: white, the outline cut out, mid tones see-through
+            // the icon in the character's lock-screen style: white, the outline cut out, mid tones see-through;
+            // faint on the free plan, with "Plus" under it
             Image("icon-\(d.map { DustFacts.icon($0) } ?? "pm10")-lock").interpolation(.none).resizable()
-                .frame(width: 26, height: 26).opacity(0.9)
-            Text(snap.plusActive ? (g.map { L(DustScale.words[$0]) } ?? "–") : "Plus").font(.system(size: 14, weight: .semibold))
-                .lineLimit(1).minimumScaleFactor(0.6).foregroundStyle(.white.opacity(0.92))
+                .frame(width: 26, height: 26).opacity(open ? 0.9 : 0.3)
+            Text(open ? (g.map { L(DustScale.words[$0]) } ?? "–") : "Plus").font(.system(size: 14, weight: .semibold))
+                .lineLimit(1).minimumScaleFactor(0.6).foregroundStyle(.white.opacity(open ? 0.92 : 0.55))
         }
         .padding(.horizontal, 2)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

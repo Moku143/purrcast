@@ -7,6 +7,7 @@ import SwiftUI
 struct WeatherEntry: TimelineEntry {
     let date: Date
     let snap: WeatherSnapshot
+    var preview = false     // the widget gallery
 }
 
 struct Provider: TimelineProvider {
@@ -14,7 +15,8 @@ struct Provider: TimelineProvider {
 
     func getSnapshot(in context: Context, completion: @escaping (WeatherEntry) -> Void) {
         // the widget gallery shows a sample; a placed widget shows what the app saved (or asks to open the app)
-        completion(WeatherEntry(date: Date(), snap: context.isPreview ? (SharedStore.load() ?? .sample) : (SharedStore.load() ?? .waiting)))
+        completion(WeatherEntry(date: Date(), snap: context.isPreview ? (SharedStore.load() ?? .sample) : (SharedStore.load() ?? .waiting),
+                                preview: context.isPreview))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<WeatherEntry>) -> Void) {
@@ -123,14 +125,14 @@ struct UVWidget: Widget {
     }
 }
 
-/// Lock screen: the next sunrise or sunset — its icon over the time
+/// Lock screen: sunrise and sunset, each with its icon and time
 struct SunWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastSun", provider: Provider()) { entry in
             LockSunCircularView(snap: entry.snap, now: entry.date).containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(L("일출 · 일몰"))
-        .description(L("다음 일출 또는 일몰 시각"))
+        .description(L("일출과 일몰 시각"))
         .supportedFamilies([.accessoryCircular])
     }
 }
@@ -151,17 +153,12 @@ struct WindWidget: Widget {
 struct DustWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastDust", provider: Provider()) { entry in
-            DustLockView(snap: entry.snap).containerBackground(for: .widget) { Color.clear }
+            LockDustCircularView(snap: entry.snap, preview: entry.preview).containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(L("미세먼지"))
-        .description(L("미세먼지 · 초미세먼지 등급 (Plus)"))
+        .description(L("미세먼지 · 초미세먼지 등급 · Plus에서 쓸 수 있어요"))
         .supportedFamilies([.accessoryCircular])
     }
-}
-
-struct DustLockView: View {
-    let snap: WeatherSnapshot
-    var body: some View { LockDustCircularView(snap: snap) }
 }
 
 @main

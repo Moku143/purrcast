@@ -453,9 +453,9 @@
 "지금 기온과 오늘 최저 · 최고" = "Now, with today's low and high";
 "오늘 가장 높은 자외선 지수" = "Today's highest UV index";
 "일출 · 일몰" = "Sunrise · Sunset";
-"다음 일출 또는 일몰 시각" = "The next sunrise or sunset";
+"일출과 일몰 시각" = "Sunrise and sunset times";
 "지금 바람이 부는 방향과 세기" = "Where the wind is blowing and how hard";
-"미세먼지 · 초미세먼지 등급 (Plus)" = "PM10 · PM2.5 level (Plus)";
+"미세먼지 · 초미세먼지 등급 · Plus에서 쓸 수 있어요" = "PM10 · PM2.5 level · with Plus";
 "기상청 날씨누리" = "KMA weather site";
 "예보 비교 · 예비 예보 · Data from MET Norway" = "Forecast comparison · Backup forecast · Data from MET Norway";
 "CC BY 4.0 · 그래프로 바꿔 씀" = "CC BY 4.0 · Redrawn as charts";
