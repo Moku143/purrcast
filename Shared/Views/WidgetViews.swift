@@ -300,7 +300,7 @@ struct LockCircularView: View {
         let s = snap.scene
         let u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
         ZStack {
-        AccessoryWidgetBackgroundCompat()      // the soft glass disc behind it, like the rain-chance circle
+        // straight on the wallpaper like the rain and 미세먼지 circles: the ring only, nothing behind it
         Gauge(value: Double(s.temp), in: Double(min(s.lo, s.temp))...Double(max(s.hi, s.temp, s.lo + 1))) {
             Text("°")
         } currentValueLabel: {
