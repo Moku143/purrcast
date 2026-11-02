@@ -239,6 +239,15 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    func test13Skies() {
+        // every sky by air (clean · 미세먼지 · 황사), by day and by night, and the home screen on a 미세먼지 day and a 황사경보 day
+        shot("skylab-day", ["-scene", "clear", "-open", "skyLab"], wait: 2)
+        shot("skylab-night", ["-scene", "clear", "-open", "skyLab", "-skyNight"], wait: 2)
+        shot("home-smog", ["-scene", "winter_smog", "-plus", "-char", "cat"], wait: 2)
+        shot("home-yellow", ["-scene", "spring_dust", "-plus", "-char", "cat"], wait: 2)
+        shot("home-yellow-2", ["-scene", "spring_dust", "-plus", "-char", "cat"], wait: 2) { app in app.swipeUp(); sleep(1) }
+    }
+
     func test10Layout() {
         var screens: [(String, [String], Int)] = [
             ("home-1", ["-scene", "maybe", "-plus", "-char", "cat"], 0),
