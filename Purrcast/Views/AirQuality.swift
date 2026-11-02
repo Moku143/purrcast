@@ -34,7 +34,6 @@ struct AirHomeCard: View {
         }
         .buttonStyle(.press(0.98))
         .accessibilityIdentifier("air-card")
-        .task(id: "\(model.currentPlace.id)|\(model.scene.updated)|\(model.scene.clock)") { await model.loadAirMap() }
     }
 }
 

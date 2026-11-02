@@ -501,6 +501,9 @@ struct HomeView: View {
             if let c = s.cmp { CompareCard(cmp: c, updated: s.updated, ink: ink) }
             if !rest.isEmpty { tileRows(rest, ink: ink) }
         }
+        // the 대기질 map (Plus) for the place, again after each refresh — here, not on the card, so a place without a
+        // map tries again on the next refresh
+        .task(id: "\(model.currentPlace.id)|\(s.updated)|\(s.clock)|\(s.isPlus)") { if s.isPlus { await model.loadAirMap() } }
     }
 
     /// Two tiles per row, both as tall as the taller one (강수확률 next to 자외선 with its scale).
