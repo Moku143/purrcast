@@ -47,8 +47,10 @@ struct WidgetBackground: View {
                 GeometryReader { g in
                     // the sky picture is a wide strip: repeat its rain / snow / wind / fog down the whole surface
                     // (a small widget or the watch is taller than one strip, and the character stands in the lower part)
+                    // (a zero width — a layout pass before the size is known — would make the count infinite)
                     let stripH = Sky.tile.height * g.size.width / Sky.tile.width
-                    SkyParticles(scene: scene, width: g.size.width, tiles: max(1, Int((g.size.height / stripH).rounded(.up))), animate: animate)
+                    let n = stripH > 0 ? min(12, max(1, Int((g.size.height / stripH).rounded(.up)))) : 1
+                    SkyParticles(scene: scene, width: max(1, g.size.width), tiles: n, animate: animate)
                 }
             } else if night {
                 Color(red: 16 / 255, green: 20 / 255, blue: 48 / 255).opacity(0.64)
