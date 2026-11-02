@@ -293,27 +293,32 @@ struct LockRectangularView: View {
     }
 }
 
-/// Lock screen, circular: today's range as a gauge with the temperature in the middle.
+/// Lock screen, circular: the watch's temperature gauge in the lock screen's one colour — today's low → high as a
+/// 240° arc brightening toward the high, a hollow ring at now, the temperature (pixel type, the degree sign hanging
+/// off) in the middle and "low · high" under it; straight on the wallpaper, nothing behind it
 struct LockCircularView: View {
     let snap: WeatherSnapshot
+    var pixel = true
     var body: some View {
-        let s = snap.scene
-        let u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
-        ZStack {
-        // straight on the wallpaper like the rain and 미세먼지 circles: the ring only, nothing behind it
-        Gauge(value: Double(s.temp), in: Double(min(s.lo, s.temp))...Double(max(s.hi, s.temp, s.lo + 1))) {
-            Text("°")
-        } currentValueLabel: {
-            Text("\(u(s.temp))").font(.system(size: 18, weight: .semibold)).foregroundStyle(.white.opacity(0.92))
-        } minimumValueLabel: {
-            Text("\(u(s.lo))").font(.ui(9)).foregroundStyle(.white.opacity(0.65))
-        } maximumValueLabel: {
-            Text("\(u(s.hi))").font(.ui(9)).foregroundStyle(.white.opacity(0.65))
-        }
-        .gaugeStyle(.accessoryCircular)
-        // from today's low (faint) to the high (solid white): iOS draws lock-screen widgets in one tint, so the fade is
-        // in brightness, not colour
-        .tint(Gradient(stops: [.init(color: .white.opacity(0.06), location: 0), .init(color: .white.opacity(0.4), location: 0.45), .init(color: .white, location: 1)]))
+        let s = snap.scene, u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
+        let lo = min(s.lo, s.temp), hi = max(s.hi, s.temp)
+        let frac = max(0, min(1, Double(s.temp - lo) / Double(max(1, hi - lo))))
+        GeometryReader { g in
+            let d = min(g.size.width, g.size.height), k = d / 54, lw = 4.5 * k, r = 22 * k
+            let c = CGPoint(x: g.size.width / 2, y: g.size.height / 2)
+            let a = (-120 + 240 * frac) * .pi / 180
+            ZStack {
+                GaugeArc(radius: r).stroke(Color.white.opacity(0.2), style: StrokeStyle(lineWidth: lw, lineCap: .round))
+                GaugeArc(radius: r).stroke(LinearGradient(colors: [.white.opacity(0.35), .white], startPoint: .leading, endPoint: .trailing),
+                                          style: StrokeStyle(lineWidth: lw, lineCap: .round))
+                Circle().fill(Color.black).overlay(Circle().stroke(Color.white, lineWidth: 1.8 * k))
+                    .frame(width: 7 * k, height: 7 * k)
+                    .position(x: c.x + r * CGFloat(sin(a)), y: c.y - r * CGFloat(cos(a)))
+                HangingDegree(text: "\(u(s.temp))", font: pixel ? .px(13 * k) : .system(size: 13 * k, weight: .semibold))
+                    .foregroundStyle(.white).position(x: c.x, y: c.y + 1 * k)
+                Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(.white.opacity(0.6))
+                    .position(x: c.x, y: c.y + 19 * k)
+            }
         }
     }
 }
