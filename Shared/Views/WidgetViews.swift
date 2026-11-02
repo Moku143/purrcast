@@ -318,7 +318,7 @@ struct LockCircularView: View {
     }
 }
 
-/// Lock screen, circular: chance of rain — the app's umbrella (in the lock-screen style) over the percentage,
+/// Lock screen, circular: chance of rain — a round white umbrella drawn for the lock screen over the percentage,
 /// straight on the wallpaper like the 미세먼지 circle
 struct LockRainCircularView: View {
     let snap: WeatherSnapshot
@@ -340,7 +340,7 @@ struct LockDustCircularView: View {
         let d = snap.scene.dust
         let g = d.map { max(0, min(3, $0.grade)) }
         VStack(spacing: 3) {
-            // the icon in the lock-screen style: white, the outline as its edge, the fills see-through
+            // the icon in the character's lock-screen style: white, the outline cut out, mid tones see-through
             Image("icon-\(d.map { DustFacts.icon($0) } ?? "pm10")-lock").interpolation(.none).resizable()
                 .frame(width: 26, height: 26).opacity(0.9)
             Text(g.map { L(DustScale.words[$0]) } ?? "–").font(.system(size: 14, weight: .semibold))
