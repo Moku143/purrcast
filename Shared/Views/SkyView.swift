@@ -94,7 +94,8 @@ enum Sky {
             let low = f.items.map { var i = $0; i.y += 60; i.x -= 30; i.dl -= 3; i.fdl = (i.fdl ?? 0) - 2.5; return i }
             all["fog"] = SkyLayerData(tint: "rgba(238,241,247,0.40)", items: f.items + low)
         }
-        all["haze"] = SkyLayerData(tint: "rgba(196,192,176,0.40)", items: ev(dust).map { var i = $0; i.c = "rgba(140,138,128,0.45)"; return i })
+        // 미세먼지 (bad air, not 황사): a cool grey veil with grey specks — the sandy yellow stays 황사's
+        all["haze"] = SkyLayerData(tint: "rgba(172,178,188,0.42)", items: ev(dust).map { var i = $0; i.c = "rgba(112,118,130,0.42)"; return i })
         return all
     }()
 
