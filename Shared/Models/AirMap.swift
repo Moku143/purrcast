@@ -85,26 +85,46 @@ struct AirMap: Decodable, Equatable {
         detail = try? c.decodeIfPresent(Detail.self, forKey: .detail)
     }
 
+    /// 통합대기환경지수 of one pollutant from its breakpoints (as the server does), index edges 0 · 50 · 100 · 250 · 500
+    static func subIndex(_ key: String, _ v: Double?) -> Int? {
+        let bp: [String: [Double]] = ["pm10": [0, 30, 80, 150, 600], "pm25": [0, 15, 35, 75, 500]]
+        guard let v, let b = bp[key] else { return nil }
+        let e: [Double] = [0, 50, 100, 250, 500]
+        for i in 0..<4 where v <= b[i + 1] { return Int((e[i] + (v - b[i]) / (b[i + 1] - b[i]) * (e[i + 1] - e[i])).rounded()) }
+        return 500
+    }
+    /// The step plus how far into it, 0–3.99, for an index
+    static func level(_ cai: Int) -> Double {
+        let e: [Double] = [0, 50, 100, 250, 500], v = Double(cai)
+        for i in 0..<4 where v <= e[i + 1] { return min(3.99, Double(i) + (v - e[i]) / (e[i + 1] - e[i])) }
+        return 3.99
+    }
+
     /// The example weather's map: a made-up, smooth field of stations around the place (a little worse to the
-    /// north-west, as on a hazy day), so the card can be seen and captured without the server.
-    static func sample(lat: Double, lon: Double, korea: Bool) -> AirMap {
+    /// north-west, as on a hazy day), its middle the example's own 미세먼지, so the card can be seen without the server.
+    static func sample(lat: Double, lon: Double, korea: Bool, pm10: Double? = nil, pm25: Double? = nil) -> AirMap {
+        let p10 = pm10 ?? 46, p25 = pm25 ?? 10
+        let s10 = subIndex("pm10", p10) ?? 0, s25 = subIndex("pm25", p25) ?? 0
+        let cai = max(s10, s25), here = level(cai)
         var pts: [Point] = []
         var seed: UInt64 = 0x9E3779B97F4A7C15
         func rnd() -> Double { seed = seed &* 6364136223846793005 &+ 1442695040888963407; return Double(seed >> 33) / Double(1 << 31) }
         for _ in 0..<(korea ? 70 : 17) {
             let y = lat + (rnd() - 0.5) * 0.9, x = lon + (rnd() - 0.5) * 1.1
-            let lv = max(0, min(3.99, 0.9 + (y - lat) * 1.6 - (x - lon) * 1.1 + (rnd() - 0.5) * 0.5))
+            let lv = max(0, min(3.99, here + (y - lat) * 1.6 - (x - lon) * 1.1 + (rnd() - 0.5) * 0.5))
             pts.append(Point(lat: y, lon: x, level: lv, value: korea ? Int(lv * 50 + 4) : nil))
         }
-        let here = Point(lat: lat, lon: lon, level: korea ? 1.78 : 0.96, value: korea ? 89 : nil)
+        let yday = max(0, here - 0.5)
+        let ugm = "㎍/㎥"
         let detail = korea
-            ? Detail(value: 89, level: 1.78, grade: 1, main: "pm10", station: L("마포구"), at: "", yday: .init(value: 61, level: 1.22),
-                     items: [.init(key: "pm10", value: 46, unit: "㎍/㎥"), .init(key: "pm25", value: 10, unit: "㎍/㎥"), .init(key: "o3", value: 38, unit: "ppb"),
+            ? Detail(value: cai, level: here, grade: Int(here), main: s10 >= s25 ? "pm10" : "pm25", station: L("마포구"), at: "", yday: .init(value: Int(yday * 50), level: yday),
+                     items: [.init(key: "pm10", value: p10, unit: ugm), .init(key: "pm25", value: p25, unit: ugm), .init(key: "o3", value: 38, unit: "ppb"),
                              .init(key: "no2", value: 11, unit: "ppb"), .init(key: "so2", value: 2, unit: "ppb"), .init(key: "co", value: 0.4, unit: "ppm")])
             : Detail(value: nil, level: 0.96, grade: 0, main: "pm25", station: nil, at: "", yday: .init(value: nil, level: 1.3),
-                     items: [.init(key: "pm10", value: 18.2, unit: "㎍/㎥"), .init(key: "pm25", value: 9.1, unit: "㎍/㎥"), .init(key: "o3", value: 61.2, unit: "㎍/㎥"),
-                             .init(key: "no2", value: 12.3, unit: "㎍/㎥"), .init(key: "so2", value: 1.1, unit: "㎍/㎥"), .init(key: "co", value: 230.4, unit: "㎍/㎥")])
-        return AirMap(kind: korea ? "cai" : "pm", at: "", me: Me(value: here.value, level: here.level, grade: Int(here.level)), points: [here] + pts, detail: detail)
+                     items: [.init(key: "pm10", value: 18.2, unit: ugm), .init(key: "pm25", value: 9.1, unit: ugm), .init(key: "o3", value: 61.2, unit: ugm),
+                             .init(key: "no2", value: 12.3, unit: ugm), .init(key: "so2", value: 1.1, unit: ugm), .init(key: "co", value: 230.4, unit: ugm)])
+        let me = korea ? Me(value: cai, level: here, grade: Int(here)) : Me(value: nil, level: 0.96, grade: 0)
+        return AirMap(kind: korea ? "cai" : "pm", at: "", me: me, points: [Point(lat: lat, lon: lon, level: me.level, value: me.value)] + pts, detail: detail)
     }
 }
 

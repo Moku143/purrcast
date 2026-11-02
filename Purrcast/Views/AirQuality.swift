@@ -205,7 +205,7 @@ struct AirLevelBar: View {
 enum AirText {
     static func name(_ k: String) -> String {
         switch k {
-        case "pm10": return L("미세먼지"); case "pm25": return L("초미세먼지"); case "o3": return L("오존")
+        case "pm10": return L("10㎛ 이하 미세먼지"); case "pm25": return L("2.5㎛ 이하 초미세먼지"); case "o3": return L("오존")
         case "no2": return L("이산화질소"); case "so2": return L("아황산가스"); case "co": return L("일산화탄소")
         default: return k
         }
@@ -245,7 +245,7 @@ enum AirText {
     static func amount(_ it: AirMap.Detail.Item) -> String {
         let v = it.value
         let n = v >= 100 || v == v.rounded() ? String(Int(v.rounded())) : String(format: "%.1f", v)
-        return n + it.unit
+        return n + (it.unit == "㎍/㎥" ? "µg/m³" : it.unit)   // the one-glyph ㎍ / ㎥ read squeezed
     }
     /// "에어코리아 · 철산동 · 18시 기준" / "OpenWeather · 18시 기준"
     @MainActor static func sourceLine(_ m: AirMap?, model: AppModel) -> String {

@@ -463,6 +463,8 @@
 "주요 오염 물질" = "Main pollutant";
 "오염 물질 세부사항" = "Pollutants";
 "오존" = "Ozone";
+"10㎛ 이하 미세먼지" = "Particles under 10 µm";
+"2.5㎛ 이하 초미세먼지" = "Particles under 2.5 µm";
 "이산화질소" = "Nitrogen dioxide";
 "아황산가스" = "Sulfur dioxide";
 "일산화탄소" = "Carbon monoxide";

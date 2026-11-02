@@ -18,6 +18,14 @@ protocol WeatherProvider {
 extension WeatherProvider {
     /// Without the server: a made-up field around the place (the example weather)
     func airMap(for place: Place) async throws -> AirMap { AirMap.sample(lat: place.lat, lon: place.lon, korea: place.region == "kr") }
+}
+
+extension SampleWeatherProvider {
+    /// The example's map, its index made from the example's own 미세먼지 (so the card and the sheet agree with it)
+    func airMap(for place: Place) async throws -> AirMap {
+        let d = SceneLibrary.scene(sceneOverride ?? place.sample).dust
+        return AirMap.sample(lat: place.lat, lon: place.lon, korea: place.region == "kr", pm10: d?.pm10, pm25: d?.pm25)
+    }
 
     func forecast(for place: Place, plus: Bool, previousLevel: Int?) async throws -> WeatherScene {
         try await forecast(for: place, plus: plus, previousLevel: previousLevel, fresh: false)
