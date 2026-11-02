@@ -6,7 +6,15 @@ import UserNotifications
 struct OnboardingView: View {
     @EnvironmentObject var model: AppModel
     @EnvironmentObject var purchases: Purchases
-    @State private var step = 0
+    @State private var step = OnboardingView.firstStep
+    /// Screenshots: -onbStep 3 opens on that page
+    private static var firstStep: Int {
+        #if DEBUG
+        let a = ProcessInfo.processInfo.arguments
+        if let i = a.firstIndex(of: "-onbStep"), i + 1 < a.count, let n = Int(a[i + 1]) { return max(0, min(5, n)) }
+        #endif
+        return 0
+    }
     @State private var showPlus = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// The pictures on the first pages cycle through the weather (rain → clear → snow → wind) to show

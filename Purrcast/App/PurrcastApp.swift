@@ -121,7 +121,9 @@ struct RootView: View {
         #if DEBUG
         let a = ProcessInfo.processInfo.arguments
         guard let i = a.firstIndex(of: "-open"), i + 1 < a.count else { return }
-        if a[i + 1] == "day" { day = 1 } else if a[i + 1] == "today" { day = 0 } else { route = Route(rawValue: a[i + 1]) }
+        if a[i + 1] == "day" { day = 1 } else if a[i + 1] == "today" { day = 0 }
+        else if a[i + 1].hasPrefix("day"), let n = Int(a[i + 1].dropFirst(3)) { day = n }      // -open day5: the sixth day
+        else { route = Route(rawValue: a[i + 1]) }
         #endif
     }
 }

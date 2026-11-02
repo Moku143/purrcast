@@ -1,0 +1,128 @@
+name: Review catalog
+
+# Every screen in every language for the review page: the phone (two halves per language) and the watch app.
+# Each job pushes its pictures to its own branch (catalog-out-<lang>-<part>), so the jobs never overwrite each other.
+on:
+  workflow_dispatch:
+    inputs:
+      langs:
+        description: 'Languages (JSON list)'
+        required: false
+        default: '["ko","en","ja"]'
+
+permissions:
+  contents: write
+
+jobs:
+  phone:
+    runs-on: macos-15
+    timeout-minutes: 100
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: ${{ fromJSON(github.event.inputs.langs) }}
+        part: [a, b]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode 26
+        run: |
+          latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$latest" ]; then sudo xcode-select -s "$latest"; fi
+          xcodebuild -version
+      - name: Simulator device
+        run: |
+          dev="iPhone 16"
+          if ! xcrun simctl list devices available | grep -q "^ *$dev ("; then
+            rt=$(xcrun simctl list runtimes | grep -E "^iOS" | tail -1 | grep -o "com.apple.CoreSimulator.SimRuntime[^ )]*")
+            xcrun simctl create "$dev" "$dev" "$rt"
+          fi
+      - name: Generate project
+        run: brew install xcodegen && xcodegen generate
+      - name: Catalog
+        env:
+          TEST_RUNNER_CATALOG_LANG: ${{ matrix.lang }}
+          TEST_RUNNER_CATALOG_PART: ${{ matrix.part }}
+        run: |
+          set -o pipefail
+          extra=""
+          if [ "${{ matrix.lang }}${{ matrix.part }}" = "kob" ]; then extra="-only-testing:PurrcastTests"; fi
+          xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast \
+            -only-testing:PurrcastUITests/CatalogTests/testCatalog $extra \
+            -destination "platform=iOS Simulator,name=iPhone 16,OS=latest" \
+            -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST |BUILD " || true
+      - name: Export pictures
+        if: always()
+        run: |
+          mkdir -p raw shots
+          if [ -d TestResults.xcresult ]; then
+            xcrun xcresulttool export attachments --path TestResults.xcresult --output-path raw 2>/dev/null || true
+            python3 - <<'PY'
+          import json, os, shutil
+          try: m = json.load(open('raw/manifest.json'))
+          except Exception: m = []
+          for t in m:
+              for a in t.get('attachments', []):
+                  src = os.path.join('raw', a['exportedFileName'])
+                  ext = os.path.splitext(a['exportedFileName'])[1].lower()
+                  if ext not in ('.png', '.jpg', '.jpeg', '') or os.path.getsize(src) > 20_000_000: continue
+                  name = (a.get('suggestedHumanReadableName') or a['exportedFileName']).split('_0_')[0].replace(' ', '-')
+                  if not name.endswith('.png'): name += '.png'
+                  shutil.copy(src, os.path.join('shots', name))
+          print(len(os.listdir('shots')), 'pictures')
+          PY
+          fi
+      - name: Publish
+        if: always()
+        run: |
+          mkdir -p out && cp -r shots out/ && cp test.log out/ 2>/dev/null || true
+          grep -E "error:|failed|Test Case" test.log > out/errors.txt 2>/dev/null || true
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} lang=${{ matrix.lang }} part=${{ matrix.part }} $(date -u)" > out/RUN.txt
+          cd out && git init -q && git checkout -q -b b
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "catalog ${{ matrix.lang }} ${{ matrix.part }}"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} b:catalog-out-${{ matrix.lang }}-${{ matrix.part }}
+
+  watch:
+    runs-on: macos-15
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: ${{ fromJSON(github.event.inputs.langs) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode 26
+        run: |
+          latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$latest" ]; then sudo xcode-select -s "$latest"; fi
+      - name: Generate project
+        run: brew install xcodegen && xcodegen generate
+      - name: Watch app on every weather
+        run: |
+          set -o pipefail
+          mkdir -p shots
+          xcodebuild build -project Purrcast.xcodeproj -scheme PurrcastWatch \
+            -destination 'generic/platform=watchOS Simulator' -derivedDataPath wdd \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee watch.log | grep -E "error:|BUILD " || true
+          grep -q "BUILD SUCCEEDED" watch.log
+          APP=$(find wdd/Build/Products -maxdepth 2 -name "PurrcastWatch.app" | head -1)
+          DEV=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; v=[x for k,l in d.items() if 'watchOS' in k for x in l]; print(next((x for x in v if '46mm' in x['name']), v[0])['udid'])")
+          echo "watch sim $DEV app $APP"
+          xcrun simctl boot "$DEV" || true
+          xcrun simctl bootstatus "$DEV" -b || sleep 30
+          xcrun simctl install "$DEV" "$APP"
+          L=${{ matrix.lang }}
+          clock=""; [ "$L" = "en" ] && clock="-clock12"
+          shot() { xcrun simctl launch --terminate-running-process "$DEV" app.purrcast.ios.watchkitapp "${@:2}" || true; sleep 7; xcrun simctl io "$DEV" screenshot "shots/$1.png" || true; }
+          for sc in clear maybe combo tokyo_soon seoul_soon spring_chill spring_dust winter_smog spring_rain summer_monsoon summer_night summer_heat summer_typhoon winter_eve winter_cold winter_snow; do
+            for p in 0 1 2; do shot "watch.$sc.0$p" -lang $L -scene $sc -char cat -page $p $clock; done
+          done
+          for c in abys brit; do shot "watch-char.$c.00" -lang $L -scene maybe -char $c -page 0 $clock; done
+          shot "watch-locked.maybe.00" -lang $L -scene maybe -char cat -locked $clock
+      - name: Publish
+        if: always()
+        run: |
+          mkdir -p out && cp -r shots out/ 2>/dev/null; cp watch.log out/ 2>/dev/null || true
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} lang=${{ matrix.lang }} part=w $(date -u)" > out/RUN.txt
+          cd out && git init -q && git checkout -q -b b
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "catalog ${{ matrix.lang }} watch"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} b:catalog-out-${{ matrix.lang }}-w

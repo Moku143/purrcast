@@ -16,6 +16,7 @@ final class AppModel: ObservableObject {
     @Published var currentIndex = 0 { didSet { if currentIndex != oldValue { Task { await refresh(force: true) } } } }
     @Published private(set) var loading = false
     @Published private(set) var lastError: String?
+    private var debugNotice: String?
     @Published private(set) var previews: [String: WeatherScene] = [:]   // for the places list
     @Published private(set) var hereIsLive = false            // "지금 위치" really is the phone's location
     let provider: WeatherProvider
@@ -108,10 +109,11 @@ final class AppModel: ObservableObject {
         plusUntil = nil
         character = arg("-char").flatMap(PurrCharacter.init(rawValue:)) ?? (testing ? .cat : PurrCharacter(rawValue: d.string(forKey: "character") ?? "") ?? .cat)
         names = testing ? [:] : (d.dictionary(forKey: "names") as? [String: String] ?? [:])
-        unitF = !testing && d.bool(forKey: "unitF")
+        unitF = args.contains("-unitF") || (!testing && d.bool(forKey: "unitF"))
         // English reads hours as "3PM" unless the person chose otherwise; Korean and Japanese as "15시" / "15時"
-        clock12 = testing ? false : (d.object(forKey: "clock12") as? Bool ?? (Lang.current == .en))
-        wind = WindUnit(rawValue: d.string(forKey: "wind") ?? "") ?? .ms
+        clock12 = testing ? args.contains("-clock12") : (d.object(forKey: "clock12") as? Bool ?? (Lang.current == .en))
+        wind = arg("-wind").flatMap(WindUnit.init(rawValue:)) ?? (testing ? .ms : WindUnit(rawValue: d.string(forKey: "wind") ?? "") ?? .ms)
+        debugNotice = arg("-notice")      // screenshots: stale · fail · loading (the notices the home screen can show)
         pixelFont = testing ? true : (d.object(forKey: "pixelFont") as? Bool ?? true)
         useLocation = testing ? false : (d.object(forKey: "useLocation") as? Bool ?? true)
         notifyRain = d.object(forKey: "notifyRain") as? Bool ?? true
@@ -151,6 +153,14 @@ final class AppModel: ObservableObject {
                 raw = s; hasData = true; lastError = nil; lastRefresh = Date()
                 lastLevel[place.id] = s.level
                 publish()
+                #if DEBUG
+                switch debugNotice {
+                case "stale": lastError = L("새 날씨를 불러오는 중이에요 · 지금은 %@ 날씨예요", shownTime)
+                case "fail": hasData = false; lastError = L("날씨를 불러오는 데 시간이 걸리고 있어요. 잠시 후 아래로 당겨 주세요.")
+                case "loading": hasData = false
+                default: break
+                }
+                #endif
                 return
             } catch {
                 guard mine == generation else { return }
