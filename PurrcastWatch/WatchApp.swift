@@ -125,7 +125,7 @@ struct WatchDays: View {
         List {
             ForEach(Array(snap.scene.days.enumerated()), id: \.offset) { _, d in
                 HStack(spacing: 8) {
-                    Text(d.name).font(.px(13)).frame(width: 34, alignment: .leading)
+                    Text(d.name).font(.px(13)).frame(width: Lang.current == .en ? 48 : 34, alignment: .leading)   // "Today" on one line
                     PixelIcon(name: d.icon, size: 20)
                     Spacer()
                     Text(snap.deg(d.lo)).font(.px(12)).opacity(0.7)
