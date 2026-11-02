@@ -36,6 +36,9 @@ final class AppModel: ObservableObject {
     @Published var unitF: Bool { didSet { persist(); publish() } }
     @Published var clock12: Bool { didSet { persist(); publish() } }
     @Published var wind: WindUnit { didSet { persist(); publish() } }
+    /// The 대기질 지도 and its sheet (Plus), for the place on screen
+    @Published var airMap: AirMap?
+    private var airMapKey = ""
     @Published var pixelFont: Bool { didSet { FontPref.pixel = pixelFont; persist() } }
     @Published var useLocation: Bool { didSet { persist(); if useLocation { location.ask() }; Task { await refresh(force: true) } } }
     @Published var notifyRain: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyRain && !oldValue) } }
@@ -237,6 +240,15 @@ final class AppModel: ObservableObject {
         let d = unitF ? Int((Double(abs(v)) * 1.8).rounded()) : abs(v)
         return v > 0 ? "+\(d)°" : (v < 0 ? "−\(d)°" : L("같음"))
     }
+    /// Fetch the 대기질 지도 for the place on screen, again when the forecast was refreshed (the readings are hourly)
+    func loadAirMap() async {
+        let place = currentPlace, key = "\(place.id)|\(scene.updated)|\(scene.clock)"
+        guard key != airMapKey else { return }
+        if !airMapKey.hasPrefix(place.id + "|") { airMap = nil }
+        airMapKey = key
+        if let m = try? await provider.airMap(for: place), currentPlace.id == place.id { airMap = m } else if airMap == nil { airMapKey = "" }
+    }
+
     func windText(_ ms: Int) -> String { windNumber(ms) + windUnit }
     func windNumber(_ ms: Int) -> String {
         switch wind {

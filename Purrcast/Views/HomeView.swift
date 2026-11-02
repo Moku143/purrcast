@@ -495,6 +495,8 @@ struct HomeView: View {
         return VStack(spacing: 12) {
             tileRows(first, ink: ink)
             if let d = s.dust { DustCard(dust: d, ink: ink) }
+            // 대기질 (Plus): the index, the map, tap for the sheet
+            if s.isPlus { AirHomeCard(ink: ink) { route = .air } }
             WindCard(wind: s.wind, ink: ink)
             if let c = s.cmp { CompareCard(cmp: c, updated: s.updated, ink: ink) }
             if !rest.isEmpty { tileRows(rest, ink: ink) }
