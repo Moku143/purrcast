@@ -332,7 +332,10 @@ struct LockCircularView: View {
         let s = snap.scene, u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
         let lo = min(s.lo, s.temp), hi = max(s.hi, s.temp)
         LockRing(frac: Double(s.temp - lo) / Double(max(1, hi - lo))) { k in
-            Text("\(u(s.temp))°").font(pixel ? .px(13 * k) : .system(size: 13 * k, weight: .semibold))
+            // the digits a touch left of the middle with the "°" hanging off them: the small raised degree makes a
+            // whole-centred "18°" look pushed left, digits-only centring looks pushed right — this sits between
+            let f: Font = pixel ? .px(13 * k) : .system(size: 13 * k, weight: .semibold)
+            HangingDegree(text: "\(u(s.temp))", font: f).offset(x: -1.3 * k)
         } under: { k in
             Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(.white.opacity(0.6))
         }
@@ -348,7 +351,7 @@ struct LockUVCircularView: View {
         LockRing(frac: Double(min(uv, 11)) / 11) { k in
             Text("\(uv)").font(.system(size: 14 * k, weight: .semibold))
         } under: { k in
-            Image("icon-sun-lock").interpolation(.none).resizable().frame(width: 9 * k, height: 9 * k).opacity(0.85)
+            Image("icon-sun-lock").interpolation(.none).resizable().frame(width: 12 * k, height: 12 * k).opacity(0.9)
         }
     }
 }
