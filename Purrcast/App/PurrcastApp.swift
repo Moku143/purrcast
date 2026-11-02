@@ -74,7 +74,7 @@ struct PurrcastApp: App {
 
 /// Sheets and full-screen pages reachable from home.
 enum Route: String, Identifiable {
-    case character, paywall, settings, places, sources, widgets, language, licenses, appIcon, widgetLab, liveLab, air, skyLab
+    case character, paywall, settings, places, sources, widgets, language, licenses, appIcon, widgetLab, liveLab, air, skyLab, alertLab
     var id: String { rawValue }
 }
 
@@ -107,6 +107,7 @@ struct RootView: View {
             case .appIcon: AppIconView(route: $route).presentationCornerRadius(28)
             case .air: AirQualitySheet().presentationCornerRadius(28)
             case .skyLab: SkyLabView()                 // every sky by air (UI tests only)
+            case .alertLab: AlertLabView()             // every warning's bubble and line (UI tests only)
             }
         }
         .sheet(item: Binding(get: { day.map { DayIndex(value: $0) } }, set: { day = $0?.value })) { d in

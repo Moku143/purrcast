@@ -53,7 +53,7 @@ struct HomeView: View {
                         heroScaled(s, ink: ink, level: lv, width: width, topInset: topInset)
                             .parallaxHero()
                         if let e = model.lastError { notice(e, ink: ink).transition(.move(edge: .top).combined(with: .opacity)) }
-                        if let a = s.alert { alertBanner(a, ink: ink).reveal(0).settleInScroll() }
+                        if let a = s.alert { AlertBanner(alert: a, night: ink.night).reveal(0).settleInScroll() }
                         if let head = nextHour(s) { nextHourCard(s, head: head, ink: ink).reveal(1).settleInScroll() }
                         hourlyCard(s, ink: ink).reveal(2).settleInScroll()
                         dailyCard(s, ink: ink).reveal(3).settleInScroll()
@@ -124,28 +124,6 @@ struct HomeView: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
         .background(ink.card).clipShape(RoundedRectangle(cornerRadius: 14))
-    }
-
-    /// Official warning in force (호우주의보 …): its name and what it means today, under the character, above the hours.
-    private func alertBanner(_ a: WeatherScene.Alert, ink: Ink) -> some View {
-        HStack(spacing: 10) {
-            PixelIcon(name: alertIcon(a.name), size: 18)
-            (Text(a.name).font(.px(13)) + Text(" · ").font(.px(13)) + Text(model.say(a.note)).font(.px(13)))
-                .lineLimit(3).minimumScaleFactor(0.85)
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 14).padding(.vertical, 11)
-        .background(ink.night ? Color(hex: "#FF9A6A").opacity(0.18) : Color(hex: "#FFF1E6"))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(ink.night ? Color(hex: "#FFB08A").opacity(0.5) : Color(hex: "#F0A070").opacity(0.7), lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .foregroundStyle(ink.night ? Color(hex: "#FFD2BC") : Color(hex: "#8A3A1C"))
-    }
-    private func alertIcon(_ name: String) -> String {
-        // the server names the warning in the app's language; match the Korean key or its translation
-        func has(_ keys: String...) -> Bool { keys.contains { name.contains($0) || name.contains(L($0)) } }
-        return has("대설") ? "snowflake" : has("태풍", "강풍", "풍랑", "폭풍") ? "wind"
-        : has("호우") ? "raincloud" : has("폭염") ? "thermo_hot" : has("한파") ? "thermo_cold"
-        : has("건조") ? "sun_strong" : "exclaim"
     }
 
     // MARK: hero
@@ -592,5 +570,43 @@ private extension View {
                 content.offset(y: phase.value < 0 ? -phase.value * 60 : 0).opacity(1 + Double(min(0, phase.value)) * 0.7)
             }
         } else { self }
+    }
+}
+
+/// Official warning in force (호우주의보 …): its name and what it means today, under the character, above the hours.
+struct AlertBanner: View {
+    @EnvironmentObject var model: AppModel
+    let alert: WeatherScene.Alert
+    var night = false
+    var body: some View {
+        HStack(spacing: 10) {
+            PixelIcon(name: Self.icon(alert.name), size: 18)
+            (Text(alert.name).font(.px(13)) + Text(" · ").font(.px(13)) + Text(model.say(alert.note)).font(.px(13)))
+                .lineLimit(3).minimumScaleFactor(0.85)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 11)
+        .background(night ? Color(hex: "#FF9A6A").opacity(0.18) : Color(hex: "#FFF1E6"))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(night ? Color(hex: "#FFB08A").opacity(0.5) : Color(hex: "#F0A070").opacity(0.7), lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .foregroundStyle(night ? Color(hex: "#FFD2BC") : Color(hex: "#8A3A1C"))
+    }
+    /// The warning's icon from its name in any language (the same words, in the same order, as the server's
+    /// `warningKind`, and the same icons as its bubble): KMA's names, their translations, Apple's alert names abroad.
+    static func icon(_ name: String) -> String {
+        let w = name.lowercased()
+        // a Korean word also matches its translation (the server names KMA warnings in the app's language)
+        func has(_ words: String...) -> Bool {
+            words.contains { k in w.contains(k) || (k.unicodeScalars.contains { (0xAC00...0xD7A3).contains($0.value) } && w.contains(L(k).lowercased())) }
+        }
+        if has("태풍", "typhoon", "hurricane", "tropical storm", "tropical cyclone", "台風") { return "wind" }
+        if has("대설", "snow", "blizzard", "ice storm", "winter storm", "大雪", "暴風雪") { return "snowflake" }
+        if has("호우", "rain", "flood", "大雨", "洪水") { return "raincloud" }
+        if has("강풍", "풍랑", "폭풍", "wind", "gale", "storm", "強風", "暴風", "波浪") { return "wind" }
+        if has("폭염", "heat", "高温", "猛暑") { return "thermo_hot" }
+        if has("한파", "cold", "freez", "frost", "低温", "寒波", "霜") { return "thermo_cold" }
+        if has("건조", "dry", "fire weather", "red flag", "乾燥") { return "sun_strong" }
+        if has("황사", "미세먼지", "dust", "smoke", "air quality", "黄砂") { return "mask" }
+        return "exclaim"
     }
 }

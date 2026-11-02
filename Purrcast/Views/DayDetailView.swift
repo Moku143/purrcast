@@ -195,24 +195,10 @@ struct DayDetailView: View {
         .accessibilityIdentifier("tab-\(m)")
     }
 
-    /// The alert's icon from its name, in any language (the same words as the server's `warningKind`)
-    private func alertIcon(_ name: String) -> String {
-        let w = name.lowercased()
-        func has(_ words: [String]) -> Bool { words.contains(where: { w.contains($0) }) }
-        if has(["태풍", "typhoon", "hurricane", "tropical storm", "tropical cyclone", "台風"]) { return "exclaim" }
-        if has(["대설", "snow", "blizzard", "ice storm", "winter storm", "大雪", "暴風雪"]) { return "snowflake" }
-        if has(["호우", "rain", "flood", "大雨", "洪水"]) { return "umbrella" }
-        if has(["강풍", "풍랑", "wind", "gale", "storm", "強風", "暴風", "波浪"]) { return "wind" }
-        if has(["폭염", "heat", "高温", "猛暑"]) { return "thermo_hot" }
-        if has(["한파", "cold", "freez", "frost", "低温", "寒波", "霜"]) { return "thermo_cold" }
-        if has(["황사", "미세먼지", "dust", "smoke", "air quality", "黄砂"]) { return "mask" }
-        return "exclaim"
-    }
-
     private func alertLine(_ a: WeatherScene.Alert, _ c: DayCtx) -> some View {
         let n = a.name
         return HStack(spacing: 8) {
-            PixelIcon(name: alertIcon(n), size: 18)
+            PixelIcon(name: AlertBanner.icon(n), size: 18)
             Text(a.note.isEmpty ? n : "\(n) · \(model.say(a.note))").font(.px(12)).lineSpacing(3).foregroundStyle(c.ink.ink)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)

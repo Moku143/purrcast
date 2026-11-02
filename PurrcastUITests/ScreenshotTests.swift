@@ -251,6 +251,15 @@ final class ScreenshotTests: XCTestCase {
         shot("livelab-alerts-2", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "liveLab"], wait: 2) { app in app.swipeUp(); sleep(1) }
     }
 
+    func test14Alerts() {
+        // every warning the home screen can show: the bubble over the character and the line under it
+        for p in 1...6 { shot("alertlab-\(p)", ["-scene", "clear", "-open", "alertLab", "-alertPage", String(p)], wait: 2) }
+        // and the home screen itself on the example days that carry one
+        for s in ["summer_monsoon", "summer_heat", "summer_typhoon", "winter_cold", "winter_snow", "spring_dust"] {
+            shot("alerthome-\(s)", ["-scene", s, "-char", "cat"], wait: 2)
+        }
+    }
+
     func test10Layout() {
         var screens: [(String, [String], Int)] = [
             ("home-1", ["-scene", "maybe", "-plus", "-char", "cat"], 0),
