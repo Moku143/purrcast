@@ -2,7 +2,10 @@ name: Review catalog
 
 # Every screen in every language for the review page: the phone (two halves per language) and the watch app.
 # Each job pushes its pictures to its own branch (catalog-out-<lang>-<part>), so the jobs never overwrite each other.
+# Started by pushing to the catalog-run branch (a workflow that exists only on a work branch cannot be dispatched).
 on:
+  push:
+    branches: [catalog-run]
   workflow_dispatch:
     inputs:
       langs:
@@ -20,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lang: ${{ fromJSON(github.event.inputs.langs) }}
+        lang: ${{ fromJSON(github.event.inputs.langs || '["ko","en","ja"]') }}
         part: [a, b]
     steps:
       - uses: actions/checkout@v4
@@ -87,7 +90,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lang: ${{ fromJSON(github.event.inputs.langs) }}
+        lang: ${{ fromJSON(github.event.inputs.langs || '["ko","en","ja"]') }}
     steps:
       - uses: actions/checkout@v4
       - name: Xcode 26
