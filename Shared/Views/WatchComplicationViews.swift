@@ -259,6 +259,6 @@ enum DustFacts {
     /// "미세먼지 보통" (or "초미세먼지 나쁨" when that is the worse one) — the corner's rim text and the lock screen's line
     static func word(_ d: WeatherScene.Dust) -> String {
         let fine = (d.pm25Grade ?? -1) > (d.pm10Grade ?? -1)
-        return (fine ? L("초미세먼지") : L("미세먼지")) + " " + L(DustScale.words[max(0, min(3, d.grade))])
+        return (fine ? L("초미세먼지") : L("PM10")) + " " + L(DustScale.words[max(0, min(3, d.grade))])
     }
 }

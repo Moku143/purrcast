@@ -56,6 +56,7 @@ struct SampleWeatherProvider: WeatherProvider {
     func forecast(for place: Place, plus: Bool, previousLevel: Int?, fresh: Bool) async throws -> WeatherScene {
         var s = SceneLibrary.scene(sceneOverride ?? place.sample)
         s.place = place.name
+        if !plus && place.region == "kr" { s.alert = nil }     // the server sends 기상특보 to Plus only (free: the 06:00 run)
         return s
     }
 }

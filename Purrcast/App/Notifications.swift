@@ -111,7 +111,7 @@ enum Notifications {
         var masked = false
         if today, let dd = s.dust {
             if plus, let kind = dd.alarm, kind == "watch" || kind == "warning" {
-                let item = dd.pm25Grade.map { $0 >= (dd.pm10Grade ?? 0) } == true ? L("초미세먼지") : L("미세먼지")
+                let item = dd.pm25Grade.map { $0 >= (dd.pm10Grade ?? 0) } == true ? L("초미세먼지") : L("PM10")
                 dustLine.append("\(item) \(kind == "warning" ? L("경보") : L("주의보")) · " + L("창문을 닫고 외출할 땐 마스크를 착용해 주세요"))
                 masked = true
             } else {

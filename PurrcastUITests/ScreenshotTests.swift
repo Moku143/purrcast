@@ -277,6 +277,29 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    /// Plus page now (alerts an hour before, the 대기질 page), the English 미세먼지 card ("Fine dust"), a free 황사 day
+    func test17PlusCheck() {
+        for lang in ["ko", "en", "ja"] {
+            shot("plus-\(lang)-alerts", ["-scene", "maybe", "-open", "paywall"], wait: 3, lang: lang) { app in
+                for _ in 0..<2 { app.swipeLeft(); sleep(1) }
+            }
+            shot("plus-\(lang)-air", ["-scene", "maybe", "-open", "paywall"], wait: 3, lang: lang) { app in
+                for _ in 0..<3 { app.swipeLeft(); sleep(1) }
+                sleep(3)
+            }
+        }
+        shot("en-dust-card", ["-scene", "maybe", "-plus"], wait: 2, lang: "en") { app in
+            for _ in 0..<2 { app.swipeUp() }; sleep(2)
+        }
+        shot("en-day-dust", ["-scene", "spring_dust", "-plus", "-open", "today"], wait: 2, lang: "en") { app in
+            app.buttons["tab-dust"].firstMatch.tap(); sleep(1); app.swipeUp(); sleep(1)
+        }
+        shot("free-yellow", ["-scene", "spring_dust", "-char", "cat"], wait: 2)
+        shot("free-promo", ["-scene", "maybe", "-char", "cat"], wait: 2) { app in
+            for _ in 0..<6 { app.swipeUp() }; sleep(1)
+        }
+    }
+
     func test10Layout() {
         var screens: [(String, [String], Int)] = [
             ("home-1", ["-scene", "maybe", "-plus", "-char", "cat"], 0),

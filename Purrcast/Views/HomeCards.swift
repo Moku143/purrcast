@@ -230,7 +230,7 @@ struct PlusPromoCard: View {
     private var lines: [String] {
         [(Features.adsInFree ? L("광고 제거") : L("말투 고르기")) + " · " + L("캐릭터 바꾸기"),
          L("새 예보마다 업데이트") + " · " + L("가까운 비"),
-         L("애플워치") + " · " + L("지역 여러 곳")]
+         L("대기질") + " · " + L("애플워치") + " · " + L("지역 여러 곳")]
     }
     var body: some View {
         Button { Haptic.soft(); action() } label: {

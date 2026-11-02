@@ -52,7 +52,7 @@
 "어제와 비슷해요" = "About the same as yesterday";
 "바람 %@" = "Wind %@";
 "미세먼지 · 마스크 챙기세요" = "Fine dust · Take a mask";
-"미세먼지 %@" = "Air quality %@";
+"미세먼지 %@" = "PM10 %@";
 "초미세먼지 %@" = "PM2.5 %@";
 "마스크를 챙겨 주세요" = "Bring a mask";
 "외출할 땐 마스크를 착용해 주세요" = "Wear a mask outdoors";
@@ -290,6 +290,8 @@
 "새 예보마다" = "Every forecast";
 "가까운 비" = "Rain ahead";
 "비 오기 전 알림" = "Rain alerts";
+"대기질 지도" = "Air quality map";
+"미세먼지 매시간 업데이트 · 잠금화면 미세먼지 위젯 · 오염 물질 6종" = "Fine dust updated every hour · fine dust on the Lock Screen · six pollutants";
 "앞으로 6시간, 언제 얼마나 오는지." = "The next 6 hours: when and how much.";
 "워치 앱 · 컴플리케이션" = "Watch app · Complications";
 "지역 여러 곳" = "More places";
@@ -316,9 +318,9 @@
 "기온" = "Temp";
 "자외선" = "UV";
 "초미세먼지" = "PM2.5";
-"미세먼지" = "Air quality";
+"미세먼지" = "Fine dust";
 "미세먼지 · 초미세먼지 등급" = "PM10 and PM2.5 level";
-"미세먼지 정보가 아직 없어요" = "No air quality data yet";
+"미세먼지 정보가 아직 없어요" = "No fine dust data yet";
 "PM10" = "PM10";
 "매우 나쁨" = "Very poor";
 "나쁨" = "Poor";
@@ -422,7 +424,7 @@
 "기상청 · 기상특보 · 예보 비교 (공공누리 제1유형)" = "KMA · warnings · forecast comparison (KOGL type 1)";
 "기상청 · 기상특보 · 예보 비교 · 다음 6시간 (공공누리 제1유형)" = "KMA · warnings · forecast comparison · next 6 hours (KOGL type 1)";
 "MET Norway · 예보 비교 (CC BY 4.0, 그래프로 바꿔 씀)" = "MET Norway · forecast comparison (CC BY 4.0, redrawn as charts)";
-"에어코리아 · 미세먼지 (공공누리 제1유형)" = "AirKorea · air quality (KOGL Type 1)";
+"에어코리아 · 미세먼지 (공공누리 제1유형)" = "AirKorea · fine dust (KOGL Type 1)";
 "Plus · 새 예보 나올 때마다" = "Plus · every new forecast";
 "무료 · 매일 06:00에 받아요" = "Free · updated daily at 06:00";
 "Weather data provided by Apple Weather" = "Weather data provided by Apple Weather";
@@ -466,7 +468,7 @@
 "10㎛ 이하 미세먼지" = "Particles under 10 µm";
 "2.5㎛ 이하 초미세먼지" = "Particles under 2.5 µm";
 "비·눈이 오기 1시간 전과 올 때 잠깐 알려 드려요" = "A quick heads-up an hour before rain or snow, and when it starts";
-"기상특보 · 미세먼지" = "Warnings · Air quality";
+"기상특보 · 미세먼지" = "Warnings · Fine dust";
 "특보·황사·미세먼지 주의보가 내려지거나 미세먼지가 나빠지면 잠깐 알려 드려요" = "A quick heads-up when a warning, yellow dust or a fine dust advisory is issued, or the air turns poor";
 "황사경보" = "Yellow Dust Warning";
 "호우경보" = "Heavy Rain Warning";
@@ -508,7 +510,7 @@
 "추후 업데이트로 추가 예정" = "Coming in a future update";
 "무료는 하루 1번, Plus는 새 예보가 나올 때마다." = "Free updates once a day; Plus updates with every new forecast.";
 "비 올 시각까지 · 한국은 다음 6시간" = "Down to the minute rain starts · Next 6 hours in Korea";
-"비 30분 전 알림 · 기온 변화 · 기상특보" = "30 min before rain · day-to-day change · warnings";
+"비·눈 1시간 전과 올 때 · 기상특보 · 미세먼지 · 기온 변화" = "Rain and snow an hour before and as it starts · warnings · fine dust · temperature change";
 "이용약관" = "Terms of Use";
 
 /* day sheet: tabs · bubble · charts · scales */
@@ -578,7 +580,7 @@
 "미리 알려줘요" = "a heads-up";
 "언제, 얼마나" = "When, and how much";
 "비가 오는지" = "rain is coming";
-"미세먼지도" = "Air quality, too,";
+"미세먼지도" = "Fine dust, too,";
 "한눈에" = "at a glance";
 "홈 화면에서" = "Right on your";
 "바로 확인해요" = "Home Screen";

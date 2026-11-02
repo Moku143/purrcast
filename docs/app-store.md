@@ -169,9 +169,9 @@ App Store Connect → 앱 → 구독:
 | Plus Monthly | `app.purrcast.plus.monthly` | 1개월 | 2,500원에 가장 가까운 가격 단계 | 신규 구독자 3일 무료 |
 
 3. 각 구독의 현지화
-   - 한국어: 표시 이름 `그르릉날씨 Plus 연간` / `그르릉날씨 Plus 월간`, 설명 `가까운 비 · 애플워치 · 캐릭터 · 지역 여러 곳`
-   - 영어: 표시 이름 `Purrcast Plus Yearly` / `Purrcast Plus Monthly`, 설명 `Next-hours rain, Apple Watch, characters, more places`
-   - 일본어: 표시 이름 `ゴロゴロ天気 Plus 年額` / `ゴロゴロ天気 Plus 月額`, 설명 `近づく雨・Apple Watch・キャラクター・複数の地域`
+   - 한국어: 표시 이름 `그르릉날씨 Plus 연간` / `그르릉날씨 Plus 월간`, 설명 `가까운 비 · 대기질 · 애플워치 · 캐릭터 · 지역 여러 곳`
+   - 영어: 표시 이름 `Purrcast Plus Yearly` / `Purrcast Plus Monthly`, 설명 `Rain soon, air quality, Apple Watch, characters, places` (55자 제한 안)
+   - 일본어: 표시 이름 `ゴロゴロ天気 Plus 年額` / `ゴロゴロ天気 Plus 月額`, 설명 `近づく雨・大気質・Apple Watch・キャラクター・複数の地域`
 4. 심사용 스크린샷: GitHub Actions의 "Store screenshots"에서 나온 Plus 화면을 올려요
 5. **첫 심사 때는 구독을 앱 버전과 같이 제출**해야 해요 (버전 페이지의 "앱 내 구입 및 구독"에 두 개 추가)
 
@@ -197,7 +197,7 @@ Purrcast (Korean name: 그르릉날씨) is a weather app: a pixel cat changes cl
 - No login. Location is used only to get the forecast for the current place (rounded to ~1 km); the user can turn it off and pick places instead.
 - Weather comes from our own server: KMA 기상청 for Korea (with Apple Weather for the later hours), Apple Weather (WeatherKit) elsewhere, MET Norway for the forecast comparison; air quality from AirKorea (Korea) and OpenWeather (elsewhere). Credited in Settings > Data sources.
 - For the rain alert on the Lock Screen / Dynamic Island, the app registers a random device ID, the place rounded to ~1 km and an ActivityKit push token with our server; it is deleted after 45 days without a check-in.
-- Purrcast Plus (auto-renewable subscription, yearly / monthly, free trial for new subscribers) unlocks: forecast refresh with every new run, the next-6-hours rain card, the Apple Watch app and complications, unlimited places, and two more characters. Purchase and restore are on the Plus screen (gear icon > Purrcast Plus, or the character button).
+- Purrcast Plus (auto-renewable subscription, yearly / monthly, free trial for new subscribers) unlocks: forecast refresh with every new run, the next-6-hours rain card, short Live Activity alerts (rain or snow an hour before and as it starts, official warnings, poor air), the air quality map with hourly fine dust readings and the Lock Screen fine dust widget, the Apple Watch app and complications, unlimited places, and two more characters. Purchase and restore are on the Plus screen (gear icon > Purrcast Plus, or the character button).
 - To test Plus, please use a Sandbox account. The Apple Watch app shows its content only with Plus and gets its data from the iPhone app.
 ```
 
