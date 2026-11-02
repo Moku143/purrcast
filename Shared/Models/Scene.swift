@@ -321,7 +321,7 @@ struct WeatherScene: Codable, Identifiable {
 }
 
 enum SceneLibrary {
-    static let order = ["clear", "maybe", "combo", "tokyo_soon", "seoul_soon", "spring_chill", "spring_dust", "spring_rain",
+    static let order = ["clear", "maybe", "combo", "tokyo_soon", "seoul_soon", "spring_chill", "spring_dust", "winter_smog", "spring_rain",
                         "summer_monsoon", "summer_night", "summer_heat", "summer_typhoon", "winter_eve", "winter_cold", "winter_snow"]
     private static var cache: [Lang: [String: WeatherScene]] = [:]
     private static let lock = NSLock()

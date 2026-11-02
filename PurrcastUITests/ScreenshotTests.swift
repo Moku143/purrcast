@@ -51,6 +51,7 @@ final class ScreenshotTests: XCTestCase {
         shot("home-narrow", ["-scene", "combo", "-plus", "-char", "brit", "-narrow"])
         // the longest bubble the server sends (미세먼지 매우 나쁨 · 마스크 꼭 챙기세요): the hero must stay the screen's width
         shot("home-dust-top", ["-scene", "spring_dust", "-plus", "-char", "brit"])
+        shot("home-smog-top", ["-scene", "winter_smog", "-plus", "-char", "brit"])   // bad air without 황사: the grey sky
         shot("home-dust-top-en", ["-scene", "spring_dust", "-plus", "-char", "brit", "-lang", "en"])
         shot("home-dust-top-ja", ["-scene", "spring_dust", "-plus", "-char", "brit", "-lang", "ja"])
         // the umbrella up: the bubble points at its tip
