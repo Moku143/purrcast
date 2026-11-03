@@ -127,6 +127,8 @@ struct CalendarSheet: View {
     @State private var shareImage: UIImage?
     /// The day tapped: its own page (DayLogSheet)
     @State private var openDay: DayKey?
+    /// The month as the weather (sky · high · low) or as the outfits worn
+    @State private var outfits = false
 
     var body: some View {
         let place = model.currentPlace
@@ -143,9 +145,9 @@ struct CalendarSheet: View {
             SheetHeader(title: L("날씨 달력"), trailing: L("닫기")) { dismiss() }
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 14) {
-                    monthBar(m, canBack: m > first, canNext: m < thisMonth, place: place)
-                    reportCard(report, month: m)
+                    monthBar(m, canBack: m > first, canNext: m < thisMonth, thisMonth: thisMonth, place: place)
                     grid(m, byDate: byDate, today: today)
+                    reportCard(report, month: m)
                     Text(L("날씨를 볼 때마다 그날 날씨가 하루씩 쌓여요.")).font(.ui(12)).foregroundStyle(UI.sub).padding(.top, 2)
                 }
                 .padding(.horizontal, 16).padding(.bottom, 30)
@@ -171,6 +173,7 @@ struct CalendarSheet: View {
             let args = ProcessInfo.processInfo.arguments
             func arg(_ k: String) -> String? { args.firstIndex(of: k).flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil } }
             if let n = arg("-calMonth").flatMap(Int.init) { month = DayLogText.shift(thisMonth, by: n) }
+            if args.contains("-calOutfits") { outfits = true }
             if let n = arg("-calDay").flatMap(Int.init) {
                 let k = DayLog.dayKey(Date().addingTimeInterval(Double(-n) * 86400), tz: tz)
                 selected = k; openDay = DayKey(id: k)
@@ -179,23 +182,48 @@ struct CalendarSheet: View {
         }
     }
 
-    private func monthBar(_ m: String, canBack: Bool, canNext: Bool, place: Place) -> some View {
+    /// 오늘 (back to this month) · the month between its arrows · 날씨 | 옷차림
+    private func monthBar(_ m: String, canBack: Bool, canNext: Bool, thisMonth: String, place: Place) -> some View {
         HStack(spacing: 10) {
-            arrow("chevron.left", enabled: canBack, label: L("이전")) { go(m, -1) }
-            VStack(spacing: 2) {
-                Text(DayLogText.monthTitle(m)).font(.px(17)).foregroundStyle(UI.ink)
-                Text(place.short).font(.ui(12)).foregroundStyle(UI.sub)
+            Button { Haptic.soft(); withAnimation(Motion.gentle) { month = thisMonth } } label: {
+                Text(L("오늘")).font(.ui(13, .semibold)).foregroundStyle(m == thisMonth ? UI.faint : UI.ink)
+                    .padding(.horizontal, 12).frame(height: 38).background(Color.white, in: Capsule())
             }
-            .frame(maxWidth: .infinity)
-            arrow("chevron.right", enabled: canNext, label: L("다음")) { go(m, 1) }
+            .buttonStyle(.press(0.94)).disabled(m == thisMonth).accessibilityIdentifier("cal-today")
+            Spacer(minLength: 0)
+            HStack(spacing: 2) {
+                arrow("chevron.left", enabled: canBack, label: L("이전")) { go(m, -1) }
+                VStack(spacing: 1) {
+                    Text(DayLogText.monthTitle(m)).font(.px(15)).foregroundStyle(UI.ink).lineLimit(1).fixedSize()
+                    Text(place.short).font(.ui(11)).foregroundStyle(UI.sub).lineLimit(1)
+                }
+                arrow("chevron.right", enabled: canNext, label: L("다음")) { go(m, 1) }
+            }
+            .padding(.horizontal, 4).frame(height: 48).background(Color.white, in: Capsule())
+            Spacer(minLength: 0)
+            // the month as the weather, or as what was worn
+            HStack(spacing: 0) {
+                modeButton(on: !outfits, id: "cal-mode-weather") { PixelIcon(name: "partly_cloudy", size: 18) } action: { outfits = false }
+                modeButton(on: outfits, id: "cal-mode-outfits") {
+                    Image(model.shownCharacter.faceImage).resizable().interpolation(.none).scaledToFit().frame(width: 18, height: 18)
+                } action: { outfits = true }
+            }
+            .padding(3).background(Color.white, in: Capsule())
         }
         .padding(.top, 2)
     }
 
+    private func modeButton<C: View>(on: Bool, id: String, @ViewBuilder _ c: () -> C, action: @escaping () -> Void) -> some View {
+        Button { Haptic.select(); withAnimation(Motion.snappy, action) } label: {
+            c().frame(width: 34, height: 32).background(on ? Color(hex: "#E9ECF3") : Color.clear, in: Capsule())
+        }
+        .buttonStyle(.press(0.94)).accessibilityIdentifier(id)
+        .accessibilityLabel(Text(id == "cal-mode-weather" ? L("날씨") : L("옷차림")))
+    }
+
     private func arrow(_ name: String, enabled: Bool, label: String, _ action: @escaping () -> Void) -> some View {
         Button { Haptic.soft(); action() } label: {
-            Image(systemName: name).font(.system(size: 15, weight: .bold)).frame(width: 40, height: 40)
-                .background(Color.white, in: Circle())
+            Image(systemName: name).font(.system(size: 13, weight: .bold)).frame(width: 32, height: 40)
         }
         .foregroundStyle(enabled ? UI.ink : UI.faint).disabled(!enabled)
         .buttonStyle(.press(0.92)).accessibilityLabel(Text(label)).accessibilityIdentifier(name == "chevron.left" ? "cal-prev" : "cal-next")
@@ -271,21 +299,21 @@ struct CalendarSheet: View {
         let symbols = cal.shortStandaloneWeekdaySymbols
         let heads = (0..<7).map { symbols[(cal.firstWeekday - 1 + $0) % 7] }
         let cells: [String?] = Array(repeating: nil, count: lead) + (1...count).map { String(format: "%@-%02d", m, $0) }
-        let cols = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
-        return VStack(spacing: 6) {
-            HStack(spacing: 4) {
+        let cols = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
+        return VStack(spacing: 8) {
+            HStack(spacing: 0) {
                 ForEach(Array(heads.enumerated()), id: \.offset) { _, h in
-                    Text(h).font(.ui(11, .semibold)).foregroundStyle(UI.sub).lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: .infinity)
+                    Text(h).font(.ui(12)).foregroundStyle(UI.faint).lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: .infinity)
                 }
             }
-            LazyVGrid(columns: cols, spacing: 4) {
+            LazyVGrid(columns: cols, spacing: 2) {
                 ForEach(Array(cells.enumerated()), id: \.offset) { _, k in
-                    if let k { cell(k, byDate[k], today: today) } else { Color.clear.frame(height: 80) }
+                    if let k { cell(k, byDate[k], today: today) } else { Color.clear.frame(height: cellHeight) }
                 }
             }
         }
-        .padding(10)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal, 6).padding(.vertical, 14)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
         .gesture(DragGesture(minimumDistance: 30).onEnded { v in
             guard abs(v.translation.width) > abs(v.translation.height) else { return }
             let next = DayLogText.shift(m, by: v.translation.width < 0 ? 1 : -1)
@@ -293,24 +321,33 @@ struct CalendarSheet: View {
         })
     }
 
+    private var cellHeight: CGFloat { outfits ? 92 : 86 }
+
+    /// One day: its number (today in a dark circle), then its sky and range — or the outfit worn that day
     private func cell(_ k: String, _ r: DayRecord?, today: String) -> some View {
-        let isToday = k == today, isSel = k == (selected ?? today)
-        let future = k > today
+        let isToday = k == today, future = k > today
         return Button { Haptic.soft(); selected = k; openDay = DayKey(id: k) } label: {
-            VStack(spacing: 3) {
-                Text(String(Int(k.suffix(2)) ?? 0)).font(.px(12)).foregroundStyle(isToday ? UI.accent : (future ? UI.faint : UI.ink))
+            VStack(spacing: 4) {
+                Text(String(Int(k.suffix(2)) ?? 0)).font(.ui(14, isToday ? .bold : .regular))
+                    .foregroundStyle(isToday ? Color.white : (future ? UI.faint : UI.ink))
+                    .frame(width: 28, height: 28)
+                    .background(Circle().fill(isToday ? UI.ink : Color.clear))
                 if let r {
-                    PixelIcon(name: r.icon, size: 20)
-                    Text(model.deg(r.hi)).font(.px(12)).foregroundStyle(UI.ink).lineLimit(1).minimumScaleFactor(0.7)
-                    Text(model.deg(r.lo)).font(.px(11)).foregroundStyle(UI.sub).lineLimit(1).minimumScaleFactor(0.7)
-                } else {
-                    Spacer(minLength: 0)
+                    if outfits {
+                        DayFigure(character: model.shownCharacter, level: r.level, width: 40)
+                    } else {
+                        PixelIcon(name: r.icon, size: 22)
+                        HStack(spacing: 2) {
+                            Text(model.deg(r.hi)).font(.px(11)).foregroundStyle(UI.ink)
+                            Text(model.deg(r.lo)).font(.px(11)).foregroundStyle(UI.faint)
+                        }
+                        .lineLimit(1).minimumScaleFactor(0.6)
+                    }
                 }
+                Spacer(minLength: 0)
             }
-            .padding(.vertical, 6)
-            .frame(maxWidth: .infinity, minHeight: 80, maxHeight: 80)
-            .background(r.map { Color(hex: Rules.background[Rules.clamp($0.level)]) } ?? Color(hex: "#F5F6F9"), in: RoundedRectangle(cornerRadius: 10))
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(isSel ? UI.ink : (isToday ? UI.accent : .clear), lineWidth: isSel ? 2 : 1.5))
+            .frame(maxWidth: .infinity, minHeight: cellHeight, maxHeight: cellHeight)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.press(0.95)).disabled(future)
         .accessibilityIdentifier("cal-\(k)")

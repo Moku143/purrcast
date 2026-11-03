@@ -88,6 +88,8 @@ final class CatalogTests: XCTestCase {
                 if b.waitForExistence(timeout: 1) { b.tap(); sleep(1); take() }
             }
         }
+        seq("calendar.outfits", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "calendar", "-calOutfits"], swipes: 1, wait: 3)
+        seq("calendar.outfits-abys", ["-scene", "spring_dust", "-plus", "-char", "abys", "-open", "calendar", "-calOutfits", "-calMonth", "-1"], wait: 3)
         seq("calendar.winter", ["-scene", "winter_snow", "-plus", "-char", "brit", "-open", "calendar"], swipes: 1, wait: 3)
         steps("calendar.card", ["-scene", "maybe", "-char", "cat"]) { app, take in
             let card = app.buttons["week-card"].firstMatch
