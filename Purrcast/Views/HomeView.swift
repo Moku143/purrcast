@@ -248,7 +248,7 @@ struct HomeView: View {
     /// first at the server's " · " separators ("미세먼지 나쁨 · 마스크 챙기세요" → two lines), then at the middle space.
     static func bubbleLines(_ text: String, maxChars: Int? = nil) -> String {
         // Korean and Japanese glyphs are about twice as wide as Latin ones
-        let maxChars = maxChars ?? (Lang.current == .en ? 22 : 12)
+        let maxChars = maxChars ?? (Lang.current.isLatinLike ? 22 : 12)
         guard text.count > maxChars else { return text }
         var parts = text.components(separatedBy: " · ")
         if parts.count == 1 { parts = text.components(separatedBy: "・") }   // the Japanese separator
@@ -445,7 +445,7 @@ struct HomeView: View {
             VStack(spacing: 0) {
                 ForEach(Array(s.days.enumerated()), id: \.offset) { i, d in
                     Button { day = i } label: { HStack(spacing: 9) {
-                        Text(d.name).font(.px(13)).frame(width: Lang.current == .en ? 48 : 34, alignment: .leading)   // "Today"
+                        Text(d.name).font(.px(13)).frame(width: Lang.current.isLatinLike ? 48 : 34, alignment: .leading)   // "Today"
                         PixelIcon(name: d.icon, size: 24)
                         Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(11)).foregroundStyle(ink.blue).frame(width: 34, alignment: .leading)
                         Text(deg(d.lo)).font(.px(13)).foregroundStyle(ink.sub).frame(width: 28, alignment: .trailing).rolling(d.lo)

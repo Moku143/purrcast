@@ -2,7 +2,7 @@ name: Purrcast
 options:
   bundleIdPrefix: app.purrcast
   developmentLanguage: en
-  knownRegions: [en, ko, ja]
+  knownRegions: [en, ko, ja, es, fr, de, pt-BR, it, id, ru, zh-Hans, zh-Hant]
   deploymentTarget:
     iOS: "17.0"
     watchOS: "10.0"

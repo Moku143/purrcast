@@ -379,12 +379,12 @@ final class PlaceStore: @unchecked Sendable {
     private func finish() {
         children = Array(repeating: [], count: entries.count)
         for i in entries.indices where entries[i].parent >= 0 { children[entries[i].parent].append(i) }
-        rank = Lang.allCases.map { order(for: $0) }
+        rank = [Lang.ko, .en, .ja].map { order(for: $0) }   // one order per name slot (the other languages read English)
     }
 
     // MARK: orders
 
-    private static func slot(_ lang: Lang) -> Int { lang == .ko ? 0 : (lang == .en ? 1 : 2) }
+    private static func slot(_ lang: Lang) -> Int { lang == .ko ? 0 : (lang == .ja ? 2 : 1) }   // names come in ko · en · ja; the rest read English
 
     /// Each entry's position in the language's own order:
     /// ko — Hangul code-point order of the Korean name (ㄱㄴㄷ); en — A–Z, case and accents ignored;
@@ -397,7 +397,7 @@ final class PlaceStore: @unchecked Sendable {
         case .ko:
             let k: [String] = idx.map { title($0, .ko) }
             sorted = idx.sorted { (a: Int, b: Int) -> Bool in k[a] != k[b] ? k[a] < k[b] : a < b }
-        case .en:
+        case .en, .es, .fr, .de, .pt, .it, .id, .ru, .zhHans, .zhHant:
             let k: [String] = idx.map { Self.latinFold(title($0, .en)) }
             sorted = idx.sorted { (a: Int, b: Int) -> Bool in k[a] != k[b] ? k[a] < k[b] : a < b }
         case .ja:
@@ -454,18 +454,18 @@ final class PlaceStore: @unchecked Sendable {
     /// ko "서울 마포구 아현동" (short 시도, big → small) · en "Ahyeon-dong, Mapo-gu, Seoul" (small → big) ·
     /// ja "ソウル マポ区 アヒョンドン" (katakana, KoreanKana). A 시도 alone by its full name ("서울특별시" · "Seoul" · "ソウル").
     private static func koreanTitle(_ n: KR, _ level: Int, _ lang: Lang) -> String {
-        if level == 1 { return lang == .ko ? n.sido : (lang == .en ? n.en1 : n.ja1) }
+        if level == 1 { return lang == .ko ? n.sido : (lang == .ja ? n.ja1 : n.en1) }
         let dong = level == 3
         switch lang {
         case .ko:
             return joined([n.short, n.l2, dong ? n.l3 : ""], " ")
-        case .en:
+        case .ja:
+            return joined([n.ja1, n.k2, dong ? n.k3 : ""], " ")
+        default:
             var parts: [String] = dong ? [n.r3] : []
             parts += n.r2.split(separator: " ").reversed().map { String($0) }
             parts.append(n.en1)
             return joined(parts, ", ")
-        case .ja:
-            return joined([n.ja1, n.k2, dong ? n.k3 : ""], " ")
         }
     }
 
@@ -485,9 +485,9 @@ final class PlaceStore: @unchecked Sendable {
         let e = entries[i]
         guard e.kind == .kr, let n = e.kr else { return title(i, lang) }
         switch e.level {
-        case 1: return lang == .ko ? n.short : (lang == .en ? n.en1 : n.ja1)
-        case 2: return Self.lastWord(lang == .ko ? n.l2 : (lang == .en ? n.r2 : n.k2))
-        default: return lang == .ko ? n.l3 : (lang == .en ? n.r3 : n.k3)
+        case 1: return lang == .ko ? n.short : (lang == .ja ? n.ja1 : n.en1)
+        case 2: return Self.lastWord(lang == .ko ? n.l2 : (lang == .ja ? n.k2 : n.r2))
+        default: return lang == .ko ? n.l3 : (lang == .ja ? n.k3 : n.r3)
         }
     }
 

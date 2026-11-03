@@ -348,7 +348,7 @@ final class AppModel: ObservableObject {
         case .ko:
             q.name = ko
             q.short = koShort
-        case .en:
+        default:
             break
         }
         return q

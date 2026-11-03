@@ -3,7 +3,20 @@
 // (14시 · 2PM · 14時, 15~17시 · 3–5PM · 15〜17時). Korean values are the ones the app shipped with.
 // Icons, kinds and numbers never change with the language — only text.
 
-export const LANGS = ['ko', 'en', 'ja'];
+import es from './i18n/es.js';
+import fr from './i18n/fr.js';
+import de from './i18n/de.js';
+import pt from './i18n/pt.js';
+import it from './i18n/it.js';
+import id from './i18n/id.js';
+import ru from './i18n/ru.js';
+import zhHans from './i18n/zh-Hans.js';
+import zhHant from './i18n/zh-Hant.js';
+
+/** The languages the app has (Lang.swift): the three originals, then the ones the pixel font can draw. */
+export const LANGS = ['ko', 'en', 'ja', 'es', 'fr', 'de', 'pt', 'it', 'id', 'ru', 'zh-Hans', 'zh-Hant'];
+/** The added languages' words: each file exports its dictionary, short weekday names and the KMA warning names. */
+const MORE = { es, fr, de, pt, it, id, ru, 'zh-Hans': zhHans, 'zh-Hant': zhHant };
 /** ko | en | ja; anything else → en, nothing → ko. */
 export const normLang = (v) => (v == null || v === '' ? 'ko' : LANGS.includes(v) ? v : 'en');
 
@@ -195,6 +208,10 @@ const DICT = {
   },
 };
 
+for (const [l, m] of Object.entries(MORE)) {
+  DICT[l] = { ...m.default, warning: (name) => m.warnings[name] ?? name };
+  WD[l] = m.weekdays;
+}
 for (const l of LANGS) {
   DICT[l].lang = l;
   DICT[l].weekday = (wdEn) => WD[l][wdEn] ?? wdEn;   // 'Mon' → 월 · Mon · 月

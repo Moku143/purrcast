@@ -243,7 +243,7 @@ private struct WidgetDayList: View {
         VStack(spacing: 0) {
             ForEach(Array(days.enumerated()), id: \.offset) { i, d in
                 HStack(spacing: 4) {
-                    Text(d.name).font(.px(10)).frame(width: Lang.current == .en ? 34 : 22, alignment: .leading).probe("d\(i)name")
+                    Text(d.name).font(.px(10)).frame(width: Lang.current.isLatinLike ? 34 : 22, alignment: .leading).probe("d\(i)name")
                     PixelIcon(name: d.icon, size: 16).probe("d\(i)icon")
                     Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(8)).foregroundStyle(ink.blue).frame(width: 20, alignment: .leading).probe("d\(i)chance")
                     Text(snap.deg(d.lo)).font(.px(10)).foregroundStyle(ink.sub).frame(width: 22, alignment: .trailing).probe("d\(i)lo")

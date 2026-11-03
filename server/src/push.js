@@ -11,7 +11,7 @@
 // region, lang, name, char, plan, rain (비 오기 전 on), alert (기상특보 on), sent: { eventKey: until ms }, dustG (the
 // 미세먼지 step last seen), at (ms) }.
 
-import { strings } from './i18n.js';
+import { strings, LANGS } from './i18n.js';
 import { local, dayKey } from './time.js';
 import { warningKind } from './rules.js';
 
@@ -162,7 +162,7 @@ export function readDevice(body) {
   if (body.start != null) out.start = hex(body.start);
   if (body.act != null) out.act = hex(body.act);
   if (body.region != null) out.region = ['kr', 'jp', 'other'].includes(body.region) ? body.region : 'other';
-  if (body.lang != null) out.lang = ['ko', 'en', 'ja'].includes(body.lang) ? body.lang : 'ko';
+  if (body.lang != null) out.lang = LANGS.includes(body.lang) ? body.lang : 'ko';
   if (body.name != null) out.name = String(body.name).slice(0, 40);
   if (body.char != null) out.char = String(body.char).slice(0, 16);
   if (body.plan != null) out.plan = body.plan === 'plus' ? 'plus' : 'free';

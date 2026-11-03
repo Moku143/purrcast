@@ -16,7 +16,7 @@ enum Voice: String, CaseIterable, Codable {
         switch Lang.current {
         case .ko: return allCases
         case .ja: return [.polite, .casual]
-        case .en: return []
+        default: return []
         }
     }
     /// The voice that actually speaks: English has one tone, Japanese has no formal one.
@@ -24,7 +24,7 @@ enum Voice: String, CaseIterable, Codable {
         switch Lang.current {
         case .ko: return self
         case .ja: return self == .formal ? .polite : self
-        case .en: return .polite
+        default: return .polite
         }
     }
 

@@ -3,7 +3,7 @@
 // Every string is mapped through src/i18n.js so the words match what the server would send.
 //   node scripts/translate-scenes.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
-import { strings } from '../src/i18n.js';
+import { strings, LANGS } from '../src/i18n.js';
 
 const SRC = new URL('../../Shared/Data/scenes.json', import.meta.url);
 const KO = strings('ko');
@@ -100,7 +100,8 @@ function translator(lang) {
 }
 
 const scenes = JSON.parse(readFileSync(SRC, 'utf8'));
-for (const lang of ['en', 'ja']) {
+for (const lang of LANGS.filter((l) => l !== 'ko')) {
+  if (!EXTRA[lang]) EXTRA[lang] = JSON.parse(readFileSync(new URL(`../src/i18n/${lang}.extra.json`, import.meta.url), 'utf8'));
   const tr = translator(lang);
   const out = Object.fromEntries(Object.entries(scenes).map(([k, s]) => [k, tr(s)]));
   writeFileSync(new URL(`../../Shared/Data/scenes.${lang}.json`, import.meta.url), JSON.stringify(out));

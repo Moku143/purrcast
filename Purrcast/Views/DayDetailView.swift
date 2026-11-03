@@ -807,7 +807,7 @@ struct DayDetailView: View {
 
     private func partOfDay(_ h: Int) -> String { h < 5 ? L("밤") : h < 12 ? L("아침") : h < 17 ? L("낮") : h < 21 ? L("저녁") : L("밤") }
     /// The same word inside an English sentence ("in the evening", not "in the Evening")
-    private func partOfDayInText(_ h: Int) -> String { Lang.current == .en ? partOfDay(h).lowercased() : partOfDay(h) }
+    private func partOfDayInText(_ h: Int) -> String { Lang.current.isLatinLike && Lang.current != .de ? partOfDay(h).lowercased() : partOfDay(h) }
 
     /// A difference in degrees in the unit setting (°F swings are 1.8× the °C ones)
     private func dd(_ v: Int) -> Int { model.unitF ? Int((Double(abs(v)) * 1.8).rounded()) : abs(v) }

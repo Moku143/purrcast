@@ -8,7 +8,7 @@ enum Brand {
         switch Lang.current {
         case .ko: return "그르릉날씨"
         case .ja: return "ゴロゴロ天気"
-        case .en: return "Purrcast"
+        default: return "Purrcast"
         }
     }
     static var plus: String { "\(name) Plus" }

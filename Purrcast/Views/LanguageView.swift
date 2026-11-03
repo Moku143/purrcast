@@ -29,6 +29,15 @@ struct LanguageView: View {
     @EnvironmentObject var model: AppModel
     @Binding var route: Route?
     @Environment(\.dismiss) private var dismiss
+    @State private var query = ""
+
+    /// The languages matching the search, by any of their names ("한국어" · "Korean" · "Coreano" · "韓国語"); all of them
+    /// when the field is empty
+    private var shown: [Lang] {
+        let q = PlaceKey.norm(query.trimmingCharacters(in: .whitespaces))
+        guard !q.isEmpty else { return Lang.allCases }
+        return Lang.allCases.filter { l in l.searchNames.contains { PlaceKey.norm($0).contains(q) } }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -40,18 +49,34 @@ struct LanguageView: View {
                         Text(L("언어 · Language")).font(.px(24)).foregroundStyle(UI.ink)
                     }
                     Text(L("앱 · 위젯 · 워치 · 알림이 같이 바뀌어요")).font(.ui(13)).foregroundStyle(UI.sub)
-                    RowGroup {
-                        option("", title: L("기기 설정"), subtitle: Lang.deviceLanguage.nativeName)
-                        ForEach(Lang.allCases, id: \.self) { l in
-                            RowDivider()
-                            option(l.rawValue, title: l.nativeName, subtitle: nil)
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass").foregroundStyle(UI.sub)
+                        TextField(L("언어 이름으로 찾기"), text: $query).font(.ui(15)).textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .accessibilityIdentifier("lang-search")
+                        if !query.isEmpty {
+                            Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(UI.faint) }
                         }
+                    }
+                    .padding(.horizontal, 12).padding(.vertical, 10).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 12))
+                    RowGroup {
+                        if query.isEmpty { option("", title: L("기기 설정"), subtitle: Lang.deviceLanguage.nativeName) }
+                        ForEach(Array(shown.enumerated()), id: \.element) { i, l in
+                            if i > 0 || query.isEmpty { RowDivider() }
+                            option(l.rawValue, title: l.nativeName, subtitle: Self.inCurrentLanguage(l))
+                        }
+                        if shown.isEmpty { Text(L("찾는 언어가 없어요")).font(.ui(14)).foregroundStyle(UI.sub).padding(16) }
                     }
                 }
                 .padding(.horizontal, 16).padding(.bottom, 30)
             }
         }
         .background(UI.bg)
+    }
+
+    /// The language's name in the language the app shows now ("Japanese" under 日本語), none when it is the same word
+    private static func inCurrentLanguage(_ l: Lang) -> String? {
+        guard l != Lang.current, let n = Lang.current.locale.localizedString(forIdentifier: l == .pt ? "pt-BR" : l.rawValue) else { return nil }
+        return n.lowercased() == l.nativeName.lowercased() ? nil : n
     }
 
     private func option(_ value: String, title: String, subtitle: String?) -> some View {
