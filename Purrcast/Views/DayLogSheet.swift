@@ -202,7 +202,8 @@ struct DayLogSheet: View {
                             }
                         }
                     }
-                    CalendarDayChart(metric: m, record: r, clock12: model.clock12, deg: model.deg, wind: model.windText, height: 210, pointLabels: true)
+                    CalendarDayChart(metric: m, record: r, clock12: model.clock12, deg: model.deg, wind: model.windText, height: 210, pointLabels: true,
+                                     windNumber: model.windNumber, windUnit: model.windUnit)
                         .id(m).transition(.opacity)
                     Text(summary(m, r)).font(.ui(14)).foregroundStyle(UI.ink).fixedSize(horizontal: false, vertical: true)
                 }
@@ -349,7 +350,8 @@ struct DayLogSheet: View {
             if CalendarDayChart.series(.temp, r) != nil {
                 VStack(alignment: .leading, spacing: 10) {
                     Text(L("기온")).font(.px(15)).foregroundStyle(UI.ink)
-                    CalendarDayChart(metric: .temp, record: r, clock12: model.clock12, deg: model.deg, wind: model.windText, height: 190, pointLabels: true)
+                    CalendarDayChart(metric: .temp, record: r, clock12: model.clock12, deg: model.deg, wind: model.windText, height: 190, pointLabels: true,
+                                     windNumber: model.windNumber, windUnit: model.windUnit)
                 }
                 .card()
             }

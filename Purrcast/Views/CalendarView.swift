@@ -371,6 +371,28 @@ struct CalendarDayChart: View {
     /// The plot's height, and whether every third hour carries its value (the day page) or only the extremes (small)
     var height: CGFloat = 100
     var pointLabels = false
+    /// Wind as a bare number in the chosen unit, and that unit (the labels at each point leave the unit to a caption)
+    var windNumber: ((Int) -> String)? = nil
+    var windUnit = ""
+
+    /// A point's label: the number alone (its unit sits once in the corner), the temperature with its degree sign
+    private func short(_ v: Double) -> String {
+        switch metric {
+        case .temp: return deg(Int(v.rounded()))
+        case .rain: let t = DayLogText.mm(v, snow: record.isSnow); return String(t.dropLast(2))
+        case .wind: return windNumber?(Int(v.rounded())) ?? String(Int(v.rounded()))
+        case .humidity, .uv: return String(Int(v.rounded()))
+        }
+    }
+    private var unit: String {
+        switch metric {
+        case .temp: return ""
+        case .rain: return record.isSnow ? "cm" : "mm"
+        case .wind: return windUnit
+        case .humidity: return "%"
+        case .uv: return "UV"
+        }
+    }
 
     var body: some View {
         let values = Self.series(metric, record) ?? Array(repeating: nil, count: 24)
@@ -406,7 +428,7 @@ struct CalendarDayChart: View {
                         RoundedRectangle(cornerRadius: 2).fill(color.opacity(p.1 == hi ? 1 : 0.6)).frame(width: max(4, w / 24 - 3), height: barH(p.1))
                             .position(x: x(p.0), y: base - barH(p.1) / 2)
                     }
-                    if let a = pts.first(where: { $0.1 == hi }) { label(text(hi), x: x(a.0), y: base - barH(a.1) - 10, width: g.size.width, strong: true) }
+                    if let a = pts.first(where: { $0.1 == hi }) { label(pointLabels ? short(hi) : text(hi), x: x(a.0), y: base - barH(a.1) - 10, width: g.size.width, strong: true) }
                 } else {
                     Path { p in
                         for (n, pt) in pts.enumerated() { let q = CGPoint(x: x(pt.0), y: y(pt.1)); if n == 0 { p.move(to: q) } else { p.addLine(to: q) } }
@@ -417,13 +439,17 @@ struct CalendarDayChart: View {
                         ForEach(ticks, id: \.self) { t in
                             if let v = values[safe: t] ?? nil {
                                 dot(at: CGPoint(x: x(t), y: y(v)), big: v == hi || v == lo)
-                                label(text(v), x: x(t), y: y(v) - 13, width: g.size.width, strong: v == hi || v == lo)
+                                label(short(v), x: x(t), y: y(v) - 13, width: g.size.width, strong: v == hi || v == lo)
                             }
                         }
                     } else {
                         if let a = pts.first(where: { $0.1 == hi }) { dot(at: CGPoint(x: x(a.0), y: y(a.1)), big: true); label(text(hi), x: x(a.0), y: y(a.1) - 11, width: g.size.width, strong: true) }
                         if let b = pts.first(where: { $0.1 == lo }), hi != lo { dot(at: CGPoint(x: x(b.0), y: y(b.1)), big: true); label(text(lo), x: x(b.0), y: y(b.1) + 12, width: g.size.width, strong: true) }
                     }
+                }
+                // the unit, once, in the corner
+                if pointLabels, !unit.isEmpty {
+                    Text(unit).font(.ui(11, .semibold)).foregroundStyle(UI.sub).fixedSize().position(x: ox + 10, y: 6)
                 }
                 // the hours along the bottom, each under its line
                 ForEach(ticks, id: \.self) { t in
@@ -439,7 +465,9 @@ struct CalendarDayChart: View {
         Circle().fill(big ? color : Color.white).overlay(Circle().stroke(color, lineWidth: 2)).frame(width: big ? 9 : 7, height: big ? 9 : 7).position(p)
     }
     private func label(_ t: String, x: CGFloat, y: CGFloat, width: CGFloat, strong: Bool) -> some View {
-        Text(t).font(.px(strong ? 13 : 11.5)).foregroundStyle(strong ? UI.ink : UI.sub).fixedSize().position(x: min(max(x, 18), width - 18), y: y)
+        Text(t).font(.px(strong ? 13 : 11.5)).foregroundStyle(strong ? UI.ink : UI.sub).fixedSize()
+            .padding(.horizontal, 2).background(Color.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 3))   // readable over the line
+            .position(x: min(max(x, 18), width - 18), y: y)
     }
 }
 
