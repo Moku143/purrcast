@@ -87,6 +87,7 @@ final class ScreenshotTests: XCTestCase {
         shot("onboarding-1", ["-scene", "maybe", "-onboarding"])
         shot("onboarding-2", ["-scene", "maybe", "-onboarding"]) { app in app.buttons["next"].tap(); sleep(1) }
         shot("onboarding-3", ["-scene", "maybe", "-onboarding"]) { app in app.buttons["next"].tap(); sleep(1); app.buttons["next"].tap(); sleep(1) }
+        shot("onboarding-4", ["-scene", "maybe", "-onboarding", "-onbStep", "3"], wait: 2)
     }
 
     /// Plus page on the watch slide; settings at the 언어 row; the character sheet's 말투 (Plus).
@@ -143,10 +144,10 @@ final class ScreenshotTests: XCTestCase {
             app.buttons["settings"].firstMatch.tap(); sleep(2)
         }
         shot("f-onb-watch", ["-scene", "maybe", "-onboarding"]) { app in
-            for _ in 0..<2 { app.buttons["next"].firstMatch.tap(); sleep(1) }
+            for _ in 0..<3 { app.buttons["next"].firstMatch.tap(); sleep(1) }
         }
         shot("f-onb-alerts-off", ["-scene", "maybe", "-onboarding"]) { app in
-            for _ in 0..<3 { app.buttons["next"].firstMatch.tap(); sleep(1) }
+            for _ in 0..<4 { app.buttons["next"].firstMatch.tap(); sleep(1) }
             app.buttons["나중에 · 서울로 볼게요"].firstMatch.tap(); sleep(1)
             app.switches.element(boundBy: 0).tap(); sleep(1)
             app.switches.element(boundBy: 1).tap(); sleep(1)
@@ -305,7 +306,7 @@ final class ScreenshotTests: XCTestCase {
     /// First run with the 이전 button, the fuller widget and watch pages; the merged rain slide of the Plus page
     func test18Onboard() {
         for lang in ["ko", "en", "ja"] {
-            for st in 0...5 { shot("onb-\(lang)-\(st)", ["-scene", "spring_rain", "-onboarding", "-onbStep", String(st)], wait: 3, lang: lang) }
+            for st in 0...6 { shot("onb-\(lang)-\(st)", ["-scene", "spring_rain", "-onboarding", "-onbStep", String(st)], wait: 3, lang: lang) }
             shot("plus-\(lang)-rain", ["-scene", "maybe", "-open", "paywall"], wait: 3, lang: lang) { app in app.swipeLeft(); sleep(2) }
         }
         shot("onb-back", ["-scene", "spring_rain", "-onboarding", "-onbStep", "2"], wait: 3) { app in app.buttons["back"].firstMatch.tap(); sleep(1) }

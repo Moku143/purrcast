@@ -91,7 +91,7 @@ final class CatalogTests: XCTestCase {
     // MARK: everything else — first run, Plus, settings and its pages, places, 대기질, notices, labs, widgets
 
     private func partB() {
-        for st in 0...5 { seq("onboarding.\(st)", ["-scene", "maybe", "-onboarding", "-onbStep", String(st)], wait: 3) }
+        for st in 0...6 { seq("onboarding.\(st)", ["-scene", "maybe", "-onboarding", "-onbStep", String(st)], wait: 3) }
 
         // Plus: every slide, then down to the prices; and the page when Plus is on
         steps("paywall.free", ["-scene", "maybe", "-open", "paywall"], wait: 3) { app, take in

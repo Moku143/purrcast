@@ -364,6 +364,11 @@
 "체감온도에 맞춰 옷을 입고, 비가 오면 우산을 펴요." = "Dressed for the feels-like temperature, umbrella up when it rains.";
 "한국은 기상청, 해외는 Apple 날씨 예보예요." = "Forecasts from KMA in Korea and Apple Weather elsewhere.";
 "위젯" = "Widgets";
+"홈 화면 위젯" = "Home Screen widgets";
+"잠금 화면 위젯" = "Lock Screen widgets";
+"캐릭터와 지금 날씨" = "The character and the weather now";
+"체감 · 일몰 · 비 확률, 옆에는 10일" = "Feels-like · sunset · rain chance, with 10 days beside";
+"홈 화면을 길게 눌러 추가해요" = "Touch and hold the Home Screen to add them";
 "홈 화면: 캐릭터와 지금 날씨 · 10일 · 시간별" = "Home Screen: the character and the weather now · 10 days · by the hour";
 "잠금 화면: 기온 · 비 올 확률 · 자외선 · 일출·일몰 · 바람 · 미세먼지" = "Lock Screen: temperature · rain chance · UV · sunrise and sunset · wind · fine dust";
 "Plus에서 쓸 수 있어요." = "Available with Plus.";
