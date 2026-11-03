@@ -765,7 +765,7 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(KoreanNames.name("경기 수원시 영통구", .zhHans), "京畿道水原市灵通区")
         XCTAssertEqual(KoreanNames.name("서울 오류동", .fr), "Séoul Oryu-dong")
         XCTAssertEqual(KoreanNames.name("서울 오류동", .ru), "Сеул Орю-дон")
-        XCTAssertEqual(KoreanNames.name("서울 오류동", .es), "Seoul Oryu-dong")
+        XCTAssertEqual(KoreanNames.name("서울 오류동", .es), "Seúl Oryu-dong")
         XCTAssertFalse(Lang.zhHans.reads("서울 오류동"))
         XCTAssertTrue(Lang.zhHans.reads("首尔 九老区"))
         XCTAssertFalse(Lang.es.reads("東京"))

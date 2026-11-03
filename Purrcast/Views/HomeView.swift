@@ -77,7 +77,7 @@ struct HomeView: View {
                 }
                 .coordinateSpace(name: "home")
                 // a card let go anywhere else: the move is over
-                .onDrop(of: [.plainText], isTargeted: nil) { _ in dragging = nil; return false }
+                .onDrop(of: [.text], isTargeted: nil) { _ in dragging = nil; return false }
                 .overlay(alignment: .top) {
                     CompactHeader(place: s.place ?? model.currentPlace.name, text: "\(deg(s.temp)) \(s.cond)", level: lv, ink: ink, shown: scrolled)
                 }
@@ -530,9 +530,13 @@ struct HomeView: View {
             .onDrag {
                 dragging = id
                 Haptic.soft()
-                return NSItemProvider(object: id as NSString)
+                // the drag is over however it ends (let go on a card, elsewhere, or called off): the system lets go of
+                // the item then, and the card is itself again
+                let item = CardItem(object: id as NSString)
+                item.ended = { DispatchQueue.main.async { if dragging == id { dragging = nil } } }
+                return item
             }
-            .onDrop(of: [.plainText], delegate: CardDrop(enter: {
+            .onDrop(of: [.text], delegate: CardDrop(enter: {
                 guard let d = dragging, d != id else { return }
                 let moved = HomeLayout.move(d, to: id, in: ids)
                 guard moved != ids else { return }
@@ -653,6 +657,12 @@ struct AlertBanner: View {
         if has("황사", "미세먼지", "dust", "smoke", "air quality", "黄砂") { return "mask" }
         return "exclaim"
     }
+}
+
+/// The dragged card's item: tells when the system lets go of it (the drag has ended, dropped or not)
+private final class CardItem: NSItemProvider {
+    var ended: (() -> Void)?
+    deinit { ended?() }
 }
 
 /// A card dragged over another takes its place; let go, the move is done

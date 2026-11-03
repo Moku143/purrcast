@@ -153,7 +153,7 @@ final class CatalogTests: XCTestCase {
             take()
             if card.exists {
                 let start = card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-                start.press(forDuration: 1.2, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -240)), withVelocity: .slow, thenHoldForDuration: 1.0)
+                start.press(forDuration: 1.5, thenDragTo: start.withOffset(CGVector(dx: -60, dy: -230)), withVelocity: XCUIGestureVelocity(220), thenHoldForDuration: 1.5)
                 sleep(2); take()
             }
         }
