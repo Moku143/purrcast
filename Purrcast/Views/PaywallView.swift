@@ -64,7 +64,7 @@ struct PaywallView: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 290)
+                .frame(height: 324)
                 .padding(.top, 14)
                 .reveal(1)
                 .onChange(of: page) { _, _ in Haptic.soft() }
@@ -244,11 +244,11 @@ struct PaywallView: View {
             // the Dynamic Island's line, an hour before
             HStack(spacing: 6) {
                 PixelIcon(name: "umbrella_closed", size: 14)
-                Text(L("17시쯤 비 예보 · 우산 챙기세요")).font(.px(11)).foregroundStyle(.white)
+                Text(L("%@쯤 비 예보", HourLabel.word(17, clock12: model.clock12)) + " · " + L("우산 챙기세요")).font(.px(11)).foregroundStyle(.white)
             }
             .padding(.horizontal, 12).padding(.vertical, 7).background(Color.black).clipShape(Capsule())
             VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 4) { PixelIcon(name: "umbrella_closed", size: 14); Text(L("17~19시 비 예보")).font(.px(11)).foregroundStyle(UI.ink) }
+                HStack(spacing: 4) { PixelIcon(name: "umbrella_closed", size: 14); Text(L("%@ 비 예보", HourLabel.window(17, 19, clock12: model.clock12))).font(.px(11)).foregroundStyle(UI.ink) }
                 HStack(alignment: .bottom, spacing: 6) {
                     ForEach(Array(mm.enumerated()), id: \.offset) { i, v in
                         VStack(spacing: 4) {
