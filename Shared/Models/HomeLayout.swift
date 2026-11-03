@@ -2,7 +2,8 @@ import Foundation
 
 /// The cards under the forecast on home, in the order the person set (long press a card, then drag it).
 /// Ids: next (가까운 비), hourly, daily (10일), tile0… (강수확률 · 자외선 · 일출/일몰 · 습도), dust, air (대기질), wind,
-/// cmp (예보 비교), week (이번 주 기록). Tiles take half a row, the rest a whole one.
+/// cmp (예보 비교), week (이번 주 기록). Tiles take half a row, two to a row, and are never left alone beside a gap:
+/// a tile trades places with another tile, and moves among the whole cards together with the tile beside it.
 enum HomeLayout {
     /// The order out of the box (the prototype's)
     static func defaults(tiles: Int) -> [String] {
@@ -24,6 +25,19 @@ enum HomeLayout {
                 out.insert(id, at: j + 1)
             } else { out.insert(id, at: 0) }
         }
+        return paired(out)
+    }
+
+    /// Tiles two by two in the order they come, each pair where its first tile is (only the last of an odd number
+    /// can be alone)
+    static func paired(_ ids: [String]) -> [String] {
+        let tiles = ids.filter(isHalf)
+        var pairOf: [String: [String]] = [:]
+        for i in stride(from: 0, to: tiles.count, by: 2) { pairOf[tiles[i]] = Array(tiles[i..<min(i + 2, tiles.count)]) }
+        var out: [String] = []
+        for id in ids {
+            if !isHalf(id) { out.append(id) } else if let p = pairOf[id] { out += p }
+        }
         return out
     }
 
@@ -42,12 +56,23 @@ enum HomeLayout {
         return rows
     }
 
-    /// `id` moved to where `target` is
-    static func move(_ id: String, to target: String, in ids: [String]) -> [String] {
+    /// `id` dragged over `target`: two tiles trade places; otherwise what moves (a whole card, or a tile with the tile
+    /// beside it) goes past what it is over (a whole card, or a pair of tiles) — after it going down, before it going up
+    static func move(_ id: String, to target: String, in given: [String]) -> [String] {
+        let ids = paired(given)
         guard id != target, let from = ids.firstIndex(of: id), let to = ids.firstIndex(of: target) else { return ids }
-        var o = ids
-        o.remove(at: from)
-        o.insert(id, at: to)
+        if isHalf(id) && isHalf(target) {
+            var o = ids
+            o.swapAt(from, to)
+            return o
+        }
+        let pairs = rows(ids)
+        func block(_ x: String) -> [String] { isHalf(x) ? (pairs.first { $0.contains(x) } ?? [x]) : [x] }
+        let moving = block(id), over = block(target)
+        guard moving != over, let head = over.first, let tail = over.last else { return ids }
+        var o = ids.filter { !moving.contains($0) }
+        guard let first = o.firstIndex(of: head), let last = o.firstIndex(of: tail) else { return ids }
+        o.insert(contentsOf: moving, at: from < to ? last + 1 : first)
         return o
     }
 }

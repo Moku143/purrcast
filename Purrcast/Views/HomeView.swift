@@ -481,8 +481,9 @@ struct HomeView: View {
         return ids
     }
 
-    /// Every card in its own row (tiles two to a row, a tile left alone keeps its half), each settling into view on
-    /// its own. A long press lifts a card; dragged over another, it takes that one's place, and the order is kept.
+    /// Every card in its own row (tiles two to a row, never one alone), each settling into view on its own. A long
+    /// press lifts a card; dragged over another it takes that one's place (a tile brings the tile beside it), and the
+    /// order is kept.
     private func cards(_ s: WeatherScene, ink: Ink) -> some View {
         let ids = HomeLayout.order(saved: model.homeOrder, present: presentCards(s), tiles: s.tiles.count)
         let rows = HomeLayout.rows(ids)

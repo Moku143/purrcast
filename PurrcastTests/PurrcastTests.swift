@@ -784,17 +784,22 @@ final class PurrcastTests: XCTestCase {
     }
 
     /// The home cards: the saved order kept, a card new to it placed after the one it follows by default; tiles
-    /// two to a row, a lone tile keeping its half
+    /// always two to a row — they trade places with each other and move among the whole cards in pairs
     func testHomeCardOrder() {
         let present = ["hourly", "daily", "wind", "week", "tile0", "tile1", "tile2", "tile3", "dust"]
-        XCTAssertEqual(HomeLayout.order(saved: [], present: present, tiles: 4),
-                       ["hourly", "daily", "tile0", "tile1", "dust", "wind", "tile2", "tile3", "week"])
-        let saved = ["week", "hourly", "tile1", "daily", "tile0", "wind", "tile2", "tile3"]
-        let o = HomeLayout.order(saved: saved, present: present + ["air"], tiles: 4)
-        XCTAssertEqual(o, ["week", "hourly", "tile1", "dust", "air", "daily", "tile0", "wind", "tile2", "tile3"])
-        XCTAssertEqual(HomeLayout.rows(o), [["week"], ["hourly"], ["tile1"], ["dust"], ["air"], ["daily"], ["tile0"], ["wind"], ["tile2", "tile3"]])
+        let d = HomeLayout.order(saved: [], present: present, tiles: 4)
+        XCTAssertEqual(d, ["hourly", "daily", "tile0", "tile1", "dust", "wind", "tile2", "tile3", "week"])
+        // an order with tiles apart: put back two by two
+        let o = HomeLayout.order(saved: ["week", "hourly", "tile1", "daily", "tile0", "wind", "tile2", "tile3"], present: present + ["air"], tiles: 4)
+        XCTAssertEqual(HomeLayout.rows(o), [["week"], ["hourly"], ["tile1", "tile0"], ["dust"], ["air"], ["daily"], ["wind"], ["tile2", "tile3"]])
+        XCTAssertFalse(HomeLayout.rows(HomeLayout.order(saved: ["week", "tile1", "wind", "tile0"], present: present, tiles: 4)).contains { $0.count == 1 && HomeLayout.isHalf($0[0]) })
+        // a whole card over a pair: above it coming up, below it going down
+        XCTAssertEqual(HomeLayout.move("week", to: "tile3", in: d), ["hourly", "daily", "tile0", "tile1", "dust", "wind", "week", "tile2", "tile3"])
+        XCTAssertEqual(HomeLayout.move("hourly", to: "tile1", in: d), ["daily", "tile0", "tile1", "hourly", "dust", "wind", "tile2", "tile3", "week"])
+        // a tile over a whole card: the pair goes; over a tile: the two trade places
+        XCTAssertEqual(HomeLayout.move("tile0", to: "dust", in: d), ["hourly", "daily", "dust", "tile0", "tile1", "wind", "tile2", "tile3", "week"])
+        XCTAssertEqual(HomeLayout.move("tile0", to: "tile3", in: d), ["hourly", "daily", "tile3", "tile1", "dust", "wind", "tile2", "tile0", "week"])
         XCTAssertEqual(HomeLayout.move("week", to: "daily", in: ["hourly", "daily", "week"]), ["hourly", "week", "daily"])
-        XCTAssertEqual(HomeLayout.move("hourly", to: "week", in: ["hourly", "daily", "week"]), ["daily", "week", "hourly"])
     }
 
     /// The widget's last refresh of the day comes at 23:55 where the place is, unless the regular one comes first
