@@ -1,0 +1,3 @@
+/* The app keeps its English name in this language */
+"CFBundleDisplayName" = "Purrcast";
+"NSLocationWhenInUseUsageDescription" = "Serve a mostrare il meteo dove ti trovi.";

@@ -66,8 +66,23 @@ final class CatalogTests: XCTestCase {
         switch part {
         case "a": partA()
         case "c": partC()
+        case "d": partD()
         default: partB()
         }
+    }
+
+    // MARK: the same language in plain text (설정 → 글씨 → 일반): the system font instead of the pixel one
+
+    private func partD() {
+        let p = ["-plainFont"]
+        for st in [0, 6] { seq("plain-onboarding.\(st)", ["-scene", "maybe", "-onboarding", "-onbStep", String(st)] + p, wait: 3) }
+        seq("plain-home.maybe", ["-scene", "maybe", "-plus", "-char", "cat"] + p, swipes: 4)
+        seq("plain-home.winter_smog", ["-scene", "winter_smog", "-plus", "-char", "cat"] + p, swipes: 1)
+        seq("plain-home.summer_typhoon", ["-scene", "summer_typhoon", "-plus", "-char", "cat"] + p)
+        seq("plain-day.maybe", ["-scene", "maybe", "-plus", "-open", "today"] + p, swipes: 1)
+        seq("plain-paywall.free", ["-scene", "maybe", "-open", "paywall"] + p, swipes: 1, wait: 3)
+        seq("plain-settings.free", ["-scene", "maybe", "-open", "settings"] + p, swipes: 2)
+        seq("plain-pages.language", ["-scene", "maybe", "-open", "language"] + p)
     }
 
     // MARK: a new language at a glance — first run, home, a day, Plus, settings, language search, widgets

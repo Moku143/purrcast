@@ -114,7 +114,7 @@ final class AppModel: ObservableObject {
         clock12 = testing ? args.contains("-clock12") : (d.object(forKey: "clock12") as? Bool ?? (Lang.current == .en))
         wind = arg("-wind").flatMap(WindUnit.init(rawValue:)) ?? (testing ? .ms : WindUnit(rawValue: d.string(forKey: "wind") ?? "") ?? .ms)
         debugNotice = arg("-notice")      // screenshots: stale · fail · loading (the notices the home screen can show)
-        pixelFont = testing ? true : (d.object(forKey: "pixelFont") as? Bool ?? true)
+        pixelFont = testing ? !args.contains("-plainFont") : (d.object(forKey: "pixelFont") as? Bool ?? true)   // screenshots: -plainFont for 일반 글씨
         useLocation = testing ? false : (d.object(forKey: "useLocation") as? Bool ?? true)
         notifyRain = d.object(forKey: "notifyRain") as? Bool ?? true
         notifyMorning = d.object(forKey: "notifyMorning") as? Bool ?? true
