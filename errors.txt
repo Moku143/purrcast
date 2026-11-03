@@ -1,0 +1,6 @@
+Test Case '-[PurrcastUITests.CatalogTests testCatalog]' started.
+/Users/runner/work/purrcast/purrcast/PurrcastUITests/CatalogTests.swift:48: error: -[PurrcastUITests.CatalogTests testCatalog] : Failed to terminate app.purrcast.ios:11294: Failed to terminate app.purrcast.ios:0
+Test Case '-[PurrcastUITests.CatalogTests testCatalog]' failed (175.552 seconds).
+Test Suite 'CatalogTests' failed at 2026-11-03 06:12:34.814.
+Test Suite 'PurrcastUITests.xctest' failed at 2026-11-03 06:12:34.815.
+Test Suite 'Selected tests' failed at 2026-11-03 06:12:34.816.
