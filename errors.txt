@@ -1,0 +1,6 @@
+Test Case '-[PurrcastUITests.CatalogTests testCatalog]' started.
+/Users/runner/work/purrcast/purrcast/PurrcastUITests/CatalogTests.swift:24: error: -[PurrcastUITests.CatalogTests testCatalog] : Failed to launch <XCUIApplicationImpl: 0x1053be2c0 app.purrcast.ios at /Users/runner/Library/Developer/Xcode/DerivedData/Purrcast-algrioqzdbgbvuedcbpyfzagjbyc/Build/Products/Debug-iphonesimulator/Purrcast.app> via Xcode: Timed out while launching application via Xcode.
+Test Case '-[PurrcastUITests.CatalogTests testCatalog]' failed (66.920 seconds).
+Test Suite 'CatalogTests' failed at 2026-11-03 08:30:32.926.
+Test Suite 'PurrcastUITests.xctest' failed at 2026-11-03 08:30:32.927.
+Test Suite 'Selected tests' failed at 2026-11-03 08:30:32.927.
