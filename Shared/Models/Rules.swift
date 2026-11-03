@@ -36,6 +36,10 @@ enum Rules {
     /// The outfit level of the old ten-outfit table (servers before `outfit` existed sent only this) → today's level.
     static func level(fromLegacy old: Int) -> Int { [1, 2, 3, 4, 5, 6, 7, 9, 11, 14][max(0, min(9, old))] }
 
+    /// Where the wind comes from, as a word: "남서풍" (16 points)
+    static let windDirs = ["북", "북북동", "북동", "동북동", "동", "동남동", "남동", "남남동", "남", "남남서", "남서", "서남서", "서", "서북서", "북서", "북북서"]
+    static func windFrom(_ deg: Int) -> String { L("%@풍", L(windDirs[Int((Double(deg) / 22.5).rounded()) % 16])) }
+
     /// Wind as people feel it (same words as the server: Beaufort + KMA everyday guidance).
     static func windWord(ms: Int) -> String {
         switch ms {

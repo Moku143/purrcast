@@ -87,12 +87,12 @@ struct PurrcastWidget: Widget {
 struct TempWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastTemp", provider: Provider()) { entry in
-            LockCircularView(snap: entry.snap)
+            LockAccessory(inline: .temp, entry: entry) { LockCircularView(snap: entry.snap) }
                 .containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(L("오늘 기온"))
         .description(L("지금 기온과 오늘 최저 · 최고"))
-        .supportedFamilies([.accessoryCircular])
+        .supportedFamilies([.accessoryCircular, .accessoryInline])
     }
 }
 
@@ -114,11 +114,11 @@ struct HoursWidget: Widget {
 struct RainWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastRain", provider: Provider()) { entry in
-            LockRainCircularView(snap: entry.snap)
+            LockAccessory(inline: .rain, entry: entry) { LockRainCircularView(snap: entry.snap) }
                 .containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(L("비 올 확률"))
-        .supportedFamilies([.accessoryCircular])
+        .supportedFamilies([.accessoryCircular, .accessoryInline])
     }
 }
 
@@ -126,11 +126,11 @@ struct RainWidget: Widget {
 struct UVWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastUV", provider: Provider()) { entry in
-            LockUVCircularView(snap: entry.snap).containerBackground(for: .widget) { Color.clear }
+            LockAccessory(inline: .uv, entry: entry) { LockUVCircularView(snap: entry.snap) }.containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(L("자외선"))
         .description(L("오늘 가장 높은 자외선 지수"))
-        .supportedFamilies([.accessoryCircular])
+        .supportedFamilies([.accessoryCircular, .accessoryInline])
     }
 }
 
@@ -138,11 +138,11 @@ struct UVWidget: Widget {
 struct SunWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastSun", provider: Provider()) { entry in
-            LockSunCircularView(snap: entry.snap, now: entry.date).containerBackground(for: .widget) { Color.clear }
+            LockAccessory(inline: .sun, entry: entry) { LockSunCircularView(snap: entry.snap, now: entry.date) }.containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(L("일출 · 일몰"))
         .description(L("다음 일출 또는 일몰 시각"))
-        .supportedFamilies([.accessoryCircular])
+        .supportedFamilies([.accessoryCircular, .accessoryInline])
     }
 }
 
@@ -150,11 +150,11 @@ struct SunWidget: Widget {
 struct WindWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastWind", provider: Provider()) { entry in
-            LockWindCircularView(snap: entry.snap).containerBackground(for: .widget) { Color.clear }
+            LockAccessory(inline: .wind, entry: entry) { LockWindCircularView(snap: entry.snap) }.containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(L("바람"))
         .description(L("지금 바람이 부는 방향과 세기"))
-        .supportedFamilies([.accessoryCircular])
+        .supportedFamilies([.accessoryCircular, .accessoryInline])
     }
 }
 
@@ -162,11 +162,38 @@ struct WindWidget: Widget {
 struct DustWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PurrcastDust", provider: Provider()) { entry in
-            LockDustCircularView(snap: entry.snap, preview: entry.preview).containerBackground(for: .widget) { Color.clear }
+            LockAccessory(inline: .dust, entry: entry) { LockDustCircularView(snap: entry.snap, preview: entry.preview) }.containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(L("미세먼지"))
         .description(L("미세먼지 · 초미세먼지 등급 · Plus에서 쓸 수 있어요"))
-        .supportedFamilies([.accessoryCircular])
+        .supportedFamilies([.accessoryCircular, .accessoryInline])
+    }
+}
+
+/// Lock screen, above the clock only: where the forecast is for (지금 위치: where the phone is)
+struct PlaceWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "PurrcastPlace", provider: Provider()) { entry in
+            LockInlineView(kind: .place, snap: entry.snap, now: entry.date).containerBackground(for: .widget) { Color.clear }
+        }
+        .configurationDisplayName(L("지금 위치"))
+        .description(L("날씨를 보고 있는 곳의 이름"))
+        .supportedFamilies([.accessoryInline])
+    }
+}
+
+/// One lock-screen widget in its two shapes: the circle, or the line above the clock
+struct LockAccessory<Circle: View>: View {
+    @Environment(\.widgetFamily) var family
+    let inline: LockInlineView.Kind
+    let entry: WeatherEntry
+    @ViewBuilder let circle: () -> Circle
+    var body: some View {
+        if family == .accessoryInline {
+            LockInlineView(kind: inline, snap: entry.snap, now: entry.date, preview: entry.preview)
+        } else {
+            circle()
+        }
     }
 }
 
@@ -175,12 +202,20 @@ struct PurrcastWidgetBundle: WidgetBundle {
     var body: some Widget {
         PurrcastWidget()
         HoursWidget()
+        LockWidgets().body
+        RainLiveActivity()
+    }
+}
+
+/// The lock screen's circles and lines (a bundle of their own: a bundle takes at most ten at one level)
+struct LockWidgets: WidgetBundle {
+    var body: some Widget {
         TempWidget()
         RainWidget()
         DustWidget()
         UVWidget()
         SunWidget()
         WindWidget()
-        RainLiveActivity()
+        PlaceWidget()
     }
 }

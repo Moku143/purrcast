@@ -779,3 +779,10 @@
 "홈 카드 순서" = "Home card order";
 "카드를 꾹 눌러서 옮길 수 있어요" = "Press and hold a card to move it";
 "기본으로" = "Reset";
+"지금 비가 와요" = "Raining now";
+"지금 눈이 와요" = "Snowing now";
+"%@ 비 %d%%" = "Rain %@ %d%%";
+"%@ 눈 %d%%" = "Snow %@ %d%%";
+"10일 동안 비 소식 없어요" = "No rain in the next 10 days";
+"날씨를 보고 있는 곳의 이름" = "Where the forecast is for";
+"시계 위 한 줄" = "Above the clock";

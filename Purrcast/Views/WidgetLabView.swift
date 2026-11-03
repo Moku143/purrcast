@@ -13,12 +13,14 @@ struct WidgetLabView: View {
     private var third: Bool { ProcessInfo.processInfo.arguments.contains("-labPage3") }
     /// -labPage4: the lock-screen widgets on a lock screen
     private var fourth: Bool { ProcessInfo.processInfo.arguments.contains("-labPage4") }
+    /// -labPage5: the lines above the clock, one of each, as the lock screen shows them after the date
+    private var fifth: Bool { ProcessInfo.processInfo.arguments.contains("-labPage5") }
     /// -labStress: the longest words each language can put on a widget, to see what still fits
     private var stress: Bool { ProcessInfo.processInfo.arguments.contains("-labStress") }
 
     var body: some View {
         let snap = stress ? Self.stressed(model.snapshot) : model.snapshot
-        if third { watchPage(snap) } else if fourth { lockPage(snap) } else if second {
+        if third { watchPage(snap) } else if fourth { lockPage(snap) } else if fifth { inlinePage(snap) } else if second {
             VStack(spacing: 16) {
                 home("lab-hours", 364, 170, snap) { HoursWidgetView(snap: snap) }
             }
@@ -76,6 +78,39 @@ struct WidgetLabView: View {
         n.scene = s
         return n
     }
+
+    // MARK: page 5 — every line above the clock (accessoryInline), after the lock screen's date, in its one colour
+
+    private func inlinePage(_ snap: WeatherSnapshot) -> some View {
+        let kinds: [LockInlineView.Kind] = [.temp, .place, .rain, .uv, .sun, .wind, .dust]
+        return ZStack(alignment: .top) {
+            LinearGradient(colors: [Color(hex: "#3A4066"), Color(hex: "#1B1F3A")], startPoint: .top, endPoint: .bottom).ignoresSafeArea()
+            VStack(alignment: .leading, spacing: 18) {
+                Text(LockText.inline(snap)).accessibilityIdentifier("lab-inline-main")
+                ForEach(Array(kinds.enumerated()), id: \.offset) { _, k in
+                    HStack(spacing: 8) {
+                        Text("4일 (수)")
+                        LockInlineView(kind: k, snap: snap)
+                    }
+                }
+                // the rain line on a dry day and on a wet one, the free plan's 미세먼지
+                LockInlineView(kind: .rain, snap: Self.dried(snap))
+                LockInlineView(kind: .dust, snap: Self.free(snap))
+            }
+            .font(.system(size: 17, weight: .semibold)).foregroundStyle(Color(hex: "#C8F0A8"))
+            .lineLimit(1).padding(.horizontal, 24).padding(.top, 80)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private static func dried(_ snap: WeatherSnapshot) -> WeatherSnapshot {
+        var n = snap, s = snap.scene
+        for i in s.hours.indices { s.hours[i].mm = 0; s.hours[i].chance = 0; s.hours[i].icon = "sun" }
+        for i in s.days.indices { s.days[i].chance = 0 }
+        n.scene = s
+        return n
+    }
+    private static func free(_ snap: WeatherSnapshot) -> WeatherSnapshot { var n = snap; n.plus = false; n.plusUntil = nil; return n }
 
     // MARK: page 4 — the lock screen as the phone shows it: wallpaper, the clock, the inline line above it, then
     // the widgets in their frosted glass (the system tints everything one colour; white here)

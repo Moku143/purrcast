@@ -779,3 +779,10 @@
 "홈 카드 순서" = "Reihenfolge der Karten";
 "카드를 꾹 눌러서 옮길 수 있어요" = "Halte eine Karte gedrückt, um sie zu verschieben";
 "기본으로" = "Zurücksetzen";
+"지금 비가 와요" = "Es regnet";
+"지금 눈이 와요" = "Es schneit";
+"%@ 비 %d%%" = "Regen %@ %d %%";
+"%@ 눈 %d%%" = "Schnee %@ %d %%";
+"10일 동안 비 소식 없어요" = "10 Tage kein Regen";
+"날씨를 보고 있는 곳의 이름" = "Der Ort der Vorhersage";
+"시계 위 한 줄" = "Über der Uhr";

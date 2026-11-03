@@ -158,6 +158,11 @@ final class CatalogTests: XCTestCase {
             }
         }
         seq("home.order", ["-scene", "maybe", "-plus", "-char", "cat", "-homeOrder", "week,hourly,tile1,wind,tile0,daily"], swipes: 3, wait: 4)
+        // the lines above the clock (lock screen, accessoryInline), and the widget page that shows them
+        seq("lock.inline", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage5"], wait: 3)
+        seq("lock.inline-abys", ["-scene", "spring_dust", "-plus", "-char", "abys", "-open", "widgetLab", "-labPage5"], wait: 3)
+        seq("lock.inline-brit", ["-scene", "winter_snow", "-plus", "-char", "brit", "-open", "widgetLab", "-labPage5"], wait: 3)
+        seq("widgets.gallery", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "widgets"], swipes: 3, wait: 3)
         steps("home.order-settings", ["-scene", "maybe", "-plus", "-char", "cat", "-homeOrder", "week", "-open", "settings"], wait: 3) { app, take in
             let row = app.staticTexts["홈 카드 순서"].firstMatch
             for _ in 0..<8 where !(row.exists && row.isHittable) { app.swipeUp(); sleep(1) }

@@ -444,7 +444,7 @@ struct DayDetailView: View {
 
     private func windsock(_ c: DayCtx, _ h: DayHourly) -> some View {
         let w = h.wind[c.sel], deg = c.dir(c.sel)
-        let d16 = WindCard.dirs
+        let d16 = Rules.windDirs
         let from = L(d16[Int((Double(deg) / 22.5).rounded()) % 16]), to = L(d16[Int((Double((deg + 180) % 360) / 22.5).rounded()) % 16])
         return HStack(alignment: .bottom, spacing: 14) {
             sock(c, w)
@@ -831,7 +831,7 @@ struct DayDetailView: View {
             return DayScrub(time: t, icon: p >= 50 ? "umbrella" : "raindrop", main: "\(p)%", sub: sub)
         case .wind:
             let d = c.dir(i)
-            return DayScrub(time: t, arrow: d, main: model.windText(Int(h.wind[i].rounded())), sub: L("%@풍", L(WindCard.dirs[Int((Double(d) / 22.5).rounded()) % 16])))
+            return DayScrub(time: t, arrow: d, main: model.windText(Int(h.wind[i].rounded())), sub: Rules.windFrom(d))
         case .uv:
             let v = Int(h.uv[i].rounded()), b = UVScale.band(v)
             return DayScrub(time: t, icon: "sun_strong", main: String(v), sub: L(b.word), subColor: Color(hex: b.color), subInk: Color(hex: b.onColor))

@@ -779,3 +779,10 @@
 "홈 카드 순서" = "Ordine delle schede";
 "카드를 꾹 눌러서 옮길 수 있어요" = "Tieni premuta una scheda per spostarla";
 "기본으로" = "Ripristina";
+"지금 비가 와요" = "Sta piovendo";
+"지금 눈이 와요" = "Sta nevicando";
+"%@ 비 %d%%" = "Pioggia %@ %d%%";
+"%@ 눈 %d%%" = "Neve %@ %d%%";
+"10일 동안 비 소식 없어요" = "Niente pioggia per 10 giorni";
+"날씨를 보고 있는 곳의 이름" = "Il luogo delle previsioni";
+"시계 위 한 줄" = "Sopra l’orologio";

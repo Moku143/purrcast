@@ -802,6 +802,24 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(HomeLayout.move("week", to: "daily", in: ["hourly", "daily", "week"]), ["hourly", "week", "daily"])
     }
 
+    /// The lock screen's lines above the clock: each piece of the weather on its own
+    func testLockScreenLines() throws {
+        Lang.current = .ko
+        var s = WeatherScene(); s.temp = 9; s.lo = 9; s.hi = 18
+        s.days = [WeatherScene.DayRow(name: "오늘", icon: "sun", chance: 0, lo: 9, hi: 18), WeatherScene.DayRow(name: "목", icon: "raincloud", chance: 60, lo: 8, hi: 15)]
+        let hours = #"[["지금","sun",9,0,0],["15시","raincloud",10,70,1.5]]"#
+        s.hours = try JSONDecoder().decode([WeatherScene.HourRow].self, from: Data(hours.utf8))
+        XCTAssertEqual(LockInlineView.rainLine(s), "15시쯤 비 예보")
+        s.hours = []
+        XCTAssertEqual(LockInlineView.rainLine(s), "목 비 60%")
+        s.days[1].chance = 10
+        XCTAssertEqual(LockInlineView.rainLine(s), "10일 동안 비 소식 없어요")
+        let snap = WeatherSnapshot(scene: s, character: .cat, plus: true, characterName: "", placeShort: "마포구", saved: Date())
+        XCTAssertEqual(LockInlineView.line(.temp, snap).1, "9° · 9°~18°")
+        XCTAssertEqual(LockInlineView.line(.place, snap).1, "마포구")
+        XCTAssertEqual(Rules.windFrom(225), "남서풍")
+    }
+
     /// The widget's last refresh of the day comes at 23:55 where the place is, unless the regular one comes first
     func testClosingRefreshBeforeMidnight() throws {
         let tz = try XCTUnwrap(TimeZone(identifier: "Asia/Seoul"))

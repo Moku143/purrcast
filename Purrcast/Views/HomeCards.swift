@@ -3,15 +3,6 @@ import SwiftUI
 // The lower half of the home screen, card by card, as on the prototype:
 // UV tile with its scale · wind card with a dial · 예보 비교 · the Plus card (free) · the sources line · the compact header.
 
-/// WHO UV index scale: 0–2 낮음 · 3–5 보통 · 6–7 높음 · 8–10 매우 높음 · 11+ 위험
-enum UVScale {
-    static let bands: [(hi: Int, word: String, color: String, onColor: String, flex: CGFloat)] = [
-        (2, "낮음", "#4CAF50", "#FFFFFF", 3), (5, "보통", "#F2C230", "#1E2A44", 3), (7, "높음", "#F28C28", "#1E2A44", 2),
-        (10, "매우 높음", "#E2453C", "#FFFFFF", 3), (99, "위험", "#8E44AD", "#FFFFFF", 1),
-    ]
-    static func band(_ uv: Int) -> (hi: Int, word: String, color: String, onColor: String, flex: CGFloat) { bands.first { uv <= $0.hi } ?? bands[4] }
-}
-
 /// The five coloured segments with a ring marking today's index.
 struct UVBar: View {
     let uv: Int; let ink: Ink
@@ -47,8 +38,7 @@ struct WindCard: View {
     private var strength: String {
         wind.speed < 4 ? L("약함") : wind.speed < 9 ? L("보통") : wind.speed < 14 ? L("강함") : L("매우 강함")
     }
-    static let dirs = ["북", "북북동", "북동", "동북동", "동", "동남동", "남동", "남남동", "남", "남남서", "남서", "서남서", "서", "서북서", "북서", "북북서"]
-    private var dirName: String { L("%@풍", L(Self.dirs[Int((Double(wind.deg) / 22.5).rounded()) % 16])) }
+    private var dirName: String { Rules.windFrom(wind.deg) }
 
     var body: some View {
         HStack(spacing: 14) {

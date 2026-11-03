@@ -779,3 +779,10 @@
 "홈 카드 순서" = "Ordem dos cartões";
 "카드를 꾹 눌러서 옮길 수 있어요" = "Toque e segure um cartão para movê-lo";
 "기본으로" = "Redefinir";
+"지금 비가 와요" = "Chovendo agora";
+"지금 눈이 와요" = "Nevando agora";
+"%@ 비 %d%%" = "Chuva %@ %d%%";
+"%@ 눈 %d%%" = "Neve %@ %d%%";
+"10일 동안 비 소식 없어요" = "Sem chuva nos próximos 10 dias";
+"날씨를 보고 있는 곳의 이름" = "O lugar da previsão";
+"시계 위 한 줄" = "Acima do relógio";

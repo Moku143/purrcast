@@ -446,6 +446,79 @@ struct AccessoryWidgetBackgroundCompat: View {
     var body: some View { Circle().fill(Color.white.opacity(0.12)) }
 }
 
+/// Lock screen, above the clock (accessoryInline): one piece of the weather on one line, an icon before it — the
+/// system draws both in the lock screen's one colour, at its own text size (the character's head is made that small:
+/// `<char>-inline`, the lock-screen picture's head, a template image)
+struct LockInlineView: View {
+    enum Kind { case temp, place, rain, uv, sun, wind, dust }
+    let kind: Kind
+    let snap: WeatherSnapshot
+    var now = Date()
+    var preview = false
+
+    var body: some View {
+        let (icon, text) = Self.line(kind, snap, now: now, preview: preview)
+        Label {
+            Text(text)
+        } icon: {
+            if kind == .temp { Image("\(snap.shownCharacter.rawValue)-inline").renderingMode(.template) }
+            else { Image(systemName: icon) }
+        }
+    }
+
+    /// (SF Symbol, text) for each kind
+    static func line(_ kind: Kind, _ snap: WeatherSnapshot, now: Date = Date(), preview: Bool = false) -> (String, String) {
+        let s = snap.scene
+        switch kind {
+        case .temp:
+            // 9° · 9°~18°: now, then today's low and high
+            return ("thermometer.medium", "\(snap.deg(s.temp)) · \(snap.deg(s.lo))~\(snap.deg(s.hi))")
+        case .place:
+            return (snap.place?.id == "here" ? "location.fill" : "mappin", snap.placeShort)
+        case .rain:
+            return ("umbrella.fill", rainLine(s))
+        case .uv:
+            let uv = s.tiles.first { $0.kind == "uv" }?.uv ?? 0
+            return ("sun.max.fill", "\(L("자외선")) \(uv) \(L(UVScale.band(uv).word))")
+        case .sun:
+            if let p = snap.place, let tz = TimeZone(identifier: p.timeZone), let n = SunTimes.next(after: now, lat: p.lat, lon: p.lon, tz: tz) {
+                var c = Calendar(identifier: .gregorian); c.timeZone = tz
+                let t = HourLabel.clock(c.component(.hour, from: n.at) * 60 + c.component(.minute, from: n.at), clock12: snap.clock12)
+                return (n.sunset ? "sunset.fill" : "sunrise.fill", "\(L(n.sunset ? "일몰" : "일출")) \(t)")
+            }
+            let t = s.tiles.first { $0.icon == "sunset" || $0.icon == "sunrise" }
+            return (t?.icon == "sunrise" ? "sunrise.fill" : "sunset.fill", "\(L(t?.icon == "sunrise" ? "일출" : "일몰")) \(t?.value ?? "–")")
+        case .wind:
+            let w = s.wind
+            return ("wind", w.speed > 0 ? "\(Rules.windFrom(w.deg)) \(snap.windText(w.speed))" : L("바람 없어요"))
+        case .dust:
+            // Plus, as the circle (the free plan's forecast is the morning one, not the live readings)
+            guard snap.plusActive || preview else { return ("aqi.medium", "\(L("미세먼지")) · Plus") }
+            guard let d = s.dust else { return ("aqi.medium", "\(L("미세먼지")) –") }
+            var parts = ["\(L("미세먼지")) \(L(DustScale.words[max(0, min(3, d.pm10Grade ?? d.grade))]))"]
+            if let g = d.pm25Grade { parts.append("\(L("초미세")) \(L(DustScale.words[max(0, min(3, g))]))") }
+            return ("aqi.medium", parts.joined(separator: " · "))
+        }
+    }
+
+    /// Rain today when it is coming ("16시쯤 비 예보"), else today's chance, else the next wet day in ten, else none
+    static func rainLine(_ s: WeatherScene) -> String {
+        let wetIcons: Set<String> = ["raincloud", "lightning", "snowflake", "sleet"]
+        if let i = s.hours.indices.first(where: { s.hours[$0].mm > 0 || (wetIcons.contains(s.hours[$0].icon) && s.hours[$0].chance >= 50) }) {
+            let h = s.hours[i]
+            let snow = h.icon == "snowflake" || h.icon == "sleet" || s.isSnow
+            if i == 0 { return snow ? L("지금 눈이 와요") : L("지금 비가 와요") }
+            return L("%@쯤 %@ 예보", h.label, snow ? L("눈") : L("비"))
+        }
+        if let d = s.days.first, d.chance >= 30 { return L("강수확률 %d%%", d.chance) }
+        if let d = s.days.dropFirst().first(where: { $0.chance >= 50 }) {
+            let snow = d.icon == "snowflake" || d.icon == "sleet"
+            return L(snow ? "%@ 눈 %d%%" : "%@ 비 %d%%", d.name, d.chance)
+        }
+        return L("10일 동안 비 소식 없어요")
+    }
+}
+
 enum LockText {
     /// One word for the lock screen: the alert name when there is one (호우주의보, 한파 …), the weather otherwise.
     /// (no "!" and no emoji: the lock screen shows one colour and stays calm)

@@ -39,6 +39,15 @@ struct WidgetGalleryView: View {
                     .foregroundStyle(.white).padding(.vertical, 18)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 26))
+                // the lines above the clock: one piece of the weather each
+                label(L("시계 위 한 줄"))
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(Array(([.temp, .place, .rain, .uv, .sun, .wind, .dust] as [LockInlineView.Kind]).enumerated()), id: \.offset) { _, k in
+                        LockInlineView(kind: k, snap: snap, preview: true).font(.ui(13, .semibold)).foregroundStyle(UI.ink).lineLimit(1)
+                    }
+                }
+                .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.white, in: RoundedRectangle(cornerRadius: 18))
                 Text(L("잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 %@를 골라요. 시계 위 한 줄은 시계 위 날짜를 눌러 %@를 골라요.", Brand.name, Brand.name)).font(.ui(12)).foregroundStyle(UI.sub)
             }
             .padding(16)

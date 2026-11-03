@@ -779,3 +779,10 @@
 "홈 카드 순서" = "Urutan kartu";
 "카드를 꾹 눌러서 옮길 수 있어요" = "Tekan lama kartu untuk memindahkannya";
 "기본으로" = "Atur ulang";
+"지금 비가 와요" = "Sedang hujan";
+"지금 눈이 와요" = "Sedang turun salju";
+"%@ 비 %d%%" = "Hujan %@ %d%%";
+"%@ 눈 %d%%" = "Salju %@ %d%%";
+"10일 동안 비 소식 없어요" = "Tak ada hujan 10 hari ke depan";
+"날씨를 보고 있는 곳의 이름" = "Tempat prakiraan cuaca";
+"시계 위 한 줄" = "Di atas jam";
