@@ -113,7 +113,6 @@ struct WidgetLabView: View {
         n.scene = s
         return n
     }
-    private static func free(_ snap: WeatherSnapshot) -> WeatherSnapshot { var n = snap; n.plus = false; n.plusUntil = nil; return n }
     /// The snapshot at another temperature, dressed for it
     private static func dressed(_ snap: WeatherSnapshot, _ t: Int) -> WeatherSnapshot {
         var n = snap
