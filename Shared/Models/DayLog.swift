@@ -266,7 +266,11 @@ extension DayLog {
             if DayRecord.isWetIcon(icon) { r.wet = DayRecord.isSnowIcon(icon) ? "snow" : "rain"; r.mm = (rnd() * 18).rounded() + 1 }
             if place.region == "kr" { let y = rnd(); r.dust = y < 0.45 ? 0 : y < 0.8 ? 1 : y < 0.95 ? 2 : 3 }
             r.place = place.short
-            if back == 0 { r.hi = s.days.first?.hi ?? s.hi; r.lo = s.days.first?.lo ?? s.lo; r.icon = s.days.first?.icon ?? r.icon }
+            if back == 0 {
+                // today as the scene has it: its range and sky, wet when its sky is
+                r.hi = s.days.first?.hi ?? s.hi; r.lo = s.days.first?.lo ?? s.lo; r.icon = s.days.first?.icon ?? r.icon
+                r.wet = DayRecord.isWetIcon(r.icon) ? (DayRecord.isSnowIcon(r.icon) ? "snow" : "rain") : nil
+            }
             // the day in detail: coldest near dawn, warmest mid-afternoon; rain in a run of hours
             let low = Double(r.lo), span = Double(r.hi - r.lo)
             var temps: [Int?] = []
@@ -279,14 +283,17 @@ extension DayLog {
             }
             r.temps = temps
             if r.isWet {
-                let a = Int(rnd() * 12), b = min(23, a + 3 + Int(rnd() * 9))
+                let a = back == 0 ? 15 : Int(rnd() * 12), b = back == 0 ? 19 : min(23, a + 3 + Int(rnd() * 9))
                 r.rain = (0..<24).map { $0 >= a && $0 <= b ? (rnd() * 3).rounded() / 2 + 0.5 : nil }
                 r.mm = (r.rain ?? []).compactMap { $0 }.reduce(0, +)
-                r.say = ["speech", "sky", DayRecord.isSnowIcon(icon) ? "snowflake" : "umbrella", L("우산 챙기세요")]
-            } else if (r.dust ?? 0) >= 2 {
+                r.say = ["speech", "sky", DayRecord.isSnowIcon(r.icon) ? "snowflake" : "umbrella", L("우산 챙기세요")]
+            } else {
+                r.rain = nil; r.mm = 0
+            }
+            if !r.isWet, (r.dust ?? 0) >= 2 {
                 r.say = ["speech", "coral", "mask", L("미세먼지 나쁨 · 마스크 챙기세요")]
             }
-            if icon == "lightning" { r.alerts = [L("호우경보")] }
+            if r.icon == "lightning" { r.alerts = [L("호우경보")] }
             r.feelsLo = r.lo - 2; r.feelsHi = r.hi - 1
             r.windMax = 2 + Int(rnd() * 8); r.rh = 40 + Int(rnd() * 50); r.uv = max(0, Int((Double(r.hi) / 5 - rnd() * 2).rounded()))
             // every three hours, as the day sheet gives them: wind picks up in the afternoon, the air dries by day, UV peaks at noon

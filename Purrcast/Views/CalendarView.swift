@@ -126,6 +126,8 @@ struct CalendarSheet: View {
     @State private var selected: String?
     @State private var shareImage: UIImage?
     @State private var metric = CalendarDayChart.Metric.temp
+    /// The day card's look — graph · image · text · mixed (being chosen; screenshots pick one with -dayStyle)
+    @State private var style = DayCardStyle.graph
 
     var body: some View {
         let place = model.currentPlace
@@ -159,8 +161,11 @@ struct CalendarSheet: View {
         }
         .onAppear {
             #if DEBUG
-            if let i = ProcessInfo.processInfo.arguments.firstIndex(of: "-calMonth"), i + 1 < ProcessInfo.processInfo.arguments.count,
-               let n = Int(ProcessInfo.processInfo.arguments[i + 1]) { month = DayLogText.shift(thisMonth, by: n) }
+            let args = ProcessInfo.processInfo.arguments
+            func arg(_ k: String) -> String? { args.firstIndex(of: k).flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil } }
+            if let n = arg("-calMonth").flatMap(Int.init) { month = DayLogText.shift(thisMonth, by: n) }
+            if let n = arg("-calDay").flatMap(Int.init) { selected = DayLog.dayKey(Date().addingTimeInterval(Double(-n) * 86400), tz: tz) }
+            if let v = arg("-dayStyle").flatMap(DayCardStyle.init(rawValue:)) { style = v }
             #endif
         }
     }
@@ -304,7 +309,24 @@ struct CalendarSheet: View {
 
     // MARK: the day picked
 
-    private func dayPanel(_ k: String, _ r: DayRecord?) -> some View {
+    @ViewBuilder private func dayPanel(_ k: String, _ r: DayRecord?) -> some View {
+        if let r, style != .graph {
+            Group {
+                switch style {
+                case .image: imageCard(k, r)
+                case .text: textCard(k, r)
+                default: mixedCard(k, r)
+                }
+            }
+            .accessibilityIdentifier("cal-day")
+        } else {
+            graphCard(k, r)
+        }
+    }
+
+    // MARK: day card — the graph version
+
+    private func graphCard(_ k: String, _ r: DayRecord?) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             if let r {
                 // who, where, the range — and what the character said that day
@@ -343,6 +365,171 @@ struct CalendarSheet: View {
         .padding(16).frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
         .accessibilityIdentifier("cal-day")
+    }
+
+    // MARK: day card — the image version: the day as a picture, its hours as a strip, one line of numbers
+
+    private func imageCard(_ k: String, _ r: DayRecord) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ZStack(alignment: .topLeading) {
+                DayPicture(record: r, character: model.shownCharacter).frame(height: 236).clipped()
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(DayLogText.dayLong(k)).font(.px(15))
+                    if !r.place.isEmpty { Text(r.place).font(.ui(12, .semibold)) }
+                }
+                .foregroundStyle(UI.ink).padding(12)
+                .background(Color.white.opacity(0.82), in: RoundedRectangle(cornerRadius: 10)).padding(10)
+                VStack(alignment: .trailing, spacing: 0) {
+                    Text(model.deg(r.hi)).font(.px(34))
+                    Text(model.deg(r.lo)).font(.px(20)).opacity(0.75)
+                }
+                .foregroundStyle(UI.ink).padding(.horizontal, 12).padding(.vertical, 8)
+                .background(Color.white.opacity(0.82), in: RoundedRectangle(cornerRadius: 10))
+                .padding(10).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                if let say = r.say, say.count == 4 {
+                    BubbleView(kind: say[0], tone: say[1], icon: say[2], text: say[3], fontSize: 11)
+                        .fixedSize().padding(10).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                }
+            }
+            .frame(height: 236)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            hourStrip(r)
+            Text(oneLine(r)).font(.ui(12.5)).foregroundStyle(UI.ink).fixedSize(horizontal: false, vertical: true)
+            if r.obs == true { Text(L("관측으로 채운 날")).font(.ui(11)).foregroundStyle(UI.sub) }
+        }
+        .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    /// Every three hours: the hour, its sky (rain where it rained), its temperature
+    private func hourStrip(_ r: DayRecord) -> some View {
+        HStack(spacing: 0) {
+            ForEach(Array(stride(from: 0, to: 24, by: 3)), id: \.self) { h in
+                let wet = (h..<min(24, h + 3)).contains { Self.rainAt(r, $0) >= 0.1 }
+                let night = h < 6 || h >= 19
+                let icon = wet ? (r.isSnow ? "snowflake" : "raincloud") : (night && (r.icon == "sun" || r.icon == "partly_cloudy") ? "moon" : r.icon)
+                VStack(spacing: 4) {
+                    Text(HourLabel.word(h, clock12: model.clock12)).font(.px(10)).foregroundStyle(UI.sub).lineLimit(1).minimumScaleFactor(0.6)
+                    PixelIcon(name: icon, size: 20)
+                    Text((r.temps ?? [])[safe: h].flatMap { $0 }.map { model.deg($0) } ?? "–").font(.px(12)).foregroundStyle(UI.ink)
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    static func rainAt(_ r: DayRecord, _ h: Int) -> Double {
+        guard let rain = r.rain, h >= 0, h < rain.count, let v = rain[h] else { return 0 }
+        return v
+    }
+
+    /// "비 3~21시 · 23.5mm · 바람 최대 6m/s · 습도 72% · 미세먼지 좋음"
+    private func oneLine(_ r: DayRecord) -> String {
+        var parts: [String] = []
+        if r.isWet {
+            let amount = r.mm > 0 ? DayLogText.mm(r.mm, snow: r.isSnow) : nil
+            let when = r.wetHours.map { HourLabel.window($0.0, $0.1, clock12: model.clock12) }
+            let t = [when, amount].compactMap { $0 }.joined(separator: " · ")
+            parts.append(t.isEmpty ? (r.isSnow ? L("눈 온 날") : L("비 온 날")) : (r.isSnow ? L("눈 %@", t) : L("비 %@", t)))
+        }
+        if let a = r.feelsLo, let b = r.feelsHi { parts.append(L("체감 %@ ~ %@", model.deg(a), model.deg(b))) }
+        if let w = r.windMax { parts.append(L("바람 최대 %@", model.windText(w))) }
+        if let h = r.rh { parts.append(L("습도 %d%%", h)) }
+        if let g = r.dust { parts.append(L("미세먼지") + " " + L(DustScale.words[max(0, min(3, g))])) }
+        return parts.joined(separator: " · ")
+    }
+
+    // MARK: day card — the text version: every number in a tidy list
+
+    private func textCard(_ k: String, _ r: DayRecord) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(DayLogText.dayLong(k)).font(.px(16)).foregroundStyle(UI.ink)
+                Spacer()
+                if !r.place.isEmpty { Text(r.place).font(.ui(12)).foregroundStyle(UI.sub) }
+            }
+            .padding(.bottom, 10)
+            if let say = r.say, say.count == 4 {
+                Text("“\(say[3])”").font(.ui(13, .semibold)).foregroundStyle(UI.ink).padding(.bottom, 10)
+            }
+            row(r.icon, L("최고") + " · " + L("최저"), "\(model.deg(r.hi)) · \(model.deg(r.lo))")
+            if let a = r.feelsLo, let b = r.feelsHi { row("thermo_cold", L("체감"), "\(model.deg(a)) ~ \(model.deg(b))") }
+            if r.isWet {
+                let amount = r.mm > 0 ? DayLogText.mm(r.mm, snow: r.isSnow) : nil
+                let when = r.wetHours.map { HourLabel.window($0.0, $0.1, clock12: model.clock12) }
+                row(r.isSnow ? "snowflake" : "raincloud", r.isSnow ? L("눈") : L("비"), [when, amount].compactMap { $0 }.joined(separator: " · "))
+            }
+            if let w = r.windMax { row("wind", L("바람"), L("최대 %@", model.windText(w))) }
+            if let h = r.rh { row("raindrop", L("습도"), "\(h)%") }
+            if let u = r.uv { row("sun_strong", L("자외선"), L("최고 %@", String(u))) }
+            if let g = r.dust {
+                HStack(spacing: 10) {
+                    PixelIcon(name: "mask", size: 18)
+                    Text(L("미세먼지")).font(.ui(13.5)).foregroundStyle(UI.sub)
+                    Spacer()
+                    AirGradeChip(grade: g, size: 11)
+                }
+                .padding(.vertical, 9)
+                Rectangle().fill(UI.line).frame(height: 1)
+            }
+            if let sun = sunTimes(r, k) { row("sunrise", L("일출 · 일몰"), "\(sun.0) · \(sun.1)") }
+            if let a = r.alerts, !a.isEmpty { row("exclaim", L("특보"), a.joined(separator: ", ")) }
+            if r.obs == true { Text(L("관측으로 채운 날")).font(.ui(11)).foregroundStyle(UI.sub).padding(.top, 8) }
+        }
+        .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func row(_ icon: String, _ title: String, _ value: String) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 10) {
+                PixelIcon(name: icon, size: 18)
+                Text(title).font(.ui(13.5)).foregroundStyle(UI.sub).lineLimit(1)
+                Spacer(minLength: 8)
+                Text(value).font(.px(13)).foregroundStyle(UI.ink).lineLimit(1).minimumScaleFactor(0.7)
+            }
+            .padding(.vertical, 9)
+            Rectangle().fill(UI.line).frame(height: 1)
+        }
+    }
+
+    private func sunTimes(_ r: DayRecord, _ k: String) -> (String, String)? {
+        guard let la = r.lat, let lo = r.lon, let d = DayLogText.date(k) else { return nil }
+        let tz = TimeZone(identifier: model.currentPlace.timeZone) ?? .current
+        guard let sun = SunTimes.day(d, lat: la, lon: lo, tz: tz) else { return nil }
+        var c = Calendar(identifier: .gregorian); c.timeZone = tz
+        let m: (Date) -> String = { HourLabel.clock(c.component(.hour, from: $0) * 60 + c.component(.minute, from: $0), clock12: model.clock12) }
+        return (m(sun.rise), m(sun.set))
+    }
+
+    // MARK: day card — the mixed version: the picture, the temperature line, the numbers
+
+    private func mixedCard(_ k: String, _ r: DayRecord) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ZStack(alignment: .bottomLeading) {
+                DayPicture(record: r, character: model.shownCharacter).frame(height: 150).clipped()
+                HStack(alignment: .bottom) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(DayLogText.dayLong(k)).font(.px(14))
+                        if !r.place.isEmpty { Text(r.place).font(.ui(11.5, .semibold)) }
+                    }
+                    Spacer()
+                    HStack(spacing: 6) { PixelIcon(name: r.icon, size: 20); Text("\(model.deg(r.hi)) / \(model.deg(r.lo))").font(.px(16)) }
+                }
+                .foregroundStyle(UI.ink).padding(.horizontal, 12).padding(.vertical, 8)
+                .background(Color.white.opacity(0.85))
+            }
+            .frame(height: 150)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            if let say = r.say, say.count == 4 { BubbleView(kind: say[0], tone: say[1], icon: say[2], text: say[3], fontSize: 11).fixedSize() }
+            if CalendarDayChart.series(.temp, r) != nil {
+                CalendarDayChart(metric: .temp, record: r, clock12: model.clock12, deg: model.deg, wind: model.windText)
+            }
+            facts(r, k)
+            if r.obs == true { Text(L("관측으로 채운 날")).font(.ui(11)).foregroundStyle(UI.sub) }
+        }
+        .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
     }
 
     /// The day as graphs: 기온 (with the rain under it) · 비 · 바람 · 습도 · 자외선, one at a time, as the day sheet does
@@ -588,4 +775,33 @@ struct ShareCard: View {
             Text(v).font(.px(13)).foregroundStyle(UI.ink)
         }
     }
+}
+
+enum DayCardStyle: String { case graph, image, text, mixed }
+
+/// The day as the notifications draw it: the character in that day's outfit under that day's sky, the umbrella open
+/// when it rained (made once per look, then kept)
+struct DayPicture: View {
+    let record: DayRecord
+    let character: PurrCharacter
+    private static var cache: [String: UIImage] = [:]
+
+    var body: some View {
+        let sky = record.isWet ? NotificationArt.wetSky(icon: record.icon) : NotificationArt.sky(icon: record.icon)
+        let rain: RainState = record.isWet ? .umbrella : .none
+        let key = "\(character.rawValue)|\(record.level)|\(rain.rawValue)|\(sky.rawValue)"
+        let img = Self.cache[key] ?? {
+            let i = NotificationArt.render(character, level: record.level, rain: rain, sky: sky, falling: record.isWet)
+            if let i { Self.cache[key] = i }
+            return i
+        }()
+        Group {
+            if let img { Image(uiImage: img).resizable().interpolation(.none).scaledToFill() } else { Color(hex: "#DDE6F3") }
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+extension Array {
+    subscript(safe i: Int) -> Element? { indices.contains(i) ? self[i] : nil }
 }

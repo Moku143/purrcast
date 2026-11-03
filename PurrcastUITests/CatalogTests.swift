@@ -68,6 +68,7 @@ final class CatalogTests: XCTestCase {
         case "c": partC()
         case "d": partD()
         case "e": partE()
+        case "f": partF()
         default: partB()
         }
     }
@@ -93,6 +94,23 @@ final class CatalogTests: XCTestCase {
             for _ in 0..<8 where !(card.exists && card.isHittable) { app.swipeUp(); sleep(1) }
             take()
             if card.exists { card.tap(); sleep(2); take() }          // free: the Plus page
+        }
+    }
+
+    /// Part f: the calendar's day card in each look (graph · image · text · mixed) on a rainy day and a dusty one
+    private func partF() {
+        for (scene, char) in [("maybe", "cat"), ("spring_dust", "abys")] {
+            for style in ["graph", "image", "text", "mixed"] {
+                steps("daycard.\(style)-\(scene)", ["-scene", scene, "-plus", "-char", char, "-open", "calendar", "-calDay", "0", "-dayStyle", style], wait: 3) { app, take in
+                    for _ in 0..<3 { app.swipeUp(); sleep(1); take() }     // down to the day card and through it
+                    if style == "graph" {
+                        for m in ["rain", "wind", "humidity", "uv"] {
+                            let b = app.buttons["cal-metric-\(m)"].firstMatch
+                            if b.exists { b.tap(); sleep(1); take() }
+                        }
+                    }
+                }
+            }
         }
     }
 
