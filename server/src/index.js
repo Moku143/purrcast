@@ -16,10 +16,11 @@
 
 import { metUrl, parseMet } from './providers/met.js';
 import { toGrid, vilageBase, eveBase, ultraBase, ncstBase, kmaUrl, parseForecast, parseNow, parseWarnings, kmaOK, kmaXmlError, midUrl, midBase, midRegions, parseMidTa, parseMidLand } from './providers/kma.js';
-import { hasWeatherKit, weatherKitUrl, weatherKitToken, parseWeatherKit, packWeatherKit, unpackWeatherKit } from './providers/weatherkit.js';
+import { hasWeatherKit, weatherKitUrl, weatherKitToken, parseWeatherKit, packWeatherKit, unpackWeatherKit, WK_HOST } from './providers/weatherkit.js';
 import { stationsUrl, realtimeUrl, forecastUrl, alarmUrl, nationUrl, airkoreaOK, nearestStation, parseRealtime, parseHistory, todayHours, forecastRegion, parseForecast as parseDustForecast, parseAlarms, stationIndex, airMap, pmLevel, airDetail, owDetail } from './providers/airkorea.js';
 import { owNowUrl, owForecastUrl, owHistoryUrl, owOK, parseOwNow, parseOwTomorrow, parseOwHours } from './providers/openweather.js';
 import { buildScene, validateScene } from './scene.js';
+import { nearestAsos, asosUrl, parseAsos, weatherKitHistoryUrl, parseWeatherKitHistory } from './providers/history.js';
 import { local, pad2, dayKey } from './time.js';
 import { normLang } from './i18n.js';
 import { hasAPNs, readDevice, saveDevice, runActivities } from './push.js';
@@ -39,6 +40,12 @@ export default {
       try {
         const out = await airMapAnswer(url.searchParams, env, ctx);
         return json(out, 200, { 'cache-control': 'public, max-age=900' });
+      } catch (e) { return json({ error: String(e.message || e) }, e.status || 502); }
+    }
+    if (url.pathname === '/v1/history') {
+      try {
+        const out = await historyAnswer(url.searchParams, env, ctx);
+        return json(out, 200, { 'cache-control': 'public, max-age=3600' });
       } catch (e) { return json({ error: String(e.message || e) }, e.status || 502); }
     }
     if (url.pathname !== '/v1/forecast') return json({ error: 'not found' }, 404);
@@ -63,6 +70,42 @@ export default {
     console.log('activities:', JSON.stringify(out));
   },
 };
+
+/** GET /v1/history?lat=&lon=&region=&tz=&from=YYYY-MM-DD&to=YYYY-MM-DD — 날씨 기록's missing days (the calendar, Plus):
+ *  what each past day's weather was. Korea: the nearest 기상청 ASOS station's daily record; elsewhere (or when that
+ *  fails): Apple WeatherKit's daily history. At most 62 days, up to yesterday. → { days: [...], src: 'kma' | 'apple' } */
+export async function historyAnswer(sp, env, ctx, { now = new Date(), fetcher = fetch } = {}) {
+  const q = readQuery(sp);
+  const iso = (k) => `${k.slice(0, 4)}-${k.slice(4, 6)}-${k.slice(6, 8)}`;
+  const yesterday = iso(dayKey(new Date(now.getTime() - 86400000), q.tz));
+  const okDate = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || '');
+  let to = okDate(sp.get('to')) ? sp.get('to') : yesterday;
+  if (to > yesterday) to = yesterday;
+  let from = okDate(sp.get('from')) ? sp.get('from') : to;
+  const earliest = new Date(Date.parse(`${to}T00:00:00Z`) - 61 * 86400000).toISOString().slice(0, 10);
+  if (from < earliest) from = earliest;
+  if (from < '2021-08-01') from = '2021-08-01';   // Apple's history starts there
+  if (from > to) return { days: [], src: null };
+  // past days do not change; yesterday's record can still arrive late in the morning
+  const ttl = to >= yesterday ? 3 * 3600 : 7 * 86400;
+  const errors = [];
+  if (q.region === 'kr' && env.KMA_SERVICE_KEY) {
+    const st = nearestAsos(q.lat, q.lon);
+    if (st) {
+      try {
+        const data = await getJSON(asosUrl(env.KMA_SERVICE_KEY, st.id, from, to), { ttl, fetcher, ctx, kma: true, ok: (d) => d?.response?.header?.resultCode === '00' });
+        const days = parseAsos(data, st);
+        if (days.length) return { days, src: 'kma', station: st.name };
+      } catch (e) { errors.push(String(e.message || e)); }
+    }
+  }
+  if (hasWeatherKit(env)) {
+    const jwt = await weatherKitToken(env, { now });
+    const data = await getJSON(weatherKitHistoryUrl(WK_HOST, q.lat, q.lon, from, to, q.tz), { ttl, fetcher, ctx, headers: { authorization: `Bearer ${jwt}` }, ok: (d) => !!d?.forecastDaily?.days?.length });
+    return { days: parseWeatherKitHistory(data, from, to, (d) => iso(dayKey(d, q.tz))), src: 'apple' };
+  }
+  throw Object.assign(new Error(errors[0] || 'no history source'), { status: 502 });
+}
 
 /** GET /v1/airmap?lat=&lon=&region= — the 대기질 지도 (Plus).
  *  Korea (region=kr): 에어코리아's latest hour for every station near the place, with 통합대기환경지수 — the whole country

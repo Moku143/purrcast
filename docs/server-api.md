@@ -216,6 +216,27 @@ items: [[key, value, unit]] }` with `key` pm10 · pm25 · o3 · no2 · so2 · co
 `yday` the same hour yesterday. Elsewhere: OpenWeather's components in ㎍/㎥, `main` the worse PM, `yday` from its
 history 24 hours ago.
 
+## 날씨 기록 (Plus) — `GET /v1/history?lat=&lon=&region=&tz=&from=YYYY-MM-DD&to=YYYY-MM-DD`
+
+The weather calendar's missing days: what each past day's weather actually was. The app keeps its own day lines
+(every forecast it or a widget fetches, `Shared/Models/DayLog.swift`); it asks this for the days it missed in the
+last week (the home card) and in the month on screen (the calendar), once per range, and never again for a day
+already filled (past weather does not change).
+
+- Korea (`region=kr`): 기상청 지상(종관, ASOS) 일자료 (`AsosDalyInfoService/getWthrDataList`, the same data.go.kr
+  service key as the forecast) at the nearest of the 96 ASOS stations within 60 km (`src/providers/history.js`).
+  The answer's station name must match the table, or the server falls back to Apple.
+- Elsewhere, or when ASOS fails: Apple WeatherKit's `forecastDaily` with past `dailyStart` / `dailyEnd`.
+- At most 62 days, never past yesterday (the place's own calendar); Apple's history starts 2021-08-01.
+- Cached 7 days (3 hours when the range reaches yesterday: ASOS publishes the day before late in the morning).
+
+```json
+{ "src": "kma", "station": "서울",
+  "days": [ { "date": "2026-10-31", "hi": 14, "lo": 10, "icon": "raincloud", "mm": 23.5, "wet": "rain" } ] }
+```
+
+`icon`: sun · partly_cloudy · cloud · raincloud · snowflake · sleet · lightning. `wet`: rain · snow · null.
+
 ## Rain alert push (Plus) — `POST /v1/devices`
 
 The app registers its device for the rain alert. Body (JSON):

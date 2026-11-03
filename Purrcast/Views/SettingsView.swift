@@ -342,6 +342,7 @@ struct SourcesView: View {
             .foregroundStyle(UI.ink).padding(.horizontal, 8).padding(.vertical, 4)
             .overlay(RoundedRectangle(cornerRadius: 5).stroke(UI.sub, style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
             line(L("기본 예보 (한국 밖) · 한국에선 뒤쪽 시간 · 자외선 · 예보 비교"))
+            line(L("날씨 기록: 지난 날씨 (한국 밖 · Plus)"))
             link(L("Apple 날씨 출처 안내"), Self.appleLegal)
         }
     }
@@ -350,6 +351,7 @@ struct SourcesView: View {
         card {
             HStack(spacing: 8) { Text(L("기상청")).font(.ui(15, .bold)); GreyTag(text: L("한국")) }
             line(L("기본 예보 · 10일 예보 · 기상특보 · 예보 비교 · 다음 6시간(Plus)"))
+            line(L("날씨 기록: 지상관측(ASOS) 일자료 (Plus)"))
             line(L("공공누리 제1유형(출처표시)"))
             link(L("기상청 날씨누리"), Self.kma)
         }

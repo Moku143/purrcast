@@ -759,3 +759,6 @@
 "%d일" = "%d Tage";
 "날씨 달력 · 월간 리포트" = "Wetterkalender · Monatsbericht";
 "날씨를 볼 때마다 그날 날씨가 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷" = "Jeder Tag landet im Kalender\nJeden Monat: Regentage · wärmster Tag · häufigstes Outfit";
+"관측으로 채운 날" = "Aus Messwerten ergänzt";
+"날씨 기록: 지상관측(ASOS) 일자료 (Plus)" = "Wetterverlauf: tägliche ASOS-Messungen (Plus)";
+"날씨 기록: 지난 날씨 (한국 밖 · Plus)" = "Wetterverlauf: vergangene Tage (außerhalb Koreas · Plus)";

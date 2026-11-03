@@ -133,7 +133,8 @@ struct CalendarSheet: View {
         let tz = TimeZone(identifier: place.timeZone) ?? .current
         let today = DayLog.dayKey(Date(), tz: tz)
         let thisMonth = String(today.prefix(7))
-        let first = all.first.map { String($0.date.prefix(7)) } ?? thisMonth
+        // back a year: the days the phone missed are filled in from what the weather was
+        let first = min(all.first.map { String($0.date.prefix(7)) } ?? thisMonth, model.isSample ? thisMonth : DayLogText.shift(thisMonth, by: -12))
         let m = month.isEmpty ? thisMonth : month
         let report = MonthReport.make(all, month: m)
         VStack(spacing: 0) {
@@ -150,6 +151,7 @@ struct CalendarSheet: View {
             }
         }
         .background(UI.bg)
+        .task(id: "fill|\(m)|\(place.id)") { await model.fillHistory(for: place, month: m) }   // the month's missed days
         .task(id: "\(m)|\(all.count)|\(model.shownCharacter.rawValue)") {
             shareImage = ShareCard.render(report: report, month: m, place: place.short, records: all.filter { $0.date.hasPrefix(m + "-") },
                                           character: model.shownCharacter, deg: model.deg)
@@ -318,6 +320,7 @@ struct CalendarSheet: View {
                             .font(.ui(13)).foregroundStyle(Color(hex: "#3F6FD8"))
                     }
                     if let g = r.dust { HStack(spacing: 6) { Text(L("미세먼지")).font(.ui(13)).foregroundStyle(UI.sub); AirGradeChip(grade: g, size: 11) } }
+                    if r.obs == true { Text(L("관측으로 채운 날")).font(.ui(11)).foregroundStyle(UI.sub) }
                 }
                 Spacer(minLength: 0)
             } else {

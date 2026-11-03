@@ -158,7 +158,10 @@ final class AppModel: ObservableObject {
                 guard mine == generation else { return }
                 raw = s; hasData = true; lastError = nil; lastRefresh = Date()
                 lastLevel[place.id] = s.level
-                if !provider.isSample { dayLog.record(s, place: place); dayLogVersion += 1 }
+                if !provider.isSample {
+                    dayLog.record(s, place: place); dayLogVersion += 1
+                    Task { await fillHistory(for: place) }      // Plus: the week's missed days
+                }
                 publish()
                 #if DEBUG
                 switch debugNotice {
@@ -270,6 +273,42 @@ final class AppModel: ObservableObject {
         let d = unitF ? Int((Double(abs(v)) * 1.8).rounded()) : abs(v)
         return v > 0 ? "+\(d)°" : (v < 0 ? "−\(d)°" : L("같음"))
     }
+    /// Plus: the place's past days the phone missed (or only saw in part), filled in from what the weather was —
+    /// the last week (the home card) or one month (the calendar). Each range is asked once a session; days already
+    /// observed are not asked again (past weather does not change).
+    private var historyAsked: Set<String> = []
+    func fillHistory(for place: Place, month: String? = nil) async {
+        guard plus, !isSample else { return }
+        let tz = TimeZone(identifier: place.timeZone) ?? .current
+        let yesterday = DayLog.dayKey(Date().addingTimeInterval(-86400), tz: tz)
+        var from: String, to = yesterday
+        if let m = month {
+            from = m + "-01"
+            let end = String(format: "%@-%02d", m, DayLogText.length(m))
+            if end < to { to = end }
+        } else {
+            from = DayLog.dayKey(Date().addingTimeInterval(-7 * 86400), tz: tz)
+        }
+        guard from <= to else { return }
+        let have = Set(dayLog.records(place.id).filter { $0.obs == true }.map(\.date))
+        var want: [String] = []
+        var d = from
+        while d <= to { if !have.contains(d) { want.append(d) }; d = Self.nextDay(d) }
+        guard let first = want.first, let last = want.last else { return }
+        let key = "\(place.id)|\(first)|\(last)"
+        guard !historyAsked.contains(key) else { return }
+        historyAsked.insert(key)
+        guard let days = try? await provider.history(for: place, from: first, to: last), !days.isEmpty else { return }
+        dayLog.merge(days, placeID: place.id)
+        dayLogVersion += 1
+    }
+
+    static func nextDay(_ k: String) -> String {
+        var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "UTC")!
+        guard let d = DayLogText.date(k), let n = c.date(byAdding: .day, value: 1, to: d) else { return "9999-12-31" }
+        return DayLog.dayKey(n, tz: TimeZone(identifier: "UTC")!)
+    }
+
     /// Fetch the 대기질 지도 for the place on screen, again when the forecast was refreshed (the readings are hourly)
     func loadAirMap() async {
         let place = currentPlace, key = "\(place.id)|\(scene.updated)|\(scene.clock)"

@@ -109,6 +109,29 @@ struct DayLog {
     }
 }
 
+extension DayLog {
+    /// Observed days from the server: a missing day is added; a day the phone saw takes the observed high, low, sky
+    /// and rain, and keeps what only the phone knows (미세먼지, where it was).
+    func merge(_ observed: [DayRecord], placeID: String) {
+        guard !observed.isEmpty else { return }
+        var all = records(placeID)
+        var at = Dictionary(all.enumerated().map { ($1.date, $0) }, uniquingKeysWith: { a, _ in a })
+        for o in observed {
+            if let i = at[o.date] {
+                var r = all[i]
+                r.hi = o.hi; r.lo = o.lo; r.icon = o.icon; r.mm = o.mm; r.wet = o.wet; r.obs = true; r.hours = nil
+                if r.place.isEmpty { r.place = o.place }
+                all[i] = r
+            } else {
+                all.append(o); at[o.date] = all.count - 1
+            }
+        }
+        all.sort { $0.date < $1.date }
+        if all.count > Self.keepDays { all.removeFirst(all.count - Self.keepDays) }
+        save(all, for: placeID)
+    }
+}
+
 /// What a month adds up to (the 월간 리포트)
 struct MonthReport: Equatable {
     var days: Int                       // days recorded

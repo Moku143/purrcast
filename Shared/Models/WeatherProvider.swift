@@ -13,6 +13,8 @@ protocol WeatherProvider {
     func forecast(for place: Place, plus: Bool, previousLevel: Int?, fresh: Bool) async throws -> WeatherScene
     /// The 대기질 지도 (Plus): air quality around the place
     func airMap(for place: Place) async throws -> AirMap
+    /// 날씨 기록's missing days (Plus): what each past day's weather was, "YYYY-MM-DD" … "YYYY-MM-DD"
+    func history(for place: Place, from: String, to: String) async throws -> [DayRecord]
 }
 
 extension WeatherProvider {
@@ -21,6 +23,8 @@ extension WeatherProvider {
     }
     /// Without the server: a made-up field around the place (the example weather)
     func airMap(for place: Place) async throws -> AirMap { AirMap.sample(lat: place.lat, lon: place.lon, korea: place.region == "kr") }
+    /// Without the server: nothing to fill in (the example weather makes up its own days)
+    func history(for place: Place, from: String, to: String) async throws -> [DayRecord] { [] }
 }
 
 extension SampleWeatherProvider {
@@ -118,5 +122,32 @@ extension ServerWeatherProvider {
         let m = try JSONDecoder().decode(AirMap.self, from: data)
         guard !m.points.isEmpty else { throw URLError(.cannotParseResponse) }
         return m
+    }
+
+    /// GET {base}/v1/history?lat=..&lon=..&region=..&tz=..&from=..&to=.. → { days: [{date, hi, lo, icon, mm, wet}], src }
+    /// (기상청 ASOS in Korea, Apple's daily history elsewhere), as observed days of 날씨 기록
+    func history(for place: Place, from: String, to: String) async throws -> [DayRecord] {
+        var c = URLComponents(url: baseURL.appendingPathComponent("v1/history"), resolvingAgainstBaseURL: false)!
+        c.queryItems = [
+            URLQueryItem(name: "lat", value: String(format: "%.2f", place.lat)),
+            URLQueryItem(name: "lon", value: String(format: "%.2f", place.lon)),
+            URLQueryItem(name: "region", value: place.region),
+            URLQueryItem(name: "tz", value: place.timeZone),
+            URLQueryItem(name: "from", value: from),
+            URLQueryItem(name: "to", value: to),
+        ]
+        var req = URLRequest(url: c.url!, timeoutInterval: 20)
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        let (data, resp) = try await session.data(for: req)
+        guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else { throw URLError(.badServerResponse) }
+        struct Answer: Decodable {
+            struct Day: Decodable { var date: String; var hi: Double; var lo: Double; var icon: String; var mm: Double?; var wet: String? }
+            var days: [Day]
+        }
+        return try JSONDecoder().decode(Answer.self, from: data).days.map {
+            var r = DayRecord(date: $0.date, hi: Int($0.hi.rounded()), lo: Int($0.lo.rounded()), icon: $0.icon)
+            r.mm = $0.mm ?? 0; r.wet = $0.wet; r.obs = true; r.place = place.short
+            return r
+        }
     }
 }
