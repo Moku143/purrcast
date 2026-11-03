@@ -138,6 +138,8 @@ struct CalendarSheet: View {
     /// Which way the month turned (+1: on to the next), for the slide; the finger's pull while dragging
     @State private var turn = 1
     @State private var pull: CGFloat = 0
+    /// A sideways drag is turning the month: a day under the finger is not opened when it lifts
+    @State private var dragging = false
 
     var body: some View {
         let place = model.currentPlace
@@ -209,11 +211,11 @@ struct CalendarSheet: View {
 
     /// 오늘 (back to this month) · the month between its arrows (tapped: any month) · 날씨 | 옷차림
     private func monthBar(_ m: String, first: String, thisMonth: String, place: Place) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             Button { Haptic.soft(); turnTo(thisMonth, from: m) } label: {
                 Text(L("오늘")).font(.ui(13, .semibold)).foregroundStyle(m == thisMonth ? UI.faint : UI.ink)
                     .lineLimit(1).fixedSize()
-                    .padding(.horizontal, 12).frame(height: 38).background(Color.white, in: Capsule())
+                    .padding(.horizontal, 11).frame(height: 38).background(Color.white, in: Capsule())
             }
             .buttonStyle(.press(0.94)).disabled(m == thisMonth).accessibilityIdentifier("cal-today")
             Spacer(minLength: 0)
@@ -243,18 +245,21 @@ struct CalendarSheet: View {
             Spacer(minLength: 0)
             // the month as the weather, or as what was worn: with their names where they fit
             ViewThatFits(in: .horizontal) {
-                modes(labels: true)
-                modes(labels: false)
+                modes(labels: true, icons: true)
+                modes(labels: true, icons: false)
+                modes(labels: false, icons: true)
             }
         }
         .padding(.top, 2)
     }
 
-    private func modes(labels: Bool) -> some View {
+    private func modes(labels: Bool, icons: Bool) -> some View {
         HStack(spacing: 0) {
-            modeButton(on: !outfits, id: "cal-mode-weather", text: labels ? L("날씨") : nil) { PixelIcon(name: "partly_cloudy", size: 16) } action: { outfits = false }
+            modeButton(on: !outfits, id: "cal-mode-weather", text: labels ? L("날씨") : nil) {
+                if icons { PixelIcon(name: "partly_cloudy", size: 15) }
+            } action: { outfits = false }
             modeButton(on: outfits, id: "cal-mode-outfits", text: labels ? L("옷차림") : nil) {
-                Image(model.shownCharacter.faceImage).resizable().interpolation(.none).scaledToFit().frame(width: 16, height: 16)
+                if icons { Image(model.shownCharacter.faceImage).resizable().interpolation(.none).scaledToFit().frame(width: 15, height: 15) }
             } action: { outfits = true }
         }
         .padding(3).background(Color.white, in: Capsule())
@@ -267,7 +272,7 @@ struct CalendarSheet: View {
                 c()
                 if let text { Text(text).font(.ui(12, on ? .semibold : .regular)).foregroundStyle(on ? UI.ink : UI.sub).lineLimit(1).fixedSize() }
             }
-            .padding(.horizontal, text == nil ? 9 : 8).frame(height: 32)
+            .padding(.horizontal, text == nil ? 9 : 7).frame(height: 32)
             .background(on ? Color(hex: "#E9ECF3") : Color.clear, in: Capsule())
         }
         .buttonStyle(.press(0.94)).accessibilityIdentifier(id)
@@ -276,7 +281,7 @@ struct CalendarSheet: View {
 
     private func arrow(_ name: String, enabled: Bool, label: String, _ action: @escaping () -> Void) -> some View {
         Button { Haptic.soft(); action() } label: {
-            Image(systemName: name).font(.system(size: 13, weight: .bold)).frame(width: 30, height: 40)
+            Image(systemName: name).font(.system(size: 13, weight: .bold)).frame(width: 26, height: 40)
         }
         .foregroundStyle(enabled ? UI.ink : UI.faint).disabled(!enabled)
         .buttonStyle(.press(0.92)).accessibilityLabel(Text(label)).accessibilityIdentifier(name == "chevron.left" ? "cal-prev" : "cal-next")
@@ -289,10 +294,13 @@ struct CalendarSheet: View {
             .onChanged { v in
                 let w = v.translation.width
                 guard abs(w) > abs(v.translation.height) * 1.2 else { return }
+                dragging = true
                 let can = w < 0 ? m < thisMonth : m > first
                 pull = can ? w * 0.6 : w * 0.18
             }
             .onEnded { v in
+                // the day's button hears the same lift: it stays shut a moment longer
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { dragging = false }
                 let w = v.translation.width, far = v.predictedEndTranslation.width
                 let sideways = abs(w) > abs(v.translation.height) * 1.2
                 let n = w < 0 ? 1 : -1
@@ -405,7 +413,7 @@ struct CalendarSheet: View {
     /// One day: its number (today in a dark circle), then its sky and range — or the outfit worn that day
     private func cell(_ k: String, _ r: DayRecord?, today: String) -> some View {
         let isToday = k == today, future = k > today
-        return Button { Haptic.soft(); selected = k; openDay = DayKey(id: k) } label: {
+        return Button { guard !dragging else { return }; Haptic.soft(); selected = k; openDay = DayKey(id: k) } label: {
             VStack(spacing: 4) {
                 Text(String(Int(k.suffix(2)) ?? 0)).font(.ui(14, isToday ? .bold : .regular))
                     .foregroundStyle(isToday ? Color.white : (future ? UI.faint : UI.ink))
