@@ -34,6 +34,11 @@ struct DayRecord: Codable, Equatable, Identifiable {
     var wetTo: Int? = nil
     var lat: Double? = nil              // where the day was (sunrise · sunset)
     var lon: Double? = nil
+    /// The day sheet's own rows for the day (the last forecast of it seen, past hours as they were) and that day's
+    /// 미세먼지 readings by the hour: the past day opens in the same day sheet as a forecast day. Kept a little over a
+    /// year; older days keep their summary only.
+    var rows: [WeatherScene.DayHour]? = nil
+    var air: WeatherScene.Dust? = nil
 
     var id: String { date }
     /// The day's outfit, as the notifications draw it: the middle of its range
@@ -63,6 +68,8 @@ struct DayRecord: Codable, Equatable, Identifiable {
 struct DayLog {
     var dir: URL = DayLog.defaultDir
     static let keepDays = 3 * 366
+    /// Days that keep their hours (the day sheet); older ones keep the summary
+    static let detailDays = 400
 
     static var defaultDir: URL {
         let base = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: SharedStore.groupID)
@@ -132,8 +139,12 @@ struct DayLog {
         Self.detail(&r, s, hour: c.component(.hour, from: now), place: place)
 
         all.removeAll { $0.date == key }
-        // finished days drop their working lists (only today's needs them)
-        all = all.map { var x = $0; if x.date != key { x.hours = nil; x.seenH = nil }; return x }
+        // finished days drop their working lists (only today's needs them); after a year and a bit, the hours go too
+        let cut = Self.dayKey(now.addingTimeInterval(-Double(Self.detailDays) * 86400), tz: tz)
+        all = all.map { var x = $0
+            if x.date != key { x.hours = nil; x.seenH = nil }
+            if x.date < cut { x.rows = nil; x.air = nil; x.temps = nil; x.rain = nil; x.winds = nil; x.rhs = nil; x.uvs = nil }
+            return x }
         all.append(r)
         all.sort { $0.date < $1.date }
         if all.count > Self.keepDays { all.removeFirst(all.count - Self.keepDays) }
@@ -182,6 +193,10 @@ extension DayLog {
         // the bubble: a warning's shout stays; otherwise the latest word of the day
         if let b = s.bubble, !b.text.isEmpty, !(r.say?.first == "shout" && b.kind != "shout") { r.say = [b.kind, b.tone, b.icon, b.text] }
         r.lat = (place.lat * 100).rounded() / 100; r.lon = (place.lon * 100).rounded() / 100
+        if let rows = s.dayDetail?.first, rows.count >= 2 { r.rows = rows }
+        if let d = s.dust, let hs = d.hours, !hs.isEmpty {
+            r.air = WeatherScene.Dust(pm10: nil, pm25: nil, pm10Grade: nil, pm25Grade: nil, grade: d.grade, note: "", src: "", srcKey: d.srcKey, hours: hs)
+        }
     }
 
     /// Observed days from the server: a missing day is added; a day the phone saw takes the observed high, low, sky
@@ -319,3 +334,67 @@ extension DayLog {
     }
 }
 #endif
+
+extension WeatherScene.DayHour: Equatable {
+    static func == (a: Self, b: Self) -> Bool {
+        a.label == b.label && a.temp == b.temp && a.chance == b.chance && a.wind == b.wind && a.uv == b.uv && a.rh == b.rh
+            && a.mm == b.mm && a.gust == b.gust && a.dir == b.dir
+    }
+}
+
+extension DayRecord {
+    /// The day as a scene for the day sheet: its own rows when the phone kept them, else rows made from the hourly
+    /// values (temperature, rain, wind, humidity, UV); nil for a day with too little to draw (an observed day only).
+    func scene(tz: TimeZone) -> WeatherScene? {
+        var rows = self.rows ?? []
+        if rows.count < 2, let t = temps, t.compactMap({ $0 }).count >= 3 {
+            // the hours with a temperature, as the day sheet's rows: [label, °C, chance, wind, UV, humidity, mm]
+            var arr: [[Any]] = []
+            for h in 0..<24 {
+                guard let temp = t[h] else { continue }
+                let mm = rain(at: h)
+                func near(_ a: [Int?]?) -> Double {
+                    guard let a, a.count == 24 else { return 0 }
+                    if let v = a[h] { return Double(v) }
+                    // the nearest hour that has one (wind, humidity and UV come every few hours)
+                    for d in 1..<24 { if h - d >= 0, let v = a[h - d] { return Double(v) }; if h + d < 24, let v = a[h + d] { return Double(v) } }
+                    return 0
+                }
+                arr.append(["\(h):00", temp, mm >= 0.1 ? 80 : 0, near(winds), near(uvs), near(rhs), mm])
+            }
+            if let data = try? JSONSerialization.data(withJSONObject: arr),
+               let made = try? JSONDecoder().decode([WeatherScene.DayHour].self, from: data) { rows = made }
+        }
+        guard rows.count >= 2 else { return nil }
+        var s = WeatherScene()
+        s.days = [WeatherScene.DayRow(name: "", icon: icon, chance: isWet ? max(chance, 60) : chance, lo: lo, hi: hi)]
+        s.dayDetail = [rows]
+        s.time = "day"; s.level = level; s.clock = ""          // no "now": the whole day is past
+        s.hi = hi; s.lo = lo; s.temp = hi; s.place = place
+        s.snow = isSnow
+        s.dust = air
+        if let w = windMax { s.wind = WeatherScene.Wind(speed: w, gust: 0, deg: 0) }
+        // sunrise and sunset, for the night icons
+        if let la = lat, let lo = lon, let d = DayLog.date(date), let sun = SunTimes.day(d, lat: la, lon: lo, tz: tz) {
+            var c = Calendar(identifier: .gregorian); c.timeZone = tz
+            func hm(_ x: Date) -> String { String(format: "%02d:%02d", c.component(.hour, from: x), c.component(.minute, from: x)) }
+            s.tiles = [Self.tile("sunrise", hm(sun.rise)), Self.tile("sunset", hm(sun.set))]
+        }
+        return s
+    }
+
+    private static func tile(_ icon: String, _ value: String) -> WeatherScene.Tile {
+        let j = "{\"icon\":\"\(icon)\",\"label\":\"\",\"value\":\"\(value)\",\"note\":\"\"}"
+        return (try? JSONDecoder().decode(WeatherScene.Tile.self, from: Data(j.utf8)))!
+    }
+}
+
+extension DayLog {
+    /// "2026-11-03" → that day at noon UTC
+    static func date(_ key: String) -> Date? {
+        let p = key.split(separator: "-").compactMap { Int($0) }
+        guard p.count == 3 else { return nil }
+        var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "UTC")!
+        return c.date(from: DateComponents(year: p[0], month: p[1], day: p[2], hour: 12))
+    }
+}

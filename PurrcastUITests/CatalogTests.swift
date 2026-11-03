@@ -97,21 +97,16 @@ final class CatalogTests: XCTestCase {
         }
     }
 
-    /// Part f: a day's own page in each look (graph · image · text · mixed) on a rainy day and a dusty one
+    /// Part f: a 날씨 기록 day opened from the calendar — the same day sheet as a forecast day, every tab
     private func partF() {
-        for (scene, char) in [("maybe", "cat"), ("spring_dust", "abys")] {
-            for style in ["graph", "image", "text", "mixed"] {
-                steps("daypage.\(style)-\(scene)", ["-scene", scene, "-plus", "-char", char, "-open", "calendar", "-calDay", "0", "-dayStyle", style], wait: 4) { app, take in
-                    take()
-                    for _ in 0..<2 { app.swipeUp(); sleep(1); take() }
-                    if style == "graph" {
-                        app.swipeDown(); sleep(1)
-                        for m in ["rain", "wind", "humidity", "uv"] {
-                            let b = app.buttons["day-metric-\(m)"].firstMatch
-                            if b.waitForExistence(timeout: 1) { b.tap(); sleep(1); take() }
-                        }
-                    }
+        for (scene, char, back) in [("maybe", "cat", "0"), ("spring_dust", "abys", "0"), ("maybe", "cat", "4")] {
+            steps("pastday.\(scene)-\(back)", ["-scene", scene, "-plus", "-char", char, "-open", "calendar", "-calDay", back], wait: 4) { app, take in
+                take()
+                for t in ["feels", "rain", "wind", "uv", "humidity", "dust"] {
+                    let b = app.buttons["tab-\(t)"].firstMatch
+                    if b.waitForExistence(timeout: 1) { b.tap(); sleep(1); take() }
                 }
+                app.swipeUp(); sleep(1); take()
             }
         }
     }

@@ -773,3 +773,7 @@
 "비 · 바람" = "Pioggia · Vento";
 "하늘 · 공기" = "Cielo · Aria";
 "최대 %@" = "Fino a %@";
+"%@에 비가 왔어요." = "È piovuto (%@).";
+"%@에 눈이 왔어요." = "Ha nevicato (%@).";
+"비가 오지 않았어요." = "Non è piovuto.";
+"눈이 오지 않았어요." = "Non ha nevicato.";

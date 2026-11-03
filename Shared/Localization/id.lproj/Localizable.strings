@@ -773,3 +773,7 @@
 "비 · 바람" = "Hujan · Angin";
 "하늘 · 공기" = "Langit · Udara";
 "최대 %@" = "Hingga %@";
+"%@에 비가 왔어요." = "Hujan (%@).";
+"%@에 눈이 왔어요." = "Turun salju (%@).";
+"비가 오지 않았어요." = "Tidak hujan.";
+"눈이 오지 않았어요." = "Tidak turun salju.";

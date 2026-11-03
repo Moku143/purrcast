@@ -14,6 +14,9 @@ struct DayDetailView: View {
     var startMetric: DayMetric = .temp
     /// The store pictures: only the summary bubble, the chart and the boxes under it, on no background of its own
     var focus = false
+    /// A past day from 날씨 기록 (its own scene and date): no strip of days, no "now", what happened in the past tense
+    var past: PastDay? = nil
+    struct PastDay { let scene: WeatherScene; let date: Date }
     @State private var metric: DayMetric = .temp
     @State private var fine = true           // 미세먼지 tab: PM2.5 (초미세) or PM10
     @State private var picked: Int?          // hour chosen on the chart; nil → now (today) or noon
@@ -21,7 +24,7 @@ struct DayDetailView: View {
     @Namespace private var ns
 
     var body: some View {
-        let s = model.scene
+        let s = past?.scene ?? model.scene
         if s.days.isEmpty {
             VStack(spacing: 12) {
                 Text(L("이 날의 예보가 아직 없어요")).font(.px(16))
@@ -39,15 +42,16 @@ struct DayDetailView: View {
         let ink = Ink(night: s.isNight)
         var sel = picked ?? (index == 0 ? (hourly?.now ?? 12) : 12)
         if metric == .dust, let last = hourly?.dustLast { sel = min(sel, last) }   // no readings past the newest hour yet
-        let ctx = DayCtx(scene: s, index: index, day: s.days[index], hourly: hourly, ink: ink, night: s.isNight, sel: sel, metric: metric, scrub: scrubbing, fine: fine)
+        var ctx = DayCtx(scene: s, index: index, day: s.days[index], hourly: hourly, ink: ink, night: s.isNight, sel: sel, metric: metric, scrub: scrubbing, fine: fine)
+        ctx.past = past != nil
         return GeometryReader { g in ScrollView(showsIndicators: false) {
             VStack(spacing: 12) {
                 if !focus {
                     Capsule().fill(Color(red: 127 / 255, green: 135 / 255, blue: 160 / 255).opacity(0.45)).frame(width: 36, height: 5)
                     titleRow(ctx)
-                    strip(ctx)
+                    if past == nil { strip(ctx) }
                     tabs(ctx)
-                    if index == 0, let a = s.alert { alertLine(a, ctx) }
+                    if index == 0, past == nil, let a = s.alert { alertLine(a, ctx) }
                 }
                 brief(ctx)
                 if let h = hourly {
@@ -97,8 +101,9 @@ struct DayDetailView: View {
     }
 
     private func title(_ c: DayCtx) -> String {
-        let date = Calendar.current.date(byAdding: .day, value: c.index, to: Date()) ?? Date()
         let f = DateFormatter(); f.locale = Lang.current.locale; f.dateFormat = L("M월 d일 EEEE")
+        if let p = past { f.timeZone = TimeZone(identifier: "UTC"); return f.string(from: p.date) }   // a 날씨 기록 day
+        let date = Calendar.current.date(byAdding: .day, value: c.index, to: Date()) ?? Date()
         let lead = c.index == 0 ? L("오늘") + " · " : (c.index == 1 ? L("내일") + " · " : "")
         return lead + f.string(from: date)
     }
@@ -888,6 +893,7 @@ struct DayDetailView: View {
     /// The day's rain (snow in cm on a snowy day): the amount, how much that is and the highest chance; the sentence
     /// says when to take an umbrella.
     private func briefRain(_ c: DayCtx, _ h: DayHourly) -> Brief {
+        if c.past { return briefRainPast(c, h) }
         let wet = (0..<24).filter { h.chance[$0] >= 50 }
         let p = h.dayProb
         let value: String, badge: String
@@ -921,6 +927,22 @@ struct DayDetailView: View {
             t = L("비 예보예요. 우산 챙기세요.")
         }
         return Brief(value: value, badge: badge, badgeColor: c.ink.blue, badgeInk: c.inv, summary: t)
+    }
+
+    /// A 날씨 기록 day: when it rained (or snowed) and how much — no chances, no umbrella advice
+    private func briefRainPast(_ c: DayCtx, _ h: DayHourly) -> Brief {
+        let wet = (0..<24).filter { h.hasMM ? h.mm[$0] >= 0.1 : h.chance[$0] >= 50 }
+        let total = h.total, unit = c.snowy ? "cm" : "mm"
+        let value = total >= 1 ? "\(roundHalfUp(total))\(unit)" : (total > 0 ? L("%@ 미만", "1\(unit)") : (c.snowy ? L("눈 없음") : L("비 없음")))
+        let word = total >= 50 ? L("매우 많음") : total >= 20 ? L("많음") : total >= 5 ? L("보통") : L("조금")
+        let t: String
+        if let a = wet.first, let b = wet.last {
+            let when = HourLabel.window(a, b + 1, clock12: model.clock12)
+            t = c.snowy ? L("%@에 눈이 왔어요.", when) : L("%@에 비가 왔어요.", when)
+        } else {
+            t = c.snowy ? L("눈이 오지 않았어요.") : L("비가 오지 않았어요.")
+        }
+        return Brief(value: value, badge: total >= 1 ? word : "", badgeColor: c.ink.blue, badgeInk: c.inv, summary: t)
     }
 
     private func windLevel(_ h: DayHourly) -> Int {
@@ -965,6 +987,15 @@ struct DayDetailView: View {
             t += " " + [L("공기가 맑아요."), L("괜찮은 편이에요."), L("마스크를 챙겨 주세요."), L("외출할 땐 마스크를 착용해 주세요.")][worst]
             return Brief(value: L("내일"), badge: L(DustScale.words[worst]), badgeColor: Color(hex: DustScale.colors[worst]), badgeInk: Color(hex: DustScale.onColors[worst]), summary: t)
         }
+        // a 날씨 기록 day: the day's highest reading, its step and when
+        if c.past {
+            let known = Array(c.dustVals.prefix((h.dustLast ?? 23) + 1))
+            let m = known.max() ?? 0, peakAt = known.firstIndex(of: m) ?? 0
+            let g = DustScale.grade(m, pm25: c.fine, who: c.who)
+            let what = c.fine ? L("초미세먼지") : L("PM10")
+            let t = L("%@ %@이에요.", what, L(DustScale.words[g])) + " " + L("%@에 %@로 가장 높았어요.", HourLabel.word(peakAt, clock12: model.clock12), String(Int(m.rounded())))
+            return Brief(value: L("최고 %@", String(Int(m.rounded()))), badge: L(DustScale.words[g]), badgeColor: Color(hex: DustScale.colors[g]), badgeInk: Color(hex: DustScale.onColors[g]), summary: t)
+        }
         // today: the reading now and its step, when today's highest was (and how high), tomorrow's step forecast
         let last = h.dustLast ?? 23
         let known = Array(c.dustVals.prefix(last + 1))
@@ -1003,7 +1034,8 @@ private struct DayCtx {
     let scene: WeatherScene; let index: Int; let day: WeatherScene.DayRow; let hourly: DayHourly?
     let ink: Ink; let night: Bool; let sel: Int; let metric: DayMetric; let scrub: Bool
     var fine = true                              // 미세먼지 tab: PM2.5 or PM10
-    var snowy: Bool { day.icon == "snowflake" }
+    var past = false                             // a 날씨 기록 day: what happened, not what to expect
+    var snowy: Bool { day.icon == "snowflake" || (past && scene.isSnow) }
     /// The 미세먼지 curve in use (PM2.5 or PM10), its scale (WHO abroad) and today's highest reading so far
     /// 24 values, zeros when the day has no readings (tomorrow's forecast-only tab)
     var dustVals: [Double] {

@@ -773,3 +773,7 @@
 "비 · 바람" = "Regen · Wind";
 "하늘 · 공기" = "Himmel · Luft";
 "최대 %@" = "Bis %@";
+"%@에 비가 왔어요." = "Es hat geregnet (%@).";
+"%@에 눈이 왔어요." = "Es hat geschneit (%@).";
+"비가 오지 않았어요." = "Es hat nicht geregnet.";
+"눈이 오지 않았어요." = "Es hat nicht geschneit.";

@@ -734,4 +734,21 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(r.windMax, 7); XCTAssertEqual(r.rh, 75); XCTAssertEqual(r.uv, 4)
         XCTAssertEqual(r.feelsLo, 10); XCTAssertEqual(r.seenH, [14])
     }
+
+    /// A 날씨 기록 day opens in the day sheet: its scene has the day's rows and no "now"
+    func testPastDayScene() {
+        var r = DayRecord(date: "2026-11-02", hi: 19, lo: 9, icon: "raincloud")
+        r.wet = "rain"
+        r.temps = (0..<24).map { $0 % 3 == 0 ? 9 + $0 / 3 : nil }
+        r.rain = (0..<24).map { $0 >= 15 && $0 <= 18 ? 1.5 : nil }
+        r.winds = (0..<24).map { $0 % 3 == 0 ? 3 : nil }
+        r.lat = 37.57; r.lon = 126.98
+        let s = r.scene(tz: TimeZone(identifier: "Asia/Seoul")!)
+        XCTAssertNotNil(s)
+        XCTAssertEqual(s?.dayDetail?.first?.count, 8)
+        XCTAssertEqual(s?.dayDetail?.first?[5].mm, 1.5)          // 15 h
+        XCTAssertEqual(s?.clock, "")
+        XCTAssertEqual(s?.tiles.count, 2)                          // sunrise · sunset
+        XCTAssertNil(DayRecord(date: "2026-11-01", hi: 10, lo: 3, icon: "sun").scene(tz: .current))   // a summary only
+    }
 }
