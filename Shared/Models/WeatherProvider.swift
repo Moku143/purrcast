@@ -66,6 +66,8 @@ struct SampleWeatherProvider: WeatherProvider {
 struct ServerWeatherProvider: WeatherProvider {
     let baseURL: URL
     var session: URLSession = .shared
+    /// Keep and use the phone's record of temperatures for 전일 대비 (off in tests)
+    var history = true
     var name: String { L("기상청 · MET Norway") }
     var isSample: Bool { false }
 
@@ -94,6 +96,8 @@ struct ServerWeatherProvider: WeatherProvider {
         guard !s.hours.isEmpty, !s.days.isEmpty else { throw URLError(.cannotParseResponse) }
         s.id = place.id
         if s.place == nil { s.place = place.name }
+        // 전일 대비 from the phone's own record of yesterday (the server's figure when it has none)
+        if history { TempHistory().apply(to: &s, lat: place.lat, lon: place.lon) }
         return s
     }
 }
