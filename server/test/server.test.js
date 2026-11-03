@@ -6,7 +6,7 @@ import { parseMet, metUrl } from '../src/providers/met.js';
 import { parseWeatherKit, weatherKitUrl, weatherKitToken, hasWeatherKit, resetWeatherKitTokens } from '../src/providers/weatherkit.js';
 import { buildScene, validateScene } from '../src/scene.js';
 import { level, outfit, bubble, uvNote, whenWord, alertNote, condition, rainKind, feelsWord, warningKind } from '../src/rules.js';
-import { strings, normLang, warningName, hourLabel } from '../src/i18n.js';
+import { strings, normLang, warningName, hourLabel, LANGS } from '../src/i18n.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike, humidityWord, windWord } from '../src/physics.js';
 import worker, { forecast, readQuery, resetCache, setUpstreamTimeout, legacyIcons, airMapAnswer } from '../src/index.js';
@@ -300,10 +300,11 @@ test('alert line under the character: the warning name + what it means today', (
 
 // ---- languages (docs/i18n-glossary.md) ----
 
-test('lang: ko default, en / ja chosen, anything else → en', () => {
+test('lang: ko default, an installed language chosen, anything else → en', () => {
   assert.equal(readQuery(new URLSearchParams('lat=37.57&lon=126.9')).lang, 'ko');
   assert.equal(readQuery(new URLSearchParams('lat=37.57&lon=126.9&lang=ja')).lang, 'ja');
-  assert.equal(readQuery(new URLSearchParams('lat=37.57&lon=126.9&lang=fr')).lang, 'en');
+  assert.equal(readQuery(new URLSearchParams('lat=37.57&lon=126.9&lang=fr')).lang, 'fr');
+  assert.equal(readQuery(new URLSearchParams('lat=37.57&lon=126.9&lang=xx')).lang, 'en');
   assert.equal(normLang(undefined), 'ko'); assert.equal(normLang('EN'), 'en');
 });
 
@@ -1162,3 +1163,13 @@ test('Short alerts: warnings (황사경보 too), 미세먼지 주의보, rain so
   assert.equal(readDevice({ id: 'x', lat: 1, lon: 1, alert: false }).alert, false);
 });
 
+
+test('every added language: a whole scene in it, no Korean left in the words', () => {
+  for (const lang of LANGS.filter((l) => !['ko', 'en', 'ja'].includes(l))) {
+    const m = parseMet(met(at(13), flat(40, { cloud: 90, sym: 'rain', mm: 1.2 })));
+    const s = buildScene({ points: m.points, updated: at(13), warnings: [{ name: '호우주의보', severity: 1 }] }, { ...SEOUL, plan: 'plus', now: at(13, 40), lang });
+    validateScene(s);
+    const words = JSON.stringify([s.cond, s.bubble, s.hours.map((h) => h[0]), s.days.map((d) => d[0]), s.tiles.map((t) => [t.label, t.note]), s.alert]);
+    assert.ok(!/[가-힣]/.test(words), `${lang}: ${words.match(/[가-힣][^"]*/)?.[0]}`);
+  }
+});

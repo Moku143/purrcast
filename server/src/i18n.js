@@ -3,20 +3,12 @@
 // (14시 · 2PM · 14時, 15~17시 · 3–5PM · 15〜17時). Korean values are the ones the app shipped with.
 // Icons, kinds and numbers never change with the language — only text.
 
-import * as es from './i18n/es.js';
-import * as fr from './i18n/fr.js';
-import * as de from './i18n/de.js';
-import * as pt from './i18n/pt.js';
-import * as it from './i18n/it.js';
-import * as id from './i18n/id.js';
-import * as ru from './i18n/ru.js';
-import * as zhHans from './i18n/zh-Hans.js';
-import * as zhHant from './i18n/zh-Hant.js';
+import MORE from './i18n/index.js';
 
 /** The languages the app has (Lang.swift): the three originals, then the ones the pixel font can draw. */
-export const LANGS = ['ko', 'en', 'ja', 'es', 'fr', 'de', 'pt', 'it', 'id', 'ru', 'zh-Hans', 'zh-Hant'];
-/** The added languages' words: each file exports its dictionary, short weekday names and the KMA warning names. */
-const MORE = { es, fr, de, pt, it, id, ru, 'zh-Hans': zhHans, 'zh-Hant': zhHant };
+/** The added languages' words (src/i18n/index.js lists the installed ones): each file exports its dictionary, short
+ *  weekday names and the KMA warning names. */
+export const LANGS = ['ko', 'en', 'ja', ...Object.keys(MORE)];
 /** ko | en | ja; anything else → en, nothing → ko. */
 export const normLang = (v) => (v == null || v === '' ? 'ko' : LANGS.includes(v) ? v : 'en');
 
