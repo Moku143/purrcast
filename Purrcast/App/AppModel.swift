@@ -131,6 +131,9 @@ final class AppModel: ObservableObject {
     // MARK: weather
 
     var currentPlace: Place { places[max(0, min(currentIndex, places.count - 1))] }
+    /// Whether the person's place is in Korea (the Plus page's words: 기상청's next six hours there, Apple's minutes
+    /// elsewhere) — from the last forecast handed to the widgets, else the app's language
+    static var hereIsKorea: Bool { SharedStore.load()?.place.map { $0.region == "kr" } ?? (Lang.current == .ko) }
     var isSample: Bool { provider.isSample }
 
     /// Fetch the current place. Answers that arrive after a newer request (quick place switching) are dropped.

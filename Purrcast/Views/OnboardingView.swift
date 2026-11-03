@@ -46,7 +46,11 @@ struct OnboardingView: View {
                     Capsule().fill(i == step ? UI.accent : UI.faint.opacity(0.5)).frame(width: i == step ? 18 : 6, height: 6)
                 }
             }.padding(.bottom, 16)
-            buttons.padding(.horizontal, 20).padding(.bottom, 12)
+            VStack(spacing: 2) {
+                if step >= 3 { backLink.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 4) }
+                buttons
+            }
+            .padding(.horizontal, 20).padding(.bottom, 12)
         }
         .background(
             ZStack {
@@ -91,11 +95,25 @@ struct OnboardingView: View {
                 secondary(L("무료로 시작하기")) { model.onboarded = true }.accessibilityIdentifier("start-free")
             }
         default:
-            PrimaryButton(title: L("다음")) { next() }.accessibilityIdentifier("next")
+            HStack(spacing: 10) {
+                if step > 0 { backButton.frame(width: 110) }
+                PrimaryButton(title: L("다음")) { next() }.accessibilityIdentifier("next")
+            }
         }
     }
 
+    /// 이전: back one page (the pages that already have two buttons of their own show it small, above them)
+    private var backButton: some View { secondary(L("이전")) { back() }.accessibilityIdentifier("back") }
+    private var backLink: some View {
+        Button { back() } label: {
+            HStack(spacing: 4) { Image(systemName: "chevron.left").font(.system(size: 13, weight: .bold)); Text(L("이전")).font(.px(14)) }
+                .foregroundStyle(UI.sub).frame(height: 44)
+        }
+        .accessibilityIdentifier("back")
+    }
+
     private func next() { Haptic.soft(); step = min(count - 1, step + 1) }
+    private func back() { Haptic.soft(); step = max(0, step - 1) }
 
     private var demoScene: WeatherScene { SceneLibrary.scene(Self.demoKeys[demo % Self.demoKeys.count]) }
     /// The demo weather under the person's own place name (지금 위치 until the location step has found it).
@@ -145,41 +163,86 @@ struct OnboardingView: View {
         .foregroundStyle(UI.ink).padding(.horizontal, 22)
     }
 
+    /// A home-screen widget at its real size on its own weather
+    private func homeWidget<C: View>(_ w: CGFloat, _ h: CGFloat, @ViewBuilder _ c: () -> C) -> some View {
+        c().padding(16).frame(width: w, height: h)
+            .background(WidgetBackground(level: demoScene.level, night: demoScene.time == "night", scene: demoScene, animate: !reduceMotion))
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
     private var widgets: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(spacing: 12) {
-                MediumWidgetView(snap: demoSnap).padding(16).frame(width: 330, height: 160)
-                    .background(WidgetBackground(level: demoScene.level, night: demoScene.time == "night", scene: demoScene, animate: !reduceMotion))
-                    .clipShape(RoundedRectangle(cornerRadius: 22))
-                    .id("w\(demo)").transition(.opacity)
+        let snap = demoSnap
+        return VStack(alignment: .leading, spacing: 12) {
+            VStack(spacing: 10) {
+                // the home screen: the small and the medium widget at the size iOS gives them
+                HStack(spacing: 10) {
+                    homeWidget(155, 155) { SmallWidgetView(snap: snap) }
+                    homeWidget(166, 155) { MediumWidgetView(snap: snap) }
+                }
+                // the lock screen: the line above the clock, the rectangle and the circles (iOS draws them white)
                 ZStack {
                     LinearGradient(colors: [Color(hex: "#5B5FA8"), Color(hex: "#2E2F66")], startPoint: .top, endPoint: .bottom)
-                    VStack(spacing: 6) {
-                        Text("9:41").font(.system(size: 54, weight: .semibold, design: .rounded))
+                    VStack(spacing: 8) {
+                        Text(LockText.inline(snap)).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                        Text("9:41").font(.system(size: 56, weight: .semibold, design: .rounded)).padding(.top, -6)
+                        HStack(alignment: .top, spacing: 10) {
+                            LockRectangularView(snap: snap).frame(width: 148, height: 62)
+                            LockCircularView(snap: snap).frame(width: 60, height: 60)
+                            LockRainCircularView(snap: snap).frame(width: 60, height: 60)
+                        }
                         HStack(spacing: 10) {
-                            LockRectangularView(snap: demoSnap).frame(width: 150, height: 60)
-                            LockCircularView(snap: demoSnap).frame(width: 56, height: 56)
+                            LockUVCircularView(snap: snap).frame(width: 60, height: 60)
+                            LockSunCircularView(snap: snap, now: Date()).frame(width: 60, height: 60)
+                            LockWindCircularView(snap: snap).frame(width: 60, height: 60)
+                            LockDustCircularView(snap: snap, preview: true).frame(width: 60, height: 60)
                         }
                     }.foregroundStyle(.white)
                 }
-                .frame(width: 330, height: 170).clipShape(RoundedRectangle(cornerRadius: 22))
+                .frame(width: 331, height: 250).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             }
-            .padding(14).frame(maxWidth: .infinity)
+            .id("w\(demo)").transition(.opacity)
+            .padding(12).frame(maxWidth: .infinity)
             .background(LinearGradient(colors: [Color(hex: "#A7B6E8"), Color(hex: "#F2B8A0")], startPoint: .top, endPoint: .bottom))
-            .clipShape(RoundedRectangle(cornerRadius: 28)).padding(.top, 24)
+            .clipShape(RoundedRectangle(cornerRadius: 28)).padding(.top, 18)
             Text(L("위젯")).font(.px(22))
-            Text(L("홈 화면 · 잠금 화면에서 바로 봐요.")).font(.system(size: 14)).foregroundStyle(UI.sub)
+            Text(L("홈 화면: 캐릭터와 지금 날씨 · 10일 · 시간별")).font(.system(size: 14)).foregroundStyle(UI.sub)
+            Text(L("잠금 화면: 기온 · 비 올 확률 · 자외선 · 일출·일몰 · 바람 · 미세먼지")).font(.system(size: 14)).foregroundStyle(UI.sub)
         }
         .foregroundStyle(UI.ink).padding(.horizontal, 20)
     }
 
+    private func circle<C: View>(_ label: String, @ViewBuilder _ c: () -> C) -> some View {
+        VStack(spacing: 5) {
+            c().frame(width: 50, height: 50).background(Color(hex: "#1C1C20")).clipShape(Circle())
+            Text(label).font(.system(size: 11)).foregroundStyle(UI.sub)
+        }
+    }
+
     private var watch: some View {
-        VStack(spacing: 16) {
-            HStack { Text(L("애플워치")).font(.px(22)); Spacer(); PlusTag() }.padding(.top, 30)
-            WatchPairPreview(snap: demoSnap, scale: 0.72)
-                .id("wp\(demo)").transition(.opacity)
-                .padding(.top, 10)
-            Text(L("워치 앱 · 워치 페이스 · 컴플리케이션")).font(.system(size: 14)).foregroundStyle(UI.sub)
+        var snap = demoSnap; snap.plus = true
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack { Text(L("애플워치")).font(.px(22)); Spacer(); PlusTag() }.padding(.top, 24)
+            VStack(spacing: 12) {
+                // the app's first page beside the modular face, then the analog face beside the app's other pages
+                WatchPairPreview(snap: snap, scale: 0.7)
+                HStack(spacing: 16 * 0.7 / 0.57) {
+                    WatchCase(scale: 0.7) { WatchAnalogPreview(snap: snap) }
+                    WatchCase(scale: 0.7) { WatchListPreview(snap: snap) }
+                }
+            }
+            .id("wp\(demo)").transition(.opacity)
+            .frame(maxWidth: .infinity).padding(.top, 2)
+            // every complication, as it sits in a watch face
+            HStack(spacing: 10) {
+                circle(L("기온")) { WatchTempGauge(snap: snap).foregroundStyle(.white) }
+                circle(L("비 확률")) { WatchRainRing(snap: snap).foregroundStyle(.white) }
+                circle(L("체감")) { WatchFeelsDisc(snap: snap) }
+                circle(L("일몰")) { WatchSunDisc(snap: snap) }
+                circle(L("캐릭터")) { WatchCatSlot(snap: snap) }
+            }
+            .frame(maxWidth: .infinity).padding(.top, 4)
+            Text(L("워치 앱: 지금 날씨 · 시간별 · 10일")).font(.system(size: 14)).foregroundStyle(UI.sub).padding(.top, 4)
+            Text(L("워치 페이스: 기온 · 비 확률 · 체감 · 일몰 · 캐릭터 · 요약")).font(.system(size: 14)).foregroundStyle(UI.sub)
             Text(L("Plus에서 쓸 수 있어요.")).font(.system(size: 14)).foregroundStyle(UI.sub)
         }
         .foregroundStyle(UI.ink).padding(.horizontal, 22)

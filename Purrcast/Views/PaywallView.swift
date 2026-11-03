@@ -15,8 +15,10 @@ struct PaywallView: View {
         if Features.adsInFree { f.append(Feature(art: "ads", title: L("광고 없이"), note: L("화면 사이 광고가 사라져요."), check: L("광고 제거"))) }
         f += [
             Feature(art: "fresh", title: L("새 예보마다 업데이트"), note: L("무료는 하루 1번, Plus는 새 예보가 나올 때마다."), check: L("새 예보마다")),
-            Feature(art: "rain", title: L("가까운 비"), note: L("비 올 시각까지 · 한국은 다음 6시간"), check: L("가까운 비")),
-            Feature(art: "rain", title: L("비 오기 전 알림"), note: L("비·눈 1시간 전과 올 때 · 기상특보 · 미세먼지 · 기온 변화"), check: L("알림")),
+            Feature(art: "rain", title: L("가까운 비 · 알림"),
+                    note: AppModel.hereIsKorea ? L("기상청 초단기 예보로 다음 6시간을 시간 단위로 · 비·눈 1시간 전과 올 때 알림 · 기상특보 · 미세먼지 · 기온 변화")
+                                               : L("비 올 시각까지 분 단위 (Apple 날씨가 주는 곳) · 비·눈 1시간 전과 올 때 알림 · 기상특보 · 미세먼지 · 기온 변화"),
+                    check: L("가까운 비 · 알림")),
             Feature(art: "air", title: L("대기질 지도"), note: L("미세먼지 매시간 업데이트 · 잠금화면 미세먼지 위젯 · 오염 물질 6종"), check: L("대기질")),
             Feature(art: "watch", title: L("애플워치"), note: L("손목에서 지금 날씨 · 시간별 · 10일\n워치 페이스에 기온 · 비 확률 · 캐릭터"), check: L("애플워치")),
             Feature(art: "places", title: L("지역 여러 곳"), note: L("무료는 1곳 더, Plus는 제한 없이."), check: L("지역 여러 곳")),
@@ -231,8 +233,36 @@ struct PaywallView: View {
         }
     }
 
-    /// Minute-by-minute rain: a bubble with the start time, then the bars and a 0–60 min axis
-    private var rainArt: some View {
+    /// Korea: the next six hours as the home card shows them (an hour a bar) and the island's short alert;
+    /// elsewhere minute-by-minute rain: a bubble with the start time, then the bars and a 0–60 min axis
+    @ViewBuilder private var rainArt: some View {
+        if AppModel.hereIsKorea { sixHourArt } else { minuteArt }
+    }
+    private var sixHourArt: some View {
+        let mm: [CGFloat] = [0, 0, 1.2, 2.4, 1.6, 0], hours = (0..<6).map { HourLabel.word((15 + $0) % 24, clock12: model.clock12) }
+        return VStack(spacing: 10) {
+            // the Dynamic Island's line, an hour before
+            HStack(spacing: 6) {
+                PixelIcon(name: "umbrella_closed", size: 14)
+                Text(L("17시쯤 비 예보 · 우산 챙기세요")).font(.px(11)).foregroundStyle(.white)
+            }
+            .padding(.horizontal, 12).padding(.vertical, 7).background(Color.black).clipShape(Capsule())
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 4) { PixelIcon(name: "umbrella_closed", size: 14); Text(L("17~19시 비 예보")).font(.px(11)).foregroundStyle(UI.ink) }
+                HStack(alignment: .bottom, spacing: 6) {
+                    ForEach(Array(mm.enumerated()), id: \.offset) { i, v in
+                        VStack(spacing: 4) {
+                            RoundedRectangle(cornerRadius: 3).fill(v > 0 ? Color(hex: "#1F5BD0") : Color(hex: "#DDE2EC")).frame(height: max(3, v * 24))
+                            Text(hours[i]).font(.px(9)).foregroundStyle(Color(hex: "#8A93AA"))
+                        }
+                    }
+                }.frame(height: 76, alignment: .bottom)
+            }
+            .padding(12).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .padding(.horizontal, 18)
+    }
+    private var minuteArt: some View {
         let bars: [CGFloat] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 14, 22, 30, 38, 46, 54, 60, 66, 70, 72, 74, 74, 72, 70, 66, 60, 54, 48, 42, 36, 30, 24, 18, 12, 8, 6, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         return ZStack(alignment: .topLeading) {
             HStack(spacing: 4) {
@@ -328,7 +358,7 @@ struct FlowChecks: View {
             ForEach(rows, id: \.self) { r in
                 HStack(spacing: 8) {
                     ForEach(r, id: \.self) { t in
-                        Text("✓ " + t).font(.ui(12, .medium)).foregroundStyle(UI.ink)
+                        Text("✓ " + t).font(.ui(12, .medium)).foregroundStyle(UI.ink).lineLimit(1).fixedSize()
                             .padding(.horizontal, 10).padding(.vertical, 6).background(Color.white.opacity(0.8)).clipShape(Capsule())
                     }
                 }

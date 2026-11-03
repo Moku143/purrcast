@@ -300,6 +300,15 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    /// First run with the 이전 button, the fuller widget and watch pages; the merged rain slide of the Plus page
+    func test18Onboard() {
+        for lang in ["ko", "en", "ja"] {
+            for st in 0...5 { shot("onb-\(lang)-\(st)", ["-scene", "spring_rain", "-onboarding", "-onbStep", String(st)], wait: 3, lang: lang) }
+            shot("plus-\(lang)-rain", ["-scene", "maybe", "-open", "paywall"], wait: 3, lang: lang) { app in app.swipeLeft(); sleep(2) }
+        }
+        shot("onb-back", ["-scene", "spring_rain", "-onboarding", "-onbStep", "2"], wait: 3) { app in app.buttons["back"].firstMatch.tap(); sleep(1) }
+    }
+
     func test10Layout() {
         var screens: [(String, [String], Int)] = [
             ("home-1", ["-scene", "maybe", "-plus", "-char", "cat"], 0),

@@ -90,6 +90,33 @@ struct WatchAnalogPreview: View {
     }
 }
 
+/// The watch app's hours page as the watch draws it (the first-run page): the time at the top right, then rows.
+struct WatchListPreview: View {
+    let snap: WeatherSnapshot
+    var body: some View {
+        let s = snap.scene
+        ZStack(alignment: .topTrailing) {
+            Color.black
+            VStack(spacing: 8) {
+                ForEach(Array(s.hours.prefix(3).enumerated()), id: \.offset) { _, h in
+                    HStack(spacing: 8) {
+                        Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 10 : 13)).frame(width: 46, alignment: .leading)
+                        PixelIcon(name: h.icon, size: 20)
+                        Spacer()
+                        if h.chance >= 10 { Text("\(h.chance)%").font(.px(11)).foregroundStyle(Color(hex: "#9CC0FF")) }
+                        Text(snap.deg(h.temp)).font(.px(15))
+                    }
+                    .padding(.horizontal, 12).frame(height: 44)
+                    .background(Color(hex: "#1C1C20")).clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+            }
+            .foregroundStyle(.white).padding(.horizontal, 10).padding(.top, 40)
+            Text(WatchClock.now(clock12: snap.clock12)).font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white).padding(.top, 9).padding(.trailing, 22)
+        }
+    }
+}
+
 /// The time the pictures show: now, as the watch would (12- or 24-hour), or a set time for the App Store pictures
 /// (-storeTime 10:09, debug builds).
 enum WatchClock {
