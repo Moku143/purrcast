@@ -3,15 +3,15 @@
 // (14시 · 2PM · 14時, 15~17시 · 3–5PM · 15〜17時). Korean values are the ones the app shipped with.
 // Icons, kinds and numbers never change with the language — only text.
 
-import es from './i18n/es.js';
-import fr from './i18n/fr.js';
-import de from './i18n/de.js';
-import pt from './i18n/pt.js';
-import it from './i18n/it.js';
-import id from './i18n/id.js';
-import ru from './i18n/ru.js';
-import zhHans from './i18n/zh-Hans.js';
-import zhHant from './i18n/zh-Hant.js';
+import * as es from './i18n/es.js';
+import * as fr from './i18n/fr.js';
+import * as de from './i18n/de.js';
+import * as pt from './i18n/pt.js';
+import * as it from './i18n/it.js';
+import * as id from './i18n/id.js';
+import * as ru from './i18n/ru.js';
+import * as zhHans from './i18n/zh-Hans.js';
+import * as zhHant from './i18n/zh-Hant.js';
 
 /** The languages the app has (Lang.swift): the three originals, then the ones the pixel font can draw. */
 export const LANGS = ['ko', 'en', 'ja', 'es', 'fr', 'de', 'pt', 'it', 'id', 'ru', 'zh-Hans', 'zh-Hant'];
