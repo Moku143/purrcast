@@ -182,7 +182,7 @@ struct CalendarSheet: View {
             // a day with hours opens the same day sheet as a forecast day; one without, its numbers in rows
             if let r = byDate[d.id], let sc = r.scene(tz: tz), let date = DayLog.date(d.id) {
                 DayDetailView(start: 0, past: .init(scene: sc, date: date, air: r.aqiGrade.map { .init(value: r.aqi, grade: $0, main: r.aqiMain, kind: r.aqiKind ?? "cai", hour: r.aqiHour) },
-                                                    character: r.character))
+                                                    character: r.character, place: r.place, here: place.id == "here"))
                     .presentationDetents([.large]).presentationCornerRadius(28)
             } else {
                 DayLogSheet(key: d.id, record: byDate[d.id]).presentationDetents([.large]).presentationCornerRadius(28)

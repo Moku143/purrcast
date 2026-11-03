@@ -23,6 +23,9 @@ struct DayDetailView: View {
         struct Air { var value: Int?; var grade: Int; var main: String?; var kind: String; var hour: Int? }
         /// The character shown that day (nil: the one shown now)
         var character: PurrCharacter? = nil
+        /// Where the day was saved (지금 위치: where the phone was as the day ended)
+        var place: String = ""
+        var here = false
     }
     @State private var metric: DayMetric = .temp
     @State private var fine = true           // 미세먼지 tab: PM2.5 (초미세) or PM10
@@ -94,7 +97,20 @@ struct DayDetailView: View {
 
     private func titleRow(_ c: DayCtx) -> some View {
         ZStack {
-            Text(title(c)).font(.px(17)).lineLimit(1).minimumScaleFactor(0.8).padding(.horizontal, 42)
+            VStack(spacing: 3) {
+                Text(title(c)).font(.px(17)).lineLimit(1).minimumScaleFactor(0.8)
+                // a 날씨 기록 day: where it was saved
+                if let p = past, !p.place.isEmpty {
+                    HStack(spacing: 3) {
+                        Image(systemName: p.here ? "location.fill" : "mappin").font(.system(size: 10, weight: .bold))
+                        Text(p.place).font(.ui(12, .semibold)).lineLimit(1)
+                    }
+                    .foregroundStyle(c.ink.sub)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("past-place")
+                }
+            }
+            .padding(.horizontal, 42)
             HStack {
                 Spacer()
                 Button { Haptic.soft(); dismiss() } label: {
@@ -105,7 +121,7 @@ struct DayDetailView: View {
                 .buttonStyle(.press(0.94)).accessibilityIdentifier("sheet-close").accessibilityLabel(L("닫기"))
             }
         }
-        .frame(height: 36)
+        .frame(height: past.map { $0.place.isEmpty } == false ? 50 : 36)
     }
 
     private func title(_ c: DayCtx) -> String {
