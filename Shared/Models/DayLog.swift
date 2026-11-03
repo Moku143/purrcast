@@ -19,6 +19,9 @@ struct DayRecord: Codable, Equatable, Identifiable {
     // the day in more detail (the calendar's day card)
     var temps: [Int?]? = nil            // 0…23 h: °C as seen, else as last forecast
     var rain: [Double?]? = nil          // 0…23 h: mm as last forecast, at least a trace where it was seen falling
+    var winds: [Int?]? = nil            // 0…23 h: wind m/s (every few hours, from the day sheet)
+    var rhs: [Int?]? = nil              // 0…23 h: humidity %
+    var uvs: [Int?]? = nil              // 0…23 h: UV index
     var seenH: [Int]? = nil             // hours whose temperature was seen (while the day lasts)
     var feelsHi: Int? = nil
     var feelsLo: Int? = nil
@@ -143,11 +146,15 @@ extension DayLog {
         func hourOf(_ label: String) -> Int? { label == "자정" ? 0 : HourLabel.hour(label) }
         // the day sheet's rows for today (every few hours, the past ones as they were)
         var winds: [Double] = [], rhs: [Double] = [], uvs: [Double] = []
+        var windH = r.winds ?? Array(repeating: nil, count: 24), rhH = r.rhs ?? Array(repeating: nil, count: 24), uvH = r.uvs ?? Array(repeating: nil, count: 24)
         for row in s.dayDetail?.first ?? [] {
             guard let h = hourOf(row.label), h < 24 else { continue }
             if !seen.contains(h) { temps[h] = Int(row.temp.rounded()) }
             winds.append(row.wind); rhs.append(row.rh); uvs.append(row.uv)
+            windH[h] = Int(row.wind.rounded()); rhH[h] = Int(row.rh.rounded()); uvH[h] = Int(row.uv.rounded())
         }
+        windH[now] = s.wind.speed
+        r.winds = windH; r.rhs = rhH; r.uvs = uvH
         // the next hours, one by one, until the day ends ("지금" first)
         var last = -1
         for (i, row) in s.hours.enumerated() {
@@ -282,6 +289,15 @@ extension DayLog {
             if icon == "lightning" { r.alerts = [L("호우경보")] }
             r.feelsLo = r.lo - 2; r.feelsHi = r.hi - 1
             r.windMax = 2 + Int(rnd() * 8); r.rh = 40 + Int(rnd() * 50); r.uv = max(0, Int((Double(r.hi) / 5 - rnd() * 2).rounded()))
+            // every three hours, as the day sheet gives them: wind picks up in the afternoon, the air dries by day, UV peaks at noon
+            var w: [Int?] = Array(repeating: nil, count: 24), h: [Int?] = Array(repeating: nil, count: 24), u: [Int?] = Array(repeating: nil, count: 24)
+            for t in stride(from: 0, to: 24, by: 3) {
+                let day: Double = max(0.0, sin(Double(t - 6) / 12.0 * Double.pi))     // 0 at night, 1 at noon
+                w[t] = max(1, Int((Double(r.windMax ?? 4) * (0.45 + 0.55 * day)).rounded()))
+                h[t] = min(98, Int((Double(r.rh ?? 60) + 18.0 * (0.5 - day)).rounded()))
+                u[t] = Int((Double(r.uv ?? 0) * day).rounded())
+            }
+            r.winds = w; r.rhs = h; r.uvs = u
             r.lat = place.lat; r.lon = place.lon
             out.append(r)
         }

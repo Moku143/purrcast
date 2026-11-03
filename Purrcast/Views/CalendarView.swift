@@ -125,6 +125,7 @@ struct CalendarSheet: View {
     @State private var month = ""
     @State private var selected: String?
     @State private var shareImage: UIImage?
+    @State private var metric = DayChart.Metric.temp
 
     var body: some View {
         let place = model.currentPlace
@@ -331,7 +332,7 @@ struct CalendarSheet: View {
                         }
                     }
                 }
-                if let t = r.temps, t.compactMap({ $0 }).count >= 4 { DayLineChart(temps: t, rain: r.rain, clock12: model.clock12, deg: model.deg) }
+                graph(r)
                 facts(r, k)
                 if r.obs == true { Text(L("관측으로 채운 날")).font(.ui(11)).foregroundStyle(UI.sub) }
             } else {
@@ -342,6 +343,37 @@ struct CalendarSheet: View {
         .padding(16).frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
         .accessibilityIdentifier("cal-day")
+    }
+
+    /// The day as graphs: 기온 (with the rain under it) · 비 · 바람 · 습도 · 자외선, one at a time, as the day sheet does
+    @ViewBuilder private func graph(_ r: DayRecord) -> some View {
+        let all = DayChart.Metric.allCases.filter { DayChart.series($0, r) != nil }
+        if !all.isEmpty {
+            let m = all.contains(metric) ? metric : all[0]
+            VStack(spacing: 10) {
+                if all.count > 1 {
+                    HStack(spacing: 6) {
+                        ForEach(all, id: \.self) { k in
+                            let on = k == m
+                            Button { Haptic.select(); withAnimation(Motion.snappy) { metric = k } } label: {
+                                VStack(spacing: 4) {
+                                    PixelIcon(name: k.icon(snow: r.isSnow), size: 16)
+                                    Text(k.title(snow: r.isSnow)).font(.px(10.5)).lineLimit(1).minimumScaleFactor(0.7)
+                                }
+                                .foregroundStyle(on ? Color.white : UI.sub)
+                                .frame(maxWidth: .infinity).padding(.vertical, 7)
+                                .background(RoundedRectangle(cornerRadius: 10).fill(on ? UI.ink : Color.clear))
+                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(on ? Color.clear : UI.line, lineWidth: 1.5))
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.press(0.95)).accessibilityIdentifier("cal-metric-\(k.rawValue)")
+                        }
+                    }
+                }
+                DayChart(metric: m, record: r, clock12: model.clock12, deg: model.deg, wind: model.windText)
+                    .id(m).transition(.opacity)
+            }
+        }
     }
 
     /// The day's numbers, two to a row: rain or snow (when · how much), 미세먼지, feels-like, wind, humidity, UV, the sun
@@ -379,41 +411,102 @@ struct CalendarSheet: View {
     }
 }
 
-/// The day's temperature hour by hour as a line, with its warmest and coldest marked, and the hours of rain as bars
-struct DayLineChart: View {
-    let temps: [Int?]
-    let rain: [Double?]?
+/// One of the day's measures hour by hour: a line (기온 · 바람 · 습도) with its highest and lowest marked, or bars
+/// (비 · 자외선) with the highest marked. Under the temperature line, the hours of rain as small bars.
+struct DayChart: View {
+    enum Metric: String, CaseIterable { case temp, rain, wind, humidity, uv
+        func title(snow: Bool) -> String {
+            switch self { case .temp: return L("기온"); case .rain: return snow ? L("눈") : L("비"); case .wind: return L("바람"); case .humidity: return L("습도"); case .uv: return L("자외선") }
+        }
+        func icon(snow: Bool) -> String {
+            switch self { case .temp: return "thermo_hot"; case .rain: return snow ? "snowflake" : "umbrella"; case .wind: return "wind"; case .humidity: return "sweat"; case .uv: return "sun_strong" }
+        }
+    }
+    /// The hours that have a value; nil when there is too little to draw
+    static func series(_ m: Metric, _ r: DayRecord) -> [Double?]? {
+        func doubles(_ a: [Int?]?) -> [Double?]? {
+            guard let a else { return nil }
+            return a.map { (x: Int?) -> Double? in x.map { Double($0) } }
+        }
+        var v: [Double?]?
+        switch m {
+        case .temp: v = doubles(r.temps)
+        case .rain: v = r.rain
+        case .wind: v = doubles(r.winds)
+        case .humidity: v = doubles(r.rhs)
+        case .uv: v = doubles(r.uvs)
+        }
+        guard let vals = v, vals.count == 24 else { return nil }
+        let present: [Double] = vals.compactMap { $0 }
+        switch m {
+        case .rain: return present.contains(where: { $0 >= 0.1 }) ? vals : nil      // no bars on a dry day
+        case .uv: return present.contains(where: { $0 > 0 }) ? vals : nil
+        default: return present.count >= 3 ? vals : nil
+        }
+    }
+
+    let metric: Metric
+    let record: DayRecord
     let clock12: Bool
     let deg: (Int) -> String
+    let wind: (Int) -> String
+
+    private var color: Color {
+        switch metric { case .temp: return Color(hex: "#E0612F"); case .rain: return Color(hex: "#5B8CF0"); case .wind: return Color(hex: "#3FA58E"); case .humidity: return Color(hex: "#4C9BD8"); case .uv: return Color(hex: "#E8A21B") }
+    }
+    private var bars: Bool { metric == .rain || metric == .uv }
+    private func text(_ v: Double) -> String {
+        switch metric {
+        case .temp: return deg(Int(v.rounded()))
+        case .rain: return DayLogText.mm(v, snow: record.isSnow)
+        case .wind: return wind(Int(v.rounded()))
+        case .humidity: return "\(Int(v.rounded()))%"
+        case .uv: return String(Int(v.rounded()))
+        }
+    }
 
     var body: some View {
-        let pts = temps.enumerated().compactMap { i, t in t.map { (i, $0) } }
-        let hi = pts.map(\.1).max() ?? 0, lo = pts.map(\.1).min() ?? 0
-        let wet = (rain ?? []).map { $0 ?? 0 }
-        let maxMM = max(wet.max() ?? 0, 1)
+        let values = Self.series(metric, record) ?? Array(repeating: nil, count: 24)
+        let pts = values.enumerated().compactMap { i, v in v.map { (i, $0) } }
+        let hi = pts.map(\.1).max() ?? 0
+        let lo = bars ? 0 : (pts.map(\.1).min() ?? 0)
+        let under = metric == .temp ? (record.rain ?? []).map { $0 ?? 0 } : []
+        let maxMM = max(under.max() ?? 0, 1)
         VStack(spacing: 4) {
             GeometryReader { g in
-                let w = g.size.width, h = g.size.height - 28, top: CGFloat = 16
+                let w = g.size.width, h = g.size.height - 30, top: CGFloat = 16
                 let x: (Int) -> CGFloat = { CGFloat($0) / 23 * w }
-                let y: (Int) -> CGFloat = { top + (hi == lo ? h / 2 : CGFloat(hi - $0) / CGFloat(hi - lo) * h) }
+                let y: (Double) -> CGFloat = { top + (hi == lo ? h / 2 : CGFloat((hi - $0) / (hi - lo)) * h) }
                 ZStack(alignment: .topLeading) {
-                    // rain by the hour, along the bottom
-                    ForEach(Array(wet.enumerated()), id: \.offset) { i, mm in
+                    // the hours of rain under the temperature line
+                    ForEach(Array(under.enumerated()), id: \.offset) { i, mm in
                         if mm >= 0.1 {
-                            Capsule().fill(Color(hex: "#7FA6F0").opacity(0.75))
-                                .frame(width: max(3, w / 24 - 3), height: max(3, CGFloat(mm / maxMM) * 22))
-                                .position(x: x(i), y: g.size.height - 2 - max(3, CGFloat(mm / maxMM) * 22) / 2)
+                            let bh = max(3, CGFloat(mm / maxMM) * 20)
+                            Capsule().fill(Color(hex: "#7FA6F0").opacity(0.7)).frame(width: max(3, w / 24 - 3), height: bh)
+                                .position(x: x(i), y: g.size.height - 2 - bh / 2)
                         }
                     }
-                    Path { p in
-                        for (n, pt) in pts.enumerated() { let q = CGPoint(x: x(pt.0), y: y(pt.1)); if n == 0 { p.move(to: q) } else { p.addLine(to: q) } }
+                    if bars {
+                        ForEach(Array(pts.enumerated()), id: \.offset) { _, p in
+                            let bh = max(3, CGFloat(p.1 / max(hi, 0.1)) * (h + top - 18))
+                            Capsule().fill(color.opacity(p.1 == hi ? 1 : 0.65)).frame(width: max(4, w / 24 - 3), height: bh)
+                                .position(x: x(p.0), y: g.size.height - 2 - bh / 2)
+                        }
+                        if let a = pts.first(where: { $0.1 == hi }) {
+                            let bh = max(3, CGFloat(a.1 / max(hi, 0.1)) * (h + top - 18))
+                            label(text(hi), x: x(a.0), y: g.size.height - 2 - bh - 9, width: w)
+                        }
+                    } else {
+                        Path { p in
+                            for (n, pt) in pts.enumerated() { let q = CGPoint(x: x(pt.0), y: y(pt.1)); if n == 0 { p.move(to: q) } else { p.addLine(to: q) } }
+                        }
+                        .stroke(color, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                        if let a = pts.first(where: { $0.1 == hi }) { dot(at: CGPoint(x: x(a.0), y: y(a.1))); label(text(hi), x: x(a.0), y: y(a.1) - 10, width: w) }
+                        if let b = pts.first(where: { $0.1 == lo }), hi != lo { dot(at: CGPoint(x: x(b.0), y: y(b.1))); label(text(lo), x: x(b.0), y: y(b.1) + 11, width: w) }
                     }
-                    .stroke(Color(hex: "#E0612F"), style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
-                    if let a = pts.first(where: { $0.1 == hi }) { mark(deg(hi), at: CGPoint(x: x(a.0), y: y(a.1)), above: true, width: w) }
-                    if let b = pts.first(where: { $0.1 == lo }), hi != lo { mark(deg(lo), at: CGPoint(x: x(b.0), y: y(b.1)), above: false, width: w) }
                 }
             }
-            .frame(height: 96)
+            .frame(height: 100)
             HStack {
                 ForEach([0, 6, 12, 18], id: \.self) { hr in
                     Text(HourLabel.word(hr, clock12: clock12)).font(.ui(10)).foregroundStyle(UI.sub).lineLimit(1)
@@ -424,12 +517,9 @@ struct DayLineChart: View {
         }
     }
 
-    private func mark(_ t: String, at p: CGPoint, above: Bool, width: CGFloat) -> some View {
-        ZStack {
-            Circle().fill(Color(hex: "#E0612F")).frame(width: 7, height: 7).position(p)
-            Text(t).font(.px(11)).foregroundStyle(UI.ink).fixedSize()
-                .position(x: min(max(p.x, 14), width - 14), y: p.y + (above ? -10 : 11))
-        }
+    private func dot(at p: CGPoint) -> some View { Circle().fill(color).frame(width: 7, height: 7).position(p) }
+    private func label(_ t: String, x: CGFloat, y: CGFloat, width: CGFloat) -> some View {
+        Text(t).font(.px(11)).foregroundStyle(UI.ink).fixedSize().position(x: min(max(x, 16), width - 16), y: y)
     }
 }
 

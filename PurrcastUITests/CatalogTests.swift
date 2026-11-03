@@ -81,6 +81,11 @@ final class CatalogTests: XCTestCase {
             let cells = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'cal-20'"))
             if cells.count > 3 { cells.element(boundBy: 3).tap(); sleep(1) }
             app.swipeUp(); sleep(1); take()
+            // the day's graphs, one tab at a time
+            for m in ["rain", "wind", "humidity", "uv"] {
+                let b = app.buttons["cal-metric-\(m)"].firstMatch
+                if b.exists { b.tap(); sleep(1); take() }
+            }
         }
         seq("calendar.winter", ["-scene", "winter_snow", "-plus", "-char", "brit", "-open", "calendar"], swipes: 1, wait: 3)
         steps("calendar.card", ["-scene", "maybe", "-char", "cat"]) { app, take in
