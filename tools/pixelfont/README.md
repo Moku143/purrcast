@@ -36,3 +36,11 @@ Previewing with Pillow at 12 px is misleading (FreeType's auto-hinter merges row
 and every stroke running across kept at 1 px, so busy syllables (릉 음 습 챙) weigh the same as simple ones and ㅐ ㅔ keep
 both stems at 2 px. The Hangul cell is one pixel wider (13 px). Japanese comes from PixelMplus12 Bold, which already
 follows the same rule. Not used by the app yet.
+
+## Chinese (simplified · traditional)
+
+`add_hanzi.py` adds the Chinese characters the app font lacks, in place: every CJK ideograph and CJK punctuation glyph
+missing from `Shared/Fonts/PurrcastPixel-Medium.ttf` is copied from BoutiqueBitmap9x9 (`src/boutique`, SIL OFL 1.1, the
+9×9 Hanzi of the Fusion Pixel 10 px font) and redrawn at the app's medium weight (each pixel run widened by half a pixel,
+like the rest of the font). It never replaces a glyph the font already has, so Japanese kanji keep their shapes.
+Run it again after rebuilding the base font. The notices are in `Shared/Fonts/FONT-NOTICE.txt`.
