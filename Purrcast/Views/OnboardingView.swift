@@ -144,21 +144,22 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 0) {
             let s = demoScene
             ZStack(alignment: .top) {
-                sky(s, 349, 360).id("sky\(demo)").transition(.opacity)
+                sky(s, 349, 470).id("sky\(demo)").transition(.opacity)
                 VStack(spacing: 0) {
                     HStack(spacing: 6) { PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 28); Text("\(s.temp)°").font(.px(30)) }
                         .foregroundStyle(s.time == "night" ? .white : UI.ink)
-                        .padding(.top, 22)
+                        .padding(.top, 24)
                     Spacer()
-                    CharacterSprite(character: .cat, level: s.level, rain: rainState(s), mood: Mood(rawValue: s.mood ?? "normal") ?? .normal, width: 190)
-                        .padding(.bottom, 14)
+                    CharacterSprite(character: .cat, level: s.level, rain: rainState(s), mood: Mood(rawValue: s.mood ?? "normal") ?? .normal, width: 240)
+                        .padding(.bottom, 18)
                 }
                 .id("cat\(demo)").transition(.opacity)
             }
-            .frame(width: 349, height: 360).clipShape(RoundedRectangle(cornerRadius: 28))
+            .frame(width: 349, height: 470).clipShape(RoundedRectangle(cornerRadius: 28))
             .frame(maxWidth: .infinity).padding(.top, 24)
             Text(L("옷차림으로 보는 날씨")).font(.px(22)).padding(.top, 20)
             Text(L("체감온도에 맞춰 옷을 입고, 비가 오면 우산을 펴요.")).font(.system(size: 14)).foregroundStyle(UI.sub).padding(.top, 8)
+            Text(L("한국은 기상청, 해외는 Apple 날씨 예보예요.")).font(.system(size: 14)).foregroundStyle(UI.sub).padding(.top, 4)
         }
         .foregroundStyle(UI.ink).padding(.horizontal, 22)
     }
