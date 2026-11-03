@@ -762,3 +762,8 @@
 "관측으로 채운 날" = "Filled in from observations";
 "날씨 기록: 지상관측(ASOS) 일자료 (Plus)" = "Weather log: ASOS daily observations (Plus)";
 "날씨 기록: 지난 날씨 (한국 밖 · Plus)" = "Weather log: past days (outside Korea · Plus)";
+"체감 %@ ~ %@" = "Feels %@–%@";
+"바람 최대 %@" = "Wind up to %@";
+"습도 %d%%" = "Humidity %d%%";
+"자외선 최고 %d" = "UV up to %d";
+"일출 %@" = "Sunrise %@";

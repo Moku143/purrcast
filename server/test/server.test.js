@@ -1184,11 +1184,11 @@ test('날씨 기록 history: Korea from the nearest ASOS station, a wrong statio
   assert.equal(nearestAsos(35.68, 139.69), null);
   const asos = (name) => ({ response: { header: { resultCode: '00' }, body: { items: { item: [
     { tm: '2026-10-30', stnNm: name, maxTa: '17.2', minTa: '8.1', sumRn: '', avgTca: '1.5', iscs: '' },
-    { tm: '2026-10-31', stnNm: name, maxTa: '14', minTa: '9.6', sumRn: '23.5', avgTca: '9.6', iscs: '{비}0300-2100.' },
+    { tm: '2026-10-31', stnNm: name, maxTa: '14', minTa: '9.6', sumRn: '23.5', avgTca: '9.6', iscs: '{비}0300-1200. {박무}0600-0900. {비}1500-2100.', avgRhm: '88.4', maxWs: '6.2' },
   ] } } } });
   const wk = { forecastDaily: { days: [
     { forecastStart: '2026-10-29T15:00:00Z', temperatureMax: 15.4, temperatureMin: 6.2, conditionCode: 'MostlyClear', precipitationAmount: 0 },
-    { forecastStart: '2026-10-30T15:00:00Z', temperatureMax: 12.1, temperatureMin: 7.7, conditionCode: 'Rain', precipitationAmount: 8.4, precipitationType: 'rain' },
+    { forecastStart: '2026-10-30T15:00:00Z', temperatureMax: 12.1, temperatureMin: 7.7, conditionCode: 'Rain', precipitationAmount: 8.4, precipitationType: 'rain', maxUvIndex: 2.4 },
     { forecastStart: '2026-11-02T15:00:00Z', temperatureMax: 10, temperatureMin: 4, conditionCode: 'Cloudy', precipitationAmount: 0 },
   ] } };
   const urls = [];
@@ -1199,14 +1199,14 @@ test('날씨 기록 history: Korea from the nearest ASOS station, a wrong statio
   assert.equal(kr.src, 'kma');
   assert.match(urls[0], /stnIds=108/);
   assert.match(urls[0], /endDt=20261102/);                 // never past yesterday
-  assert.deepEqual(kr.days[1], { date: '2026-10-31', hi: 14, lo: 10, icon: 'raincloud', mm: 23.5, wet: 'rain' });
+  assert.deepEqual(kr.days[1], { date: '2026-10-31', hi: 14, lo: 10, icon: 'raincloud', mm: 23.5, wet: 'rain', wetFrom: 3, wetTo: 21, rh: 88, windMax: 6 });
   assert.equal(kr.days[0].icon, 'sun');
   resetCache();
   const wrong = await historyAnswer(sp('lat=37.5663&lon=126.9019&region=kr&tz=Asia/Seoul&from=2026-10-30&to=2026-10-31'), env, null, { now, fetcher: fetcher('인천') });
   assert.equal(wrong.src, 'apple');                        // the station answered with another name: Apple instead
   const tokyo = await historyAnswer(sp('lat=35.68&lon=139.69&region=jp&tz=Asia/Tokyo&from=2026-10-30&to=2026-10-31'), env, null, { now, fetcher: fetcher('') });
   assert.equal(tokyo.src, 'apple');
-  assert.deepEqual(tokyo.days.map((d) => [d.date, d.icon, d.wet]), [['2026-10-30', 'sun', null], ['2026-10-31', 'raincloud', 'rain']]);
+  assert.deepEqual(tokyo.days.map((d) => [d.date, d.icon, d.wet, d.uv]), [['2026-10-30', 'sun', null, undefined], ['2026-10-31', 'raincloud', 'rain', 2]]);
   assert.ok(urls.some((u) => /dataSets=forecastDaily&dailyStart=2026-10-29T00:00:00Z/.test(u)));
   assert.deepEqual(await historyAnswer(sp('lat=35.68&lon=139.69&region=jp&tz=Asia/Tokyo&from=2026-11-04'), env, null, { now }), { days: [], src: null });
   await assert.rejects(historyAnswer(sp('lat=35.68&lon=139.69&region=jp&from=2026-10-01&to=2026-10-02'), {}, null, { now }), /no history source/);

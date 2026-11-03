@@ -141,12 +141,17 @@ extension ServerWeatherProvider {
         let (data, resp) = try await session.data(for: req)
         guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else { throw URLError(.badServerResponse) }
         struct Answer: Decodable {
-            struct Day: Decodable { var date: String; var hi: Double; var lo: Double; var icon: String; var mm: Double?; var wet: String? }
+            struct Day: Decodable {
+                var date: String; var hi: Double; var lo: Double; var icon: String; var mm: Double?; var wet: String?
+                var wetFrom: Int?; var wetTo: Int?; var rh: Double?; var windMax: Double?; var uv: Double?
+            }
             var days: [Day]
         }
         return try JSONDecoder().decode(Answer.self, from: data).days.map {
             var r = DayRecord(date: $0.date, hi: Int($0.hi.rounded()), lo: Int($0.lo.rounded()), icon: $0.icon)
             r.mm = $0.mm ?? 0; r.wet = $0.wet; r.obs = true; r.place = place.short
+            r.wetFrom = $0.wetFrom; r.wetTo = $0.wetTo
+            r.rh = $0.rh.map { Int($0.rounded()) }; r.windMax = $0.windMax.map { Int($0.rounded()) }; r.uv = $0.uv.map { Int($0.rounded()) }
             return r
         }
     }

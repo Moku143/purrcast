@@ -87,7 +87,14 @@ export function parseAsos(json, station) {
     const wet = mm >= 0.1 || /비|소나기|눈|진눈깨비/.test(w);
     const icon = thunder ? 'lightning' : wet ? (snowy ? (sleetOnly ? 'sleet' : 'snowflake') : 'raincloud')
       : cloud == null ? 'partly_cloudy' : cloud >= 7 ? 'cloud' : cloud >= 3 ? 'partly_cloudy' : 'sun';
-    days.push({ date: String(it.tm).slice(0, 10), hi: Math.round(hi), lo: Math.round(lo), icon, mm: Math.round(mm * 10) / 10, wet: wet ? (snowy ? 'snow' : 'rain') : null });
+    const day = { date: String(it.tm).slice(0, 10), hi: Math.round(hi), lo: Math.round(lo), icon, mm: Math.round(mm * 10) / 10, wet: wet ? (snowy ? 'snow' : 'rain') : null };
+    // when it rained or snowed: the phenomena field's times, e.g. "{비}0300-2100. {박무}0600-0900."
+    const spans = [...w.matchAll(/\{(비|소나기|눈|진눈깨비|뇌전)\}\s*(\d{4})-(\d{4})/g)].map((m) => [parseInt(m[2].slice(0, 2), 10), parseInt(m[3].slice(0, 2), 10)]);
+    if (wet && spans.length) { day.wetFrom = Math.min(...spans.map((x) => x[0])); day.wetTo = Math.min(23, Math.max(...spans.map((x) => x[1]))); }
+    const rh = n(it.avgRhm), ws = n(it.maxWs);
+    if (rh != null) day.rh = Math.round(rh);
+    if (ws != null) day.windMax = Math.round(ws);
+    days.push(day);
   }
   return days;
 }
@@ -126,7 +133,9 @@ export function parseWeatherKitHistory(json, from, to, dayKeyOf) {
     const wet = mm >= 0.2 || wetIcon;
     if (wet && !wetIcon) icon = type === 'snow' ? 'snowflake' : type === 'sleet' || type === 'mixed' ? 'sleet' : 'raincloud';
     const snowy = icon === 'snowflake' || icon === 'sleet' || type === 'snow' || (d.snowfallAmount ?? 0) > 0;
-    days.push({ date, hi: Math.round(d.temperatureMax), lo: Math.round(d.temperatureMin), icon, mm: Math.round(mm * 10) / 10, wet: wet ? (snowy ? 'snow' : 'rain') : null });
+    const day = { date, hi: Math.round(d.temperatureMax), lo: Math.round(d.temperatureMin), icon, mm: Math.round(mm * 10) / 10, wet: wet ? (snowy ? 'snow' : 'rain') : null };
+    if (d.maxUvIndex != null) day.uv = Math.round(d.maxUvIndex);
+    days.push(day);
   }
   return days;
 }

@@ -304,36 +304,132 @@ struct CalendarSheet: View {
     // MARK: the day picked
 
     private func dayPanel(_ k: String, _ r: DayRecord?) -> some View {
-        HStack(alignment: .center, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             if let r {
-                DayFigure(character: model.shownCharacter, level: r.level, width: 64)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(DayLogText.dayLong(k)).font(.px(15)).foregroundStyle(UI.ink)
-                    if !r.place.isEmpty { Text(r.place).font(.ui(12)).foregroundStyle(UI.sub) }
+                // who, where, the range — and what the character said that day
+                HStack(alignment: .center, spacing: 14) {
+                    DayFigure(character: model.shownCharacter, level: r.level, width: 64)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(DayLogText.dayLong(k)).font(.px(15)).foregroundStyle(UI.ink)
+                        if !r.place.isEmpty { Text(r.place).font(.ui(12)).foregroundStyle(UI.sub) }
+                        HStack(spacing: 6) {
+                            PixelIcon(name: r.icon, size: 20)
+                            Text(L("최고 %@ · 최저 %@", model.deg(r.hi), model.deg(r.lo))).font(.ui(13.5, .semibold)).foregroundStyle(UI.ink)
+                        }
+                        if let say = r.say, say.count == 4 {
+                            BubbleView(kind: say[0], tone: say[1], icon: say[2], text: say[3], fontSize: 11).fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                }
+                if let a = r.alerts, !a.isEmpty {
                     HStack(spacing: 6) {
-                        PixelIcon(name: r.icon, size: 20)
-                        Text(L("최고 %@ · 최저 %@", model.deg(r.hi), model.deg(r.lo))).font(.ui(13.5, .semibold)).foregroundStyle(UI.ink)
+                        ForEach(a, id: \.self) { n in
+                            HStack(spacing: 4) { PixelIcon(name: AlertBanner.icon(n), size: 14); Text(n).font(.ui(12, .semibold)) }
+                                .foregroundStyle(Color(hex: "#B23A1E")).padding(.horizontal, 8).padding(.vertical, 4)
+                                .background(Color(hex: "#FFE3D8"), in: Capsule())
+                        }
                     }
-                    if r.isWet {
-                        Text(r.mm > 0 ? (r.isSnow ? L("눈 %@", DayLogText.mm(r.mm, snow: true)) : L("비 %@", DayLogText.mm(r.mm, snow: false)))
-                                      : (r.isSnow ? L("눈 온 날") : L("비 온 날")))
-                            .font(.ui(13)).foregroundStyle(Color(hex: "#3F6FD8"))
-                    }
-                    if let g = r.dust { HStack(spacing: 6) { Text(L("미세먼지")).font(.ui(13)).foregroundStyle(UI.sub); AirGradeChip(grade: g, size: 11) } }
-                    if r.obs == true { Text(L("관측으로 채운 날")).font(.ui(11)).foregroundStyle(UI.sub) }
                 }
-                Spacer(minLength: 0)
+                if let t = r.temps, t.compactMap({ $0 }).count >= 4 { DayLineChart(temps: t, rain: r.rain, clock12: model.clock12, deg: model.deg) }
+                facts(r, k)
+                if r.obs == true { Text(L("관측으로 채운 날")).font(.ui(11)).foregroundStyle(UI.sub) }
             } else {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(DayLogText.dayLong(k)).font(.px(15)).foregroundStyle(UI.ink)
-                    Text(L("기록이 없는 날이에요")).font(.ui(13)).foregroundStyle(UI.sub)
-                }
-                Spacer(minLength: 0)
+                Text(DayLogText.dayLong(k)).font(.px(15)).foregroundStyle(UI.ink)
+                Text(L("기록이 없는 날이에요")).font(.ui(13)).foregroundStyle(UI.sub)
             }
         }
         .padding(16).frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
         .accessibilityIdentifier("cal-day")
+    }
+
+    /// The day's numbers, two to a row: rain or snow (when · how much), 미세먼지, feels-like, wind, humidity, UV, the sun
+    private func facts(_ r: DayRecord, _ k: String) -> some View {
+        var items: [(String, String, AnyView?)] = []
+        if r.isWet {
+            let amount = r.mm > 0 ? DayLogText.mm(r.mm, snow: r.isSnow) : nil
+            let when = r.wetHours.map { HourLabel.window($0.0, $0.1, clock12: model.clock12) }
+            let text = [when, amount].compactMap { $0 }.joined(separator: " · ")
+            items.append((r.isSnow ? "snowflake" : "raincloud", text.isEmpty ? (r.isSnow ? L("눈 온 날") : L("비 온 날")) : (r.isSnow ? L("눈 %@", text) : L("비 %@", text)), nil))
+        }
+        if let g = r.dust { items.append(("mask", L("미세먼지"), AnyView(AirGradeChip(grade: g, size: 11)))) }
+        if let a = r.feelsLo, let b = r.feelsHi { items.append(("thermo_cold", L("체감 %@ ~ %@", model.deg(a), model.deg(b)), nil)) }
+        if let w = r.windMax { items.append(("wind", L("바람 최대 %@", model.windText(w)), nil)) }
+        if let h = r.rh { items.append(("raindrop", L("습도 %d%%", h), nil)) }
+        if let u = r.uv { items.append(("sun_strong", L("자외선 최고 %d", u), nil)) }
+        if let la = r.lat, let lo = r.lon, let d = DayLogText.date(k) {
+            let tz = TimeZone(identifier: model.currentPlace.timeZone) ?? .current
+            if let sun = SunTimes.day(d, lat: la, lon: lo, tz: tz) {
+                var c = Calendar(identifier: .gregorian); c.timeZone = tz
+                let m: (Date) -> String = { HourLabel.clock(c.component(.hour, from: $0) * 60 + c.component(.minute, from: $0), clock12: model.clock12) }
+                items.append(("sunrise", L("일출 %@", m(sun.rise)), nil))
+                items.append(("sunset", L("일몰 %@", m(sun.set)), nil))
+            }
+        }
+        return LazyVGrid(columns: [GridItem(.flexible(), spacing: 10, alignment: .leading), GridItem(.flexible(), alignment: .leading)], alignment: .leading, spacing: 8) {
+            ForEach(Array(items.enumerated()), id: \.offset) { _, it in
+                HStack(spacing: 6) {
+                    PixelIcon(name: it.0, size: 16)
+                    Text(it.1).font(.ui(12.5)).foregroundStyle(UI.ink).lineLimit(1).minimumScaleFactor(0.75)
+                    if let v = it.2 { v }
+                }
+            }
+        }
+    }
+}
+
+/// The day's temperature hour by hour as a line, with its warmest and coldest marked, and the hours of rain as bars
+struct DayLineChart: View {
+    let temps: [Int?]
+    let rain: [Double?]?
+    let clock12: Bool
+    let deg: (Int) -> String
+
+    var body: some View {
+        let pts = temps.enumerated().compactMap { i, t in t.map { (i, $0) } }
+        let hi = pts.map(\.1).max() ?? 0, lo = pts.map(\.1).min() ?? 0
+        let wet = (rain ?? []).map { $0 ?? 0 }
+        let maxMM = max(wet.max() ?? 0, 1)
+        VStack(spacing: 4) {
+            GeometryReader { g in
+                let w = g.size.width, h = g.size.height - 28, top: CGFloat = 16
+                let x: (Int) -> CGFloat = { CGFloat($0) / 23 * w }
+                let y: (Int) -> CGFloat = { top + (hi == lo ? h / 2 : CGFloat(hi - $0) / CGFloat(hi - lo) * h) }
+                ZStack(alignment: .topLeading) {
+                    // rain by the hour, along the bottom
+                    ForEach(Array(wet.enumerated()), id: \.offset) { i, mm in
+                        if mm >= 0.1 {
+                            Capsule().fill(Color(hex: "#7FA6F0").opacity(0.75))
+                                .frame(width: max(3, w / 24 - 3), height: max(3, CGFloat(mm / maxMM) * 22))
+                                .position(x: x(i), y: g.size.height - 2 - max(3, CGFloat(mm / maxMM) * 22) / 2)
+                        }
+                    }
+                    Path { p in
+                        for (n, pt) in pts.enumerated() { let q = CGPoint(x: x(pt.0), y: y(pt.1)); if n == 0 { p.move(to: q) } else { p.addLine(to: q) } }
+                    }
+                    .stroke(Color(hex: "#E0612F"), style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                    if let a = pts.first(where: { $0.1 == hi }) { mark(deg(hi), at: CGPoint(x: x(a.0), y: y(a.1)), above: true, width: w) }
+                    if let b = pts.first(where: { $0.1 == lo }), hi != lo { mark(deg(lo), at: CGPoint(x: x(b.0), y: y(b.1)), above: false, width: w) }
+                }
+            }
+            .frame(height: 96)
+            HStack {
+                ForEach([0, 6, 12, 18], id: \.self) { hr in
+                    Text(HourLabel.word(hr, clock12: clock12)).font(.ui(10)).foregroundStyle(UI.sub).lineLimit(1)
+                    if hr != 18 { Spacer() }
+                }
+                Spacer()
+            }
+        }
+    }
+
+    private func mark(_ t: String, at p: CGPoint, above: Bool, width: CGFloat) -> some View {
+        ZStack {
+            Circle().fill(Color(hex: "#E0612F")).frame(width: 7, height: 7).position(p)
+            Text(t).font(.px(11)).foregroundStyle(UI.ink).fixedSize()
+                .position(x: min(max(p.x, 14), width - 14), y: p.y + (above ? -10 : 11))
+        }
     }
 }
 

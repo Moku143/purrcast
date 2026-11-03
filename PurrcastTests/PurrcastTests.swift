@@ -716,4 +716,22 @@ final class PurrcastTests: XCTestCase {
         s.bubble?.text = "空气较差 · 记得戴口罩"
         XCTAssertEqual(Compact.bubbleWord(s, max: 5), "空气较差")
     }
+
+    /// The calendar's day card: the temperature hour by hour (seen over forecast), rain by the hour, the day's extremes
+    func testDayDetail() throws {
+        var s = WeatherScene(); s.temp = 12; s.feels = 10; s.precip = "rain"
+        s.days = [WeatherScene.DayRow(name: "오늘", icon: "raincloud", chance: 70, lo: 8, hi: 15)]
+        s.hours = try JSONDecoder().decode([WeatherScene.HourRow].self, from: Data(#"[["지금","raincloud",12,70,1.2],["15시","raincloud",13,70,2],["16시","cloud",14,40,0],["23시","cloud",9,10,0],["0시","cloud",8,10,0]]"#.utf8))
+        s.dayDetail = try JSONDecoder().decode([[WeatherScene.DayHour]].self, from: Data(#"[[["0시",9,10,2,0,80],["3시",8,10,3,0,85],["6시",8,20,3,0,88],["9시",11,40,4,2,70],["12시",14,60,6,4,60],["15시",15,70,7,3,65],["18시",12,50,5,0,75],["21시",10,20,3,0,80]]]"#.utf8))
+        var r = DayRecord(date: "2026-11-03", hi: 15, lo: 8, icon: "raincloud")
+        DayLog.detail(&r, s, hour: 14, place: Place.here)
+        XCTAssertEqual(r.temps?[14] ?? nil, 12)          // seen now
+        XCTAssertEqual(r.temps?[16] ?? nil, 14)          // the next hours' forecast
+        XCTAssertEqual(r.temps?[3] ?? nil, 8)            // the day sheet's earlier points
+        XCTAssertNil(r.temps?[1] ?? nil)
+        XCTAssertEqual(r.rain?[14] ?? nil, 1.2)
+        XCTAssertEqual(r.wetHours?.0, 14); XCTAssertEqual(r.wetHours?.1, 15)
+        XCTAssertEqual(r.windMax, 7); XCTAssertEqual(r.rh, 75); XCTAssertEqual(r.uv, 4)
+        XCTAssertEqual(r.feelsLo, 10); XCTAssertEqual(r.seenH, [14])
+    }
 }

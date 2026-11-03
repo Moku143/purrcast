@@ -16,12 +16,35 @@ struct DayRecord: Codable, Equatable, Identifiable {
     var seenLo: Int? = nil
     var hours: [String: Double]? = nil  // hour → mm while the day lasts, so two refreshes in one hour count once
     var obs: Bool? = nil                // true: filled in from observations (the server), not by the phone
+    // the day in more detail (the calendar's day card)
+    var temps: [Int?]? = nil            // 0…23 h: °C as seen, else as last forecast
+    var rain: [Double?]? = nil          // 0…23 h: mm as last forecast, at least a trace where it was seen falling
+    var seenH: [Int]? = nil             // hours whose temperature was seen (while the day lasts)
+    var feelsHi: Int? = nil
+    var feelsLo: Int? = nil
+    var windMax: Int? = nil             // m/s
+    var rh: Int? = nil                  // average humidity %
+    var uv: Int? = nil                  // the highest UV
+    var alerts: [String]? = nil         // 기상특보 in force that day
+    var say: [String]? = nil            // the character's bubble that day: kind, tone, icon, text
+    var wetFrom: Int? = nil             // when it rained or snowed (hours, from observations)
+    var wetTo: Int? = nil
+    var lat: Double? = nil              // where the day was (sunrise · sunset)
+    var lon: Double? = nil
 
     var id: String { date }
     /// The day's outfit, as the notifications draw it: the middle of its range
     var level: Int { Rules.level(feels: Double(hi + lo) / 2) }
     var isWet: Bool { wet != nil }
     var isSnow: Bool { wet == "snow" }
+    /// The hours it rained or snowed: observed, else the first and last wet hour of the record
+    var wetHours: (Int, Int)? {
+        if let a = wetFrom, let b = wetTo { return (a, b) }
+        guard let r = rain else { return nil }
+        let wet = r.indices.filter { (r[$0] ?? 0) >= 0.1 }
+        guard let a = wet.first, let b = wet.last else { return nil }
+        return (a, b)
+    }
 
     static func isWetIcon(_ i: String) -> Bool { ["raincloud", "snowflake", "sleet", "lightning"].contains(i) }
     static func isSnowIcon(_ i: String) -> Bool { i == "snowflake" || i == "sleet" }
@@ -98,10 +121,11 @@ struct DayLog {
             r.wet = snowy ? "snow" : (r.wet == "snow" ? "snow" : "rain")
         }
         if let g = s.dust?.grade { r.dust = max(r.dust ?? 0, g) }
+        Self.detail(&r, s, hour: c.component(.hour, from: now), place: place)
 
         all.removeAll { $0.date == key }
-        // finished days drop their hour list (only today's needs it)
-        all = all.map { var x = $0; x.hours = nil; return x }
+        // finished days drop their working lists (only today's needs them)
+        all = all.map { var x = $0; if x.date != key { x.hours = nil; x.seenH = nil }; return x }
         all.append(r)
         all.sort { $0.date < $1.date }
         if all.count > Self.keepDays { all.removeFirst(all.count - Self.keepDays) }
@@ -110,6 +134,44 @@ struct DayLog {
 }
 
 extension DayLog {
+    /// The day in detail: the temperature hour by hour (seen, else the latest forecast), rain by the hour, the
+    /// feels-like range, the strongest wind, humidity, UV, warnings and the character's bubble.
+    static func detail(_ r: inout DayRecord, _ s: WeatherScene, hour now: Int, place: Place) {
+        var temps = r.temps ?? Array(repeating: nil, count: 24)
+        var rain = r.rain ?? Array(repeating: nil, count: 24)
+        var seen = Set(r.seenH ?? [])
+        func hourOf(_ label: String) -> Int? { label == "자정" ? 0 : HourLabel.hour(label) }
+        // the day sheet's rows for today (every few hours, the past ones as they were)
+        var winds: [Double] = [], rhs: [Double] = [], uvs: [Double] = []
+        for row in s.dayDetail?.first ?? [] {
+            guard let h = hourOf(row.label), h < 24 else { continue }
+            if !seen.contains(h) { temps[h] = Int(row.temp.rounded()) }
+            winds.append(row.wind); rhs.append(row.rh); uvs.append(row.uv)
+        }
+        // the next hours, one by one, until the day ends ("지금" first)
+        var last = -1
+        for (i, row) in s.hours.enumerated() {
+            guard let h = i == 0 ? now : hourOf(row.label), h > last else { break }
+            last = h
+            if !seen.contains(h) { temps[h] = row.temp }
+            rain[h] = row.mm
+        }
+        // what was seen now
+        temps[now] = s.temp; seen.insert(now)
+        if s.precip != "none" { rain[now] = max(rain[now] ?? 0, s.hours.first?.mm ?? 0, 0.1) }
+        r.temps = temps; r.rain = rain; r.seenH = seen.sorted()
+        r.feelsHi = max(r.feelsHi ?? s.feels, s.feels)
+        r.feelsLo = min(r.feelsLo ?? s.feels, s.feels)
+        let windNow = Double(s.wind.speed)
+        if let w = (winds + [windNow]).max() { r.windMax = max(r.windMax ?? 0, Int(w.rounded())) }
+        if !rhs.isEmpty { r.rh = Int((rhs.reduce(0, +) / Double(rhs.count)).rounded()) }
+        if let u = uvs.max() { r.uv = max(r.uv ?? 0, Int(u.rounded())) }
+        if let a = s.alert?.name, !a.isEmpty, !(r.alerts ?? []).contains(a) { r.alerts = (r.alerts ?? []) + [a] }
+        // the bubble: a warning's shout stays; otherwise the latest word of the day
+        if let b = s.bubble, !b.text.isEmpty, !(r.say?.first == "shout" && b.kind != "shout") { r.say = [b.kind, b.tone, b.icon, b.text] }
+        r.lat = (place.lat * 100).rounded() / 100; r.lon = (place.lon * 100).rounded() / 100
+    }
+
     /// Observed days from the server: a missing day is added; a day the phone saw takes the observed high, low, sky
     /// and rain, and keeps what only the phone knows (미세먼지, where it was).
     func merge(_ observed: [DayRecord], placeID: String) {
@@ -120,6 +182,10 @@ extension DayLog {
             if let i = at[o.date] {
                 var r = all[i]
                 r.hi = o.hi; r.lo = o.lo; r.icon = o.icon; r.mm = o.mm; r.wet = o.wet; r.obs = true; r.hours = nil
+                r.wetFrom = o.wetFrom; r.wetTo = o.wetTo
+                if let x = o.rh { r.rh = x }
+                if let x = o.windMax { r.windMax = x }
+                if let x = o.uv { r.uv = x }
                 if r.place.isEmpty { r.place = o.place }
                 all[i] = r
             } else {
@@ -194,6 +260,29 @@ extension DayLog {
             if place.region == "kr" { let y = rnd(); r.dust = y < 0.45 ? 0 : y < 0.8 ? 1 : y < 0.95 ? 2 : 3 }
             r.place = place.short
             if back == 0 { r.hi = s.days.first?.hi ?? s.hi; r.lo = s.days.first?.lo ?? s.lo; r.icon = s.days.first?.icon ?? r.icon }
+            // the day in detail: coldest near dawn, warmest mid-afternoon; rain in a run of hours
+            let low = Double(r.lo), span = Double(r.hi - r.lo)
+            var temps: [Int?] = []
+            for h in 0..<24 {
+                let angle: Double = Double(h - 15) / 24.0 * 2.0 * Double.pi
+                let x: Double = (cos(angle) + 1.0) / 2.0                         // 1 at 15 h, 0 at 3 h
+                let k: Double = h < 6 ? 0.05 * Double(6 - h) : 0.0               // still falling until dawn
+                let t: Double = low + span * max(0.0, x - k)
+                temps.append(Int(t.rounded()))
+            }
+            r.temps = temps
+            if r.isWet {
+                let a = Int(rnd() * 12), b = min(23, a + 3 + Int(rnd() * 9))
+                r.rain = (0..<24).map { $0 >= a && $0 <= b ? (rnd() * 3).rounded() / 2 + 0.5 : nil }
+                r.mm = (r.rain ?? []).compactMap { $0 }.reduce(0, +)
+                r.say = ["speech", "sky", DayRecord.isSnowIcon(icon) ? "snowflake" : "umbrella", L("우산 챙기세요")]
+            } else if (r.dust ?? 0) >= 2 {
+                r.say = ["speech", "coral", "mask", L("미세먼지 나쁨 · 마스크 챙기세요")]
+            }
+            if icon == "lightning" { r.alerts = [L("호우경보")] }
+            r.feelsLo = r.lo - 2; r.feelsHi = r.hi - 1
+            r.windMax = 2 + Int(rnd() * 8); r.rh = 40 + Int(rnd() * 50); r.uv = max(0, Int((Double(r.hi) / 5 - rnd() * 2).rounded()))
+            r.lat = place.lat; r.lon = place.lon
             out.append(r)
         }
         // a few days the phone never opened
