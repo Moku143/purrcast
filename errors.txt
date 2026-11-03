@@ -1,0 +1,6 @@
+Test Case '-[PurrcastUITests.CatalogTests testCatalog]' started.
+/Users/runner/work/purrcast/purrcast/PurrcastUITests/CatalogTests.swift:24: error: -[PurrcastUITests.CatalogTests testCatalog] : Failed to get background assertion for target app with pid 11136: Timed out while acquiring background assertion.
+Test Case '-[PurrcastUITests.CatalogTests testCatalog]' failed (27.160 seconds).
+Test Suite 'CatalogTests' failed at 2026-11-03 05:45:42.602.
+Test Suite 'PurrcastUITests.xctest' failed at 2026-11-03 05:45:42.603.
+Test Suite 'Selected tests' failed at 2026-11-03 05:45:42.603.
