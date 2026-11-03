@@ -150,6 +150,7 @@ extension ServerWeatherProvider {
         return try JSONDecoder().decode(Answer.self, from: data).days.map {
             var r = DayRecord(date: $0.date, hi: Int($0.hi.rounded()), lo: Int($0.lo.rounded()), icon: $0.icon)
             r.mm = $0.mm ?? 0; r.wet = $0.wet; r.obs = true; r.place = place.short
+            r.placeKo = place.region == "kr" ? place.ko.flatMap { $0.split(separator: " ").last.map(String.init) } : nil
             r.wetFrom = $0.wetFrom; r.wetTo = $0.wetTo
             r.rh = $0.rh.map { Int($0.rounded()) }; r.windMax = $0.windMax.map { Int($0.rounded()) }; r.uv = $0.uv.map { Int($0.rounded()) }
             return r

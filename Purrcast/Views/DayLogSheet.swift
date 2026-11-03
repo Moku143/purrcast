@@ -54,7 +54,7 @@ struct DayLogSheet: View {
             HStack(alignment: .center, spacing: 16) {
                 DayFigure(character: r.character ?? model.shownCharacter, level: r.level, width: 84)
                 VStack(alignment: .leading, spacing: 6) {
-                    if !r.place.isEmpty { Text(r.place).font(.ui(14, .medium)).foregroundStyle(UI.sub) }
+                    if !r.place.isEmpty { Text(r.placeName()).font(.ui(14, .medium)).foregroundStyle(UI.sub) }
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         PixelIcon(name: r.icon, size: 30).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
                         Text(model.deg(r.hi)).font(.px(40)).foregroundStyle(UI.ink)

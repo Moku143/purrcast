@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// The home screen: sky + character + temperature up top, then the cards (next hour · hourly · 10 days · details).
 struct HomeView: View {
@@ -13,6 +14,8 @@ struct HomeView: View {
     private let heroDesignW: CGFloat = 361
     @Environment(\.accessibilityReduceMotion) private var reduce
     @State private var scrolled = false
+    /// The card being moved (long press, then drag)
+    @State private var dragging: String?
 
     /// What the sky is made of; when it changes the whole sky cross-fades
     private func skyKey(_ s: WeatherScene) -> String { "\(s.time)|\(s.cover)|\(s.precip)|\(s.thunder)|\(s.aux)|\(s.clouds ?? -1)|\(s.fog)|\(s.gloom)" }
@@ -54,10 +57,7 @@ struct HomeView: View {
                             .parallaxHero()
                         if let e = model.lastError { notice(e, ink: ink).transition(.move(edge: .top).combined(with: .opacity)) }
                         if let a = s.alert { AlertBanner(alert: a, night: ink.night).reveal(0).settleInScroll() }
-                        if let head = nextHour(s) { nextHourCard(s, head: head, ink: ink).reveal(1).settleInScroll() }
-                        hourlyCard(s, ink: ink).reveal(2).settleInScroll()
-                        dailyCard(s, ink: ink).reveal(3).settleInScroll()
-                        tilesGrid(s, ink: ink).reveal(4).settleInScroll()
+                        cards(s, ink: ink)
                         if !model.plus { PlusPromoCard(ink: ink) { route = .paywall }.reveal(5).settleInScroll() }
                         HomeFooter(scene: s, region: model.currentPlace.region, isSample: model.isSample, ink: ink) { route = .sources }.reveal(6)
                     }
@@ -76,6 +76,8 @@ struct HomeView: View {
                     }
                 }
                 .coordinateSpace(name: "home")
+                // a card let go anywhere else: the move is over
+                .onDrop(of: [.plainText], isTargeted: nil) { _ in dragging = nil; return false }
                 .overlay(alignment: .top) {
                     CompactHeader(place: s.place ?? model.currentPlace.name, text: "\(deg(s.temp)) \(s.cond)", level: lv, ink: ink, shown: scrolled)
                 }
@@ -467,36 +469,76 @@ struct HomeView: View {
         }
     }
 
-    /// 강수확률 · 자외선 / 바람 (full width) / 예보 비교 (full width) / 일몰 · 습도 — the prototype's order.
-    private func tilesGrid(_ s: WeatherScene, ink: Ink) -> some View {
-        let first = Array(s.tiles.prefix(2)), rest = Array(s.tiles.dropFirst(2))
-        return VStack(spacing: 12) {
-            tileRows(first, ink: ink)
-            if let d = s.dust { DustCard(dust: d, ink: ink) }
-            // 대기질 (Plus): the index, the map, tap for the sheet
-            if s.isPlus && !(model.airMapFailed && model.airMap == nil) { AirHomeCard(ink: ink) { route = .air } }
-            WindCard(wind: s.wind, ink: ink)
-            if let c = s.cmp { CompareCard(cmp: c, updated: s.updated, ink: ink) }
-            if !rest.isEmpty { tileRows(rest, ink: ink) }
-            // 이번 주 기록: everyone sees the week; the calendar and the monthly report are Plus
-            WeekLogCard(ink: ink) { route = model.plus ? .calendar : .paywall }
+    // MARK: the cards, in the person's order
+
+    /// The cards shown now (가까운 비, 대기질 and 예보 비교 come and go)
+    private func presentCards(_ s: WeatherScene) -> [String] {
+        var ids = ["hourly", "daily", "wind", "week"] + s.tiles.indices.map { "tile\($0)" }
+        if nextHour(s) != nil { ids.append("next") }
+        if s.dust != nil { ids.append("dust") }
+        if s.isPlus && !(model.airMapFailed && model.airMap == nil) { ids.append("air") }
+        if s.cmp != nil { ids.append("cmp") }
+        return ids
+    }
+
+    /// Every card in its own row (tiles two to a row, a tile left alone keeps its half), each settling into view on
+    /// its own. A long press lifts a card; dragged over another, it takes that one's place, and the order is kept.
+    private func cards(_ s: WeatherScene, ink: Ink) -> some View {
+        let ids = HomeLayout.order(saved: model.homeOrder, present: presentCards(s), tiles: s.tiles.count)
+        let rows = HomeLayout.rows(ids)
+        return ForEach(Array(rows.enumerated()), id: \.element) { i, row in
+            Group {
+                if HomeLayout.isHalf(row[0]) {
+                    HStack(alignment: .top, spacing: 12) {
+                        ForEach(row, id: \.self) { id in movable(id, ids: ids) { card(id, s, ink: ink) } }
+                        if row.count == 1 { Color.clear.frame(maxWidth: .infinity) }
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    movable(row[0], ids: ids) { card(row[0], s, ink: ink) }
+                }
+            }
+            .reveal(min(i + 1, 5)).settleInScroll()
         }
         // the 대기질 map (Plus) for the place, again after each refresh — here, not on the card, so a place without a
         // map tries again on the next refresh
         .task(id: "\(model.currentPlace.id)|\(s.updated)|\(s.clock)|\(s.isPlus)") { if s.isPlus { await model.loadAirMap() } }
     }
 
-    /// Two tiles per row, both as tall as the taller one (강수확률 next to 자외선 with its scale).
-    private func tileRows(_ ts: [WeatherScene.Tile], ink: Ink) -> some View {
-        VStack(spacing: 12) {
-            ForEach(Array(stride(from: 0, to: ts.count, by: 2)), id: \.self) { i in
-                HStack(alignment: .top, spacing: 12) {
-                    tile(ts[i], ink: ink)
-                    if i + 1 < ts.count { tile(ts[i + 1], ink: ink) } else { Color.clear.frame(maxWidth: .infinity) }
-                }
-                .fixedSize(horizontal: false, vertical: true)
-            }
+    @ViewBuilder private func card(_ id: String, _ s: WeatherScene, ink: Ink) -> some View {
+        switch id {
+        case "next": if let head = nextHour(s) { nextHourCard(s, head: head, ink: ink) }
+        case "hourly": hourlyCard(s, ink: ink)
+        case "daily": dailyCard(s, ink: ink)
+        case "dust": if let d = s.dust { DustCard(dust: d, ink: ink) }
+        // 대기질 (Plus): the index, the map, tap for the sheet
+        case "air": AirHomeCard(ink: ink) { route = .air }
+        case "wind": WindCard(wind: s.wind, ink: ink)
+        case "cmp": if let c = s.cmp { CompareCard(cmp: c, updated: s.updated, ink: ink) }
+        // 이번 주 기록: everyone sees the week; the calendar and the monthly report are Plus
+        case "week": WeekLogCard(ink: ink) { route = model.plus ? .calendar : .paywall }
+        default:
+            if let n = Int(id.dropFirst(4)), n < s.tiles.count { tile(s.tiles[n], ink: ink) }
         }
+    }
+
+    /// A card that can be moved: lifted by a long press (the system's drag), dimmed in its place while it travels
+    private func movable<V: View>(_ id: String, ids: [String], @ViewBuilder _ content: () -> V) -> some View {
+        content()
+            .opacity(dragging == id ? 0.35 : 1)
+            .contentShape(.dragPreview, RoundedRectangle(cornerRadius: 20))
+            .onDrag {
+                dragging = id
+                Haptic.soft()
+                return NSItemProvider(object: id as NSString)
+            }
+            .onDrop(of: [.plainText], delegate: CardDrop(enter: {
+                guard let d = dragging, d != id else { return }
+                let moved = HomeLayout.move(d, to: id, in: ids)
+                guard moved != ids else { return }
+                Haptic.select()
+                withAnimation(Motion.snappy) { model.homeOrder = moved }
+            }, done: { dragging = nil }))
     }
 
     private func tile(_ t: WeatherScene.Tile, ink: Ink) -> some View {
@@ -611,4 +653,13 @@ struct AlertBanner: View {
         if has("황사", "미세먼지", "dust", "smoke", "air quality", "黄砂") { return "mask" }
         return "exclaim"
     }
+}
+
+/// A card dragged over another takes its place; let go, the move is done
+private struct CardDrop: DropDelegate {
+    let enter: () -> Void
+    let done: () -> Void
+    func dropEntered(info: DropInfo) { enter() }
+    func dropUpdated(info: DropInfo) -> DropProposal? { DropProposal(operation: .move) }
+    func performDrop(info: DropInfo) -> Bool { done(); return true }
 }

@@ -435,6 +435,8 @@ final class PlaceStore: @unchecked Sendable {
 
     func countryName(_ cc: String, _ lang: Lang) -> String {
         if cc == "KR" { return lang.string("대한민국") }
+        // the table has Korean, English and Japanese; the other languages take the system's own name for the country
+        if ![.ko, .en, .ja].contains(lang), let n = lang.locale.localizedString(forRegionCode: cc), !n.isEmpty { return n }
         guard let i = countryIndex[cc] else { return cc }
         return entries[i].names[Self.slot(lang)]
     }
@@ -454,13 +456,29 @@ final class PlaceStore: @unchecked Sendable {
     /// ko "서울 마포구 아현동" (short 시도, big → small) · en "Ahyeon-dong, Mapo-gu, Seoul" (small → big) ·
     /// ja "ソウル マポ区 アヒョンドン" (katakana, KoreanKana). A 시도 alone by its full name ("서울특별시" · "Seoul" · "ソウル").
     private static func koreanTitle(_ n: KR, _ level: Int, _ lang: Lang) -> String {
-        if level == 1 { return lang == .ko ? n.sido : (lang == .ja ? n.ja1 : n.en1) }
+        if level == 1 {
+            switch lang {
+            case .ko: return n.sido
+            case .ja: return n.ja1
+            case .ru, .zhHans, .zhHant: return KoreanNames.word(n.short, lang)
+            default: return n.en1
+            }
+        }
         let dong = level == 3
         switch lang {
         case .ko:
             return joined([n.short, n.l2, dong ? n.l3 : ""], " ")
         case .ja:
             return joined([n.ja1, n.k2, dong ? n.k3 : ""], " ")
+        case .zhHans, .zhHant:
+            // big to small as Chinese writes it: 首尔 麻浦区 Ahyeon-dong (a 동 has no characters here: in letters)
+            let gu = n.l2.split(separator: " ").map { KoreanNames.word(String($0), lang, province: n.short) }
+            return KoreanNames.join([KoreanNames.word(n.short, lang)] + gu + [dong ? n.r3 : ""])
+        case .ru:
+            var parts: [String] = dong ? [KoreanNames.cyrillic(n.l3)] : []
+            parts += n.l2.split(separator: " ").reversed().map { KoreanNames.cyrillic(String($0)) }
+            parts.append(KoreanNames.word(n.short, .ru))
+            return joined(parts, ", ")
         default:
             var parts: [String] = dong ? [n.r3] : []
             parts += n.r2.split(separator: " ").reversed().map { String($0) }
@@ -484,6 +502,15 @@ final class PlaceStore: @unchecked Sendable {
     func shortName(_ i: Int, _ lang: Lang) -> String {
         let e = entries[i]
         guard e.kind == .kr, let n = e.kr else { return title(i, lang) }
+        switch lang {
+        case .ru:
+            return KoreanNames.word(e.level == 1 ? n.short : (e.level == 2 ? Self.lastWord(n.l2) : n.l3), .ru)
+        case .zhHans, .zhHant:
+            // the smallest unit that has its characters: the 시군구 for a 동
+            if e.level == 1 { return KoreanNames.word(n.short, lang) }
+            return KoreanNames.word(Self.lastWord(n.l2), lang, province: n.short)
+        default: break
+        }
         switch e.level {
         case 1: return lang == .ko ? n.short : (lang == .ja ? n.ja1 : n.en1)
         case 2: return Self.lastWord(lang == .ko ? n.l2 : (lang == .ja ? n.k2 : n.r2))

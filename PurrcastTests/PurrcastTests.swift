@@ -748,6 +748,55 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(MonthReport.make(a, month: "2026-11").character, .abys)
     }
 
+    /// Korean places in every language: the Revised Romanization with its sound changes, the Kontsevich Cyrillic,
+    /// Chinese characters for 시도 and 시군구; a name the language cannot read is never kept
+    func testKoreanPlaceNamesInEveryLanguage() {
+        XCTAssertEqual(KoreanNames.latin("오류동"), "Oryu-dong")
+        XCTAssertEqual(KoreanNames.latin("종로구"), "Jongno-gu")
+        XCTAssertEqual(KoreanNames.latin("신림동"), "Sillim-dong")
+        XCTAssertEqual(KoreanNames.latin("왕십리"), "Wangsimni")
+        XCTAssertEqual(KoreanNames.latin("삼성1동"), "Samseong 1-dong")
+        XCTAssertEqual(KoreanNames.cyrillic("오류동"), "Орю-дон")
+        XCTAssertEqual(KoreanNames.cyrillic("강남구"), "Каннам-гу")
+        XCTAssertEqual(KoreanNames.chinese("구로구"), "九老区")
+        XCTAssertEqual(KoreanNames.chinese("고성군", province: "경남"), "固城郡")
+        XCTAssertNil(KoreanNames.chinese("오류동"))
+        XCTAssertEqual(KoreanNames.name("서울 오류동", .zhHant), "首爾 Oryu-dong")
+        XCTAssertEqual(KoreanNames.name("경기 수원시 영통구", .zhHans), "京畿道水原市灵通区")
+        XCTAssertEqual(KoreanNames.name("서울 오류동", .fr), "Séoul Oryu-dong")
+        XCTAssertEqual(KoreanNames.name("서울 오류동", .ru), "Сеул Орю-дон")
+        XCTAssertEqual(KoreanNames.name("서울 오류동", .es), "Seoul Oryu-dong")
+        XCTAssertFalse(Lang.zhHans.reads("서울 오류동"))
+        XCTAssertTrue(Lang.zhHans.reads("首尔 九老区"))
+        XCTAssertFalse(Lang.es.reads("東京"))
+        XCTAssertTrue(Lang.fr.reads("Île-de-France"))
+        XCTAssertTrue(Lang.ru.reads("Сеул"))
+        // a saved Korean place renamed for the language
+        let p = Place(id: "here", name: "서울 오류동", short: "오류동", lat: 37.49, lon: 126.84, region: "kr", timeZone: "Asia/Seoul", sample: "maybe", ko: "서울 오류동")
+        XCTAssertEqual(HerePlace.koreanNamed(p, .zhHans).short, "Oryu-dong")
+        XCTAssertEqual(HerePlace.koreanNamed(p, .ru).name, "Сеул Орю-дон")
+        XCTAssertEqual(HerePlace.koreanNamed(p, .de).name, "Seoul Oryu-dong")
+        XCTAssertEqual(HerePlace.koreanNamed(p, .ja).short, "オリュドン")
+        // a day keeps its Korean place and shows it in the language of now
+        var r = DayRecord(date: "2026-11-03", hi: 10, lo: 2, icon: "sun"); r.place = "오류동"; r.placeKo = "오류동"
+        XCTAssertEqual(r.placeName(.en), "Oryu-dong")
+        XCTAssertEqual(r.placeName(.ko), "오류동")
+    }
+
+    /// The home cards: the saved order kept, a card new to it placed after the one it follows by default; tiles
+    /// two to a row, a lone tile keeping its half
+    func testHomeCardOrder() {
+        let present = ["hourly", "daily", "wind", "week", "tile0", "tile1", "tile2", "tile3", "dust"]
+        XCTAssertEqual(HomeLayout.order(saved: [], present: present, tiles: 4),
+                       ["hourly", "daily", "tile0", "tile1", "dust", "wind", "tile2", "tile3", "week"])
+        let saved = ["week", "hourly", "tile1", "daily", "tile0", "wind", "tile2", "tile3"]
+        let o = HomeLayout.order(saved: saved, present: present + ["air"], tiles: 4)
+        XCTAssertEqual(o, ["week", "hourly", "tile1", "dust", "air", "daily", "tile0", "wind", "tile2", "tile3"])
+        XCTAssertEqual(HomeLayout.rows(o), [["week"], ["hourly"], ["tile1"], ["dust"], ["air"], ["daily"], ["tile0"], ["wind"], ["tile2", "tile3"]])
+        XCTAssertEqual(HomeLayout.move("week", to: "daily", in: ["hourly", "daily", "week"]), ["hourly", "week", "daily"])
+        XCTAssertEqual(HomeLayout.move("hourly", to: "week", in: ["hourly", "daily", "week"]), ["daily", "week", "hourly"])
+    }
+
     /// The widget's last refresh of the day comes at 23:55 where the place is, unless the regular one comes first
     func testClosingRefreshBeforeMidnight() throws {
         let tz = try XCTUnwrap(TimeZone(identifier: "Asia/Seoul"))

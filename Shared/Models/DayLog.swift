@@ -11,7 +11,8 @@ struct DayRecord: Codable, Equatable, Identifiable {
     var wet: String? = nil              // "rain" | "snow": seen falling, or the day forecast wet at 60 %+
     var mm: Double = 0                  // rain or snow the hours seen added up (mm)
     var dust: Int? = nil                // the worst 미세먼지 grade seen (0…3)
-    var place: String = ""              // the place's name that day (on a trip, where you were)
+    var place: String = ""              // the place's name that day (on a trip, where you were), in the language then
+    var placeKo: String? = nil          // the same in Korean, for a Korean place (shown again in any language)
     var seenHi: Int? = nil              // the warmest and coldest temperature seen that day
     var seenLo: Int? = nil
     var hours: [String: Double]? = nil  // hour → mm while the day lasts, so two refreshes in one hour count once
@@ -51,6 +52,8 @@ struct DayRecord: Codable, Equatable, Identifiable {
     /// The day's outfit: its average feels-like; the middle of its range for a day without hours
     var level: Int { Rules.level(feels: feels ?? Double(hi + lo) / 2) }
     var character: PurrCharacter? { char.flatMap(PurrCharacter.init(rawValue:)) }
+    /// Where the day was, in the language shown now (a Korean place from its Korean name)
+    func placeName(_ lang: Lang = .current) -> String { placeKo.map { KoreanNames.word($0, lang) } ?? place }
     var isWet: Bool { wet != nil }
     var isSnow: Bool { wet == "snow" }
     /// Rain (mm) recorded for one hour, 0 when none
@@ -154,6 +157,7 @@ struct DayLog {
         r.icon = today.icon
         r.chance = today.chance
         r.place = place.short
+        r.placeKo = place.region == "kr" ? place.ko.flatMap { $0.split(separator: " ").last.map(String.init) } : nil
         // rain or snow: falling now (this hour's amount counted once), or the day forecast wet at 60 %+
         let falling = s.precip != "none"
         var hours = r.hours ?? [:]

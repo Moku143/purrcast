@@ -202,6 +202,16 @@ struct SettingsView: View {
                         }
                     }
                 }.buttonStyle(.row).accessibilityIdentifier("app-icon")
+                RowDivider()
+                // the home cards move by a long press; back to the usual order here
+                SettingRow(icon: "sparkle", title: L("홈 카드 순서"), subtitle: L("카드를 꾹 눌러서 옮길 수 있어요")) {
+                    if !model.homeOrder.isEmpty {
+                        Button { Haptic.soft(); withAnimation(Motion.gentle) { model.homeOrder = [] } } label: {
+                            Text(L("기본으로")).font(.ui(13, .semibold)).foregroundStyle(UI.accent)
+                        }
+                        .buttonStyle(.press(0.94)).accessibilityIdentifier("home-order-reset")
+                    }
+                }
             }
         }
     }

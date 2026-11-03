@@ -142,6 +142,27 @@ final class CatalogTests: XCTestCase {
             for _ in 0..<7 { app.swipeLeft(); sleep(1); take() }
         }
         seq("home-plus.maybe", ["-scene", "maybe", "-plus", "-char", "cat"], swipes: 8)
+        homeOrderShots()
+    }
+
+    /// The home cards moved: one held and dragged up (이번 주 기록 over the tiles), a saved order, the reset in 설정
+    private func homeOrderShots() {
+        steps("home.move", ["-scene", "maybe", "-plus", "-char", "cat"], wait: 4) { app, take in
+            let card = app.buttons["week-card"].firstMatch
+            for _ in 0..<8 where !(card.exists && card.isHittable) { app.swipeUp(); sleep(1) }
+            take()
+            if card.exists {
+                let start = card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                start.press(forDuration: 1.2, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -240)), withVelocity: .slow, thenHoldForDuration: 1.0)
+                sleep(2); take()
+            }
+        }
+        seq("home.order", ["-scene", "maybe", "-plus", "-char", "cat", "-homeOrder", "week,hourly,tile1,wind,tile0,daily"], swipes: 3, wait: 4)
+        steps("home.order-settings", ["-scene", "maybe", "-plus", "-char", "cat", "-homeOrder", "week", "-open", "settings"], wait: 3) { app, take in
+            let row = app.staticTexts["홈 카드 순서"].firstMatch
+            for _ in 0..<8 where !(row.exists && row.isHittable) { app.swipeUp(); sleep(1) }
+            take()
+        }
     }
 
     // MARK: the same language in plain text (설정 → 글씨 → 일반): the system font instead of the pixel one
