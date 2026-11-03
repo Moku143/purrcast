@@ -40,6 +40,11 @@ struct DayRecord: Codable, Equatable, Identifiable {
     var level: Int { Rules.level(feels: Double(hi + lo) / 2) }
     var isWet: Bool { wet != nil }
     var isSnow: Bool { wet == "snow" }
+    /// Rain (mm) recorded for one hour, 0 when none
+    func rain(at h: Int) -> Double {
+        guard let r = rain, h >= 0, h < r.count, let v = r[h] else { return 0 }
+        return v
+    }
     /// The hours it rained or snowed: observed, else the first and last wet hour of the record
     var wetHours: (Int, Int)? {
         if let a = wetFrom, let b = wetTo { return (a, b) }

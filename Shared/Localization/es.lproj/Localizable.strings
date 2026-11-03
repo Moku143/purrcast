@@ -767,3 +767,9 @@
 "습도 %d%%" = "Humedad %d%%";
 "자외선 최고 %d" = "UV máx. %d";
 "일출 %@" = "Amanecer %@";
+"평균" = "Media";
+"최대" = "Máx.";
+"일출" = "Amanecer";
+"비 · 바람" = "Lluvia · Viento";
+"하늘 · 공기" = "Cielo · Aire";
+"최대 %@" = "Hasta %@";

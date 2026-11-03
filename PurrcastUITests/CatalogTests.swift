@@ -79,13 +79,13 @@ final class CatalogTests: XCTestCase {
         seq("calendar.this", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "calendar"], swipes: 2, wait: 3)
         seq("calendar.last", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "calendar", "-calMonth", "-1"], swipes: 1, wait: 3)
         steps("calendar.pick", ["-scene", "spring_dust", "-plus", "-char", "abys", "-open", "calendar"], wait: 3) { app, take in
+            // a day tapped opens its own page
             let cells = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'cal-20'"))
-            if cells.count > 3 { cells.element(boundBy: 3).tap(); sleep(1) }
-            app.swipeUp(); sleep(1); take()
-            // the day's graphs, one tab at a time
-            for m in ["rain", "wind", "humidity", "uv"] {
-                let b = app.buttons["cal-metric-\(m)"].firstMatch
-                if b.exists { b.tap(); sleep(1); take() }
+            if cells.count > 1 { cells.element(boundBy: 1).tap(); sleep(2) }
+            take()
+            for m in ["wind", "humidity"] {
+                let b = app.buttons["day-metric-\(m)"].firstMatch
+                if b.waitForExistence(timeout: 1) { b.tap(); sleep(1); take() }
             }
         }
         seq("calendar.winter", ["-scene", "winter_snow", "-plus", "-char", "brit", "-open", "calendar"], swipes: 1, wait: 3)
@@ -97,16 +97,18 @@ final class CatalogTests: XCTestCase {
         }
     }
 
-    /// Part f: the calendar's day card in each look (graph · image · text · mixed) on a rainy day and a dusty one
+    /// Part f: a day's own page in each look (graph · image · text · mixed) on a rainy day and a dusty one
     private func partF() {
         for (scene, char) in [("maybe", "cat"), ("spring_dust", "abys")] {
             for style in ["graph", "image", "text", "mixed"] {
-                steps("daycard.\(style)-\(scene)", ["-scene", scene, "-plus", "-char", char, "-open", "calendar", "-calDay", "0", "-dayStyle", style], wait: 3) { app, take in
-                    for _ in 0..<3 { app.swipeUp(); sleep(1); take() }     // down to the day card and through it
+                steps("daypage.\(style)-\(scene)", ["-scene", scene, "-plus", "-char", char, "-open", "calendar", "-calDay", "0", "-dayStyle", style], wait: 4) { app, take in
+                    take()
+                    for _ in 0..<2 { app.swipeUp(); sleep(1); take() }
                     if style == "graph" {
+                        app.swipeDown(); sleep(1)
                         for m in ["rain", "wind", "humidity", "uv"] {
-                            let b = app.buttons["cal-metric-\(m)"].firstMatch
-                            if b.exists { b.tap(); sleep(1); take() }
+                            let b = app.buttons["day-metric-\(m)"].firstMatch
+                            if b.waitForExistence(timeout: 1) { b.tap(); sleep(1); take() }
                         }
                     }
                 }

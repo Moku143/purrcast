@@ -767,3 +767,9 @@
 "습도 %d%%" = "Humidity %d%%";
 "자외선 최고 %d" = "UV up to %d";
 "일출 %@" = "Sunrise %@";
+"평균" = "Average";
+"최대" = "Max";
+"일출" = "Sunrise";
+"비 · 바람" = "Rain · Wind";
+"하늘 · 공기" = "Sky · Air";
+"최대 %@" = "Up to %@";

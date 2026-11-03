@@ -767,3 +767,9 @@
 "습도 %d%%" = "Kelembapan %d%%";
 "자외선 최고 %d" = "UV maks. %d";
 "일출 %@" = "Terbit %@";
+"평균" = "Rata-rata";
+"최대" = "Maks.";
+"일출" = "Terbit";
+"비 · 바람" = "Hujan · Angin";
+"하늘 · 공기" = "Langit · Udara";
+"최대 %@" = "Hingga %@";

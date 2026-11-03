@@ -767,3 +767,9 @@
 "습도 %d%%" = "Umidità %d%%";
 "자외선 최고 %d" = "UV max %d";
 "일출 %@" = "Alba %@";
+"평균" = "Media";
+"최대" = "Max";
+"일출" = "Alba";
+"비 · 바람" = "Pioggia · Vento";
+"하늘 · 공기" = "Cielo · Aria";
+"최대 %@" = "Fino a %@";
