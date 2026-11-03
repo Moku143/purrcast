@@ -11,7 +11,7 @@ struct OnboardingView: View {
     private static var firstStep: Int {
         #if DEBUG
         let a = ProcessInfo.processInfo.arguments
-        if let i = a.firstIndex(of: "-onbStep"), i + 1 < a.count, let n = Int(a[i + 1]) { return max(0, min(5, n)) }
+        if let i = a.firstIndex(of: "-onbStep"), i + 1 < a.count, let n = Int(a[i + 1]) { return max(0, min(6, n)) }
         #endif
         return 0
     }
@@ -22,7 +22,7 @@ struct OnboardingView: View {
     @State private var demo = 0
     private static let demoKeys = ["spring_rain", "clear", "winter_snow", "spring_chill"]
 
-    private let count = 6
+    private let count = 7
 
     var body: some View {
         VStack(spacing: 0) {
@@ -30,9 +30,10 @@ struct OnboardingView: View {
                 switch step {
                 case 0: intro
                 case 1: widgets
-                case 2: watch
-                case 3: place
-                case 4: alerts
+                case 2: lockWidgets
+                case 3: watch
+                case 4: place
+                case 5: alerts
                 default: plus
                 }
             }
@@ -47,14 +48,14 @@ struct OnboardingView: View {
                 }
             }.padding(.bottom, 16)
             VStack(spacing: 2) {
-                if step >= 3 { backLink.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 4) }
+                if step >= 4 { backLink.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 4) }
                 buttons
             }
             .padding(.horizontal, 20).padding(.bottom, 12)
         }
         .background(
             ZStack {
-                LinearGradient(colors: [Color(hex: step == 5 ? "#FFF3D6" : "#E4F3D9"), Color(hex: "#F4F6FA")], startPoint: .top, endPoint: .bottom)
+                LinearGradient(colors: [Color(hex: step == 6 ? "#FFF3D6" : "#E4F3D9"), Color(hex: "#F4F6FA")], startPoint: .top, endPoint: .bottom)
             }
             .ignoresSafeArea()
         )
@@ -71,12 +72,12 @@ struct OnboardingView: View {
 
     @ViewBuilder private var buttons: some View {
         switch step {
-        case 3:
+        case 4:
             VStack(spacing: 10) {
                 PrimaryButton(title: L("지금 위치 쓰기")) { model.location.ask(); model.useLocation = true; next() }
                 secondary(L("나중에 · 서울로 볼게요")) { model.useLocation = false; next() }
             }
-        case 4:
+        case 5:
             VStack(spacing: 10) {
                 // both switched off: nothing to ask permission for
                 PrimaryButton(title: model.notifyRain || model.notifyMorning ? L("알림 켜기") : L("다음")) {
@@ -89,7 +90,7 @@ struct OnboardingView: View {
                 }
                 secondary(L("나중에")) { model.notifyRain = false; model.notifyMorning = false; next() }
             }
-        case 5:
+        case 6:
             VStack(spacing: 10) {
                 PrimaryButton(title: L("Plus 자세히 보기")) { showPlus = true }
                 secondary(L("무료로 시작하기")) { model.onboarded = true }.accessibilityIdentifier("start-free")
@@ -174,39 +175,60 @@ struct OnboardingView: View {
     private var widgets: some View {
         let snap = demoSnap
         return VStack(alignment: .leading, spacing: 12) {
-            VStack(spacing: 10) {
-                // the home screen: the small and the medium widget at the size iOS gives them
-                HStack(spacing: 10) {
+            VStack(spacing: 12) {
+                // the home screen: the medium and the small widget at the size iOS gives them
+                homeWidget(329, 155) { MediumWidgetView(snap: snap) }
+                HStack(alignment: .top, spacing: 10) {
                     homeWidget(155, 155) { SmallWidgetView(snap: snap) }
-                    homeWidget(166, 155) { MediumWidgetView(snap: snap) }
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(L("캐릭터와 지금 날씨")).font(.ui(13, .semibold))
+                        Text(L("체감 · 일몰 · 비 확률, 옆에는 10일")).font(.ui(12)).foregroundStyle(UI.sub)
+                        Text(L("홈 화면을 길게 눌러 추가해요")).font(.ui(12)).foregroundStyle(UI.sub)
+                    }.frame(maxWidth: .infinity, alignment: .leading).padding(.top, 6)
                 }
-                // the lock screen: the line above the clock, the rectangle and the circles (iOS draws them white)
-                ZStack {
-                    LinearGradient(colors: [Color(hex: "#5B5FA8"), Color(hex: "#2E2F66")], startPoint: .top, endPoint: .bottom)
-                    VStack(spacing: 8) {
-                        Text(LockText.inline(snap)).font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                        Text("9:41").font(.system(size: 56, weight: .semibold, design: .rounded)).padding(.top, -6)
-                        HStack(alignment: .top, spacing: 10) {
-                            LockRectangularView(snap: snap).frame(width: 148, height: 62)
-                            LockCircularView(snap: snap).frame(width: 60, height: 60)
-                            LockRainCircularView(snap: snap).frame(width: 60, height: 60)
-                        }
-                        HStack(spacing: 10) {
-                            LockUVCircularView(snap: snap).frame(width: 60, height: 60)
-                            LockSunCircularView(snap: snap, now: Date()).frame(width: 60, height: 60)
-                            LockWindCircularView(snap: snap).frame(width: 60, height: 60)
-                            LockDustCircularView(snap: snap, preview: true).frame(width: 60, height: 60)
-                        }
-                    }.foregroundStyle(.white)
-                }
-                .frame(width: 331, height: 250).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             }
             .id("w\(demo)").transition(.opacity)
             .padding(12).frame(maxWidth: .infinity)
             .background(LinearGradient(colors: [Color(hex: "#A7B6E8"), Color(hex: "#F2B8A0")], startPoint: .top, endPoint: .bottom))
             .clipShape(RoundedRectangle(cornerRadius: 28)).padding(.top, 18)
-            Text(L("위젯")).font(.px(22))
+            Text(L("홈 화면 위젯")).font(.px(22))
             Text(L("홈 화면: 캐릭터와 지금 날씨 · 10일 · 시간별")).font(.system(size: 14)).foregroundStyle(UI.sub)
+        }
+        .foregroundStyle(UI.ink).padding(.horizontal, 20)
+    }
+
+    private var lockWidgets: some View {
+        let snap = demoSnap
+        return VStack(alignment: .leading, spacing: 12) {
+            VStack(spacing: 10) {
+                // the lock screen: the line above the clock, the rectangle and the circles (iOS draws them white)
+                ZStack {
+                    LinearGradient(colors: [Color(hex: "#5B5FA8"), Color(hex: "#2E2F66")], startPoint: .top, endPoint: .bottom)
+                    VStack(spacing: 8) {
+                        Text(LockText.inline(snap)).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                        Text("9:41").font(.system(size: 80, weight: .bold)).padding(.top, -10)
+                        HStack(alignment: .top, spacing: 12) {
+                            LockRectangularView(snap: snap).frame(width: 158, height: 72)
+                            LockCircularView(snap: snap).frame(width: 72, height: 72)
+                            LockRainCircularView(snap: snap).frame(width: 72, height: 72)
+                        }
+                        .padding(.top, 6)
+                        HStack(spacing: 12) {
+                            LockUVCircularView(snap: snap).frame(width: 72, height: 72)
+                            LockSunCircularView(snap: snap, now: Date()).frame(width: 72, height: 72)
+                            LockWindCircularView(snap: snap).frame(width: 72, height: 72)
+                            LockDustCircularView(snap: snap, preview: true).frame(width: 72, height: 72)
+                        }
+                        .padding(.top, 14)
+                    }.foregroundStyle(.white)
+                }
+                .frame(width: 331, height: 400).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            }
+            .id("l\(demo)").transition(.opacity)
+            .padding(12).frame(maxWidth: .infinity)
+            .background(LinearGradient(colors: [Color(hex: "#4B5090"), Color(hex: "#F2B8A0")], startPoint: .top, endPoint: .bottom))
+            .clipShape(RoundedRectangle(cornerRadius: 28)).padding(.top, 18)
+            Text(L("잠금 화면 위젯")).font(.px(22))
             Text(L("잠금 화면: 기온 · 비 올 확률 · 자외선 · 일출·일몰 · 바람 · 미세먼지")).font(.system(size: 14)).foregroundStyle(UI.sub)
         }
         .foregroundStyle(UI.ink).padding(.horizontal, 20)
