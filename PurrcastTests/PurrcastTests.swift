@@ -476,7 +476,8 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(HourLabel.window(15, 17, clock12: false), "15~17시")
         XCTAssertEqual(HourLabel.clock(950, clock12: false), "15:50")
         XCTAssertEqual(L("%@쯤 비 예보 · 우산 챙기세요", HourLabel.word(15, clock12: false)), "15시쯤 비 예보 · 우산 챙기세요")
-        XCTAssertEqual(Lang.detect(["ko-KR"]), .ko); XCTAssertEqual(Lang.detect(["ja-JP"]), .ja); XCTAssertEqual(Lang.detect(["de-DE"]), .en); XCTAssertEqual(Lang.detect([]), .en)
+        XCTAssertEqual(Lang.detect(["ko-KR"]), .ko); XCTAssertEqual(Lang.detect(["ja-JP"]), .ja); XCTAssertEqual(Lang.detect(["de-DE"]), .de); XCTAssertEqual(Lang.detect(["nl-NL"]), .en); XCTAssertEqual(Lang.detect([]), .en)
+        XCTAssertEqual(Lang.detect(["zh-Hant-TW"]), .zhHant); XCTAssertEqual(Lang.detect(["zh-CN"]), .zhHans); XCTAssertEqual(Lang.detect(["pt-BR"]), .pt)
     }
 
     // MARK: place search (Purrcast/Resources/places.json)
