@@ -1,7 +1,8 @@
 import XCTest
 
 /// The review catalog (catalog workflow): every screen of the app on every example weather, in one language per run.
-/// CATALOG_LANG ko | en | ja (xcodebuild passes TEST_RUNNER_CATALOG_LANG through), CATALOG_PART a | b.
+/// CATALOG_LANG ko | en | ja | es | fr | de | pt | it | id | ru | zh-Hans | zh-Hant (xcodebuild passes
+/// TEST_RUNNER_CATALOG_LANG through), CATALOG_PART a | b (everything) or c (a quick look at a new language).
 /// Attachments are named "<section>.<case>.<nn>" (nn: the scroll position, 00 = top) for the catalog page.
 final class CatalogTests: XCTestCase {
     static let scenes = ["clear", "maybe", "combo", "tokyo_soon", "seoul_soon", "spring_chill", "spring_dust", "winter_smog", "spring_rain",
@@ -14,10 +15,12 @@ final class CatalogTests: XCTestCase {
 
     private func launch(_ args: [String]) -> XCUIApplication {
         let app = XCUIApplication()
-        let locale = ["ko": "ko_KR", "en": "en_US", "ja": "ja_JP"][lang] ?? "en_US"
+        let locale = ["ko": "ko_KR", "en": "en_US", "ja": "ja_JP", "es": "es_ES", "fr": "fr_FR", "de": "de_DE", "pt": "pt_BR", "it": "it_IT",
+                      "id": "id_ID", "ru": "ru_RU", "zh-Hans": "zh_CN", "zh-Hant": "zh_TW"][lang] ?? "en_US"
+        let device = lang == "pt" ? "pt-BR" : lang
         // an English phone reads hours as 3PM (the app's default there); Korean and Japanese as 15시 / 15時
         let clock = lang == "en" && !args.contains("-clock12") ? ["-clock12"] : []
-        app.launchArguments = args + clock + ["-AppleLanguages", "(\(lang))", "-AppleLocale", locale]
+        app.launchArguments = args + clock + ["-AppleLanguages", "(\(device))", "-AppleLocale", locale]
         app.launch()
         return app
     }
@@ -60,7 +63,50 @@ final class CatalogTests: XCTestCase {
     }
 
     func testCatalog() {
-        if part == "a" { partA() } else { partB() }
+        switch part {
+        case "a": partA()
+        case "c": partC()
+        default: partB()
+        }
+    }
+
+    // MARK: a new language at a glance — first run, home, a day, Plus, settings, language search, widgets
+
+    private func partC() {
+        for st in 0...6 { seq("onboarding.\(st)", ["-scene", "maybe", "-onboarding", "-onbStep", String(st)], wait: 3) }
+        seq("home-plus.maybe", ["-scene", "maybe", "-plus", "-char", "cat"], swipes: 7)
+        seq("home-plus.winter_smog", ["-scene", "winter_smog", "-plus", "-char", "cat"], swipes: 3)
+        seq("home-plus.summer_typhoon", ["-scene", "summer_typhoon", "-plus", "-char", "cat"], swipes: 1)
+        seq("home-plus.tokyo_soon", ["-scene", "tokyo_soon", "-plus", "-char", "cat"], swipes: 1)
+        seq("home-free.maybe", ["-scene", "maybe", "-char", "cat"], swipes: 2)
+        seq("day-today.maybe", ["-scene", "maybe", "-plus", "-open", "today"], swipes: 2)
+        seq("day-tab.spring_dust-dust", ["-scene", "spring_dust", "-plus", "-open", "today"], swipes: 1) { app in self.tap(app, "tab-dust") }
+        steps("paywall.free", ["-scene", "maybe", "-open", "paywall"], wait: 3) { app, take in
+            take()
+            for _ in 0..<6 { app.swipeLeft(); sleep(1); take() }
+            for _ in 0..<2 { app.swipeUp(); sleep(1); take() }
+        }
+        seq("settings.free", ["-scene", "maybe", "-open", "settings"], swipes: 5)
+        seq("pages.language", ["-scene", "maybe", "-open", "language"], swipes: 1)
+        // the language list searched in English and in Korean: both find Korean
+        for (i, q) in ["korean", "한국어", "日本"].enumerated() {
+            steps("search.lang\(i + 1)", ["-scene", "maybe", "-open", "language"]) { app, take in
+                let f = app.textFields["lang-search"].firstMatch
+                if f.waitForExistence(timeout: 2) { f.tap(); f.typeText(q); sleep(1) }
+                let tip = app.buttons["Continue"].firstMatch
+                if tip.exists { tip.tap(); sleep(1) }
+                take()
+            }
+        }
+        seq("pages.places-plus", ["-scene", "maybe", "-plus", "-open", "places"], swipes: 1)
+        seq("pages.sources", ["-scene", "maybe", "-open", "sources"], swipes: 4)
+        seq("air.abroad", ["-scene", "tokyo_soon", "-plus", "-open", "air", "-place", "tokyo"], swipes: 1, wait: 7)
+        seq("live.lab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "liveLab"], swipes: 2)
+        for s in ["maybe", "spring_rain"] {
+            for (i, page) in [[], ["-labPage2"], ["-labPage4"], ["-labPage3"]].enumerated() {
+                seq("widgets.\(s)-\(i + 1)", ["-scene", s, "-plus", "-char", "cat", "-open", "widgetLab"] + page)
+            }
+        }
     }
 
     // MARK: the weather — home (Plus · free, top to bottom), the other characters, the day sheets
