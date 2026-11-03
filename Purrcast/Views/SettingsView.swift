@@ -148,6 +148,8 @@ struct SettingsView: View {
                 RowDivider()
                 SettingRow(icon: "daynight", title: L("기온 변화"), subtitle: L("아침에 어제와 비교해 알려 드려요")) { if model.plus { toggle($model.notifyChange) } else { PlusTag() } }
                 RowDivider()
+                SettingRow(icon: "star", title: L("월간 리포트"), subtitle: L("매달 1일 아침에 지난달 날씨를 정리해 알려 드려요")) { if model.plus { toggle($model.notifyMonthly) } else { PlusTag() } }
+                RowDivider()
                 SettingRow(icon: "exclaim", title: L("기상특보 · 미세먼지"), subtitle: L("특보·황사·미세먼지 주의보가 내려지거나 미세먼지가 나빠지면 잠깐 알려 드려요")) { if model.plus { toggle($model.notifyAlert) } else { PlusTag() } }
                 RowDivider()
                 SettingRow(icon: "zzz", title: L("조용한 시간")) { RowValue(text: "22:00~07:00", chevron: false) }

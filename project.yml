@@ -69,6 +69,8 @@ targets:
         CFBundleDisplayName: Purrcast
         UIAppFonts: [PurrcastPixel-Medium.ttf]
         PurrcastServerURL: ""
+        # "지금 위치" widgets look where the phone is (the app's when-in-use permission covers them)
+        NSWidgetWantsLocation: true
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:

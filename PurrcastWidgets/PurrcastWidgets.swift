@@ -24,7 +24,11 @@ struct Provider: TimelineProvider {
             let snap = await fetch() ?? SharedStore.load() ?? .waiting
             // free: the morning forecast, refreshed a few times a day; Plus: every 30 minutes
             let now = Date()
-            let next = Calendar.current.date(byAdding: .minute, value: snap.plusActive ? 30 : 180, to: now) ?? now.addingTimeInterval(1800)
+            var next = Calendar.current.date(byAdding: .minute, value: snap.plusActive ? 30 : 180, to: now) ?? now.addingTimeInterval(1800)
+            // and once just before midnight: the day's 날씨 기록 closes with where the phone is then
+            if let p = snap.place, let tz = TimeZone(identifier: p.timeZone), let close = DayLog.closingRefresh(after: now, regular: next, tz: tz) {
+                next = close
+            }
             var entries = [WeatherEntry(date: now, snap: snap)]
             // the sunrise / sunset circle turns over right when the sun rises or sets, before the next refresh
             if let p = snap.place, let tz = TimeZone(identifier: p.timeZone),
@@ -35,13 +39,17 @@ struct Provider: TimelineProvider {
         }
     }
 
-    /// With a server configured, the widget refreshes the app's current place itself (the plan as of now);
-    /// otherwise nil (use what the app saved).
+    /// With a server configured, the widget refreshes the app's current place itself (the plan as of now) —
+    /// "지금 위치" where the phone is now, when the location permission covers widgets; otherwise nil (use what the
+    /// app saved).
     private func fetch() async -> WeatherSnapshot? {
-        guard WeatherSource.serverURL != nil, var last = SharedStore.load(), !last.isSample, let place = last.place else { return nil }
+        guard WeatherSource.serverURL != nil, var last = SharedStore.load(), !last.isSample, var place = last.place else { return nil }
+        if place.id == "here", let p = await WidgetLocation.here(from: place), p != place {
+            place = p; last.place = p; last.placeShort = p.short
+        }
         guard let s = try? await WeatherSource.make().forecast(for: place, plus: last.plusActive, previousLevel: last.scene.level) else { return nil }
         last.scene = s; last.saved = Date()
-        DayLog().record(s, place: place)      // the 날씨 기록 fills on the widget's refreshes too
+        DayLog().record(s, place: place, character: last.shownCharacter)      // the 날씨 기록 fills on the widget's refreshes too
         if !last.plusActive { last.plus = false }
         SharedStore.save(last)
         return last

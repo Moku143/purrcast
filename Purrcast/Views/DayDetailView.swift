@@ -21,6 +21,8 @@ struct DayDetailView: View {
         /// The day's 대기질 index (the highest seen): value (통합대기환경지수 in Korea), step, main pollutant, kind, hour
         var air: Air? = nil
         struct Air { var value: Int?; var grade: Int; var main: String?; var kind: String; var hour: Int? }
+        /// The character shown that day (nil: the one shown now)
+        var character: PurrCharacter? = nil
     }
     @State private var metric: DayMetric = .temp
     @State private var fine = true           // 미세먼지 tab: PM2.5 (초미세) or PM10
@@ -228,7 +230,7 @@ struct DayDetailView: View {
         let rain: RainState = chance >= 50 ? .umbrella : (c.day.chance >= 30 ? .bag : .none)
         let b = briefText(c)
         return HStack(alignment: .bottom, spacing: 4) {
-            CharacterSprite(character: model.shownCharacter, level: Rules.level(feels: feel), rain: rain, width: 62)
+            CharacterSprite(character: past?.character ?? model.shownCharacter, level: Rules.level(feels: feel), rain: rain, width: 62)
                 .frame(width: 64, height: 74, alignment: .bottom).clipped()
                 .reveal(0, rise: 10)
             bubble(c, b)
@@ -1165,13 +1167,7 @@ private struct DayHourly {
         var dpts = zip(hs, rows.map { $0.dir ?? deg }).map { ($0, $1) }.sorted { $0.0 < $1.0 }
         if let n = next { dpts.append((24, n.dir ?? deg)) }
         // feels-like: muggy heat pushes it up (blended in from 20° to 25°), otherwise night, rain and wind pull it down
-        let feel: [Double] = (0..<24).map { h in
-            let t = temp[h], k = max(0, min(1, (t - 20) / 5))
-            let nightness = max(0, min(1, (abs(Double(h) - 13) - 5) / 2.5))
-            let cold = t - 1 - nightness - (rainy ? 1 : 0) - max(0, wind[h] - 3) * 0.5
-            let hot = t + max(0, (rh[h] - 40) / 15)
-            return (1 - k) * cold + k * hot
-        }
+        let feel: [Double] = (0..<24).map { h in Rules.hourFeel(temp: temp[h], hour: h, wind: wind[h], rh: rh[h], rainy: rainy) }
         var d = DayHourly()
         d.temp = temp; d.feel = feel; d.chance = chance; d.wind = wind; d.uv = uv; d.rh = rh
         d.gust = zip(gust, wind).map { max($0, $1) }

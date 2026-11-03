@@ -91,6 +91,27 @@ final class CatalogTests: XCTestCase {
         seq("calendar.outfits", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "calendar", "-calOutfits"], swipes: 1, wait: 3)
         seq("calendar.outfits-abys", ["-scene", "spring_dust", "-plus", "-char", "abys", "-open", "calendar", "-calOutfits", "-calMonth", "-1"], wait: 3)
         seq("calendar.winter", ["-scene", "winter_snow", "-plus", "-char", "brit", "-open", "calendar"], swipes: 1, wait: 3)
+        // the month's name tapped: any month at once (a year back, then a month there)
+        steps("calendar.picker", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "calendar"], wait: 3) { app, take in
+            let m = app.buttons["cal-month"].firstMatch
+            if m.waitForExistence(timeout: 2) { m.tap(); sleep(1); take() }
+            let back = app.buttons["pick-prev-year"].firstMatch
+            if back.waitForExistence(timeout: 1) { back.tap(); sleep(1); take() }
+            let pick = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'pick-20'")).element(boundBy: 9)
+            if pick.exists { pick.tap(); sleep(2); take() }
+        }
+        // a sideways drag anywhere turns the month
+        steps("calendar.swipe", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "calendar"], wait: 3) { app, take in
+            take()
+            app.swipeRight(); sleep(2); take()
+            app.swipeRight(); sleep(2); take()
+            app.swipeLeft(); sleep(2); take()
+        }
+        steps("calendar.settings", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "settings"], wait: 3) { app, take in
+            let row = app.staticTexts["월간 리포트"].firstMatch
+            for _ in 0..<6 where !(row.exists && row.isHittable) { app.swipeUp(); sleep(1) }
+            take()
+        }
         steps("calendar.card", ["-scene", "maybe", "-char", "cat"]) { app, take in
             let card = app.buttons["week-card"].firstMatch
             for _ in 0..<8 where !(card.exists && card.isHittable) { app.swipeUp(); sleep(1) }

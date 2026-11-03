@@ -43,10 +43,14 @@ struct DayRecord: Codable, Equatable, Identifiable {
     var aqiMain: String? = nil
     var aqiKind: String? = nil
     var aqiHour: Int? = nil
+    /// The day's average feels-like (°C, its hours as last seen) and the character shown as the day ended
+    var feels: Double? = nil
+    var char: String? = nil
 
     var id: String { date }
-    /// The day's outfit, as the notifications draw it: the middle of its range
-    var level: Int { Rules.level(feels: Double(hi + lo) / 2) }
+    /// The day's outfit: its average feels-like; the middle of its range for a day without hours
+    var level: Int { Rules.level(feels: feels ?? Double(hi + lo) / 2) }
+    var character: PurrCharacter? { char.flatMap(PurrCharacter.init(rawValue:)) }
     var isWet: Bool { wet != nil }
     var isSnow: Bool { wet == "snow" }
     /// Rain (mm) recorded for one hour, 0 when none
@@ -74,6 +78,22 @@ struct DayLog {
     static let keepDays = 3 * 366
     /// Days that keep their hours (the day sheet); older ones keep the summary
     static let detailDays = 400
+    /// "지금 위치" farther than this from where the day began starts the day over there
+    static let moveKm = 5.0
+
+    static func km(_ a: Double, _ b: Double, _ c: Double, _ d: Double) -> Double {
+        let r = Double.pi / 180, x = (d - b) * r * cos((a + c) / 2 * r), y = (c - a) * r
+        return (x * x + y * y).squareRoot() * 6371
+    }
+
+    /// The widget's last refresh of the day: a little before midnight where the place is (when the next one would come
+    /// later), so the 날씨 기록 closes with where the phone is then. nil when the regular one comes first.
+    static func closingRefresh(after now: Date, regular next: Date, tz: TimeZone) -> Date? {
+        var c = Calendar(identifier: .gregorian); c.timeZone = tz
+        guard let at = c.nextDate(after: now, matching: DateComponents(hour: 23, minute: 55), matchingPolicy: .nextTime),
+              at < next, at.timeIntervalSince(now) > 120 else { return nil }
+        return at
+    }
 
     static var defaultDir: URL {
         let base = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: SharedStore.groupID)
@@ -111,8 +131,10 @@ struct DayLog {
     }
 
     /// Folds one forecast into the place's day: the latest high and low (widened by what was seen), the sky,
-    /// rain or snow seen falling, the worst 미세먼지.
-    func record(_ s: WeatherScene, place: Place, at now: Date = Date()) {
+    /// rain or snow seen falling, the worst 미세먼지, the character shown.
+    /// The day is where the phone was as it ended: "지금 위치" moved more than `moveKm` starts the day over at the new
+    /// place (its forecast has the whole day, the past hours as they were), so the last look before midnight decides it.
+    func record(_ s: WeatherScene, place: Place, character: PurrCharacter? = nil, at now: Date = Date()) {
         guard let today = s.days.first else { return }
         let tz = TimeZone(identifier: place.timeZone) ?? .current
         let key = Self.dayKey(now, tz: tz)
@@ -120,8 +142,11 @@ struct DayLog {
         let hour = String(c.component(.hour, from: now))
 
         var all = records(place.id)
-        var r = all.last(where: { $0.date == key }) ?? DayRecord(date: key, hi: today.hi, lo: today.lo, icon: today.icon)
+        let fresh = DayRecord(date: key, hi: today.hi, lo: today.lo, icon: today.icon)
+        var r = all.last(where: { $0.date == key }) ?? fresh
         if r.obs == true { return }                       // an observed day stays as observed
+        if let la = r.lat, let lo = r.lon, Self.km(la, lo, place.lat, place.lon) > Self.moveKm { r = fresh }
+        if let c = character { r.char = c.rawValue }
         r.seenHi = max(r.seenHi ?? s.temp, s.temp)
         r.seenLo = min(r.seenLo ?? s.temp, s.temp)
         r.hi = max(today.hi, r.seenHi ?? today.hi)
@@ -192,11 +217,35 @@ extension DayLog {
         if !rhs.isEmpty { r.rh = Int((rhs.reduce(0, +) / Double(rhs.count)).rounded()) }
         if let u = uvs.max() { r.uv = max(r.uv ?? 0, Int(u.rounded())) }
         if let a = s.alert?.name, !a.isEmpty, !(r.alerts ?? []).contains(a) { r.alerts = (r.alerts ?? []) + [a] }
+        r.feels = Self.averageFeels(temps: temps, winds: windH, rhs: rhH, rainy: (s.days.first?.chance ?? 0) >= 50) ?? r.feels
         r.lat = (place.lat * 100).rounded() / 100; r.lon = (place.lon * 100).rounded() / 100
         if let rows = s.dayDetail?.first, rows.count >= 2 { r.rows = rows }
         if let d = s.dust, let hs = d.hours, !hs.isEmpty {
             r.air = WeatherScene.Dust(pm10: nil, pm25: nil, pm10Grade: nil, pm25Grade: nil, grade: d.grade, note: "", src: "", srcKey: d.srcKey, hours: hs)
         }
+    }
+
+    /// The day's average feels-like from its hours (the gaps between the day sheet's rows filled in straight); nil with
+    /// fewer than six temperatures
+    static func averageFeels(temps: [Int?], winds: [Int?], rhs: [Int?], rainy: Bool) -> Double? {
+        guard temps.count == 24, temps.compactMap({ $0 }).count >= 6 else { return nil }
+        func filled(_ a: [Int?], _ none: Double) -> [Double] {
+            let known = a.indices.compactMap { i in a[i].map { (i, Double($0)) } }
+            guard !known.isEmpty else { return Array(repeating: none, count: 24) }
+            return (0..<24).map { h in
+                let before = known.last { $0.0 <= h }, after = known.first { $0.0 >= h }
+                switch (before, after) {
+                case let (b?, f?): return b.0 == f.0 ? b.1 : b.1 + (f.1 - b.1) * Double(h - b.0) / Double(f.0 - b.0)
+                case let (b?, nil): return b.1
+                case let (nil, f?): return f.1
+                default: return none
+                }
+            }
+        }
+        let t = filled(temps, 0), w = filled(winds.count == 24 ? winds : Array(repeating: nil, count: 24), 2)
+        let h = filled(rhs.count == 24 ? rhs : Array(repeating: nil, count: 24), 60)
+        let sum = (0..<24).reduce(0.0) { $0 + Rules.hourFeel(temp: t[$1], hour: $1, wind: w[$1], rh: h[$1], rainy: rainy) }
+        return (sum / 24 * 10).rounded() / 10
     }
 
     /// The 대기질 map's index for the place now, kept as the day's highest (the map refreshes hourly, Plus)
@@ -217,14 +266,16 @@ extension DayLog {
     }
 
     /// Observed days from the server: a missing day is added; a day the phone saw takes the observed high, low, sky
-    /// and rain, and keeps what only the phone knows (미세먼지, where it was).
-    func merge(_ observed: [DayRecord], placeID: String) {
+    /// and rain, and keeps what only the phone knows (미세먼지, where it was). A day the phone spent somewhere else
+    /// ("지금 위치" on a trip; `near` is where the observations are for) stays as the phone had it.
+    func merge(_ observed: [DayRecord], placeID: String, near: (Double, Double)? = nil) {
         guard !observed.isEmpty else { return }
         var all = records(placeID)
         var at = Dictionary(all.enumerated().map { ($1.date, $0) }, uniquingKeysWith: { a, _ in a })
         for o in observed {
             if let i = at[o.date] {
                 var r = all[i]
+                if let n = near, let la = r.lat, let lo = r.lon, Self.km(la, lo, n.0, n.1) > Self.moveKm { continue }
                 r.hi = o.hi; r.lo = o.lo; r.icon = o.icon; r.mm = o.mm; r.wet = o.wet; r.obs = true; r.hours = nil
                 r.wetFrom = o.wetFrom; r.wetTo = o.wetTo
                 if let x = o.rh { r.rh = x }
@@ -251,6 +302,7 @@ struct MonthReport: Equatable {
     var coldest: DayRecord?
     var dustDays: Int?                  // 나쁨 or worse; nil where the month has no 미세먼지 at all
     var level: Int?                     // the outfit worn most
+    var character: PurrCharacter?       // the character shown on most of the days (nil: none recorded)
     var mean: Double?                   // the middle of the days' ranges, averaged
     var vsLast: Int?                    // ° warmer (+) or colder (−) than the month before (both need a week of days)
 
@@ -261,6 +313,9 @@ struct MonthReport: Equatable {
         var counts: [Int: Int] = [:]
         for r in m { counts[r.level, default: 0] += 1 }
         let level = counts.max { a, b in a.value == b.value ? a.key > b.key : a.value < b.value }?.key
+        var chars: [PurrCharacter: Int] = [:]
+        for r in m { if let c = r.character { chars[c, default: 0] += 1 } }
+        let character = chars.max { a, b in a.value == b.value ? a.key.rawValue > b.key.rawValue : a.value < b.value }?.key
         let withDust = m.filter { $0.dust != nil }
         var vs: Int?
         let prev = all.filter { $0.date.hasPrefix(previous(month) + "-") }
@@ -269,7 +324,7 @@ struct MonthReport: Equatable {
                            hottest: m.max { $0.hi == $1.hi ? $0.date > $1.date : $0.hi < $1.hi },
                            coldest: m.min { $0.lo == $1.lo ? $0.date < $1.date : $0.lo < $1.lo },
                            dustDays: withDust.isEmpty ? nil : withDust.filter { ($0.dust ?? 0) >= 2 }.count,
-                           level: level, mean: mean(m), vsLast: vs)
+                           level: level, character: character, mean: mean(m), vsLast: vs)
     }
 
     /// "2026-11" → "2026-10"
@@ -337,6 +392,7 @@ extension DayLog {
                 u[t] = Int((Double(r.uv ?? 0) * day).rounded())
             }
             r.winds = w; r.rhs = h; r.uvs = u
+            r.feels = DayLog.averageFeels(temps: temps, winds: w, rhs: h, rainy: r.isWet)
             if let g = r.dust {
                 // 미세먼지 hour by hour around the day's step (worse in the morning rush and the evening), and the index
                 let base10: Double = [22, 55, 110, 170][max(0, min(3, g))]
@@ -398,7 +454,8 @@ extension DayRecord {
         s.hi = hi; s.lo = lo; s.temp = hi; s.place = place
         s.snow = isSnow
         s.dust = air
-        if let a = alerts?.first { s.alert = WeatherScene.Alert(name: a, note: "") }   // the day's 기상특보        if let w = windMax { s.wind = WeatherScene.Wind(speed: w, gust: 0, deg: 0) }
+        if let a = alerts?.first { s.alert = WeatherScene.Alert(name: a, note: "") }   // the day's 기상특보
+        if let w = windMax { s.wind = WeatherScene.Wind(speed: w, gust: 0, deg: 0) }
         // sunrise and sunset, for the night icons
         if let la = lat, let lo = lon, let d = DayLog.date(date), let sun = SunTimes.day(d, lat: la, lon: lo, tz: tz) {
             var c = Calendar(identifier: .gregorian); c.timeZone = tz

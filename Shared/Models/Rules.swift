@@ -13,6 +13,16 @@ enum Rules {
     ///  0: 35°+ 민소매·모자 · 1: 33–34 · 2: 28–32 · 3: 23–27 · 4: 20–22 · 5: 18–19 · 6: 16–17 · 7: 12–15 · 8: 9–11
     ///  9: 6–8 · 10: 3–5 · 11: 0–2 · 12: −4…−1 · 13: −9…−5 · 14: −10° and below
     static let levelUpper: [Double] = [.infinity, 34.5, 32.5, 27.5, 22.5, 19.5, 17.5, 15.5, 11.5, 8.5, 5.5, 2.5, -0.5, -4.5, -9.5]
+
+    /// Feels-like for one hour of a day, as the day sheet draws it: muggy heat pushes it up (blended in from 20° to
+    /// 25°), otherwise night, rain and wind pull it down.
+    static func hourFeel(temp t: Double, hour h: Int, wind: Double, rh: Double, rainy: Bool) -> Double {
+        let k = max(0, min(1, (t - 20) / 5))
+        let nightness = max(0, min(1, (abs(Double(h) - 13) - 5) / 2.5))
+        let cold = t - 1 - nightness - (rainy ? 1 : 0) - max(0, wind - 3) * 0.5
+        let hot = t + max(0, (rh - 40) / 15)
+        return (1 - k) * cold + k * hot
+    }
     static func level(feels: Double, previous: Int? = nil) -> Int {
         var lv = maxLevel
         for i in 1..<levelUpper.count where feels > levelUpper[i] { lv = i - 1; break }

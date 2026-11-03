@@ -772,3 +772,7 @@
 "하루 종일 %@~%@였어요." = "De %@ à %@ toute la journée.";
 "건조해요." = "Air sec.";
 "옷차림" = "Tenues";
+"월간 리포트" = "Bilan du mois";
+"매달 1일 아침에 지난달 날씨를 정리해 알려 드려요" = "Le 1er de chaque mois, la météo du mois écoulé";
+"%@ 리포트가 나왔어요" = "Votre bilan de %@ est prêt";
+"비·눈 온 날과 가장 덥고 추웠던 날, 자주 입은 옷을 정리했어요." = "Jours de pluie, jours les plus chauds et les plus froids, et la tenue du mois.";

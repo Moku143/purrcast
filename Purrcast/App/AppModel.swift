@@ -49,6 +49,9 @@ final class AppModel: ObservableObject {
     /// 기상특보 알림 (설정 → 알림). Stored only: the server has to push warnings; Notifications.swift has no hook yet.
     // TODO: send the preference to the server (push) once 기상특보 push exists; until then warnings show in the bubble only.
     @Published var notifyAlert: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyAlert && !oldValue) } }
+    @Published var notifyMonthly: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyMonthly && !oldValue) } }   // 월간 리포트, 매달 1일
+    /// The month the 날씨 달력 opens at once (a 월간 리포트 notification tapped); nil: this month
+    var calendarMonth: String?
     /// 가까운 비 알림 (Plus): 다음 6시간 (한국) · 다음 1시간 (분 단위). Stored only until Notifications.swift plans it.
     // TODO: plan a near-rain notification from `minutes` / `next6` in Notifications.plan.
     @Published var notifyNearRain: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyNearRain && !oldValue) } }
@@ -123,6 +126,7 @@ final class AppModel: ObservableObject {
         notifyMorning = d.object(forKey: "notifyMorning") as? Bool ?? true
         notifyChange = d.object(forKey: "notifyChange") as? Bool ?? true
         notifyAlert = d.object(forKey: "notifyAlert") as? Bool ?? true
+        notifyMonthly = d.object(forKey: "notifyMonthly") as? Bool ?? true
         notifyNearRain = d.object(forKey: "notifyNearRain") as? Bool ?? true
         voiceChoice = d.string(forKey: "voiceChoice") ?? ""
         language = Lang.picked?.rawValue ?? ""
@@ -159,7 +163,7 @@ final class AppModel: ObservableObject {
                 raw = s; hasData = true; lastError = nil; lastRefresh = Date()
                 lastLevel[place.id] = s.level
                 if !provider.isSample {
-                    dayLog.record(s, place: place); dayLogVersion += 1
+                    dayLog.record(s, place: place, character: shownCharacter); dayLogVersion += 1
                     Task { await fillHistory(for: place) }      // Plus: the week's missed days
                 }
                 publish()
@@ -212,7 +216,7 @@ final class AppModel: ObservableObject {
         for p in places {
             if let s = try? await provider.forecast(for: p, plus: plus, previousLevel: lastLevel[p.id]) {
                 previews[p.id] = s
-                if !provider.isSample { dayLog.record(s, place: p) }
+                if !provider.isSample { dayLog.record(s, place: p, character: shownCharacter) }
             }
         }
     }
@@ -299,7 +303,7 @@ final class AppModel: ObservableObject {
         guard !historyAsked.contains(key) else { return }
         historyAsked.insert(key)
         guard let days = try? await provider.history(for: place, from: first, to: last), !days.isEmpty else { return }
-        dayLog.merge(days, placeID: place.id)
+        dayLog.merge(days, placeID: place.id, near: (place.lat, place.lon))
         dayLogVersion += 1
     }
 
@@ -345,7 +349,7 @@ final class AppModel: ObservableObject {
         d.set(unitF, forKey: "unitF"); d.set(clock12, forKey: "clock12"); d.set(wind.rawValue, forKey: "wind")
         d.set(pixelFont, forKey: "pixelFont"); d.set(useLocation, forKey: "useLocation")
         d.set(notifyRain, forKey: "notifyRain"); d.set(notifyMorning, forKey: "notifyMorning"); d.set(notifyChange, forKey: "notifyChange")
-        d.set(notifyAlert, forKey: "notifyAlert"); d.set(notifyNearRain, forKey: "notifyNearRain"); d.set(morningTime, forKey: "morningTime"); d.set(voiceChoice, forKey: "voiceChoice")
+        d.set(notifyAlert, forKey: "notifyAlert"); d.set(notifyMonthly, forKey: "notifyMonthly"); d.set(notifyNearRain, forKey: "notifyNearRain"); d.set(morningTime, forKey: "morningTime"); d.set(voiceChoice, forKey: "voiceChoice")
         d.set(onboarded, forKey: "onboarded")
     }
 
@@ -389,27 +393,7 @@ final class AppModel: ObservableObject {
 
     /// A Korean place outside the index and the catalog ("here" while live, Apple Maps picks): Japanese reads its Korean
     /// name in katakana, Korean gets the Korean name back, English keeps the name it has.
-    nonisolated static func koreanNamed(_ p: Place, _ lang: Lang) -> Place {
-        guard p.region == "kr" else { return p }
-        var q = p
-        if q.ko == nil, KoreanKana.hasHangul(p.name) { q.ko = p.name }
-        guard let ko = q.ko else { return p }
-        let koShort = ko.split(separator: " ").last.map(String.init) ?? ko
-        switch lang {
-        case .ja:
-            let words = ko.split(separator: " ").map(String.init)
-            let head = words.first.flatMap { KoreanKana.province($0) }
-            q.name = ([head ?? KoreanKana.place(words.first ?? "")] + words.dropFirst().map { KoreanKana.place($0) })
-                .filter { !$0.isEmpty }.joined(separator: " ")
-            q.short = words.count == 1 ? (head ?? KoreanKana.place(koShort)) : KoreanKana.place(koShort)
-        case .ko:
-            q.name = ko
-            q.short = koShort
-        default:
-            break
-        }
-        return q
-    }
+    nonisolated static func koreanNamed(_ p: Place, _ lang: Lang) -> Place { HerePlace.koreanNamed(p, lang) }
 
     /// Hand the current forecast to the widgets and the watch, and re-plan notifications from it.
     func publish() {
@@ -428,9 +412,13 @@ final class AppModel: ObservableObject {
         // the rain alert comes as the Live Activity's own banner once the server can push it; else the app's own
         let rainHere = notifyRain && plus && !isSample && !LiveActivities.shared.active
         Task { await LiveActivities.shared.register(self) }   // the toggle travels with the device
+        // the 월간 리포트: Plus, for a month that has days recorded
+        var monthly: Notifications.MonthlyFire?
+        if notifyMonthly && plus && !isSample, let f = Notifications.monthlyFire(after: Date(), morning: morningTime),
+           dayLog.records(currentPlace.id).contains(where: { $0.date.hasPrefix(f.month + "-") }) { monthly = f }
         Notifications.plan(scene: scene, place: currentPlace, rain: rainHere, morning: notifyMorning && !isSample,
                            change: notifyChange && plus && !isSample, morningTime: morningTime, unitF: unitF, voice: voice, clock12: clock12,
-                           character: shownCharacter, plus: plus)
+                           character: shownCharacter, plus: plus, monthly: monthly)
     }
 
     /// A toggle went on: ask for permission if nobody asked yet, then plan.

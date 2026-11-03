@@ -6,11 +6,11 @@ import UserNotifications
 /// computed in that time zone and scheduled as an interval (correct wherever the phone is).
 /// (기상특보 push needs the server to send it; until then warnings show in the bubble only.)
 enum Notifications {
-    static func plan(scene s: WeatherScene, place: Place, rain: Bool, morning: Bool, change: Bool, morningTime: Date, unitF: Bool, voice: Voice = .polite, clock12: Bool = false, character: PurrCharacter = .cat, plus: Bool = false) {
+    static func plan(scene s: WeatherScene, place: Place, rain: Bool, morning: Bool, change: Bool, morningTime: Date, unitF: Bool, voice: Voice = .polite, clock12: Bool = false, character: PurrCharacter = .cat, plus: Bool = false, monthly: MonthlyFire? = nil) {
         let deg = { (v: Int) -> String in "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)°" }
         let c = UNUserNotificationCenter.current()
         c.getNotificationSettings { settings in
-            c.removePendingNotificationRequests(withIdentifiers: ["rain", "morning", "change"])
+            c.removePendingNotificationRequests(withIdentifiers: ["rain", "morning", "change", "monthly"])
             guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else { return }
 
             // 비 오기 전: an hour before the first rainy hour (as the Live Activity does) (quiet hours 22:00–07:00 skipped)
@@ -61,7 +61,45 @@ enum Notifications {
                 if cc.minute == 60 { cc.minute = 0; cc.hour = ((cc.hour ?? 7) + 1) % 24 }
                 c.add(UNNotificationRequest(identifier: "change", content: n, trigger: UNCalendarNotificationTrigger(dateMatching: cc, repeats: false)))
             }
+
+            // 월간 리포트 (Plus): the 1st, opening the 날씨 달력 at the month that just ended
+            if let m = monthly {
+                let n = UNMutableNotificationContent()
+                n.title = voice.say(L("%@ 리포트가 나왔어요", DayLogText.monthName(m.month)))
+                n.body = voice.say(L("비·눈 온 날과 가장 덥고 추웠던 날, 자주 입은 옷을 정리했어요."))
+                n.sound = .default
+                n.userInfo = ["open": "calendar", "month": m.month]
+                c.add(UNNotificationRequest(identifier: "monthly", content: n, trigger: UNCalendarNotificationTrigger(dateMatching: m.at, repeats: false)))
+            }
         }
+    }
+
+    /// When the 월간 리포트 comes and which month it is about
+    struct MonthlyFire: Equatable {
+        var at: DateComponents      // the user's own clock
+        var month: String           // "2026-10"
+    }
+
+    /// The next 1st of a month, two minutes after the morning summary's time (so the two never collapse into one
+    /// line): today when it is the 1st and that time is still ahead (the month before), else the 1st of next month.
+    static func monthlyFire(after now: Date, morning: Date, calendar cal: Calendar = .current) -> MonthlyFire? {
+        let t = cal.dateComponents([.hour, .minute], from: morning)
+        var h = t.hour ?? 7, mi = (t.minute ?? 0) + 2
+        if mi >= 60 { mi -= 60; h = (h + 1) % 24 }
+        func key(_ d: Date) -> String { let c = cal.dateComponents([.year, .month], from: d); return String(format: "%04d-%02d", c.year ?? 2000, c.month ?? 1) }
+        var today = cal.dateComponents([.year, .month, .day], from: now)
+        if today.day == 1 {
+            today.hour = h; today.minute = mi
+            if let at = cal.date(from: today), at.timeIntervalSince(now) > 60,
+               let before = cal.date(byAdding: .month, value: -1, to: now) {
+                return MonthlyFire(at: today, month: key(before))
+            }
+        }
+        guard let first = cal.date(from: cal.dateComponents([.year, .month], from: now)),
+              let next = cal.date(byAdding: .month, value: 1, to: first) else { return nil }
+        var at = cal.dateComponents([.year, .month, .day], from: next)
+        at.hour = h; at.minute = mi
+        return MonthlyFire(at: at, month: key(now))
     }
 
     /// A day's picture: the outfit for its range under its sky; the umbrella open in the rain when it is raining as the
@@ -175,5 +213,23 @@ enum Notifications {
         guard var d = cal.date(bySettingHour: h, minute: 0, second: 0, of: now) else { return nil }
         if d < now { d = cal.date(byAdding: .day, value: 1, to: d) ?? d }
         return (d, h)
+    }
+}
+
+/// A tapped notification's page: the 월간 리포트 opens the 날씨 달력 at its month. (Set as the delegate at launch, so a
+/// tap that opens the app arrives too; banners while the app is open stay off, as without a delegate.)
+final class NotificationRouter: NSObject, UNUserNotificationCenterDelegate, ObservableObject {
+    static let shared = NotificationRouter()
+    /// The month a 월간 리포트 tap asked for, until the app opens it
+    @Published var calendarMonth: String?
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+                                withCompletionHandler done: @escaping () -> Void) {
+        let info = response.notification.request.content.userInfo
+        if info["open"] as? String == "calendar" {
+            let m = info["month"] as? String ?? ""
+            DispatchQueue.main.async { self.calendarMonth = m }
+        }
+        done()
     }
 }

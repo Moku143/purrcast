@@ -706,6 +706,76 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(MonthReport.previous("2026-01"), "2025-12")
     }
 
+    /// The day is where the phone was as it ended: "지금 위치" moving far starts the day over there (a few km does
+    /// not); the character shown is kept; an observed day from elsewhere does not overwrite it
+    func testDayLogFollowsWhereTheDayEnded() throws {
+        let log = dayLog()
+        var s = scene(temp: 12, hi: 15, lo: 8, icon: "cloud", chance: 10)
+        let rows = #"[[["0시",9,10,2,0,80],["3시",8,10,3,0,85],["6시",8,20,3,0,88],["9시",11,40,4,2,70],["12시",14,60,6,4,60],["15시",15,70,7,3,65],["18시",12,50,5,0,75],["21시",10,20,3,0,80]]]"#
+        s.dayDetail = try JSONDecoder().decode([[WeatherScene.DayHour]].self, from: Data(rows.utf8))
+        var home = Place.here; home.timeZone = "Asia/Seoul"; home.lat = 37.56; home.lon = 126.90
+        let t = Date(timeIntervalSince1970: 1_780_000_000)
+        log.record(s, place: home, character: .cat, at: t)
+        var r = try XCTUnwrap(log.records("here").last)
+        XCTAssertEqual(r.char, "cat")
+        let feels = try XCTUnwrap(r.feels)
+        XCTAssertLessThan(feels, 11.5)              // night and wind pull the day's feels-like under its middle
+        XCTAssertEqual(r.level, Rules.level(feels: feels))
+        // on to 수원 (~35 km): the day starts over there
+        var trip = home; trip.short = "수원"; trip.lat = 37.26; trip.lon = 127.03
+        var s2 = s; s2.temp = 20; s2.days = [WeatherScene.DayRow(name: "오늘", icon: "sun", chance: 0, lo: 10, hi: 21)]
+        log.record(s2, place: trip, character: .abys, at: t.addingTimeInterval(3600))
+        r = try XCTUnwrap(log.records("here").last)
+        XCTAssertEqual(log.records("here").count, 1)
+        XCTAssertEqual(r.place, "수원")
+        XCTAssertEqual(r.lo, 10)                    // not the morning's 8 at home
+        XCTAssertEqual(r.character, .abys)
+        // a couple of km more is still the same day
+        var near = trip; near.lat += 0.02
+        s2.temp = 22
+        log.record(s2, place: near, character: .abys, at: t.addingTimeInterval(7200))
+        XCTAssertEqual(log.records("here").last?.seenLo, 20)
+        // observations for home do not overwrite a day spent in 수원; observations for 수원 do
+        var o = DayRecord(date: r.date, hi: 30, lo: 25, icon: "sun"); o.obs = true
+        log.merge([o], placeID: "here", near: (home.lat, home.lon))
+        XCTAssertEqual(log.records("here").last?.hi, 22)
+        log.merge([o], placeID: "here", near: (trip.lat, trip.lon))
+        XCTAssertEqual(log.records("here").last?.hi, 30)
+        // the report shows the character of most days
+        var a = (1...3).map { DayRecord(date: "2026-11-0\($0)", hi: 10, lo: 2, icon: "sun") }
+        a[0].char = "abys"; a[1].char = "abys"; a[2].char = "cat"
+        XCTAssertEqual(MonthReport.make(a, month: "2026-11").character, .abys)
+    }
+
+    /// The widget's last refresh of the day comes at 23:55 where the place is, unless the regular one comes first
+    func testClosingRefreshBeforeMidnight() throws {
+        let tz = try XCTUnwrap(TimeZone(identifier: "Asia/Seoul"))
+        var c = Calendar(identifier: .gregorian); c.timeZone = tz
+        let at = try XCTUnwrap(c.date(from: DateComponents(year: 2026, month: 11, day: 3, hour: 22, minute: 10)))
+        let close = try XCTUnwrap(DayLog.closingRefresh(after: at, regular: at.addingTimeInterval(3 * 3600), tz: tz))
+        XCTAssertEqual(c.component(.hour, from: close), 23)
+        XCTAssertEqual(c.component(.minute, from: close), 55)
+        XCTAssertNil(DayLog.closingRefresh(after: at, regular: at.addingTimeInterval(1800), tz: tz))
+    }
+
+    /// The 월간 리포트 comes on the 1st after the morning summary, about the month that just ended
+    func testMonthlyReportFiresOnTheFirst() throws {
+        var c = Calendar(identifier: .gregorian); c.timeZone = try XCTUnwrap(TimeZone(identifier: "Asia/Seoul"))
+        let morning = try XCTUnwrap(c.date(from: DateComponents(year: 2026, month: 1, day: 1, hour: 7, minute: 0)))
+        let mid = try XCTUnwrap(c.date(from: DateComponents(year: 2026, month: 11, day: 3, hour: 22)))
+        let a = try XCTUnwrap(Notifications.monthlyFire(after: mid, morning: morning, calendar: c))
+        XCTAssertEqual(a.month, "2026-11")
+        XCTAssertEqual([a.at.year, a.at.month, a.at.day, a.at.hour, a.at.minute], [2026, 12, 1, 7, 2])
+        // the 1st before the morning time: today, about the month before
+        let early = try XCTUnwrap(c.date(from: DateComponents(year: 2027, month: 1, day: 1, hour: 6)))
+        let b = try XCTUnwrap(Notifications.monthlyFire(after: early, morning: morning, calendar: c))
+        XCTAssertEqual(b.month, "2026-12")
+        XCTAssertEqual([b.at.year, b.at.month, b.at.day], [2027, 1, 1])
+        // the 1st after it: next month's
+        let late = try XCTUnwrap(c.date(from: DateComponents(year: 2027, month: 1, day: 1, hour: 9)))
+        XCTAssertEqual(Notifications.monthlyFire(after: late, morning: morning, calendar: c)?.month, "2027-01")
+    }
+
     /// Chinese writes no spaces: the watch bubble breaks after the time instead of showing only its icon
     func testChineseBubbleBreaksAfterTheTime() {
         Lang.current = .zhHans

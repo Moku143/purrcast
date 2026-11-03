@@ -25,6 +25,10 @@ enum DayLogText {
     static func monthTitle(_ month: String) -> String { format(month, "yMMMM") }
     /// "11월" · "November"
     static func monthName(_ month: String) -> String { format(month, "MMMM") }
+    /// "11월" · "Nov" (the month picker)
+    static func monthShort(_ month: String) -> String { format(month, "MMM") }
+    /// "2026년" · "2026"
+    static func year(_ y: Int) -> String { format(String(format: "%04d-01", y), "y") }
     /// "11월 3일" · "Nov 3"
     static func day(_ key: String) -> String { format(key, "MMMd") }
     /// "11월 3일 (화)" · "Tue, Nov 3"
@@ -90,7 +94,7 @@ struct WeekLogCard: View {
                         VStack(spacing: 5) {
                             Text(today ? L("오늘") : DayLogText.weekday(k)).font(.px(11)).foregroundStyle(today ? ink.ink : ink.sub).lineLimit(1).minimumScaleFactor(0.7)
                             if let r = byDate[k] {
-                                DayFigure(character: model.shownCharacter, level: r.level, width: 36)
+                                DayFigure(character: r.character ?? model.shownCharacter, level: r.level, width: 36)
                                 PixelIcon(name: r.icon, size: 22)
                                 Text(model.deg(r.hi)).font(.px(13))
                                 Text(model.deg(r.lo)).font(.px(11)).foregroundStyle(ink.sub)
@@ -129,6 +133,11 @@ struct CalendarSheet: View {
     @State private var openDay: DayKey?
     /// The month as the weather (sky · high · low) or as the outfits worn
     @State private var outfits = false
+    /// The month picker (the month's name tapped)
+    @State private var picking = false
+    /// Which way the month turned (+1: on to the next), for the slide; the finger's pull while dragging
+    @State private var turn = 1
+    @State private var pull: CGFloat = 0
 
     var body: some View {
         let place = model.currentPlace
@@ -137,27 +146,41 @@ struct CalendarSheet: View {
         let tz = TimeZone(identifier: place.timeZone) ?? .current
         let today = DayLog.dayKey(Date(), tz: tz)
         let thisMonth = String(today.prefix(7))
-        // back a year: the days the phone missed are filled in from what the weather was
-        let first = min(all.first.map { String($0.date.prefix(7)) } ?? thisMonth, model.isSample ? thisMonth : DayLogText.shift(thisMonth, by: -12))
+        // back to January two years ago (the days are kept three years): the days the phone missed are filled in from
+        // what the weather was
+        let first = min(all.first.map { String($0.date.prefix(7)) } ?? thisMonth, String(format: "%04d-01", (Int(thisMonth.prefix(4)) ?? 2026) - 2))
         let m = month.isEmpty ? thisMonth : month
         let report = MonthReport.make(all, month: m)
         VStack(spacing: 0) {
             SheetHeader(title: L("날씨 달력"), trailing: L("닫기")) { dismiss() }
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 14) {
-                    monthBar(m, canBack: m > first, canNext: m < thisMonth, thisMonth: thisMonth, place: place)
-                    grid(m, byDate: byDate, today: today)
-                    reportCard(report, month: m)
+                    monthBar(m, first: first, thisMonth: thisMonth, place: place)
+                    // the month and its report slide together; a sideways drag anywhere turns the month
+                    ZStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            grid(m, byDate: byDate, today: today)
+                            reportCard(report, month: m)
+                        }
+                        .id(m)
+                        .transition(.asymmetric(insertion: .move(edge: turn > 0 ? .trailing : .leading).combined(with: .opacity),
+                                                removal: .move(edge: turn > 0 ? .leading : .trailing).combined(with: .opacity)))
+                    }
+                    .offset(x: pull)
                     Text(L("날씨를 볼 때마다 그날 날씨가 하루씩 쌓여요.")).font(.ui(12)).foregroundStyle(UI.sub).padding(.top, 2)
                 }
                 .padding(.horizontal, 16).padding(.bottom, 30)
+                .contentShape(Rectangle())
+                .simultaneousGesture(swipe(m, first: first, thisMonth: thisMonth))
             }
+            .clipped()
         }
         .background(UI.bg)
         .sheet(item: $openDay) { d in
             // a day with hours opens the same day sheet as a forecast day; one without, its numbers in rows
             if let r = byDate[d.id], let sc = r.scene(tz: tz), let date = DayLog.date(d.id) {
-                DayDetailView(start: 0, past: .init(scene: sc, date: date, air: r.aqiGrade.map { .init(value: r.aqi, grade: $0, main: r.aqiMain, kind: r.aqiKind ?? "cai", hour: r.aqiHour) }))
+                DayDetailView(start: 0, past: .init(scene: sc, date: date, air: r.aqiGrade.map { .init(value: r.aqi, grade: $0, main: r.aqiMain, kind: r.aqiKind ?? "cai", hour: r.aqiHour) },
+                                                    character: r.character))
                     .presentationDetents([.large]).presentationCornerRadius(28)
             } else {
                 DayLogSheet(key: d.id, record: byDate[d.id]).presentationDetents([.large]).presentationCornerRadius(28)
@@ -166,14 +189,16 @@ struct CalendarSheet: View {
         .task(id: "fill|\(m)|\(place.id)") { await model.fillHistory(for: place, month: m) }   // the month's missed days
         .task(id: "\(m)|\(all.count)|\(model.shownCharacter.rawValue)") {
             shareImage = ShareCard.render(report: report, month: m, place: place.short, records: all.filter { $0.date.hasPrefix(m + "-") },
-                                          character: model.shownCharacter, deg: model.deg)
+                                          character: report.character ?? model.shownCharacter, deg: model.deg)
         }
         .onAppear {
+            if let asked = model.calendarMonth { month = asked; model.calendarMonth = nil }    // a 월간 리포트 tapped
             #if DEBUG
             let args = ProcessInfo.processInfo.arguments
             func arg(_ k: String) -> String? { args.firstIndex(of: k).flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil } }
             if let n = arg("-calMonth").flatMap(Int.init) { month = DayLogText.shift(thisMonth, by: n) }
             if args.contains("-calOutfits") { outfits = true }
+            if args.contains("-calPick") { picking = true }
             if let n = arg("-calDay").flatMap(Int.init) {
                 let k = DayLog.dayKey(Date().addingTimeInterval(Double(-n) * 86400), tz: tz)
                 selected = k; openDay = DayKey(id: k)
@@ -182,40 +207,68 @@ struct CalendarSheet: View {
         }
     }
 
-    /// 오늘 (back to this month) · the month between its arrows · 날씨 | 옷차림
-    private func monthBar(_ m: String, canBack: Bool, canNext: Bool, thisMonth: String, place: Place) -> some View {
-        HStack(spacing: 10) {
-            Button { Haptic.soft(); withAnimation(Motion.gentle) { month = thisMonth } } label: {
+    /// 오늘 (back to this month) · the month between its arrows (tapped: any month) · 날씨 | 옷차림
+    private func monthBar(_ m: String, first: String, thisMonth: String, place: Place) -> some View {
+        HStack(spacing: 8) {
+            Button { Haptic.soft(); turnTo(thisMonth, from: m) } label: {
                 Text(L("오늘")).font(.ui(13, .semibold)).foregroundStyle(m == thisMonth ? UI.faint : UI.ink)
+                    .lineLimit(1).fixedSize()
                     .padding(.horizontal, 12).frame(height: 38).background(Color.white, in: Capsule())
             }
             .buttonStyle(.press(0.94)).disabled(m == thisMonth).accessibilityIdentifier("cal-today")
             Spacer(minLength: 0)
-            HStack(spacing: 2) {
-                arrow("chevron.left", enabled: canBack, label: L("이전")) { go(m, -1) }
-                VStack(spacing: 1) {
-                    Text(DayLogText.monthTitle(m)).font(.px(15)).foregroundStyle(UI.ink).lineLimit(1).fixedSize()
-                    Text(place.short).font(.ui(11)).foregroundStyle(UI.sub).lineLimit(1)
-                }
-                arrow("chevron.right", enabled: canNext, label: L("다음")) { go(m, 1) }
-            }
-            .padding(.horizontal, 4).frame(height: 48).background(Color.white, in: Capsule())
-            Spacer(minLength: 0)
-            // the month as the weather, or as what was worn
             HStack(spacing: 0) {
-                modeButton(on: !outfits, id: "cal-mode-weather") { PixelIcon(name: "partly_cloudy", size: 18) } action: { outfits = false }
-                modeButton(on: outfits, id: "cal-mode-outfits") {
-                    Image(model.shownCharacter.faceImage).resizable().interpolation(.none).scaledToFit().frame(width: 18, height: 18)
-                } action: { outfits = true }
+                arrow("chevron.left", enabled: m > first, label: L("이전")) { go(m, -1) }
+                Button { Haptic.soft(); picking = true } label: {
+                    VStack(spacing: 1) {
+                        HStack(spacing: 3) {
+                            Text(DayLogText.monthTitle(m)).font(.px(15)).foregroundStyle(UI.ink).lineLimit(1).fixedSize()
+                            Image(systemName: "chevron.down").font(.system(size: 8, weight: .heavy)).foregroundStyle(UI.sub)
+                        }
+                        Text(place.short).font(.ui(11)).foregroundStyle(UI.sub).lineLimit(1)
+                    }
+                    .padding(.horizontal, 2).frame(height: 48).contentShape(Rectangle())
+                }
+                .buttonStyle(.press(0.96)).accessibilityIdentifier("cal-month")
+                .popover(isPresented: $picking, arrowEdge: .top) {
+                    MonthPicker(selected: m, first: first, last: thisMonth) { k in
+                        picking = false
+                        if k != m { turnTo(k, from: m) }
+                    }
+                    .presentationCompactAdaptation(.popover)
+                }
+                arrow("chevron.right", enabled: m < thisMonth, label: L("다음")) { go(m, 1) }
             }
-            .padding(3).background(Color.white, in: Capsule())
+            .padding(.horizontal, 2).frame(height: 48).background(Color.white, in: Capsule())
+            Spacer(minLength: 0)
+            // the month as the weather, or as what was worn: with their names where they fit
+            ViewThatFits(in: .horizontal) {
+                modes(labels: true)
+                modes(labels: false)
+            }
         }
         .padding(.top, 2)
     }
 
-    private func modeButton<C: View>(on: Bool, id: String, @ViewBuilder _ c: () -> C, action: @escaping () -> Void) -> some View {
+    private func modes(labels: Bool) -> some View {
+        HStack(spacing: 0) {
+            modeButton(on: !outfits, id: "cal-mode-weather", text: labels ? L("날씨") : nil) { PixelIcon(name: "partly_cloudy", size: 16) } action: { outfits = false }
+            modeButton(on: outfits, id: "cal-mode-outfits", text: labels ? L("옷차림") : nil) {
+                Image(model.shownCharacter.faceImage).resizable().interpolation(.none).scaledToFit().frame(width: 16, height: 16)
+            } action: { outfits = true }
+        }
+        .padding(3).background(Color.white, in: Capsule())
+        .fixedSize()
+    }
+
+    private func modeButton<C: View>(on: Bool, id: String, text: String?, @ViewBuilder _ c: () -> C, action: @escaping () -> Void) -> some View {
         Button { Haptic.select(); withAnimation(Motion.snappy, action) } label: {
-            c().frame(width: 34, height: 32).background(on ? Color(hex: "#E9ECF3") : Color.clear, in: Capsule())
+            HStack(spacing: 3) {
+                c()
+                if let text { Text(text).font(.ui(12, on ? .semibold : .regular)).foregroundStyle(on ? UI.ink : UI.sub).lineLimit(1).fixedSize() }
+            }
+            .padding(.horizontal, text == nil ? 9 : 8).frame(height: 32)
+            .background(on ? Color(hex: "#E9ECF3") : Color.clear, in: Capsule())
         }
         .buttonStyle(.press(0.94)).accessibilityIdentifier(id)
         .accessibilityLabel(Text(id == "cal-mode-weather" ? L("날씨") : L("옷차림")))
@@ -223,14 +276,45 @@ struct CalendarSheet: View {
 
     private func arrow(_ name: String, enabled: Bool, label: String, _ action: @escaping () -> Void) -> some View {
         Button { Haptic.soft(); action() } label: {
-            Image(systemName: name).font(.system(size: 13, weight: .bold)).frame(width: 32, height: 40)
+            Image(systemName: name).font(.system(size: 13, weight: .bold)).frame(width: 30, height: 40)
         }
         .foregroundStyle(enabled ? UI.ink : UI.faint).disabled(!enabled)
         .buttonStyle(.press(0.92)).accessibilityLabel(Text(label)).accessibilityIdentifier(name == "chevron.left" ? "cal-prev" : "cal-next")
     }
 
-    private func go(_ m: String, _ n: Int) {
-        withAnimation(Motion.gentle) { month = DayLogText.shift(m, by: n); selected = nil }
+    /// A sideways drag anywhere on the page: the page follows the finger (held back where there is no month to go
+    /// to), and past a third of a thumb's width the month turns
+    private func swipe(_ m: String, first: String, thisMonth: String) -> some Gesture {
+        DragGesture(minimumDistance: 18)
+            .onChanged { v in
+                let w = v.translation.width
+                guard abs(w) > abs(v.translation.height) * 1.2 else { return }
+                let can = w < 0 ? m < thisMonth : m > first
+                pull = can ? w * 0.6 : w * 0.18
+            }
+            .onEnded { v in
+                let w = v.translation.width, far = v.predictedEndTranslation.width
+                let sideways = abs(w) > abs(v.translation.height) * 1.2
+                let n = w < 0 ? 1 : -1
+                let next = DayLogText.shift(m, by: n)
+                if sideways, abs(w) > 60 || abs(far) > 160, next >= first, next <= thisMonth {
+                    Haptic.soft()
+                    turnTo(next, from: m)
+                } else {
+                    withAnimation(Motion.snappy) { pull = 0 }
+                }
+            }
+    }
+
+    private func go(_ m: String, _ n: Int) { turnTo(DayLogText.shift(m, by: n), from: m) }
+
+    /// To another month, sliding the way it lies: the direction is set a frame ahead, so the month leaving slides
+    /// out the same way the new one comes in
+    private func turnTo(_ k: String, from m: String) {
+        turn = k > m ? 1 : -1
+        DispatchQueue.main.async {
+            withAnimation(Motion.gentle) { month = k; selected = nil; pull = 0 }
+        }
     }
 
     // MARK: 월간 리포트
@@ -254,7 +338,7 @@ struct CalendarSheet: View {
                 HStack(alignment: .top, spacing: 10) {
                     if let lv = r.level {
                         VStack(spacing: 4) {
-                            DayFigure(character: model.shownCharacter, level: lv, width: 62)
+                            DayFigure(character: r.character ?? model.shownCharacter, level: lv, width: 62)
                             Text(L("자주 입은 옷")).font(.ui(11)).foregroundStyle(UI.sub).lineLimit(1).minimumScaleFactor(0.7)
                         }
                         .frame(width: 78)
@@ -314,11 +398,6 @@ struct CalendarSheet: View {
         }
         .padding(.horizontal, 6).padding(.vertical, 14)
         .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
-        .gesture(DragGesture(minimumDistance: 30).onEnded { v in
-            guard abs(v.translation.width) > abs(v.translation.height) else { return }
-            let next = DayLogText.shift(m, by: v.translation.width < 0 ? 1 : -1)
-            if next <= String(today.prefix(7)) { withAnimation(Motion.gentle) { month = next; selected = nil } }
-        })
     }
 
     private var cellHeight: CGFloat { outfits ? 92 : 86 }
@@ -334,7 +413,7 @@ struct CalendarSheet: View {
                     .background(Circle().fill(isToday ? UI.ink : Color.clear))
                 if let r {
                     if outfits {
-                        DayFigure(character: model.shownCharacter, level: r.level, width: 40)
+                        DayFigure(character: r.character ?? model.shownCharacter, level: r.level, width: 40)
                     } else {
                         PixelIcon(name: r.icon, size: 22)
                         HStack(spacing: 2) {
@@ -351,6 +430,64 @@ struct CalendarSheet: View {
         }
         .buttonStyle(.press(0.95)).disabled(future)
         .accessibilityIdentifier("cal-\(k)")
+    }
+}
+
+// MARK: the month picker
+
+/// Any month at once: the year between its arrows, its twelve months (the months with no 날씨 기록 to show — before
+/// the first kept, after this one — greyed out)
+struct MonthPicker: View {
+    let selected: String
+    let first: String
+    let last: String
+    let pick: (String) -> Void
+    @State private var year: Int
+
+    init(selected: String, first: String, last: String, pick: @escaping (String) -> Void) {
+        self.selected = selected; self.first = first; self.last = last; self.pick = pick
+        _year = State(initialValue: Int(selected.prefix(4)) ?? 2026)
+    }
+
+    var body: some View {
+        let firstYear = Int(first.prefix(4)) ?? year, lastYear = Int(last.prefix(4)) ?? year
+        VStack(spacing: 14) {
+            HStack {
+                yearArrow("chevron.left", enabled: year > firstYear, label: L("이전")) { year -= 1 }
+                Spacer()
+                Text(DayLogText.year(year)).font(.px(17)).foregroundStyle(UI.ink).contentTransition(.numericText())
+                Spacer()
+                yearArrow("chevron.right", enabled: year < lastYear, label: L("다음")) { year += 1 }
+            }
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
+                ForEach(1...12, id: \.self) { mo in
+                    let k = String(format: "%04d-%02d", year, mo)
+                    let on = k == selected, open = k >= first && k <= last
+                    Button { Haptic.select(); pick(k) } label: {
+                        Text(DayLogText.monthShort(k)).font(.ui(14, on ? .bold : .regular))
+                            .foregroundStyle(on ? Color.white : (open ? UI.ink : UI.faint))
+                            .lineLimit(1).minimumScaleFactor(0.7)
+                            .frame(maxWidth: .infinity).frame(height: 40)
+                            .background(on ? UI.ink : Color(hex: "#F2F4F8"), in: Capsule())
+                    }
+                    .buttonStyle(.press(0.94)).disabled(!open)
+                    .accessibilityIdentifier("pick-\(k)")
+                }
+            }
+        }
+        .padding(16)
+        .frame(width: 300)
+        .background(Color.white)
+    }
+
+    private func yearArrow(_ name: String, enabled: Bool, label: String, _ action: @escaping () -> Void) -> some View {
+        Button { Haptic.soft(); withAnimation(Motion.snappy, action) } label: {
+            Image(systemName: name).font(.system(size: 14, weight: .bold)).frame(width: 40, height: 36)
+                .background(Color(hex: "#F2F4F8"), in: Capsule())
+        }
+        .foregroundStyle(enabled ? UI.ink : UI.faint).disabled(!enabled)
+        .buttonStyle(.press(0.92)).accessibilityLabel(Text(label))
+        .accessibilityIdentifier(name == "chevron.left" ? "pick-prev-year" : "pick-next-year")
     }
 }
 

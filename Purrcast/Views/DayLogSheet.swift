@@ -52,7 +52,7 @@ struct DayLogSheet: View {
     private func list(_ r: DayRecord) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 16) {
-                DayFigure(character: model.shownCharacter, level: r.level, width: 84)
+                DayFigure(character: r.character ?? model.shownCharacter, level: r.level, width: 84)
                 VStack(alignment: .leading, spacing: 6) {
                     if !r.place.isEmpty { Text(r.place).font(.ui(14, .medium)).foregroundStyle(UI.sub) }
                     HStack(alignment: .firstTextBaseline, spacing: 8) {

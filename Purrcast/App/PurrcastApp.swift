@@ -1,10 +1,16 @@
 import SwiftUI
+import UserNotifications
 
 @main
 struct PurrcastApp: App {
     @StateObject private var model = AppModel()
     @StateObject private var purchases = Purchases()
     @Environment(\.scenePhase) private var phase
+
+    init() {
+        // before launch ends, so the tap that opened the app reaches it too
+        UNUserNotificationCenter.current().delegate = NotificationRouter.shared
+    }
 
     /// -narrow (debug): the page in a 320 × 693-pt box — the width of a 6.1-inch phone with Display Zoom on — so the
     /// screenshots show that nothing is cut off there
@@ -117,6 +123,14 @@ struct RootView: View {
             DayDetailView(start: d.value).presentationDetents([.large]).presentationCornerRadius(28)
         }
         .onAppear(perform: openFromLaunchArguments)
+        // a 월간 리포트 tapped: the 날씨 달력 at its month
+        .onReceive(NotificationRouter.shared.$calendarMonth) { m in
+            guard let m, model.onboarded else { return }
+            model.calendarMonth = m.isEmpty ? nil : m
+            NotificationRouter.shared.calendarMonth = nil
+            day = nil
+            route = .calendar
+        }
     }
 
     /// UI tests open a page directly: -open character|paywall|settings|places|sources|widgets|language|licenses|day|today (debug builds only)
