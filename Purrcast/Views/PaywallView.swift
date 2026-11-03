@@ -379,17 +379,55 @@ struct PaywallView: View {
 struct FlowChecks: View {
     let items: [String]
     var body: some View {
-        let rows = stride(from: 0, to: items.count, by: 3).map { Array(items[$0..<min($0 + 3, items.count)]) }
-        VStack(spacing: 8) {
-            ForEach(rows, id: \.self) { r in
-                HStack(spacing: 8) {
-                    ForEach(r, id: \.self) { t in
-                        Text("✓ " + t).font(.ui(12, .medium)).foregroundStyle(UI.ink).lineLimit(1).fixedSize()
-                            .padding(.horizontal, 10).padding(.vertical, 6).background(Color.white.opacity(0.8)).clipShape(Capsule())
-                    }
-                }
+        // as many to a row as fit: a long language (Deutsch, Bahasa Indonesia) wraps instead of pushing the page wider
+        WrapLayout(spacing: 8, lineSpacing: 8) {
+            ForEach(items, id: \.self) { t in
+                Text("✓ " + t).font(.ui(12, .medium)).foregroundStyle(UI.ink).lineLimit(1)
+                    .padding(.horizontal, 10).padding(.vertical, 6).background(Color.white.opacity(0.8)).clipShape(Capsule())
             }
-        }.frame(maxWidth: .infinity)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+/// Chips in rows that wrap at the width given, each row centred; a chip wider than the row is cut to fit.
+struct WrapLayout: Layout {
+    var spacing: CGFloat = 8
+    var lineSpacing: CGFloat = 8
+
+    private struct Row { var items: [Int] = []; var width: CGFloat = 0; var height: CGFloat = 0 }
+
+    private func rows(_ subviews: Subviews, _ maxW: CGFloat) -> [Row] {
+        var out: [Row] = [], cur = Row()
+        for (i, v) in subviews.enumerated() {
+            let s = v.sizeThatFits(.unspecified), w = min(s.width, maxW)
+            if !cur.items.isEmpty && cur.width + spacing + w > maxW { out.append(cur); cur = Row() }
+            cur.width = cur.items.isEmpty ? w : cur.width + spacing + w
+            cur.items.append(i)
+            cur.height = max(cur.height, s.height)
+        }
+        if !cur.items.isEmpty { out.append(cur) }
+        return out
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxW = proposal.width ?? .infinity
+        let r = rows(subviews, maxW)
+        let h = r.reduce(0) { $0 + $1.height } + lineSpacing * CGFloat(max(0, r.count - 1))
+        return CGSize(width: proposal.width ?? (r.map(\.width).max() ?? 0), height: h)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for row in rows(subviews, bounds.width) {
+            var x = bounds.minX + (bounds.width - row.width) / 2
+            for i in row.items {
+                let s = subviews[i].sizeThatFits(.unspecified), w = min(s.width, bounds.width)
+                subviews[i].place(at: CGPoint(x: x, y: y + (row.height - s.height) / 2), proposal: ProposedViewSize(width: w, height: s.height))
+                x += w + spacing
+            }
+            y += row.height + lineSpacing
+        }
     }
 }
 
