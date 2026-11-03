@@ -297,7 +297,7 @@ struct DayLogSheet: View {
                 SettingRow(icon: "thermo_cold", title: L("최저")) { value(model.deg(r.lo)) }
                 if let a = r.feelsLo, let b = r.feelsHi {
                     RowDivider()
-                    SettingRow(icon: "sweat", title: L("체감")) { value("\(model.deg(a)) ~ \(model.deg(b))") }
+                    SettingRow(icon: "thermo_cold", title: L("체감")) { value("\(model.deg(a)) ~ \(model.deg(b))") }
                 }
             }
             SectionLabel(text: L("비 · 바람"))
@@ -335,17 +335,19 @@ struct DayLogSheet: View {
 
     private func mixedLook(_ r: DayRecord) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .center, spacing: 16) {
-                DayPicture(record: r, character: model.shownCharacter)
-                    .frame(width: 124, height: 124).clipShape(RoundedRectangle(cornerRadius: 14))
-                VStack(alignment: .leading, spacing: 8) {
-                    if !r.place.isEmpty { Text(r.place).font(.ui(14, .medium)).foregroundStyle(UI.sub) }
-                    range(r, big: 34)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .center, spacing: 16) {
+                    DayPicture(record: r, character: model.shownCharacter)
+                        .frame(width: 124, height: 124).clipShape(RoundedRectangle(cornerRadius: 14))
+                    VStack(alignment: .leading, spacing: 8) {
+                        if !r.place.isEmpty { Text(r.place).font(.ui(14, .medium)).foregroundStyle(UI.sub) }
+                        range(r, big: 34)
+                    }
+                    Spacer(minLength: 0)
                 }
-                Spacer(minLength: 0)
+                say(r)
             }
             .card()
-            say(r)
             alerts(r)
             if CalendarDayChart.series(.temp, r) != nil {
                 VStack(alignment: .leading, spacing: 10) {
