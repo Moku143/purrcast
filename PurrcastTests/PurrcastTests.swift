@@ -608,4 +608,44 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(AppleSearch.shortName("Shibuya, Tokyo", korean: false), "Shibuya")
         XCTAssertEqual(AppleSearch.shortName("서울특별시 강남구 역삼동", korean: true), "역삼동")
     }
+
+    // MARK: 전일 대비 kept on the phone
+
+    private func history() -> TempHistory {
+        let d = UserDefaults(suiteName: "test.tempHistory")!
+        d.removePersistentDomain(forName: "test.tempHistory")
+        return TempHistory(defaults: d)
+    }
+
+    func testYesterdayFromThePhone() {
+        let h = history()
+        let day = Date(timeIntervalSince1970: 1_780_000_000)   // a fixed moment
+        let m: (Int) -> Date = { day.addingTimeInterval(Double($0) * 60) }
+        // yesterday: 12° an hour before this time, 14° an hour after
+        h.record(12, lat: 37.55, lon: 126.91, at: m(-60))
+        h.record(14, lat: 37.55, lon: 126.91, at: m(60))
+        XCTAssertEqual(h.yesterday(lat: 37.55, lon: 126.91, at: m(24 * 60))!, 13, accuracy: 0.01)   // in between
+        // a few km away is the same ~10 km cell
+        XCTAssertNotNil(h.yesterday(lat: 37.52, lon: 126.93, at: m(24 * 60)))
+        // nothing near this time yesterday: no answer
+        XCTAssertNil(h.yesterday(lat: 37.55, lon: 126.91, at: m(24 * 60 + 300)))
+        // one reading within half an hour is enough
+        XCTAssertEqual(h.yesterday(lat: 37.55, lon: 126.91, at: m(24 * 60 + 80))!, 14, accuracy: 0.01)
+        // another city has its own record
+        XCTAssertNil(h.yesterday(lat: 35.68, lon: 139.69, at: m(24 * 60)))
+    }
+
+    func testYesterdayAppliedToTheScene() {
+        let h = history()
+        let t0 = Date(timeIntervalSince1970: 1_780_000_000)
+        var s = WeatherScene(); s.temp = 10; s.yday = 5    // the server says +5
+        h.apply(to: &s, lat: 37.55, lon: 126.91, at: t0)
+        XCTAssertEqual(s.yday, 5)                            // the phone has no yesterday yet: the server's figure stays
+        var t = WeatherScene(); t.temp = 7; t.yday = 0
+        h.apply(to: &t, lat: 37.55, lon: 126.91, at: t0.addingTimeInterval(86400 + 600))
+        XCTAssertEqual(t.yday, -3)                           // 7° now, 10° this time yesterday
+        // readings a minute apart replace each other; old ones age out after two days
+        h.record(8, lat: 37.55, lon: 126.91, at: t0.addingTimeInterval(86400 + 660))
+        XCTAssertNil(h.yesterday(lat: 37.55, lon: 126.91, at: t0.addingTimeInterval(4 * 86400)))
+    }
 }
