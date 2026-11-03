@@ -1,0 +1,1 @@
+run=41605995191 sha=259695f5303c3505fa154ef37ce1b7eef5275d7e lang=ko part=f Tue Nov  3 09:03:15 UTC 2026
