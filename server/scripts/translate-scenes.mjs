@@ -1,5 +1,5 @@
-// The app's example scenes (Shared/Data/scenes.json, hand-made in Korean) in English and Japanese, for the
-// sample provider when the phone is not Korean: Shared/Data/scenes.en.json · scenes.ja.json.
+// The app's example scenes (Shared/Data/scenes.json, hand-made in Korean) in every other language, for the
+// sample provider when the phone is not Korean: Shared/Data/scenes.<lang>.json.
 // Every string is mapped through src/i18n.js so the words match what the server would send.
 //   node scripts/translate-scenes.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -15,6 +15,22 @@ const EXTRA = {
   ja: { 장맛비: '梅雨の雨', 태풍: '台風', '강한 비바람': '強い雨風', 황사: '黄砂', '꽃샘추위!': '花冷え!', '태풍!': '台風!', '황사!': '黄砂!',
     '구름이 많아 약해요': '弱い（曇り）', '11~14시에 가장 강해요': '11〜14時が最も強い', '11~15시엔 바깥 활동 줄이기': '11〜15時は外出控えめに' },
 };
+
+// the two sample places, as each language writes them
+const PLACES = {
+  en: { '서울 마포구': 'Mapo-gu, Seoul', '도쿄 시부야구': 'Shibuya, Tokyo' },
+  ja: { '서울 마포구': 'ソウル 麻浦区', '도쿄 시부야구': '東京 渋谷区' },
+  es: { '서울 마포구': 'Mapo-gu, Seúl', '도쿄 시부야구': 'Shibuya, Tokio' },
+  fr: { '서울 마포구': 'Mapo-gu, Séoul', '도쿄 시부야구': 'Shibuya, Tokyo' },
+  de: { '서울 마포구': 'Mapo-gu, Seoul', '도쿄 시부야구': 'Shibuya, Tokio' },
+  pt: { '서울 마포구': 'Mapo-gu, Seul', '도쿄 시부야구': 'Shibuya, Tóquio' },
+  it: { '서울 마포구': 'Mapo-gu, Seul', '도쿄 시부야구': 'Shibuya, Tokyo' },
+  id: { '서울 마포구': 'Mapo-gu, Seoul', '도쿄 시부야구': 'Shibuya, Tokyo' },
+  ru: { '서울 마포구': 'Мапхо-гу, Сеул', '도쿄 시부야구': 'Сибуя, Токио' },
+  'zh-Hans': { '서울 마포구': '首尔 麻浦区', '도쿄 시부야구': '东京 涩谷区' },
+  'zh-Hant': { '서울 마포구': '首爾 麻浦區', '도쿄 시부야구': '東京 澀谷區' },
+};
+const MAPO = { ja: '麻浦区', ru: 'Мапхо-гу', 'zh-Hans': '麻浦区', 'zh-Hant': '麻浦區' };
 
 const WHAT = { 비: 'rain', 눈: 'snow', 진눈깨비: 'sleet' };
 function reverse(obj) { return Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k])); }
@@ -34,6 +50,7 @@ function translator(lang) {
   const bubble = (s) => {
     if (bubbleR[s]) return T.bubble[bubbleR[s]];
     if (X[s]) return X[s];
+    const di = KO.dust.bubble.indexOf(s); if (s && di >= 0) return T.dust.bubble[di];   // 미세먼지 나쁨 · 마스크 챙기세요
     const m = s.match(/^(.+?) (비|눈|진눈깨비) 예보$/);
     if (m) return T.expect(when(m[1]), T.what[{ 비: 'rain', 눈: 'snow', 진눈깨비: 'sleet' }[m[2]]]);
     return s;
@@ -76,8 +93,8 @@ function translator(lang) {
   return (scene) => {
     const s = JSON.parse(JSON.stringify(scene));
     s.cond = cond(s.cond);
-    if (s.src === '기상청') s.src = { en: 'KMA', ja: '気象庁' }[lang];
-    if (s.place) s.place = { en: { '서울 마포구': 'Mapo-gu, Seoul', '도쿄 시부야구': 'Shibuya, Tokyo' }, ja: { '서울 마포구': 'ソウル 麻浦区', '도쿄 시부야구': '東京 渋谷区' } }[lang][s.place] ?? s.place;
+    if (s.src === '기상청') s.src = T.src.kma;
+    if (s.place) s.place = PLACES[lang]?.[s.place] ?? PLACES.en[s.place] ?? s.place;
     if (s.bubble) s.bubble.text = bubble(s.bubble.text);
     if (s.alert) { s.alert.name = T.warning(s.alert.name); s.alert.note = alertNote(s.alert.note); }
     s.tiles = s.tiles.map((t) => ({ ...t, label: tileR[t.label] ? T.tile[tileR[t.label]] : t.label, note: note(t.note) }));
@@ -93,7 +110,7 @@ function translator(lang) {
       if (s.dust.note10 != null) s.dust.note10 = line(s.dust.note10);
       if (s.dust.note25 != null) s.dust.note25 = line(s.dust.note25);
       s.dust.src = T.dust.src[s.dust.srcKey] ?? s.dust.src;
-      if (s.dust.station === '마포구') s.dust.station = { en: 'Mapo-gu', ja: '麻浦区' }[lang];
+      if (s.dust.station === '마포구') s.dust.station = MAPO[lang] ?? 'Mapo-gu';
     }
     return s;
   };

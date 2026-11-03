@@ -53,9 +53,8 @@ enum Lang: String, CaseIterable {
     /// ("한국어", "Korean", "Coreano", "韓国語" all find Korean)
     var searchNames: [String] {
         var out = [nativeName, englishName]
-        let code = self == .pt ? "pt-BR" : rawValue
         for l in Lang.allCases {
-            if let n = l.locale.localizedString(forIdentifier: code) { out.append(n) }
+            if let n = l.locale.localizedString(forIdentifier: lproj) { out.append(n) }
         }
         return out
     }
@@ -82,11 +81,14 @@ enum Lang: String, CaseIterable {
         }
     }
 
+    /// The folder name of the language's strings: Brazilian Portuguese lives in pt-BR.lproj, the rest under their own code.
+    var lproj: String { self == .pt ? "pt-BR" : rawValue }
+
     /// The .lproj bundle for each language, loaded once (the main bundle when it is missing).
     private static let bundles: [Lang: Bundle] = {
         var d: [Lang: Bundle] = [:]
         for l in Lang.allCases {
-            if let p = Bundle.main.path(forResource: l.rawValue, ofType: "lproj"), let b = Bundle(path: p) { d[l] = b }
+            if let p = Bundle.main.path(forResource: l.lproj, ofType: "lproj"), let b = Bundle(path: p) { d[l] = b }
         }
         return d
     }()
