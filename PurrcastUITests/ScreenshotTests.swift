@@ -5,6 +5,8 @@ import XCTest
 final class ScreenshotTests: XCTestCase {
     let scenes = ["clear", "maybe", "combo", "tokyo_soon", "spring_rain", "summer_heat", "summer_night", "winter_cold", "winter_snow", "summer_typhoon"]
 
+    override func setUp() { continueAfterFailure = true }   // a simulator hiccup on one picture must not stop the rest
+
     private func shot(_ name: String, _ args: [String], wait: UInt32 = 1, lang: String = "ko", then: ((XCUIApplication) -> Void)? = nil) {
         let app = XCUIApplication()
         let locale = ["ko": "ko_KR", "en": "en_US", "ja": "ja_JP"][lang] ?? "en_US"
