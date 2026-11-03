@@ -85,6 +85,13 @@ enum Compact {
                 parts = [String(h[..<c]), String(h[h.index(after: c)...])]
             }
         }
+        if parts.count == 1, h.count <= perLine * 2, !h.contains(" "), Lang.current == .zhHans || Lang.current == .zhHant {
+            // Chinese writes no spaces: break after the time ("16–19时 / 有雨"), else at the middle
+            let ch = Array(h)
+            var cut = (ch.lastIndex(where: { $0.isNumber || "时時点點".contains($0) }) ?? -1) + 1
+            if cut <= 0 || cut >= ch.count { cut = ch.count / 2 }
+            parts = [String(ch[..<cut]), String(ch[cut...])]
+        }
         if parts.count == 2, parts.allSatisfy({ $0.count <= perLine }) { return parts.joined(separator: "\n") }
         return ""
     }

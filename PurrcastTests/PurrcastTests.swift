@@ -705,4 +705,15 @@ final class PurrcastTests: XCTestCase {
         XCTAssertNil(MonthReport.make(all, month: "2026-10").vsLast)   // September has no days
         XCTAssertEqual(MonthReport.previous("2026-01"), "2025-12")
     }
+
+    /// Chinese writes no spaces: the watch bubble breaks after the time instead of showing only its icon
+    func testChineseBubbleBreaksAfterTheTime() {
+        Lang.current = .zhHans
+        defer { Lang.current = .ko }
+        var s = WeatherScene()
+        s.bubble = WeatherScene.Bubble(kind: "speech", tone: "sky", icon: "umbrella", text: "16–19时有雨预报")
+        XCTAssertEqual(Compact.bubbleWord(s, max: 5), "16–19时\n有雨")
+        s.bubble?.text = "空气较差 · 记得戴口罩"
+        XCTAssertEqual(Compact.bubbleWord(s, max: 5), "空气较差")
+    }
 }
