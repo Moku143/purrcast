@@ -125,7 +125,7 @@ struct CalendarSheet: View {
     @State private var month = ""
     @State private var selected: String?
     @State private var shareImage: UIImage?
-    @State private var metric = DayChart.Metric.temp
+    @State private var metric = CalendarDayChart.Metric.temp
 
     var body: some View {
         let place = model.currentPlace
@@ -347,7 +347,7 @@ struct CalendarSheet: View {
 
     /// The day as graphs: 기온 (with the rain under it) · 비 · 바람 · 습도 · 자외선, one at a time, as the day sheet does
     @ViewBuilder private func graph(_ r: DayRecord) -> some View {
-        let all = DayChart.Metric.allCases.filter { DayChart.series($0, r) != nil }
+        let all = CalendarDayChart.Metric.allCases.filter { CalendarDayChart.series($0, r) != nil }
         if !all.isEmpty {
             let m = all.contains(metric) ? metric : all[0]
             VStack(spacing: 10) {
@@ -370,7 +370,7 @@ struct CalendarSheet: View {
                         }
                     }
                 }
-                DayChart(metric: m, record: r, clock12: model.clock12, deg: model.deg, wind: model.windText)
+                CalendarDayChart(metric: m, record: r, clock12: model.clock12, deg: model.deg, wind: model.windText)
                     .id(m).transition(.opacity)
             }
         }
@@ -413,7 +413,7 @@ struct CalendarSheet: View {
 
 /// One of the day's measures hour by hour: a line (기온 · 바람 · 습도) with its highest and lowest marked, or bars
 /// (비 · 자외선) with the highest marked. Under the temperature line, the hours of rain as small bars.
-struct DayChart: View {
+struct CalendarDayChart: View {
     enum Metric: String, CaseIterable { case temp, rain, wind, humidity, uv
         func title(snow: Bool) -> String {
             switch self { case .temp: return L("기온"); case .rain: return snow ? L("눈") : L("비"); case .wind: return L("바람"); case .humidity: return L("습도"); case .uv: return L("자외선") }
