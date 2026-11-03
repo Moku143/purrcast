@@ -13,17 +13,17 @@ enum Notifications {
             c.removePendingNotificationRequests(withIdentifiers: ["rain", "morning", "change"])
             guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else { return }
 
-            // 비 오기 전: 30 minutes before the first rainy hour (quiet hours 22:00–07:00 skipped)
+            // 비 오기 전: an hour before the first rainy hour (as the Live Activity does) (quiet hours 22:00–07:00 skipped)
             if rain, let first = firstRain(s, tz: TimeZone(identifier: place.timeZone) ?? .current) {
                 let (fire, _) = first
-                let at = fire.addingTimeInterval(-30 * 60)
+                let at = fire.addingTimeInterval(-60 * 60)
                 let localHour = Calendar.current.component(.hour, from: at)
                 if at.timeIntervalSinceNow > 60, localHour >= 7, localHour < 22 {
                     let n = UNMutableNotificationContent()
                     var cal = Calendar.current; cal.timeZone = TimeZone(identifier: place.timeZone) ?? .current
                     let h = cal.component(.hour, from: fire)
                     n.title = voice.say(L("%@쯤 비 예보 · 우산 챙기세요", HourLabel.word(h, clock12: clock12)))
-                    n.body = voice.say(L("%@ · 30분 안에 비가 올 수 있어요", place.short))
+                    n.body = voice.say(L("%@ · 1시간 안에 비가 올 수 있어요", place.short))
                     n.sound = .default
                     // the chosen character in today's outfit under its open umbrella, in the rain (or snow) that is coming
                     let icon = s.hours.dropFirst().first(where: { $0.mm > 0 || ["raincloud", "lightning", "snowflake", "sleet"].contains($0.icon) })?.icon ?? "raincloud"

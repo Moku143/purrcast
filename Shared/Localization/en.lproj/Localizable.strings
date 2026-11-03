@@ -140,7 +140,7 @@
 "날씨를 불러오는 데 시간이 걸리고 있어요. 잠시 후 아래로 당겨 주세요." = "The weather is taking a while to load. Pull down again in a moment.";
 "같음" = "Same";
 "%@쯤 비 예보 · 우산 챙기세요" = "Rain around %@ · Take an umbrella";
-"%@ · 30분 안에 비가 올 수 있어요" = "%@ · Rain may start within 30 min";
+"%@ · 1시간 안에 비가 올 수 있어요" = "%@ · rain within the hour";
 "%@ · 오늘 %@ ~ %@" = "%@ · Today %@ to %@";
 "눈 예보예요 · 미끄러우니 조심하세요" = "Snow expected · Watch your step";
 "미끄러우니 조심하세요" = "Watch your step";
