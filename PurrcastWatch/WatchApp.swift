@@ -104,7 +104,7 @@ struct WatchHours: View {
         List {
             ForEach(Array(s.hours.prefix(8).enumerated()), id: \.offset) { _, h in
                 HStack(spacing: 8) {
-                    Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 10 : 13)).frame(width: 46, alignment: .leading)
+                    Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 10 : 13)).lineLimit(1).minimumScaleFactor(0.6).frame(width: 46, alignment: .leading)
                     PixelIcon(name: h.icon, size: 20)
                     Spacer()
                     if h.chance >= 10 { Text("\(h.chance)%").font(.px(11)).foregroundStyle(Color(hex: "#9CC0FF")) }
@@ -125,7 +125,7 @@ struct WatchDays: View {
         List {
             ForEach(Array(snap.scene.days.enumerated()), id: \.offset) { _, d in
                 HStack(spacing: 8) {
-                    Text(d.name).font(.px(13)).frame(width: Lang.current.isLatinLike ? 48 : 34, alignment: .leading)   // "Today" on one line
+                    Text(d.name).font(.px(13)).lineLimit(1).minimumScaleFactor(0.6).frame(width: Lang.current.isLatinLike ? 48 : 34, alignment: .leading)   // "Today", "Aujourd'hui" on one line
                     PixelIcon(name: d.icon, size: 20)
                     Spacer()
                     Text(snap.deg(d.lo)).font(.px(12)).opacity(0.7)

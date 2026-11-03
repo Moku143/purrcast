@@ -387,7 +387,7 @@ struct HomeView: View {
                 HStack(alignment: .top, spacing: 8) {
                     ForEach(Array(head.ticks.enumerated()), id: \.offset) { i, t in
                         VStack(spacing: 6) {
-                            Text(t).font(.px(11)).foregroundStyle(ink.sub).lineLimit(1).minimumScaleFactor(0.8)
+                            Text(t).font(.px(11)).foregroundStyle(ink.sub).lineLimit(1).minimumScaleFactor(0.55)
                             if withChance {
                                 let c = i < head.chances.count ? (head.chances[i] ?? 0) : 0
                                 Text(c >= 10 ? "\(c)%" : "–").font(.px(11)).foregroundStyle(c >= 10 ? ink.blue : ink.faint)
@@ -401,7 +401,7 @@ struct HomeView: View {
             } else {
                 HStack {
                     ForEach(Array(head.ticks.enumerated()), id: \.offset) { i, t in
-                        Text(t).font(.ui(10)).foregroundStyle(ink.sub)
+                        Text(t).font(.ui(10)).foregroundStyle(ink.sub).lineLimit(1)
                         if i < head.ticks.count - 1 { Spacer() }
                     }
                 }.padding(.trailing, 38)
@@ -425,7 +425,7 @@ struct HomeView: View {
                 HStack(spacing: 0) {
                     ForEach(Array(s.hours.enumerated()), id: \.offset) { i, h in
                         VStack(spacing: 7) {
-                            Text(i == 0 ? h.label : model.hourLabel(h.label)).font(.px(i == 0 || !model.clock12 ? 12 : 10)).foregroundStyle(i == 0 ? ink.ink : ink.sub)
+                            Text(i == 0 ? h.label : model.hourLabel(h.label)).font(.px(i == 0 || !model.clock12 ? 12 : 10)).foregroundStyle(i == 0 ? ink.ink : ink.sub).lineLimit(1).minimumScaleFactor(0.6)
                             PixelIcon(name: h.icon, size: 28)
                             Text(deg(h.temp)).font(.px(15)).rolling(h.temp)
                             if s.anyChance { Text(h.chance >= 10 ? "\(h.chance)%" : "–").font(.px(11)).foregroundStyle(h.chance >= 10 ? ink.blue : ink.faint).rolling(h.chance) }
@@ -445,7 +445,7 @@ struct HomeView: View {
             VStack(spacing: 0) {
                 ForEach(Array(s.days.enumerated()), id: \.offset) { i, d in
                     Button { day = i } label: { HStack(spacing: 9) {
-                        Text(d.name).font(.px(13)).frame(width: Lang.current.isLatinLike ? 48 : 34, alignment: .leading)   // "Today"
+                        Text(d.name).font(.px(13)).lineLimit(1).minimumScaleFactor(0.6).frame(width: Lang.current.isLatinLike ? 52 : 34, alignment: .leading)   // "Today", "Aujourd'hui", "Сегодня" on one line
                         PixelIcon(name: d.icon, size: 24)
                         Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(11)).foregroundStyle(ink.blue).frame(width: 34, alignment: .leading)
                         Text(deg(d.lo)).font(.px(13)).foregroundStyle(ink.sub).frame(width: 28, alignment: .trailing).rolling(d.lo)

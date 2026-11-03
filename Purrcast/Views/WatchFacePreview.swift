@@ -100,7 +100,7 @@ struct WatchListPreview: View {
             VStack(spacing: 8) {
                 ForEach(Array(s.hours.prefix(3).enumerated()), id: \.offset) { _, h in
                     HStack(spacing: 8) {
-                        Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 10 : 13)).frame(width: 46, alignment: .leading)
+                        Text(snap.hourLabel(h.label)).font(.px(snap.clock12 ? 10 : 13)).lineLimit(1).minimumScaleFactor(0.6).frame(width: 46, alignment: .leading)
                         PixelIcon(name: h.icon, size: 20)
                         Spacer()
                         if h.chance >= 10 { Text("\(h.chance)%").font(.px(11)).foregroundStyle(Color(hex: "#9CC0FF")) }
