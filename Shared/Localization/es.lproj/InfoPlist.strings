@@ -1,0 +1,3 @@
+/* Name on English (and other non-Korean) iPhones and Apple Watches */
+"CFBundleDisplayName" = "Purrcast";
+"NSLocationWhenInUseUsageDescription" = "Used to show the weather where you are.";
