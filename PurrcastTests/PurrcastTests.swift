@@ -732,7 +732,7 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(r.rain?[14] ?? nil, 1.2)
         XCTAssertEqual(r.wetHours?.0, 14); XCTAssertEqual(r.wetHours?.1, 15)
         XCTAssertEqual(r.windMax, 7); XCTAssertEqual(r.rh, 75); XCTAssertEqual(r.uv, 4)
-        XCTAssertEqual(r.feelsLo, 10); XCTAssertEqual(r.seenH, [14])
+        XCTAssertEqual(r.seenH, [14])
     }
 
     /// A 날씨 기록 day opens in the day sheet: its scene has the day's rows and no "now"

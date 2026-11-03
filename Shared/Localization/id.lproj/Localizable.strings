@@ -750,8 +750,6 @@
 "지난달보다 평균 %d° 높아요" = "Rata-rata %d° lebih hangat dari bulan lalu";
 "지난달보다 평균 %d° 낮아요" = "Rata-rata %d° lebih dingin dari bulan lalu";
 "날씨를 볼 때마다 그날 날씨가 하루씩 쌓여요." = "Setiap hari Anda melihat cuaca akan tercatat di sini.";
-"눈 %@" = "Salju %@";
-"비 %@" = "Hujan %@";
 "눈 온 날" = "Hari bersalju";
 "비 온 날" = "Hari hujan";
 "기록이 없는 날이에요" = "Tidak ada catatan untuk tanggal ini";
@@ -762,13 +760,6 @@
 "관측으로 채운 날" = "Diisi dari data pengamatan";
 "날씨 기록: 지상관측(ASOS) 일자료 (Plus)" = "Catatan cuaca: pengamatan harian ASOS (Plus)";
 "날씨 기록: 지난 날씨 (한국 밖 · Plus)" = "Catatan cuaca: hari-hari lalu (di luar Korea · Plus)";
-"체감 %@ ~ %@" = "Terasa %@–%@";
-"바람 최대 %@" = "Angin hingga %@";
-"습도 %d%%" = "Kelembapan %d%%";
-"자외선 최고 %d" = "UV maks. %d";
-"일출 %@" = "Terbit %@";
-"평균" = "Rata-rata";
-"최대" = "Maks.";
 "일출" = "Terbit";
 "비 · 바람" = "Hujan · Angin";
 "하늘 · 공기" = "Langit · Udara";
@@ -777,3 +768,6 @@
 "%@에 눈이 왔어요." = "Turun salju (%@).";
 "비가 오지 않았어요." = "Tidak hujan.";
 "눈이 오지 않았어요." = "Tidak turun salju.";
+"%@ %@, %@ %@였어요." = "%@ %@, %@ %@.";
+"하루 종일 %@~%@였어요." = "%@ sampai %@ sepanjang hari.";
+"건조해요." = "Kering.";

@@ -23,13 +23,10 @@ struct DayRecord: Codable, Equatable, Identifiable {
     var rhs: [Int?]? = nil              // 0…23 h: humidity %
     var uvs: [Int?]? = nil              // 0…23 h: UV index
     var seenH: [Int]? = nil             // hours whose temperature was seen (while the day lasts)
-    var feelsHi: Int? = nil
-    var feelsLo: Int? = nil
     var windMax: Int? = nil             // m/s
     var rh: Int? = nil                  // average humidity %
     var uv: Int? = nil                  // the highest UV
     var alerts: [String]? = nil         // 기상특보 in force that day
-    var say: [String]? = nil            // the character's bubble that day: kind, tone, icon, text
     var wetFrom: Int? = nil             // when it rained or snowed (hours, from observations)
     var wetTo: Int? = nil
     var lat: Double? = nil              // where the day was (sunrise · sunset)
@@ -39,6 +36,13 @@ struct DayRecord: Codable, Equatable, Identifiable {
     /// year; older days keep their summary only.
     var rows: [WeatherScene.DayHour]? = nil
     var air: WeatherScene.Dust? = nil
+    /// 대기질 (Plus): the day's highest index (통합대기환경지수 in Korea; nil abroad, where only the step is known),
+    /// its step, main pollutant, kind (cai | pm) and the hour it peaked
+    var aqi: Int? = nil
+    var aqiGrade: Int? = nil
+    var aqiMain: String? = nil
+    var aqiKind: String? = nil
+    var aqiHour: Int? = nil
 
     var id: String { date }
     /// The day's outfit, as the notifications draw it: the middle of its range
@@ -154,7 +158,7 @@ struct DayLog {
 
 extension DayLog {
     /// The day in detail: the temperature hour by hour (seen, else the latest forecast), rain by the hour, the
-    /// feels-like range, the strongest wind, humidity, UV, warnings and the character's bubble.
+    /// the strongest wind, humidity, UV and warnings.
     static func detail(_ r: inout DayRecord, _ s: WeatherScene, hour now: Int, place: Place) {
         var temps = r.temps ?? Array(repeating: nil, count: 24)
         var rain = r.rain ?? Array(repeating: nil, count: 24)
@@ -183,20 +187,33 @@ extension DayLog {
         temps[now] = s.temp; seen.insert(now)
         if s.precip != "none" { rain[now] = max(rain[now] ?? 0, s.hours.first?.mm ?? 0, 0.1) }
         r.temps = temps; r.rain = rain; r.seenH = seen.sorted()
-        r.feelsHi = max(r.feelsHi ?? s.feels, s.feels)
-        r.feelsLo = min(r.feelsLo ?? s.feels, s.feels)
         let windNow = Double(s.wind.speed)
         if let w = (winds + [windNow]).max() { r.windMax = max(r.windMax ?? 0, Int(w.rounded())) }
         if !rhs.isEmpty { r.rh = Int((rhs.reduce(0, +) / Double(rhs.count)).rounded()) }
         if let u = uvs.max() { r.uv = max(r.uv ?? 0, Int(u.rounded())) }
         if let a = s.alert?.name, !a.isEmpty, !(r.alerts ?? []).contains(a) { r.alerts = (r.alerts ?? []) + [a] }
-        // the bubble: a warning's shout stays; otherwise the latest word of the day
-        if let b = s.bubble, !b.text.isEmpty, !(r.say?.first == "shout" && b.kind != "shout") { r.say = [b.kind, b.tone, b.icon, b.text] }
         r.lat = (place.lat * 100).rounded() / 100; r.lon = (place.lon * 100).rounded() / 100
         if let rows = s.dayDetail?.first, rows.count >= 2 { r.rows = rows }
         if let d = s.dust, let hs = d.hours, !hs.isEmpty {
             r.air = WeatherScene.Dust(pm10: nil, pm25: nil, pm10Grade: nil, pm25Grade: nil, grade: d.grade, note: "", src: "", srcKey: d.srcKey, hours: hs)
         }
+    }
+
+    /// The 대기질 map's index for the place now, kept as the day's highest (the map refreshes hourly, Plus)
+    func recordAir(value: Int?, grade: Int, main: String?, kind: String, place: Place, at now: Date = Date()) {
+        let tz = TimeZone(identifier: place.timeZone) ?? .current
+        let key = Self.dayKey(now, tz: tz)
+        var all = records(place.id)
+        guard let i = all.lastIndex(where: { $0.date == key }) else { return }      // a day the forecast already began
+        var r = all[i]
+        var c = Calendar(identifier: .gregorian); c.timeZone = tz
+        let higher = (value ?? -1) > (r.aqi ?? -1) || (value == nil && grade > (r.aqiGrade ?? -1))
+        if r.aqiGrade == nil || higher {
+            r.aqi = value; r.aqiGrade = grade; r.aqiMain = main; r.aqiHour = c.component(.hour, from: now)
+        }
+        r.aqiKind = kind
+        all[i] = r
+        save(all, for: place.id)
     }
 
     /// Observed days from the server: a missing day is added; a day the phone saw takes the observed high, low, sky
@@ -306,15 +323,10 @@ extension DayLog {
                 let a = back == 0 ? 15 : Int(rnd() * 12), b = back == 0 ? 19 : min(23, a + 3 + Int(rnd() * 9))
                 r.rain = (0..<24).map { $0 >= a && $0 <= b ? (rnd() * 3).rounded() / 2 + 0.5 : nil }
                 r.mm = (r.rain ?? []).compactMap { $0 }.reduce(0, +)
-                r.say = ["speech", "sky", DayRecord.isSnowIcon(r.icon) ? "snowflake" : "umbrella", L("우산 챙기세요")]
             } else {
                 r.rain = nil; r.mm = 0
             }
-            if !r.isWet, (r.dust ?? 0) >= 2 {
-                r.say = ["speech", "coral", "mask", L("미세먼지 나쁨 · 마스크 챙기세요")]
-            }
             if r.icon == "lightning" { r.alerts = [L("호우경보")] }
-            r.feelsLo = r.lo - 2; r.feelsHi = r.hi - 1
             r.windMax = 2 + Int(rnd() * 8); r.rh = 40 + Int(rnd() * 50); r.uv = max(0, Int((Double(r.hi) / 5 - rnd() * 2).rounded()))
             // every three hours, as the day sheet gives them: wind picks up in the afternoon, the air dries by day, UV peaks at noon
             var w: [Int?] = Array(repeating: nil, count: 24), h: [Int?] = Array(repeating: nil, count: 24), u: [Int?] = Array(repeating: nil, count: 24)
@@ -325,6 +337,19 @@ extension DayLog {
                 u[t] = Int((Double(r.uv ?? 0) * day).rounded())
             }
             r.winds = w; r.rhs = h; r.uvs = u
+            if let g = r.dust {
+                // 미세먼지 hour by hour around the day's step (worse in the morning rush and the evening), and the index
+                let base10: Double = [22, 55, 110, 170][max(0, min(3, g))]
+                var hs: [WeatherScene.Dust.Reading] = []
+                for t in 0..<24 {
+                    let wave: Double = 1.0 + 0.25 * sin(Double(t - 4) / 24.0 * 2.0 * Double.pi) + (rnd() - 0.5) * 0.15
+                    let p10 = (base10 * wave).rounded()
+                    hs.append(WeatherScene.Dust.Reading(hour: t, pm10: p10, pm25: (p10 * 0.55).rounded()))
+                }
+                r.air = WeatherScene.Dust(pm10: nil, pm25: nil, pm10Grade: nil, pm25Grade: nil, grade: g, note: "", src: "", srcKey: "airkorea", hours: hs)
+                r.aqi = [38, 72, 142, 268][max(0, min(3, g))] + Int(rnd() * 8); r.aqiGrade = g; r.aqiMain = g >= 2 ? "pm10" : "pm25"
+                r.aqiKind = "cai"; r.aqiHour = 9
+            }
             r.lat = place.lat; r.lon = place.lon
             out.append(r)
         }
@@ -373,7 +398,7 @@ extension DayRecord {
         s.hi = hi; s.lo = lo; s.temp = hi; s.place = place
         s.snow = isSnow
         s.dust = air
-        if let w = windMax { s.wind = WeatherScene.Wind(speed: w, gust: 0, deg: 0) }
+        if let a = alerts?.first { s.alert = WeatherScene.Alert(name: a, note: "") }   // the day's 기상특보        if let w = windMax { s.wind = WeatherScene.Wind(speed: w, gust: 0, deg: 0) }
         // sunrise and sunset, for the night icons
         if let la = lat, let lo = lon, let d = DayLog.date(date), let sun = SunTimes.day(d, lat: la, lon: lo, tz: tz) {
             var c = Calendar(identifier: .gregorian); c.timeZone = tz

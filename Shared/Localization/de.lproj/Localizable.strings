@@ -750,8 +750,6 @@
 "지난달보다 평균 %d° 높아요" = "Im Schnitt %d° wärmer als letzten Monat";
 "지난달보다 평균 %d° 낮아요" = "Im Schnitt %d° kälter als letzten Monat";
 "날씨를 볼 때마다 그날 날씨가 하루씩 쌓여요." = "Jeder Tag, an dem du das Wetter ansiehst, wird hier gespeichert.";
-"눈 %@" = "Schnee %@";
-"비 %@" = "Regen %@";
 "눈 온 날" = "Schneetag";
 "비 온 날" = "Regentag";
 "기록이 없는 날이에요" = "Für diesen Tag gibt es keinen Eintrag";
@@ -762,13 +760,6 @@
 "관측으로 채운 날" = "Aus Messwerten ergänzt";
 "날씨 기록: 지상관측(ASOS) 일자료 (Plus)" = "Wetterverlauf: tägliche ASOS-Messungen (Plus)";
 "날씨 기록: 지난 날씨 (한국 밖 · Plus)" = "Wetterverlauf: vergangene Tage (außerhalb Koreas · Plus)";
-"체감 %@ ~ %@" = "Gefühlt %@–%@";
-"바람 최대 %@" = "Wind bis %@";
-"습도 %d%%" = "Luftfeuchte %d%%";
-"자외선 최고 %d" = "UV max. %d";
-"일출 %@" = "Aufgang %@";
-"평균" = "Mittel";
-"최대" = "Max.";
 "일출" = "Aufgang";
 "비 · 바람" = "Regen · Wind";
 "하늘 · 공기" = "Himmel · Luft";
@@ -777,3 +768,6 @@
 "%@에 눈이 왔어요." = "Es hat geschneit (%@).";
 "비가 오지 않았어요." = "Es hat nicht geregnet.";
 "눈이 오지 않았어요." = "Es hat nicht geschneit.";
+"%@ %@, %@ %@였어요." = "%1$@ %2$@ · %3$@ %4$@.";
+"하루 종일 %@~%@였어요." = "Den ganzen Tag %@ bis %@.";
+"건조해요." = "Trocken.";

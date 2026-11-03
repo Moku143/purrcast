@@ -16,7 +16,12 @@ struct DayDetailView: View {
     var focus = false
     /// A past day from 날씨 기록 (its own scene and date): no strip of days, no "now", what happened in the past tense
     var past: PastDay? = nil
-    struct PastDay { let scene: WeatherScene; let date: Date }
+    struct PastDay {
+        let scene: WeatherScene; let date: Date
+        /// The day's 대기질 index (the highest seen): value (통합대기환경지수 in Korea), step, main pollutant, kind, hour
+        var air: Air? = nil
+        struct Air { var value: Int?; var grade: Int; var main: String?; var kind: String; var hour: Int? }
+    }
     @State private var metric: DayMetric = .temp
     @State private var fine = true           // 미세먼지 tab: PM2.5 (초미세) or PM10
     @State private var picked: Int?          // hour chosen on the chart; nil → now (today) or noon
@@ -51,13 +56,14 @@ struct DayDetailView: View {
                     titleRow(ctx)
                     if past == nil { strip(ctx) }
                     tabs(ctx)
-                    if index == 0, past == nil, let a = s.alert { alertLine(a, ctx) }
+                    if index == 0, let a = s.alert { alertLine(a, ctx) }          // a 날씨 기록 day: that day's 특보
                 }
                 brief(ctx)
                 if let h = hourly {
                     chartCard(ctx, h).reveal(1)
                     extremesRow(ctx, h).reveal(1)
                     if !focus, !scaleItems(ctx, h).items.isEmpty { scaleCard(ctx, h).reveal(2) }
+                    if let a = past?.air { pastAirCard(ctx, a).reveal(2) }
                 }
             }
             .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 40)
@@ -276,7 +282,7 @@ struct DayDetailView: View {
             })
             .frame(height: DayChart.H)
             xLabels(c, cw: cw)
-            if metric == .rain { umbrellaBand(c, h, cw: cw) }
+            if metric == .rain && !c.past { umbrellaBand(c, h, cw: cw) }   // when to carry one: not for a day gone by
         }
     }
 
@@ -318,6 +324,7 @@ struct DayDetailView: View {
         case .temp: return L("기온")
         case .feels: return L("체감온도")
         case .rain:
+            if c.past { return c.snowy ? L("눈(cm)") : L("빗물(mm)") }
             if h.hasMM { return c.snowy ? L("눈 · 눈 올 확률") : L("빗물 · 비 올 확률") }
             return c.snowy ? L("눈 올 확률") : L("비 올 확률")
         case .wind: return L("시간별 바람 (%@)", model.windUnit)
@@ -331,6 +338,7 @@ struct DayDetailView: View {
     private func legend(_ c: DayCtx, _ h: DayHourly) -> [LegendItem] {
         switch metric {
         case .rain:
+            if c.past { return [] }      // the title says what the bars are
             let line = LegendItem(text: L("확률"), swatch: AnyView(Rectangle().fill(c.ink.blue).frame(width: 14, height: 3)))
             guard h.hasMM else { return [line] }
             let bar = Rectangle().fill(c.barFill).frame(width: 8, height: 10)
@@ -523,7 +531,7 @@ struct DayDetailView: View {
         switch metric {
         case .temp: v = model.deg(roundHalfUp(h.temp[i]))
         case .feels: v = model.deg(roundHalfUp(h.feel[i]))
-        case .rain: v = "\(Int(h.chance[i].rounded()))%"
+        case .rain: v = c.past ? (h.mm[i] >= 0.05 ? number((h.mm[i] * 10).rounded() / 10) + (c.snowy ? "cm" : "mm") : L("없음")) : "\(Int(h.chance[i].rounded()))%"
         case .wind: v = model.windText(Int(h.wind[i].rounded()))
         case .uv: v = "\(Int(h.uv[i].rounded()))"
         case .humidity: v = "\(Int(h.rh[i].rounded()))%"
@@ -546,6 +554,12 @@ struct DayDetailView: View {
             let hi = at(h.chance, max: true)
             let unit = c.snowy ? "cm" : "mm"
             let total = h.hasMM ? (h.total >= 0.5 ? number((h.total * 10).rounded() / 10) + unit : (h.total > 0 ? L("%@ 미만", "1" + unit) : L("없음"))) : "–"
+            if c.past {
+                // the wettest hour and the day's total, no chances
+                let m = at(h.mm, max: true)
+                return [Extreme(title: L("최고"), value: m.0 >= 0.05 ? number((m.0 * 10).rounded() / 10) + unit : L("없음"), hour: m.0 >= 0.05 ? m.1 : nil),
+                        Extreme(title: c.snowy ? L("하루 적설량") : L("하루 강수량"), value: total, hour: nil)]
+            }
             return [Extreme(title: c.snowy ? L("눈 올 확률 최고") : L("비 올 확률 최고"), value: "\(Int(hi.0.rounded()))%", hour: hi.0 >= 10 ? hi.1 : nil),
                     Extreme(title: c.snowy ? L("하루 적설량") : L("하루 강수량"), value: total, hour: nil)]
         case .wind:
@@ -692,6 +706,15 @@ struct DayDetailView: View {
     }
 
     private func rainSpec(_ c: DayCtx, _ h: DayHourly) -> DayChartSpec {
+        if c.past {
+            // a 날씨 기록 day: how much fell each hour (no chances); the hidden line rides the bar tops for the marker
+            var s = DayChartSpec(vals: h.mm.map { barHeight($0) }, ymin: 0, ymax: 1)
+            let u = c.snowy ? "cm" : "mm"
+            s.grid = [(0, "0"), (1.0 / 3, "1\(u)"), (2.0 / 3, "4\(u)"), (1, "10\(u)")]
+            s.segColors = [.clear]; s.areaOpacity = 0
+            s.bars = h.mm.map { barHeight($0) }; s.barFill = c.barFill; s.barCap = c.ink.blue
+            return s
+        }
         var s = DayChartSpec(vals: h.chance, ymin: 0, ymax: 100)
         s.grid = [(0, "0%"), (0.5, "50%"), (1, "100%")]
         s.segColors = [c.ink.blue]
@@ -853,7 +876,10 @@ struct DayDetailView: View {
         let lo = c.day.lo, hi = c.day.hi            // the day's own, as in the 10-day list; their hours from the curve
         let loH = h.temp.firstIndex(of: vmin) ?? 6, hiH = h.temp.firstIndex(of: vmax) ?? 15
         var t: String
-        if hi >= 30 {
+        if c.past {
+            t = hi - lo >= 4 ? L("%@ %@, %@ %@였어요.", partOfDay(loH), model.deg(lo), partOfDayInText(hiH), model.deg(hi))
+                             : L("하루 종일 %@~%@였어요.", degNumber(lo), model.deg(hi))
+        } else if hi >= 30 {
             t = L("%@에 최고 %@예요. 더우니 물을 자주 마시는 게 좋아요.", partOfDayInText(hiH), model.deg(hi)) + (lo >= 25 ? " " + L("밤에도 %@ 이상이에요.", model.deg(lo)) : "")
         } else if hi <= 0 || lo <= -5 {
             t = L("%@ %@, %@ %@예요. 많이 추워요.", partOfDay(loH), model.deg(lo), partOfDayInText(hiH), model.deg(hi))
@@ -929,6 +955,27 @@ struct DayDetailView: View {
         return Brief(value: value, badge: badge, badgeColor: c.ink.blue, badgeInk: c.inv, summary: t)
     }
 
+    /// A 날씨 기록 day's 대기질: the highest index seen that day, its step, the main pollutant and when
+    private func pastAirCard(_ c: DayCtx, _ a: PastDay.Air) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(L("대기질")).font(.px(13))
+                Spacer(minLength: 6)
+                Text(a.kind == "pm" ? L("기준: 미세먼지 · 초미세먼지 (WHO)") : L("기준: 통합대기환경지수 (한국)")).font(.ui(11)).foregroundStyle(c.ink.sub).lineLimit(1).minimumScaleFactor(0.8)
+            }
+            HStack(alignment: .center, spacing: 10) {
+                if let v = a.value { Text("\(v)").font(.px(28)) }
+                AirGradeChip(grade: a.grade, size: 14)
+                Spacer(minLength: 0)
+            }
+            if let h = a.hour, let v = a.value {
+                Text(L("%@에 %@로 가장 높았어요.", HourLabel.word(h, clock12: model.clock12), String(v))).font(.ui(13)).foregroundStyle(c.ink.ink)
+            }
+            if let m = a.main { Text(L("주요 오염 물질") + " · " + AirText.name(m)).font(.ui(12)).foregroundStyle(c.ink.sub) }
+        }
+        .dayCard(c)
+    }
+
     /// A 날씨 기록 day: when it rained (or snowed) and how much — no chances, no umbrella advice
     private func briefRainPast(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let wet = (0..<24).filter { h.hasMM ? h.mm[$0] >= 0.1 : h.chance[$0] >= 50 }
@@ -953,7 +1000,7 @@ struct DayDetailView: View {
     private func briefWind(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let wmin = Int((h.wind.min() ?? 0).rounded()), wmax = Int((h.wind.max() ?? 0).rounded()), gmax = Int((h.gust.max() ?? 0).rounded())
         let lvl = windLevel(h)
-        var t = [L("바람이 약해요."), L("바람이 조금 있어요."), L("바람이 강해요."), L("바람이 매우 강해요. 바깥 활동은 줄이는 게 좋아요.")][lvl]
+        var t = [L("바람이 약해요."), L("바람이 조금 있어요."), L("바람이 강해요."), c.past ? L("바람이 강해요.") : L("바람이 매우 강해요. 바깥 활동은 줄이는 게 좋아요.")][lvl]
         if lvl >= 1, let peak = h.wind.firstIndex(of: h.wind.max() ?? 0) { t += " " + L("%@에 가장 세요.", partOfDayInText(peak)) }
         let value = wmin == wmax ? model.windText(wmax) : "\(model.windNumber(wmin))~\(model.windText(wmax))"
         return Brief(value: value, badge: L("돌풍 %@", model.windNumber(gmax)), badgeColor: c.windColor, badgeInk: .white, summary: t)
@@ -965,7 +1012,8 @@ struct DayDetailView: View {
         var t = [L("자외선이 약해요."), L("자외선 보통이에요. 한낮엔 선크림을 바르는 게 좋아요."), L("자외선이 강해요. 선크림과 모자를 챙기세요."),
                  L("자외선이 매우 강해요. 한낮엔 바깥 활동을 줄이는 게 좋아요."), L("자외선이 위험 수준이에요. 한낮엔 바깥 활동을 피하는 게 좋아요.")][k]
         let strong = h.uv.indices.filter { h.uv[$0] >= 3 }
-        if let a = strong.first, let b = strong.last { t += " " + L("%@에 3 이상이에요.", HourLabel.window(a, b + 1, clock12: model.clock12)) }
+        if c.past { t = strong.isEmpty ? L("자외선이 약해요.") : "" }      // a day gone by: when it was strong, no advice
+        if let a = strong.first, let b = strong.last { t += (t.isEmpty ? "" : " ") + L("%@에 3 이상이에요.", HourLabel.window(a, b + 1, clock12: model.clock12)) }
         return Brief(value: L("최고 %@", String(m)), badge: L(b.word), badgeColor: Color(hex: b.color), badgeInk: Color(hex: b.onColor), summary: t)
     }
 
@@ -1018,7 +1066,7 @@ struct DayDetailView: View {
     private func briefHumidity(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let (k, avg, dew) = humidityLevel(h)
         let badge = [L("건조"), L("보송"), avg >= 70 ? L("조금 습함") : L("적당"), dew >= 18 ? L("꿉꿉") : L("습함"), L("끈적")][k]
-        let t = [L("건조해요. 물을 자주 마시는 게 좋아요."), L("보송해요."), avg >= 70 ? L("조금 습해요.") : L("적당해요."),
+        let t = [c.past ? L("건조해요.") : L("건조해요. 물을 자주 마시는 게 좋아요."), L("보송해요."), avg >= 70 ? L("조금 습해요.") : L("적당해요."),
                  dew >= 18 ? L("꿉꿉해요.") : L("습해요."),
                  dew >= 24 ? L("매우 끈적해요. 불쾌지수가 매우 높아요.") : L("끈적해요. 불쾌지수가 높아요.")][k] + " " + L("이슬점은 %@예요.", model.deg(dew))
         return Brief(value: L("평균 %d%%", avg), badge: badge, badgeColor: c.humColor, badgeInk: .white, summary: t)

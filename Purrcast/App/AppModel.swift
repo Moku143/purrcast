@@ -317,6 +317,8 @@ final class AppModel: ObservableObject {
         airMapKey = key
         if let m = try? await provider.airMap(for: place) {
             if currentPlace.id == place.id { airMap = m; airMapFailed = false }
+            // 날씨 기록: the day's 대기질 (its highest index)
+            if !isSample, let d = m.detail { dayLog.recordAir(value: d.value, grade: d.grade, main: d.main, kind: m.kind, place: place); dayLogVersion += 1 }
         } else if airMap == nil { airMapKey = ""; airMapFailed = true }
     }
 
