@@ -478,6 +478,8 @@ struct HomeView: View {
             WindCard(wind: s.wind, ink: ink)
             if let c = s.cmp { CompareCard(cmp: c, updated: s.updated, ink: ink) }
             if !rest.isEmpty { tileRows(rest, ink: ink) }
+            // 이번 주 기록: everyone sees the week; the calendar and the monthly report are Plus
+            WeekLogCard(ink: ink) { route = model.plus ? .calendar : .paywall }
         }
         // the 대기질 map (Plus) for the place, again after each refresh — here, not on the card, so a place without a
         // map tries again on the next refresh

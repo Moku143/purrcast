@@ -98,8 +98,23 @@ final class CatalogTests: XCTestCase {
         seq("day-tab.spring_dust-dust", ["-scene", "spring_dust", "-plus", "-open", "today"], swipes: 1) { app in self.tap(app, "tab-dust") }
         steps("paywall.free", ["-scene", "maybe", "-open", "paywall"], wait: 3) { app, take in
             take()
-            for _ in 0..<6 { app.swipeLeft(); sleep(1); take() }
+            for _ in 0..<7 { app.swipeLeft(); sleep(1); take() }
             for _ in 0..<2 { app.swipeUp(); sleep(1); take() }
+        }
+        // 날씨 기록: the calendar (Plus) this month and last, a day picked, and the week card on home
+        seq("calendar.this", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "calendar"], swipes: 2, wait: 3)
+        seq("calendar.last", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "calendar", "-calMonth", "-1"], swipes: 1, wait: 3)
+        steps("calendar.pick", ["-scene", "spring_dust", "-plus", "-char", "abys", "-open", "calendar"], wait: 3) { app, take in
+            let cells = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'cal-20'"))
+            if cells.count > 3 { cells.element(boundBy: 3).tap(); sleep(1) }
+            app.swipeUp(); sleep(1); take()
+        }
+        seq("calendar.winter", ["-scene", "winter_snow", "-plus", "-char", "brit", "-open", "calendar"], swipes: 1, wait: 3)
+        steps("calendar.card", ["-scene", "maybe", "-char", "cat"]) { app, take in
+            let card = app.buttons["week-card"].firstMatch
+            for _ in 0..<8 where !(card.exists && card.isHittable) { app.swipeUp(); sleep(1) }
+            take()
+            if card.exists { card.tap(); sleep(2); take() }          // free: the Plus page
         }
         seq("settings.free", ["-scene", "maybe", "-open", "settings"], swipes: 5)
         seq("pages.language", ["-scene", "maybe", "-open", "language"], swipes: 1)
@@ -157,11 +172,26 @@ final class CatalogTests: XCTestCase {
         // Plus: every slide, then down to the prices; and the page when Plus is on
         steps("paywall.free", ["-scene", "maybe", "-open", "paywall"], wait: 3) { app, take in
             take()
-            for _ in 0..<6 { app.swipeLeft(); sleep(1); take() }
+            for _ in 0..<7 { app.swipeLeft(); sleep(1); take() }
             for _ in 0..<2 { app.swipeUp(); sleep(1); take() }
         }
         seq("paywall.plus", ["-scene", "maybe", "-plus", "-open", "paywall"], swipes: 2, wait: 3)
 
+        // 날씨 기록: the calendar (Plus) this month and last, a day picked, and the week card on home
+        seq("calendar.this", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "calendar"], swipes: 2, wait: 3)
+        seq("calendar.last", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "calendar", "-calMonth", "-1"], swipes: 1, wait: 3)
+        steps("calendar.pick", ["-scene", "spring_dust", "-plus", "-char", "abys", "-open", "calendar"], wait: 3) { app, take in
+            let cells = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'cal-20'"))
+            if cells.count > 3 { cells.element(boundBy: 3).tap(); sleep(1) }
+            app.swipeUp(); sleep(1); take()
+        }
+        seq("calendar.winter", ["-scene", "winter_snow", "-plus", "-char", "brit", "-open", "calendar"], swipes: 1, wait: 3)
+        steps("calendar.card", ["-scene", "maybe", "-char", "cat"]) { app, take in
+            let card = app.buttons["week-card"].firstMatch
+            for _ in 0..<8 where !(card.exists && card.isHittable) { app.swipeUp(); sleep(1) }
+            take()
+            if card.exists { card.tap(); sleep(2); take() }          // free: the Plus page
+        }
         seq("settings.free", ["-scene", "maybe", "-open", "settings"], swipes: 5)
         seq("settings.plus", ["-scene", "maybe", "-plus", "-char", "abys", "-open", "settings"], swipes: 5)
         seq("pages.character-free", ["-scene", "maybe", "-open", "character"], swipes: 2)

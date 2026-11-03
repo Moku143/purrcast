@@ -41,6 +41,7 @@ struct Provider: TimelineProvider {
         guard WeatherSource.serverURL != nil, var last = SharedStore.load(), !last.isSample, let place = last.place else { return nil }
         guard let s = try? await WeatherSource.make().forecast(for: place, plus: last.plusActive, previousLevel: last.scene.level) else { return nil }
         last.scene = s; last.saved = Date()
+        DayLog().record(s, place: place)      // the 날씨 기록 fills on the widget's refreshes too
         if !last.plusActive { last.plus = false }
         SharedStore.save(last)
         return last

@@ -731,3 +731,31 @@
 "캐릭터를 바꾸면 아이콘도 같이 바뀌어요" = "Cambia junto con tu personaje";
 "살구빛" = "Melocotón";
 "하늘빛" = "Cielo";
+
+/* 날씨 기록 · 날씨 달력 · 월간 리포트 */
+"이번 주 기록" = "Últimos 7 días";
+"기록 %d일" = "%d días registrados";
+"눌러서 달력 보기" = "Toca para ver el calendario";
+"Plus에서 날씨 달력 · 월간 리포트를 볼 수 있어요" = "Calendario y resumen mensual con Plus";
+"날씨 달력" = "Calendario del tiempo";
+"%@ 리포트" = "Resumen de %@";
+"리포트 공유" = "Compartir";
+"이 달은 기록이 없어요" = "No hay registros este mes";
+"자주 입은 옷" = "Lo más usado";
+"비·눈 온 날" = "Días de lluvia";
+"가장 더운 날" = "Día más caluroso";
+"가장 추운 날" = "Día más frío";
+"미세먼지 나쁜 날" = "Días de aire malo";
+"지난달과 비슷해요" = "Parecido al mes pasado";
+"지난달보다 평균 %d° 높아요" = "En promedio %d° más cálido que el mes pasado";
+"지난달보다 평균 %d° 낮아요" = "En promedio %d° más frío que el mes pasado";
+"날씨를 볼 때마다 그날 날씨가 하루씩 쌓여요." = "Cada día que miras el tiempo se guarda aquí.";
+"눈 %@" = "Nieve %@";
+"비 %@" = "Lluvia %@";
+"눈 온 날" = "Día de nieve";
+"비 온 날" = "Día de lluvia";
+"기록이 없는 날이에요" = "No hay registro de este día";
+"하루" = "1 día";
+"%d일" = "%d días";
+"날씨 달력 · 월간 리포트" = "Calendario · Resumen mensual";
+"날씨를 볼 때마다 그날 날씨가 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷" = "Cada día que miras queda en un calendario\nCada mes: días de lluvia · día más caluroso · lo más usado";

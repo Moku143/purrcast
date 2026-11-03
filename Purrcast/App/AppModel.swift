@@ -12,7 +12,7 @@ final class AppModel: ObservableObject {
     // weather
     @Published private(set) var raw: WeatherScene
     @Published private(set) var hasData: Bool                 // false until a forecast for the current place arrived
-    @Published var places: [Place] { didSet { persist() } }
+    @Published var places: [Place] { didSet { persist(); if !isSample { dayLog.keepOnly(Set(places.map(\.id))) } } }
     @Published var currentIndex = 0 { didSet { if currentIndex != oldValue { Task { await refresh(force: true) } } } }
     @Published private(set) var loading = false
     @Published private(set) var lastError: String?
@@ -62,6 +62,9 @@ final class AppModel: ObservableObject {
     /// UI tests / design review only (compiled out of release builds): a fixed example scene, Plus forced on.
     let pinnedScene: String?
     let debugPlus: Bool
+    /// 날씨 기록 (the weekly card, the calendar): written on every real forecast; screenshots show made-up days
+    let dayLog = DayLog()
+    @Published private(set) var dayLogVersion = 0
 
     static let freeExtraPlaces = 1
     private var generation = 0
@@ -155,6 +158,7 @@ final class AppModel: ObservableObject {
                 guard mine == generation else { return }
                 raw = s; hasData = true; lastError = nil; lastRefresh = Date()
                 lastLevel[place.id] = s.level
+                if !provider.isSample { dayLog.record(s, place: place); dayLogVersion += 1 }
                 publish()
                 #if DEBUG
                 switch debugNotice {
@@ -203,7 +207,10 @@ final class AppModel: ObservableObject {
 
     func refreshPreviews() async {
         for p in places {
-            if let s = try? await provider.forecast(for: p, plus: plus, previousLevel: lastLevel[p.id]) { previews[p.id] = s }
+            if let s = try? await provider.forecast(for: p, plus: plus, previousLevel: lastLevel[p.id]) {
+                previews[p.id] = s
+                if !provider.isSample { dayLog.record(s, place: p) }
+            }
         }
     }
 
@@ -237,6 +244,15 @@ final class AppModel: ObservableObject {
 
     /// Free plan always shows the cat.
     var shownCharacter: PurrCharacter { plus ? character : .cat }
+
+    /// The place's 날씨 기록, oldest first (example weather: made-up days so the card and the calendar have something)
+    func days(for place: Place) -> [DayRecord] {
+        _ = dayLogVersion
+        #if DEBUG
+        if isSample { return DayLog.sample(for: place, scene: raw) }
+        #endif
+        return dayLog.records(place.id)
+    }
     /// The voice the character speaks in: the free plan is always 존댓말.
     var voice: Voice { (plus ? (Voice(rawValue: voiceChoice) ?? shownCharacter.defaultVoice) : .polite).effective }
     /// Weather text in the current voice (information unchanged, endings only).

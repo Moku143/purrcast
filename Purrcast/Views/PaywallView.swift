@@ -20,6 +20,7 @@ struct PaywallView: View {
                                                : L("비 올 시각까지 분 단위 (Apple 날씨가 주는 곳) · 비·눈 1시간 전과 올 때 알림 · 기상특보 · 미세먼지 · 기온 변화"),
                     check: L("가까운 비 · 알림")),
             Feature(art: "air", title: L("대기질 지도"), note: L("미세먼지 매시간 업데이트 · 잠금화면 미세먼지 위젯 · 오염 물질 6종"), check: L("대기질")),
+            Feature(art: "calendar", title: L("날씨 달력 · 월간 리포트"), note: L("날씨를 볼 때마다 그날 날씨가 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷"), check: L("날씨 달력")),
             Feature(art: "watch", title: L("애플워치"), note: L("손목에서 지금 날씨 · 시간별 · 10일\n워치 페이스에 기온 · 비 확률 · 캐릭터"), check: L("애플워치")),
             Feature(art: "places", title: L("지역 여러 곳"), note: L("무료는 1곳 더, Plus는 제한 없이."), check: L("지역 여러 곳")),
             Feature(art: "chars", title: L("캐릭터 바꾸기"), note: L("아비시니안 · 브리티시숏헤어 · 추후 업데이트로 추가 예정"), check: L("캐릭터")),
@@ -167,6 +168,7 @@ struct PaywallView: View {
             case "watch": watchArt
             case "places": placesArt
             case "air": airArt
+            case "calendar": calendarArt
             default: charsArt
             }
         }
@@ -298,6 +300,30 @@ struct PaywallView: View {
         let p = model.currentPlace, d = model.scene.dust
         let map = model.airMap ?? AirMap.sample(lat: p.lat, lon: p.lon, korea: p.region == "kr", pm10: d?.pm10, pm25: d?.pm25)
         return AirMapView(place: p, map: map, height: 140).padding(.horizontal, 14)
+    }
+
+    /// Two weeks of the 날씨 달력: each day on its outfit's colour with its sky, the character in the month's favourite
+    private var calendarArt: some View {
+        let days: [(Int, String)] = [(6, "sun"), (6, "partly_cloudy"), (7, "cloud"), (7, "raincloud"), (8, "raincloud"), (7, "partly_cloudy"), (6, "sun"),
+                                     (7, "sun"), (8, "cloud"), (8, "partly_cloudy"), (9, "raincloud"), (9, "cloud"), (8, "sun"), (8, "sun")]
+        return HStack(spacing: 14) {
+            DayFigure(character: .cat, level: 7, width: 70)
+            VStack(alignment: .leading, spacing: 8) {
+                LazyVGrid(columns: Array(repeating: GridItem(.fixed(26), spacing: 4), count: 7), spacing: 4) {
+                    ForEach(Array(days.enumerated()), id: \.offset) { _, d in
+                        PixelIcon(name: d.1, size: 16)
+                            .frame(width: 26, height: 30)
+                            .background(Color(hex: Rules.background[d.0]), in: RoundedRectangle(cornerRadius: 6))
+                    }
+                }
+                HStack(spacing: 6) {
+                    PixelIcon(name: "raincloud", size: 16)
+                    Text(L("비·눈 온 날")).font(.ui(11)).foregroundStyle(UI.sub)
+                    Text(DayLogText.days(4)).font(.px(12)).foregroundStyle(UI.ink)
+                }
+            }
+        }
+        .padding(.horizontal, 14)
     }
 
     /// Three place cards fanned out: Seoul, Tokyo, New York (night)

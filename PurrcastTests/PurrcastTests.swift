@@ -648,4 +648,61 @@ final class PurrcastTests: XCTestCase {
         h.record(8, lat: 37.55, lon: 126.91, at: t0.addingTimeInterval(86400 + 660))
         XCTAssertNil(h.yesterday(lat: 37.55, lon: 126.91, at: t0.addingTimeInterval(4 * 86400)))
     }
+
+    // MARK: 날씨 기록
+
+    private func dayLog() -> DayLog {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("daylog-\(UUID().uuidString)")
+        return DayLog(dir: dir)
+    }
+
+    private func scene(temp: Int, hi: Int, lo: Int, icon: String = "sun", chance: Int = 0, precip: String = "none", dust: Int? = nil) -> WeatherScene {
+        var s = WeatherScene(); s.temp = temp; s.hi = hi; s.lo = lo; s.precip = precip
+        s.days = [WeatherScene.DayRow(name: "오늘", icon: icon, chance: chance, lo: lo, hi: hi)]
+        if let dust { s.dust = try? JSONDecoder().decode(WeatherScene.Dust.self, from: Data("{\"grade\": \(dust)}".utf8)) }
+        return s
+    }
+
+    func testDayLogFoldsADay() {
+        let log = dayLog()
+        var place = Place.here; place.timeZone = "Asia/Seoul"
+        let morning = Date(timeIntervalSince1970: 1_780_000_000)      // the same Seoul day, hours apart
+        log.record(scene(temp: 9, hi: 15, lo: 8, dust: 1), place: place, at: morning)
+        log.record(scene(temp: 16, hi: 15, lo: 8, icon: "raincloud", chance: 70, precip: "rain", dust: 2), place: place, at: morning.addingTimeInterval(4 * 3600))
+        let r = log.records(place.id)
+        XCTAssertEqual(r.count, 1)
+        XCTAssertEqual(r[0].hi, 16)                 // warmer than forecast: what was seen counts
+        XCTAssertEqual(r[0].lo, 8)
+        XCTAssertEqual(r[0].wet, "rain")
+        XCTAssertEqual(r[0].dust, 2)                // the worst of the day
+        XCTAssertEqual(r[0].icon, "raincloud")
+        // the next day is its own line, and the finished day lets go of its hours
+        log.record(scene(temp: 5, hi: 10, lo: 3), place: place, at: morning.addingTimeInterval(86400))
+        let r2 = log.records(place.id)
+        XCTAssertEqual(r2.count, 2)
+        XCTAssertNil(r2[0].hours)
+        XCTAssertNil(r2[1].wet)
+        // places no longer listed lose their days
+        log.keepOnly(["somewhere-else"])
+        XCTAssertTrue(log.records(place.id).isEmpty)
+    }
+
+    func testMonthReport() {
+        func day(_ d: String, _ hi: Int, _ lo: Int, wet: String? = nil, dust: Int? = nil) -> DayRecord {
+            var r = DayRecord(date: d, hi: hi, lo: lo, icon: wet == nil ? "sun" : "raincloud"); r.wet = wet; r.dust = dust; return r
+        }
+        var all = (1...10).map { day(String(format: "2026-10-%02d", $0), 20, 12) }
+        all += [day("2026-11-01", 15, 8, wet: "rain", dust: 2), day("2026-11-02", 18, 9, dust: 0), day("2026-11-03", 12, 2, wet: "snow", dust: 3)]
+        all += (4...9).map { day(String(format: "2026-11-%02d", $0), 14, 6) }
+        let m = MonthReport.make(all, month: "2026-11")
+        XCTAssertEqual(m.days, 9)
+        XCTAssertEqual(m.wetDays, 2)
+        XCTAssertEqual(m.snowDays, 1)
+        XCTAssertEqual(m.hottest?.date, "2026-11-02")
+        XCTAssertEqual(m.coldest?.date, "2026-11-03")
+        XCTAssertEqual(m.dustDays, 2)
+        XCTAssertEqual(m.vsLast, -6)                // about 10° a day against October's 16°
+        XCTAssertNil(MonthReport.make(all, month: "2026-10").vsLast)   // September has no days
+        XCTAssertEqual(MonthReport.previous("2026-01"), "2025-12")
+    }
 }

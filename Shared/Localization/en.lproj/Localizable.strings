@@ -731,3 +731,31 @@
 "캐릭터를 바꾸면 아이콘도 같이 바뀌어요" = "Changes along with your character";
 "살구빛" = "Peach";
 "하늘빛" = "Sky";
+
+/* 날씨 기록 · 날씨 달력 · 월간 리포트 */
+"이번 주 기록" = "Last 7 days";
+"기록 %d일" = "%d days logged";
+"눌러서 달력 보기" = "Tap for the calendar";
+"Plus에서 날씨 달력 · 월간 리포트를 볼 수 있어요" = "Weather calendar · monthly report with Plus";
+"날씨 달력" = "Weather calendar";
+"%@ 리포트" = "%@ report";
+"리포트 공유" = "Share";
+"이 달은 기록이 없어요" = "Nothing logged this month";
+"자주 입은 옷" = "Worn most";
+"비·눈 온 날" = "Rainy days";
+"가장 더운 날" = "Warmest day";
+"가장 추운 날" = "Coldest day";
+"미세먼지 나쁜 날" = "Poor air days";
+"지난달과 비슷해요" = "About the same as last month";
+"지난달보다 평균 %d° 높아요" = "%d° warmer than last month on average";
+"지난달보다 평균 %d° 낮아요" = "%d° cooler than last month on average";
+"날씨를 볼 때마다 그날 날씨가 하루씩 쌓여요." = "Each day you check the weather is added here.";
+"눈 %@" = "Snow %@";
+"비 %@" = "Rain %@";
+"눈 온 날" = "Snowy day";
+"비 온 날" = "Rainy day";
+"기록이 없는 날이에요" = "Nothing logged this day";
+"하루" = "1 day";
+"%d일" = "%d days";
+"날씨 달력 · 월간 리포트" = "Weather calendar · Monthly report";
+"날씨를 볼 때마다 그날 날씨가 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷" = "Every day you check lands on a calendar\nEach month: rainy days · warmest day · outfit worn most";

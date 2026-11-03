@@ -731,3 +731,31 @@
 "캐릭터를 바꾸면 아이콘도 같이 바뀌어요" = "Berubah mengikuti karaktermu";
 "살구빛" = "Persik";
 "하늘빛" = "Langit";
+
+/* 날씨 기록 · 날씨 달력 · 월간 리포트 */
+"이번 주 기록" = "7 hari terakhir";
+"기록 %d일" = "%d hari tercatat";
+"눌러서 달력 보기" = "Ketuk untuk kalender";
+"Plus에서 날씨 달력 · 월간 리포트를 볼 수 있어요" = "Kalender cuaca · laporan bulanan dengan Plus";
+"날씨 달력" = "Kalender cuaca";
+"%@ 리포트" = "Laporan %@";
+"리포트 공유" = "Bagikan";
+"이 달은 기록이 없어요" = "Belum ada catatan bulan ini";
+"자주 입은 옷" = "Paling sering";
+"비·눈 온 날" = "Hari hujan";
+"가장 더운 날" = "Hari terpanas";
+"가장 추운 날" = "Hari terdingin";
+"미세먼지 나쁜 날" = "Hari udara buruk";
+"지난달과 비슷해요" = "Mirip bulan lalu";
+"지난달보다 평균 %d° 높아요" = "Rata-rata %d° lebih hangat dari bulan lalu";
+"지난달보다 평균 %d° 낮아요" = "Rata-rata %d° lebih dingin dari bulan lalu";
+"날씨를 볼 때마다 그날 날씨가 하루씩 쌓여요." = "Setiap hari Anda melihat cuaca akan tercatat di sini.";
+"눈 %@" = "Salju %@";
+"비 %@" = "Hujan %@";
+"눈 온 날" = "Hari bersalju";
+"비 온 날" = "Hari hujan";
+"기록이 없는 날이에요" = "Tidak ada catatan untuk tanggal ini";
+"하루" = "1 hari";
+"%d일" = "%d hari";
+"날씨 달력 · 월간 리포트" = "Kalender cuaca · Laporan bulanan";
+"날씨를 볼 때마다 그날 날씨가 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷" = "Setiap hari yang Anda lihat masuk ke kalender\nTiap bulan: hari hujan · hari terpanas · pakaian tersering";
