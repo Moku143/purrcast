@@ -19,7 +19,7 @@ enum HerePlace {
             let (kc, kd) = parts(k)
             let n = [shortCity(kc), kd].filter { !$0.isEmpty }.joined(separator: " ")
             ko = KoreanKana.hasHangul(n) ? n : nil
-            gu = district(of: k)
+            gu = Self.district(of: k)
         }
         let english = Locale(identifier: "en_US")
         if country == "KR", let ko {
