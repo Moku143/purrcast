@@ -96,6 +96,9 @@ struct WidgetLabView: View {
                 // the rain line on a dry day and on a wet one, the free plan's 미세먼지
                 LockInlineView(kind: .rain, snap: Self.dried(snap))
                 LockInlineView(kind: .dust, snap: Self.free(snap))
+                // the temperature line on a cold day and a hot one: the character dressed for each
+                LockInlineView(kind: .temp, snap: Self.dressed(snap, -6))
+                LockInlineView(kind: .temp, snap: Self.dressed(snap, 31))
             }
             .font(.system(size: 17, weight: .semibold)).foregroundStyle(Color(hex: "#C8F0A8"))
             .lineLimit(1).padding(.horizontal, 24).padding(.top, 80)
@@ -111,6 +114,12 @@ struct WidgetLabView: View {
         return n
     }
     private static func free(_ snap: WeatherSnapshot) -> WeatherSnapshot { var n = snap; n.plus = false; n.plusUntil = nil; return n }
+    /// The snapshot at another temperature, dressed for it
+    private static func dressed(_ snap: WeatherSnapshot, _ t: Int) -> WeatherSnapshot {
+        var n = snap
+        n.scene.temp = t; n.scene.level = Rules.level(feels: Double(t))
+        return n
+    }
 
     // MARK: page 4 — the lock screen as the phone shows it: wallpaper, the clock, the inline line above it, then
     // the widgets in their frosted glass (the system tints everything one colour; white here)

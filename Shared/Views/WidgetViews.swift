@@ -447,8 +447,9 @@ struct AccessoryWidgetBackgroundCompat: View {
 }
 
 /// Lock screen, above the clock (accessoryInline): one piece of the weather on one line, an icon before it — the
-/// system draws both in the lock screen's one colour, at its own text size (the character's head is made that small:
-/// `<char>-inline`, the lock-screen picture's head, a template image)
+/// system draws both in the lock screen's one colour, at its own text size. The temperature line is the lock-screen
+/// rectangle made small: the character in what to wear now (`<char>-inline-<level>`, its lock-screen picture down to
+/// the hem of the top, a template image at text height) and the temperature now.
 struct LockInlineView: View {
     enum Kind { case temp, place, rain, uv, sun, wind, dust }
     let kind: Kind
@@ -461,7 +462,7 @@ struct LockInlineView: View {
         Label {
             Text(text)
         } icon: {
-            if kind == .temp { Image("\(snap.shownCharacter.rawValue)-inline").renderingMode(.template) }
+            if kind == .temp { Image("\(snap.shownCharacter.rawValue)-inline-\(Rules.clamp(snap.scene.level))").renderingMode(.template) }
             else { Image(systemName: icon) }
         }
     }
@@ -471,8 +472,8 @@ struct LockInlineView: View {
         let s = snap.scene
         switch kind {
         case .temp:
-            // 9° · 9°~18°: now, then today's low and high
-            return ("thermometer.medium", "\(snap.deg(s.temp)) · \(snap.deg(s.lo))~\(snap.deg(s.hi))")
+            // the temperature now (the character before it shows what to wear)
+            return ("thermometer.medium", snap.deg(s.temp))
         case .place:
             return (snap.place?.id == "here" ? "location.fill" : "mappin", snap.placeShort)
         case .rain:

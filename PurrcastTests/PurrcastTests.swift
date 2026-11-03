@@ -815,7 +815,7 @@ final class PurrcastTests: XCTestCase {
         s.days[1].chance = 10
         XCTAssertEqual(LockInlineView.rainLine(s), "10일 동안 비 소식 없어요")
         let snap = WeatherSnapshot(scene: s, character: .cat, plus: true, characterName: "", placeShort: "마포구", saved: Date())
-        XCTAssertEqual(LockInlineView.line(.temp, snap).1, "9° · 9°~18°")
+        XCTAssertEqual(LockInlineView.line(.temp, snap).1, "9°")
         XCTAssertEqual(LockInlineView.line(.place, snap).1, "마포구")
         XCTAssertEqual(Rules.windFrom(225), "남서풍")
     }
