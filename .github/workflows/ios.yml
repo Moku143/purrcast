@@ -76,7 +76,9 @@ jobs:
           if [ -n "${{ github.event.inputs.only }}" ]; then only="-only-testing:PurrcastUITests/ScreenshotTests/${{ github.event.inputs.only }} -only-testing:PurrcastTests"; fi
           xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast $only \
             -destination "platform=iOS Simulator,name=${SIM_DEVICE:-iPhone 16},OS=${SIM_OS:-latest}" \
-            -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST " || true
+            -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST |Executed" || true
+          # the lines above only show the log; a failed or unfinished test run must turn the job red
+          grep -q "\*\* TEST SUCCEEDED \*\*" test.log || { echo "::error::Tests did not pass: $(grep -cE "Test Case '-\[.*\]' failed" test.log) failed (test.log on the ci-output branch)"; exit 1; }
       - name: Export screenshots
         if: always()
         run: |
@@ -107,7 +109,6 @@ jobs:
           fi
       - name: Watch app build and screenshots
         if: always() && github.event.inputs.only == ''
-        continue-on-error: true
         run: |
           set -o pipefail
           xcodebuild build -project Purrcast.xcodeproj -scheme PurrcastWatch \
