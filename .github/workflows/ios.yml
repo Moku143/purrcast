@@ -30,7 +30,9 @@ jobs:
   build:
     if: github.event.inputs.watch_e2e != 'yes'
     runs-on: macos-26
-    timeout-minutes: 90
+    # a quick run (one test) keeps 90; the full suite gets 120 — two full runs on 2026-11-04 were cancelled at 90
+    # by slow runners (41820276885, 41833956337), and their killed runners uploaded no logs to count tests from
+    timeout-minutes: ${{ github.event.inputs.only != '' && 90 || 120 }}
     steps:
       - uses: actions/checkout@v4
       - name: Xcode 26 (the SDK TestFlight builds use, so the screenshots show what iOS 26 phones show)
@@ -80,6 +82,17 @@ jobs:
             -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST |Executed" || true
           # the lines above only show the log; a failed or unfinished test run must turn the job red
           grep -q "\*\* TEST SUCCEEDED \*\*" test.log || { echo "::error::Tests did not pass: $(grep -cE "Test Case '-\[.*\]' failed" test.log) failed (test.log on the ci-output branch)"; exit 1; }
+      # straight after the tests, before anything slower: a cancelled (timed-out) job keeps ~5 minutes for
+      # always() steps and then the runner is killed, losing even its own live log — this small upload survives,
+      # so a timeout still leaves countable results and per-test timings
+      - name: Keep the test log even when the job is cancelled
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-log-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test.log
+          retention-days: 7
+          if-no-files-found: ignore
       - name: Export screenshots
         if: always()
         run: |
