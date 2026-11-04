@@ -183,8 +183,8 @@ final class ScreenshotTests: XCTestCase {
         shot("f-onb-watch", ["-scene", "maybe", "-onboarding"]) { app in
             for _ in 0..<3 { app.buttons["next"].firstMatch.tap(); sleep(1) }
         }
-        shot("f-onb-alerts-off", ["-scene", "maybe", "-onboarding"]) { app in
-            for _ in 0..<4 { app.buttons["next"].firstMatch.tap(); sleep(1) }
+        // from the location page (-onbStep 5: the calendar page came before it, so four "next" taps no longer reach it)
+        shot("f-onb-alerts-off", ["-scene", "maybe", "-onboarding", "-onbStep", "5"], wait: 2) { app in
             app.buttons["나중에 · 서울로 볼게요"].firstMatch.tap(); sleep(1)
             app.switches.element(boundBy: 0).tap(); sleep(1)
             app.switches.element(boundBy: 1).tap(); sleep(1)
