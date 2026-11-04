@@ -19,6 +19,10 @@ on:
         description: 'Runner (macos-26 · macos-15 · macos-15-intel), when one has no machines free'
         required: false
         default: 'macos-26'
+      submission:
+        description: 'yes: the build for App Review — no TestFlight test Plus in it (testers keep it on the other builds)'
+        required: false
+        default: 'no'
 
 permissions:
   contents: write
@@ -76,6 +80,7 @@ jobs:
           xcodebuild archive -project Purrcast.xcodeproj -scheme Purrcast -configuration Release \
             -destination 'generic/platform=iOS' -archivePath build/Purrcast.xcarchive \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            ${{ github.event.inputs.submission == 'yes' && 'SWIFT_ACTIVE_COMPILATION_CONDITIONS=STORE_SUBMISSION' || '' }} \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" 2>&1 | tee archive.log | tail -40; st=${PIPESTATUS[0]}; true
           # the reasons, as annotations (readable without opening the log)
           grep -E "error:|Error:|No profiles|No signing|Provisioning|not registered|requires a" archive.log | sort -u | head -12 | while read -r l; do echo "::error::${l:0:300}"; done

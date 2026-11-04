@@ -72,10 +72,13 @@ final class Purchases: ObservableObject {
 
     func product(_ id: String) -> Product? { products.first { $0.id == id } }
 
-    /// TestFlight / Xcode → true; the App Store → false.
+    /// TestFlight / Xcode → true; the App Store → false. The build sent to App Review (TestFlight's `submission: yes`)
+    /// is never a test build: App Review's purchases run in the sandbox too, and must see the real Plus page.
     private static func isTestEnvironment() async -> Bool {
         #if DEBUG
         return true
+        #elseif STORE_SUBMISSION
+        return false
         #else
         if case .verified(let t)? = try? await AppTransaction.shared { return t.environment != .production }
         return Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
