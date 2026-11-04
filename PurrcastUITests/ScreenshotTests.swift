@@ -363,6 +363,40 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    /// The 날씨 달력 page scrolls up (the report below the month stays reachable), the sideways month swipe still
+    /// turns the month, and a past month's page scrolls too. Outfit cells make the page taller than any iPhone.
+    func test20CalendarScroll() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-scene", "maybe", "-plus", "-open", "calendar", "-calOutfits", "-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+        app.launch()
+        let bar = app.buttons["cal-month"].firstMatch
+        XCTAssertTrue(bar.waitForExistence(timeout: 20), "the calendar did not open")
+        sleep(2)
+        let keep = { (name: String) in
+            let a = XCTAttachment(screenshot: app.screenshot()); a.name = name; a.lifetime = .keepAlways; self.add(a)
+        }
+        let y0 = bar.frame.minY
+        app.swipeUp()
+        sleep(1)
+        let moved = y0 - bar.frame.minY
+        keep("cal-scroll-this")
+        XCTAssertGreaterThan(moved, 60, "this month's page did not scroll up (moved \(moved) pt)")
+        // the sideways swipe still turns the month (back, from wherever the page is scrolled)
+        let title0 = bar.label
+        app.swipeRight()
+        sleep(2)
+        XCTAssertNotEqual(bar.label, title0, "the sideways swipe no longer turns the month")
+        // and the past month, its 리포트 below, scrolls the same way
+        app.swipeDown()
+        sleep(1)
+        let y1 = bar.frame.minY
+        app.swipeUp()
+        sleep(1)
+        let movedPast = y1 - bar.frame.minY
+        keep("cal-scroll-last")
+        XCTAssertGreaterThan(movedPast, 60, "the past month's page did not scroll up (moved \(movedPast) pt)")
+    }
+
     /// First run with the 이전 button, the fuller widget and watch pages; the merged rain slide of the Plus page
     func test18Onboard() {
         for lang in ["ko", "en", "ja"] {
