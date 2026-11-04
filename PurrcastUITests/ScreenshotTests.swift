@@ -385,6 +385,11 @@ final class ScreenshotTests: XCTestCase {
         ]
         // the widgets in English and Japanese, and with the longest words each language can produce
         let lab = ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab"]
+        // before the app has handed over anything: every widget, lock-screen line and complication without numbers
+        for (name, page) in [("widgetlab-waiting", []), ("widgetlab-2-waiting", ["-labPage2"]), ("watchlab-waiting", ["-labPage3"]),
+                             ("locklab-waiting", ["-labPage4"]), ("inlinelab-waiting", ["-labPage5"])] {
+            screens.append((name, lab + page + ["-labWaiting"], 0))
+        }
         let langs = [("ko", ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]), ("en", ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]),
                      ("ja", ["-AppleLanguages", "(ja)", "-AppleLocale", "ja_JP"])]
         for (code, la) in langs {

@@ -934,6 +934,26 @@ final class PurrcastTests: XCTestCase {
         XCTAssertFalse(snap.plusActive)       // past the allowance too
     }
 
+    /// Before the app has handed over anything the widgets show no example numbers: no hours, days or tiles, a dash
+    /// for every temperature, the wind and the lock-screen lines; the gallery's sample keeps its numbers
+    func testWidgetPlaceholderHasNoNumbers() {
+        let w = WeatherSnapshot.waiting
+        XCTAssertTrue(w.isWaiting)
+        XCTAssertTrue(w.scene.hours.isEmpty); XCTAssertTrue(w.scene.days.isEmpty); XCTAssertTrue(w.scene.tiles.isEmpty)
+        XCTAssertEqual(w.deg(w.scene.temp), "–"); XCTAssertEqual(w.degNumber(w.scene.hi), "–"); XCTAssertEqual(w.windText(3), "–")
+        for k: LockInlineView.Kind in [.temp, .rain, .uv, .sun, .wind] { XCTAssertEqual(LockInlineView.line(k, w).1, "–", "\(k)") }
+        XCTAssertEqual(LockInlineView.line(.place, w).1, w.placeShort)
+        XCTAssertEqual(LockInlineView.line(.dust, w).1, "\(L("미세먼지")) · Plus")
+        // the gallery preview and a real saved forecast are not the placeholder
+        let sample = WeatherSnapshot.sample
+        XCTAssertFalse(sample.isWaiting)
+        XCTAssertEqual(sample.deg(18), "18°"); XCTAssertEqual(sample.degNumber(18), "18")
+        var real = WeatherSnapshot(scene: SceneLibrary.scene("clear"), character: .cat, plus: false, characterName: "", placeShort: "", saved: .distantPast)
+        XCTAssertFalse(real.isWaiting)                                   // not marked as an example
+        real.unitF = true
+        XCTAssertEqual(real.deg(20), "68°")
+    }
+
     /// The time an offline forecast is from: the clock today, the date with it on another day
     func testFetchedLabelSaysTheDay() {
         var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "Asia/Seoul")!

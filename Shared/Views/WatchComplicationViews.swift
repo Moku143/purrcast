@@ -95,8 +95,8 @@ struct WatchCatDisc: View {
 struct WatchTempGauge: View {
     let snap: WeatherSnapshot
     var body: some View {
-        let s = snap.scene, u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
-        let frac = max(0, min(1, Double(s.temp - s.lo) / Double(max(1, s.hi - s.lo))))
+        let s = snap.scene
+        let frac = snap.isWaiting ? 0 : max(0, min(1, Double(s.temp - s.lo) / Double(max(1, s.hi - s.lo))))
         GeometryReader { g in
             let d = min(g.size.width, g.size.height), k = d / 54, lw = 5 * k, r = 22 * k
             let c = CGPoint(x: g.size.width / 2, y: g.size.height / 2)
@@ -108,8 +108,8 @@ struct WatchTempGauge: View {
                 Circle().fill(Color.black).overlay(Circle().stroke(Color.white, lineWidth: 2 * k))
                     .frame(width: 7.2 * k, height: 7.2 * k)
                     .position(x: c.x + r * CGFloat(sin(a)), y: c.y - r * CGFloat(cos(a)))
-                HangingDegree(text: "\(u(s.temp))", font: .px(13 * k)).foregroundStyle(.white).position(x: c.x, y: c.y + 1 * k)
-                Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(Color(hex: "#9EA3B5"))
+                HangingDegree(text: snap.degNumber(s.temp), font: .px(13 * k)).foregroundStyle(.white).position(x: c.x, y: c.y + 1 * k)
+                Text("\(snap.degNumber(s.lo)) · \(snap.degNumber(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(Color(hex: "#9EA3B5"))
                     .position(x: c.x, y: c.y + 19 * k)
             }
         }
@@ -122,7 +122,7 @@ struct HangingDegree: View {
     let font: Font
     var body: some View {
         Text(text).font(font)
-            .overlay(alignment: .trailing) { Text("°").font(font).alignmentGuide(.trailing) { $0[.leading] } }
+            .overlay(alignment: .trailing) { if text != "–" { Text("°").font(font).alignmentGuide(.trailing) { $0[.leading] } } }   // no "°" on a dash
     }
 }
 
@@ -166,7 +166,7 @@ struct WatchFeelsDisc: View {
         let f = WatchFacts(snap: snap)
         VStack(spacing: 1) {
             PixelIcon(name: f.feelsIcon, size: 14)
-            HangingDegree(text: String(f.feels.dropLast()), font: .px(13)).foregroundStyle(TempColor.of(f.s.feels))
+            HangingDegree(text: snap.degNumber(f.s.feels), font: .px(13)).foregroundStyle(TempColor.of(f.s.feels))
         }
     }
 }

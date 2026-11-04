@@ -222,7 +222,7 @@ private struct SmallFace: View {
             VStack(alignment: .trailing, spacing: 0.9) {
                 if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }.padding(.bottom, 2) }
                 Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
-                Text(L("강수 %d%%", chanceNow(s))).font(.px(9)).probe("chance")
+                if !snap.isWaiting { Text(L("강수 %d%%", chanceNow(s))).font(.px(9)).probe("chance") }
             }
             .lineLimit(1).minimumScaleFactor(0.8)
             .halo(ink)
@@ -331,15 +331,15 @@ struct LockCircularView: View {
     let snap: WeatherSnapshot
     var pixel = false     // the lock screen's own type, like the clock; the lab can still show the pixel number
     var body: some View {
-        let s = snap.scene, u = { (v: Int) -> Int in snap.unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v }
+        let s = snap.scene
         let lo = min(s.lo, s.temp), hi = max(s.hi, s.temp)
-        LockRing(frac: Double(s.temp - lo) / Double(max(1, hi - lo))) { k in
+        LockRing(frac: snap.isWaiting ? 0 : Double(s.temp - lo) / Double(max(1, hi - lo))) { k in
             // the digits a touch left of the middle with the "°" hanging off them: the small raised degree makes a
             // whole-centred "18°" look pushed left, digits-only centring looks pushed right — this sits between
             let f: Font = pixel ? .px(13 * k) : .system(size: 13 * k, weight: .semibold)
-            return HangingDegree(text: "\(u(s.temp))", font: f).offset(x: -1.3 * k)
+            return HangingDegree(text: snap.degNumber(s.temp), font: f).offset(x: -1.3 * k)
         } under: { k in
-            Text("\(u(s.lo)) · \(u(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(.white.opacity(0.6))
+            Text("\(snap.degNumber(s.lo)) · \(snap.degNumber(s.hi))").font(.system(size: 7 * k, weight: .semibold)).foregroundStyle(.white.opacity(0.6))
         }
     }
 }
@@ -351,7 +351,7 @@ struct LockUVCircularView: View {
     var body: some View {
         let uv = snap.scene.tiles.first { $0.kind == "uv" }?.uv ?? 0
         LockRing(frac: Double(min(uv, 11)) / 11) { k in
-            Text("\(uv)").font(.system(size: 14 * k, weight: .semibold))
+            Text(snap.isWaiting ? "–" : "\(uv)").font(.system(size: 14 * k, weight: .semibold))
         } under: { k in
             Image("icon-sun-lock").interpolation(.none).resizable().frame(width: 12 * k, height: 12 * k).opacity(0.9)
         }
@@ -394,7 +394,7 @@ struct LockWindCircularView: View {
         VStack(spacing: 3) {
             // the forecast gives where the wind comes from; the arrow points the way it goes
             Image(systemName: "location.north.fill").font(.system(size: 20, weight: .semibold))
-                .rotationEffect(.degrees(Double(w.deg) + 180)).opacity(w.speed > 0 ? 0.9 : 0.4)
+                .rotationEffect(.degrees(Double(w.deg) + 180)).opacity(w.speed > 0 && !snap.isWaiting ? 0.9 : 0.4)
                 .frame(width: 26, height: 26)
             Text(snap.windText(w.speed)).font(.system(size: 14, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.6)
                 .foregroundStyle(.white.opacity(0.92))
@@ -412,7 +412,7 @@ struct LockRainCircularView: View {
         let c = chanceNow(snap.scene)
         VStack(spacing: 3) {
             Image("icon-umbrella-lock").interpolation(.none).resizable().frame(width: 26, height: 26).opacity(0.9)
-            Text("\(c)%").font(.system(size: 14, weight: .semibold)).foregroundStyle(.white.opacity(0.92))
+            Text(snap.isWaiting ? "–" : "\(c)%").font(.system(size: 14, weight: .semibold)).foregroundStyle(.white.opacity(0.92))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -467,8 +467,14 @@ struct LockInlineView: View {
         }
     }
 
-    /// (SF Symbol, text) for each kind
+    /// (SF Symbol, text) for each kind; before the app has handed over anything, the icon with a dash (the place and
+    /// the Plus-only 미세먼지 still say what they say)
     static func line(_ kind: Kind, _ snap: WeatherSnapshot, now: Date = Date(), preview: Bool = false) -> (String, String) {
+        let l = shown(kind, snap, now: now, preview: preview)
+        return snap.isWaiting && kind != .place && kind != .dust ? (l.0, "–") : l
+    }
+
+    private static func shown(_ kind: Kind, _ snap: WeatherSnapshot, now: Date, preview: Bool) -> (String, String) {
         let s = snap.scene
         switch kind {
         case .temp:

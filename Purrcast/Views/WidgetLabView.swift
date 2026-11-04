@@ -17,9 +17,11 @@ struct WidgetLabView: View {
     private var fifth: Bool { ProcessInfo.processInfo.arguments.contains("-labPage5") }
     /// -labStress: the longest words each language can put on a widget, to see what still fits
     private var stress: Bool { ProcessInfo.processInfo.arguments.contains("-labStress") }
+    /// -labWaiting: what the widgets and complications show before the app has handed over anything (no numbers)
+    private var waiting: Bool { ProcessInfo.processInfo.arguments.contains("-labWaiting") }
 
     var body: some View {
-        let snap = stress ? Self.stressed(model.snapshot) : model.snapshot
+        let snap = waiting ? WeatherSnapshot.waiting : (stress ? Self.stressed(model.snapshot) : model.snapshot)
         if third { watchPage(snap) } else if fourth { lockPage(snap) } else if fifth { inlinePage(snap) } else if second {
             VStack(spacing: 16) {
                 home("lab-hours", 364, 170, snap) { HoursWidgetView(snap: snap) }

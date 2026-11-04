@@ -50,9 +50,14 @@ struct WeatherSnapshot: Codable {
     /// Free plan always shows the cat.
     var shownCharacter: PurrCharacter { plusActive ? character : .cat }
 
-    func deg(_ v: Int) -> String { "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)°" }
+    /// The placeholder before the app has handed over anything (`waiting`): none of its numbers are real
+    var isWaiting: Bool { isSample && saved == .distantPast }
+    func deg(_ v: Int) -> String { isWaiting ? "–" : "\(degNumber(v))°" }
+    /// The number alone, for the rings that hang their own "°" ("–" on the placeholder)
+    func degNumber(_ v: Int) -> String { isWaiting ? "–" : "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)" }
     /// "4m/s" (or km/h · mph, as set in the app)
     func windText(_ ms: Int) -> String {
+        if isWaiting { return "–" }
         switch windUnit {
         case "km/h": return "\(Int((Double(ms) * 3.6).rounded()))km/h"
         case "mph": return "\(Int((Double(ms) * 2.237).rounded()))mph"
@@ -67,6 +72,7 @@ struct WeatherSnapshot: Codable {
         var s = SceneLibrary.scene("clear")
         s.bubble = WeatherScene.Bubble(kind: "thought", tone: "white", icon: "question", text: "")
         s.cond = L("앱을 열어 주세요")
+        s.hours = []; s.days = []; s.tiles = []        // no example forecast on a widget that has nothing yet
         return WeatherSnapshot(scene: s, character: .cat, plus: false, characterName: PurrCharacter.cat.defaultName,
                                placeShort: Brand.name, saved: .distantPast, isSample: true)
     }
