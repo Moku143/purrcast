@@ -118,8 +118,8 @@ struct CharacterSheet: View {
             Text("?").font(.px(28)).foregroundStyle(UI.ink.opacity(0.28))
                 .frame(width: 76, height: 76).background(UI.ink.opacity(0.09)).clipShape(Circle())
             VStack(spacing: 4) {
-                Text(L("곧 와요")).font(.ui(12, .semibold)).foregroundStyle(Color(hex: "#8A93AA"))
-                Text(L("추후 업데이트로 추가 예정")).font(.ui(10.5)).foregroundStyle(Color(hex: "#8A93AA"))
+                Text(L("곧 와요")).font(.ui(12, .semibold)).foregroundStyle(Color(hex: "#5F6983"))
+                Text(L("추후 업데이트로 추가 예정")).font(.ui(10.5)).foregroundStyle(Color(hex: "#5F6983"))
             }
         }
         .frame(maxWidth: .infinity).frame(height: 170)

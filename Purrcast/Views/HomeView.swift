@@ -399,7 +399,8 @@ struct HomeView: View {
                     }
                 }.padding(.trailing, 38)
                 // the bars start at 0.1mm, said small at the end
-                if withChance { Text(L("강수확률 · %@", L("0.1mm 이상만 표시"))).font(.ui(10)).foregroundStyle(ink.sub).padding(.top, -4) }
+                // day: a grey between faint and sub, chosen to stay quiet (about 2.9:1, below 4.5:1 on purpose); night: unchanged
+                if withChance { Text(L("강수확률 · %@", L("0.1mm 이상만 표시"))).font(.ui(10)).foregroundStyle(ink.night ? ink.sub : Color(hex: "#757E92")).padding(.top, -4) }
             } else {
                 HStack {
                     ForEach(Array(head.ticks.enumerated()), id: \.offset) { i, t in

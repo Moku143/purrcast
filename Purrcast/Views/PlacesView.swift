@@ -38,7 +38,7 @@ struct PlacesView: View {
         Button { Haptic.soft(); searching = true; focused = true } label: {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass").font(.system(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#8A93AA"))
-                Text(L("도시 · 동네 찾기")).font(.system(size: 15)).foregroundStyle(Color(hex: "#8A93AA"))
+                Text(L("도시 · 동네 찾기")).font(.system(size: 15)).foregroundStyle(Color(hex: "#5F6983"))
                 Spacer()
             }
             .padding(.horizontal, 12).frame(height: 42).background(Color(hex: "#E3E7EF")).clipShape(RoundedRectangle(cornerRadius: 12))

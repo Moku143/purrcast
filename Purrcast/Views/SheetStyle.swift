@@ -30,7 +30,7 @@ struct SheetHeader: View {
         HStack(alignment: .firstTextBaseline) {
             Text(title).font(.px(24)).foregroundStyle(UI.ink)
             Spacer()
-            Button { Haptic.soft(); action() } label: { Text(trailing).tapArea() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent)
+            Button { Haptic.soft(); action() } label: { Text(trailing).tapArea() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(hex: "#BD4D10"))  // darker than the accent for this text only: 4.5:1 on the sheet
                 .buttonStyle(.press(0.94)).accessibilityIdentifier("sheet-close")
         }
         .padding(.horizontal, 20).padding(.top, 22).padding(.bottom, 10)
