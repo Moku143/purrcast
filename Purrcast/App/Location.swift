@@ -40,11 +40,25 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     /// "서울특별시" → "서울", "경기도" → "경기"
     nonisolated static func shortCity(_ s: String) -> String { HerePlace.shortCity(s) }
 
+    /// How long a refresh waits for a fix before going on with the last known location (or none)
+    static let fixTimeout: UInt64 = 8_000_000_000
+
+    private var fixRound = 0
+
     private func fix() async -> CLLocation? {
         if let l = manager.location, -l.timestamp.timeIntervalSinceNow < 600 { return l }
         return await withCheckedContinuation { c in
             waiters.append(c)
-            if waiters.count == 1 { manager.requestLocation() }
+            guard waiters.count == 1 else { return }
+            manager.requestLocation()
+            fixRound += 1
+            let round = fixRound
+            Task { [weak self] in
+                try? await Task.sleep(nanoseconds: Self.fixTimeout)
+                // still this request's wait (not a later one's): the last known location, nil when there is none
+                guard let self, self.fixRound == round else { return }
+                self.finish(self.manager.location)
+            }
         }
     }
 

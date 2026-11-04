@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import UserNotifications
 
 enum WindUnit: String, CaseIterable, Codable { case ms, kmh, mph
@@ -73,7 +74,10 @@ final class AppModel: ObservableObject {
 
     static let freeExtraPlaces = 1
     private var generation = 0
-    private var lastRefresh: Date?
+    /// When the weather on screen was fetched (kept with the snapshot, so a launch offline knows how old it is)
+    private var lastRefresh: Date? { didSet { SharedStore.defaults.set(lastRefresh, forKey: "lastRefresh") } }
+    /// A location permission given later (the system prompt answered after the first refresh) refreshes at once
+    private var locationWatch: AnyCancellable?
     private var lastLevel: [String: Int] = [:]
 
     init() {
@@ -108,6 +112,7 @@ final class AppModel: ObservableObject {
         } else if let last = SharedStore.load(), !last.isSample, last.place?.id == loadedPlaces[0].id {
             raw = last.scene
             hasData = true
+            lastRefresh = d.object(forKey: "lastRefresh") as? Date
         } else {
             raw = WeatherScene()
             hasData = false
@@ -137,6 +142,10 @@ final class AppModel: ObservableObject {
         onboarded = testing ? !args.contains("-onboarding") : d.bool(forKey: "onboarded")
         FontPref.pixel = pixelFont
         if !testing { for p in places { dayLog.dropFilled(p.id) } }   // days an older build filled in from the server
+        locationWatch = location.$status.removeDuplicates().dropFirst().sink { [weak self] s in
+            guard s == .authorizedWhenInUse || s == .authorizedAlways else { return }
+            Task { await self?.refresh(force: true) }
+        }
     }
 
     // MARK: weather
@@ -146,6 +155,8 @@ final class AppModel: ObservableObject {
     /// elsewhere) — from the last forecast handed to the widgets, else the app's language
     static var hereIsKorea: Bool { SharedStore.load()?.place.map { $0.region == "kr" } ?? (Lang.current == .ko) }
     var isSample: Bool { provider.isSample }
+    /// The weather held is the place on screen's (after a switch offline it can still be the last place's)
+    private var weatherIsThisPlace: Bool { isSample || raw.id.isEmpty || raw.id == currentPlace.id }
 
     /// Fetch the current place. Answers that arrive after a newer request (quick place switching) are dropped.
     /// Without `force` it only fetches when the data is old: Plus 10 minutes, free 1 hour, or a new day.
@@ -159,10 +170,12 @@ final class AppModel: ObservableObject {
 
         await updateHere()
         let place = currentPlace
+        // the first refresh of a new day asks for a new forecast, not the one the phone cached last night
+        let newDay = lastRefresh.map { !Calendar.current.isDate($0, inSameDayAs: Date()) } ?? false
         // one quiet retry before saying anything: a dropped connection or a slow moment upstream usually passes
         for attempt in 0..<2 {
             do {
-                let s = try await provider.forecast(for: place, plus: plus, previousLevel: lastLevel[place.id], fresh: force)
+                let s = try await provider.forecast(for: place, plus: plus, previousLevel: lastLevel[place.id], fresh: force || newDay)
                 guard mine == generation else { return }
                 raw = s; hasData = true; lastError = nil; lastRefresh = Date()
                 lastLevel[place.id] = s.level
@@ -184,6 +197,10 @@ final class AppModel: ObservableObject {
                 // the request was called off (the app went to the background, a newer refresh): not a failure
                 if Self.isCancel(error) { return }
                 if attempt == 0 { try? await Task.sleep(nanoseconds: 1_500_000_000); guard mine == generation else { return }; continue }
+                // the place was switched (or deleted) offline: its own last forecast from the places list, else nothing
+                if !isSample, raw.id != place.id {
+                    if let p = previews[place.id] { raw = p } else { hasData = false }
+                }
                 // said as a wait, not a failure; with data on screen, which time it is from
                 lastError = hasData ? L("새 날씨를 불러오는 중이에요 · 지금은 %@ 날씨예요", shownTime) : L("날씨를 불러오는 데 시간이 걸리고 있어요. 잠시 후 아래로 당겨 주세요.")
             }
@@ -193,8 +210,15 @@ final class AppModel: ObservableObject {
     /// When the weather on screen was fetched ("13:40"), or the forecast's own time when it came from the cache
     private var shownTime: String {
         guard let t = lastRefresh else { return raw.updated }
-        let c = Calendar.current.dateComponents([.hour, .minute], from: t)
-        return HourLabel.clock((c.hour ?? 0) * 60 + (c.minute ?? 0), clock12: clock12)
+        return Self.fetchedLabel(t, clock12: clock12)
+    }
+
+    /// "13:40" today; "11월 1일 13:40" on another day (an old forecast must not pass for today's)
+    static func fetchedLabel(_ t: Date, now: Date = Date(), clock12: Bool, calendar: Calendar = .current) -> String {
+        let c = calendar.dateComponents([.hour, .minute], from: t)
+        let clock = HourLabel.clock((c.hour ?? 0) * 60 + (c.minute ?? 0), clock12: clock12)
+        guard !calendar.isDate(t, inSameDayAs: now) else { return clock }
+        return DayLogText.day(DayLog.dayKey(t, tz: calendar.timeZone)) + " " + clock
     }
 
     static func isCancel(_ e: Error) -> Bool {
@@ -206,13 +230,23 @@ final class AppModel: ObservableObject {
     /// Keep the "here" place on the phone's location (when allowed), else a fixed default city.
     private func updateHere() async {
         guard pinnedScene == nil, let i = places.firstIndex(where: { $0.id == "here" }) else { return }
-        if useLocation, let p = await location.currentPlace() {
-            if places[i] != p { places[i] = p }
-            hereIsLive = true
-        } else {
-            hereIsLive = false
-            if places[i] != Place.here { places[i] = Place.here }
-        }
+        let allowed = useLocation && location.allowed
+        let fix = allowed ? await location.currentPlace() : nil
+        let next = Self.nextHere(previous: places[i], fix: fix, allowed: allowed)
+        hereIsLive = allowed && (fix != nil || hereIsLive)
+        if places[i] != next { places[i] = next }
+    }
+
+    /// "지금 위치" after asking for the phone's location. Location off → the default city. No fix this time (indoors,
+    /// on the subway, timed out) → where it was last. A fix Apple could not name (offline) at the same spot → the
+    /// last named place, so its region (기상청 in Korea) and names stay.
+    static func nextHere(previous: Place, fix: Place?, allowed: Bool) -> Place {
+        guard allowed else { return Place.here }
+        guard let f = fix else { return previous }
+        let unnamed = L("지금 위치")
+        if f.name == unnamed, previous.name != unnamed,
+           DayLog.km(previous.lat, previous.lon, f.lat, f.lon) <= DayLog.moveKm { return previous }
+        return f
     }
 
     func refreshPreviews() async {
@@ -291,11 +325,16 @@ final class AppModel: ObservableObject {
         guard key != airMapKey else { return }
         if !airMapKey.hasPrefix(place.id + "|") { airMap = nil }
         airMapKey = key
-        if let m = try? await provider.airMap(for: place) {
+        do {
+            let m = try await provider.airMap(for: place)
             if currentPlace.id == place.id { airMap = m; airMapFailed = false }
             // 날씨 기록: the day's 대기질 (its highest index)
             if !isSample, let d = m.detail { dayLog.recordAir(value: d.value, grade: d.grade, main: d.main, kind: m.kind, place: place); dayLogVersion += 1 }
-        } else if airMap == nil { airMapKey = ""; airMapFailed = true }
+        } catch {
+            airMapKey = ""                                          // asked again next time
+            // called off (the card's task restarted, the app went away): not a failure, the card stays
+            if !Self.isCancel(error), airMap == nil { airMapFailed = true }
+        }
     }
 
     func windText(_ ms: Int) -> String { windNumber(ms) + windUnit }
@@ -369,7 +408,7 @@ final class AppModel: ObservableObject {
 
     /// Hand the current forecast to the widgets and the watch, and re-plan notifications from it.
     func publish() {
-        guard hasData else { return }
+        guard hasData, weatherIsThisPlace else { return }
         let snap = snapshot
         SharedStore.save(snap)
         WatchBridge.shared.send(snap)
@@ -378,7 +417,7 @@ final class AppModel: ObservableObject {
     }
 
     func planNotifications() {
-        guard pinnedScene == nil, hasData else { return }
+        guard pinnedScene == nil, hasData, weatherIsThisPlace else { return }
         // example weather must never turn into a real-looking alert
         // free: the morning summary only (rain and the day-to-day change are Plus)
         // the rain alert comes as the Live Activity's own banner once the server can push it; else the app's own

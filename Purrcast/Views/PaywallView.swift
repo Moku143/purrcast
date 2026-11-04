@@ -116,7 +116,10 @@ struct PaywallView: View {
         .alert(purchases.message ?? "", isPresented: Binding(get: { purchases.message != nil }, set: { if !$0 { purchases.message = nil } })) {
             Button(L("확인"), role: .cancel) {}
         }
-        .task { if !purchases.loaded { await purchases.load() } }
+        .task {
+            if !purchases.loaded { await purchases.load() }
+            else if purchases.products.isEmpty { await purchases.loadProducts() }   // offline before: try again
+        }
     }
 
     private var buttonTitle: String {

@@ -17,7 +17,7 @@ final class LiveActivities {
 
     /// True once the server has the push-to-start token and can push: the app then leaves the rain alert to the
     /// activity instead of scheduling its own notification.
-    var active: Bool { pushOK && startToken != nil }
+    var active: Bool { pushOK && startToken != nil && ActivityAuthorizationInfo().areActivitiesEnabled }
 
     static let deviceID: String = {
         let k = "device.id"

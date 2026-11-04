@@ -55,13 +55,18 @@ final class Purchases: ObservableObject {
             startTestTrial()
         }
         await refresh()
+        await loadProducts()
+        loaded = true
+    }
+
+    /// The subscriptions and their prices from the App Store (offline at launch: none until asked again)
+    func loadProducts() async {
         if let p = try? await Product.products(for: Self.ids) {
             products = p.sorted { $0.id == Self.yearly && $1.id != Self.yearly }
         }
         if let any = products.first, let sub = any.subscription {
             trialEligible = await sub.isEligibleForIntroOffer
         }
-        loaded = true
     }
 
     func product(_ id: String) -> Product? { products.first { $0.id == id } }

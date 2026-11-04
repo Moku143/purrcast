@@ -731,6 +731,37 @@ final class PurrcastTests: XCTestCase {
         Lang.current = .ko
         XCTAssertNil(Holidays.name("2026-10-03", timeZone: "Asia/Seoul"))
         XCTAssertEqual(Holidays.table("KR")?.fetched, t0.addingTimeInterval(86400))
+        // a country with no holidays known (the server sends no language): kept, so it is not asked again all week
+        XCTAssertNotNil(Holidays.install(Data(#"{"cc":"AQ","days":{}}"#.utf8), fetched: t0))
+        XCTAssertNil(Holidays.name("2026-10-03", timeZone: "Antarctica/Troll"))
+        XCTAssertEqual(Holidays.table("AQ")?.fetched, t0)
+    }
+
+    /// "지금 위치" after a location attempt: one failed fix keeps the last place (not the default 서울); an unnamed fix
+    /// (geocoding offline) at the same spot keeps the last names and region; location off goes back to the default
+    func testHereKeepsThePlaceWhenAFixFails() {
+        var tokyo = Place.here; tokyo.name = "東京 新宿区"; tokyo.short = "新宿区"; tokyo.lat = 35.69; tokyo.lon = 139.70
+        tokyo.region = "jp"; tokyo.timeZone = "Asia/Tokyo"; tokyo.ko = nil
+        XCTAssertEqual(AppModel.nextHere(previous: tokyo, fix: nil, allowed: true), tokyo)
+        XCTAssertEqual(AppModel.nextHere(previous: tokyo, fix: nil, allowed: false), Place.here)
+        var unnamed = tokyo; unnamed.name = L("지금 위치"); unnamed.short = L("지금 위치"); unnamed.region = "other"; unnamed.lat += 0.01
+        XCTAssertEqual(AppModel.nextHere(previous: tokyo, fix: unnamed, allowed: true), tokyo)
+        var far = unnamed; far.lat = 34.69                              // 오사카: a new place even unnamed
+        XCTAssertEqual(AppModel.nextHere(previous: tokyo, fix: far, allowed: true), far)
+        var named = tokyo; named.name = "東京 渋谷区"; named.lat += 0.02
+        XCTAssertEqual(AppModel.nextHere(previous: tokyo, fix: named, allowed: true), named)
+    }
+
+    /// The time an offline forecast is from: the clock today, the date with it on another day
+    func testFetchedLabelSaysTheDay() {
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        let now = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 14, minute: 0))!
+        let today = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 9, minute: 5))!
+        let before = cal.date(from: DateComponents(year: 2026, month: 11, day: 1, hour: 13, minute: 40))!
+        XCTAssertEqual(AppModel.fetchedLabel(today, now: now, clock12: false, calendar: cal), HourLabel.clock(9 * 60 + 5, clock12: false))
+        let old = AppModel.fetchedLabel(before, now: now, clock12: false, calendar: cal)
+        XCTAssertTrue(old.hasPrefix(DayLogText.day("2026-11-01")), old)
+        XCTAssertTrue(old.hasSuffix(HourLabel.clock(13 * 60 + 40, clock12: false)), old)
     }
 
     func testMonthReport() {

@@ -7,8 +7,9 @@ import Foundation
 enum Holidays {
     struct Table: Codable {
         let cc: String
-        /// The country's own language (the app's code); a day's names: "" in that language, else by app language
-        let lang: String
+        /// The country's own language (the app's code; nil for a country with no holidays known); a day's names:
+        /// "" in that language, else by app language
+        let lang: String?
         let days: [String: [String: String]]
         var fetched: Date?
     }
