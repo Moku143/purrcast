@@ -270,7 +270,7 @@ struct HomeView: View {
     }
 
     private func roundButton<C: View>(_ ink: Ink, id: String, label: String, action: @escaping () -> Void, @ViewBuilder content c: () -> C) -> some View {
-        Button { Haptic.soft(); action() } label: { c().frame(width: 36, height: 36).background(ink.btn).clipShape(Circle()) }
+        Button { Haptic.soft(); action() } label: { c().frame(width: 36, height: 36).background(ink.btn).clipShape(Circle()).tapArea() }   // 44-pt taps, the 36-pt circle as drawn
             .buttonStyle(.press(0.9)).accessibilityIdentifier(id).accessibilityLabel(label)
     }
 
