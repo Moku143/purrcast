@@ -43,16 +43,14 @@ struct Provider: TimelineProvider {
     /// "지금 위치" where the phone is now, when the location permission covers widgets; otherwise nil (use what the
     /// app saved).
     private func fetch() async -> WeatherSnapshot? {
-        guard WeatherSource.serverURL != nil, var last = SharedStore.load(), !last.isSample, var place = last.place else { return nil }
-        if place.id == "here", let p = await WidgetLocation.here(from: place), p != place {
-            place = p; last.place = p; last.placeShort = p.short
-        }
+        guard WeatherSource.serverURL != nil, let last = SharedStore.load(), !last.isSample, var place = last.place else { return nil }
+        if place.id == "here", let p = await WidgetLocation.here(from: place), p != place { place = p }
         guard let s = try? await WeatherSource.make().forecast(for: place, plus: last.plusActive, previousLevel: last.scene.level) else { return nil }
-        last.scene = s; last.saved = Date()
         DayLog().record(s, place: place, character: last.shownCharacter, plus: last.plusActive)   // the 날씨 기록 fills on the widget's refreshes too
-        if !last.plusActive { last.plus = false }
-        SharedStore.save(last, reload: false)       // no reload from here: that would start every widget's refresh again
-        return last
+        // read again now: the app may have saved new settings or another place while the widget waited
+        guard let snap = SharedStore.withWidgetForecast(s, for: place, onto: SharedStore.load()) else { return nil }
+        SharedStore.save(snap, reload: false)       // no reload from here: that would start every widget's refresh again
+        return snap
     }
 }
 

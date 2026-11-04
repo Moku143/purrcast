@@ -859,6 +859,37 @@ final class PurrcastTests: XCTestCase {
         XCTAssertNil(m.lastError)
     }
 
+    /// A widget's own forecast changes only the weather and its time: what the app saved meanwhile stays; another place
+    /// saved meanwhile is left alone; 지금 위치 comes with the spot the widget found
+    func testWidgetForecastKeepsTheAppsSettings() {
+        let a = testPlace("test-a"), b = testPlace("test-b")
+        let t0 = Date(timeIntervalSince1970: 1_790_000_000)
+        var old = SceneLibrary.scene("clear"); old.temp = 3
+        var fresh = SceneLibrary.scene("maybe"); fresh.temp = 12
+        // what the app saved while the widget was fetching
+        let now = WeatherSnapshot(scene: old, character: .brit, plus: true, characterName: "나비", placeShort: a.short, saved: t0,
+                                  place: a, plusUntil: t0.addingTimeInterval(86400), unitF: true, clock12: true, lang: "en", windUnit: "mph")
+        let out = SharedStore.withWidgetForecast(fresh, for: a, onto: now, at: t0.addingTimeInterval(60))
+        XCTAssertEqual(out?.scene.temp, 12)
+        XCTAssertEqual(out?.saved, t0.addingTimeInterval(60))
+        XCTAssertEqual(out?.character, .brit); XCTAssertEqual(out?.characterName, "나비")
+        XCTAssertEqual(out?.plus, true); XCTAssertEqual(out?.plusUntil, t0.addingTimeInterval(86400))
+        XCTAssertEqual(out?.unitF, true); XCTAssertEqual(out?.clock12, true)
+        XCTAssertEqual(out?.lang, "en"); XCTAssertEqual(out?.windUnit, "mph")
+        XCTAssertEqual(out?.place?.id, a.id); XCTAssertEqual(out?.placeShort, a.short)
+        // the app went to another place meanwhile, or nothing real is saved: nothing to save
+        XCTAssertNil(SharedStore.withWidgetForecast(fresh, for: b, onto: now))
+        XCTAssertNil(SharedStore.withWidgetForecast(fresh, for: a, onto: nil))
+        var sample = now; sample.isSample = true
+        XCTAssertNil(SharedStore.withWidgetForecast(fresh, for: a, onto: sample))
+        // 지금 위치 somewhere new: the weather comes with the spot it is for
+        var hereNow = now; hereNow.place = Place.here; hereNow.placeShort = Place.here.short
+        var moved = Place.here; moved.name = "부산 해운대구"; moved.short = "해운대구"; moved.lat = 35.16; moved.lon = 129.16
+        let h = SharedStore.withWidgetForecast(fresh, for: moved, onto: hereNow)
+        XCTAssertEqual(h?.place?.lat, 35.16); XCTAssertEqual(h?.placeShort, "해운대구")
+        XCTAssertEqual(h?.unitF, true); XCTAssertEqual(h?.character, .brit)
+    }
+
     /// The time an offline forecast is from: the clock today, the date with it on another day
     func testFetchedLabelSaysTheDay() {
         var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "Asia/Seoul")!

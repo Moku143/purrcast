@@ -102,4 +102,16 @@ enum SharedStore {
         guard let data = defaults.data(forKey: key) else { return nil }
         return try? JSONDecoder().decode(WeatherSnapshot.self, from: data)
     }
+
+    /// A widget's own forecast for `place`, put onto what is saved now (read again just before saving): only the
+    /// weather and its time change, so what the app saved while the widget waited (units, character, language, plan)
+    /// stays. 지금 위치 also takes the spot the widget found it at (the weather is for there). nil when the app has
+    /// gone to another place meanwhile, or nothing real is saved: the widget leaves it alone.
+    static func withWidgetForecast(_ s: WeatherScene, for place: Place, onto now: WeatherSnapshot?, at date: Date = Date()) -> WeatherSnapshot? {
+        guard var snap = now, !snap.isSample, let saved = snap.place, saved.id == place.id else { return nil }
+        snap.scene = s
+        snap.saved = date
+        if place.id == "here" { snap.place = place; snap.placeShort = place.short }
+        return snap
+    }
 }
