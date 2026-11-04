@@ -399,7 +399,7 @@ struct HomeView: View {
                     }
                 }.padding(.trailing, 38)
                 // the bars start at 0.1mm, said small at the end
-                if withChance { Text(L("강수확률 · %@", L("0.1mm 이상만 표시"))).font(.ui(10)).foregroundStyle(ink.faint).padding(.top, -4) }
+                if withChance { Text(L("강수확률 · %@", L("0.1mm 이상만 표시"))).font(.ui(10)).foregroundStyle(ink.sub).padding(.top, -4) }
             } else {
                 HStack {
                     ForEach(Array(head.ticks.enumerated()), id: \.offset) { i, t in
