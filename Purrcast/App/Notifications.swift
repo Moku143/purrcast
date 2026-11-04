@@ -10,8 +10,16 @@ enum Notifications {
         let deg = { (v: Int) -> String in "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)°" }
         let c = UNUserNotificationCenter.current()
         c.getNotificationSettings { settings in
-            c.removePendingNotificationRequests(withIdentifiers: ["rain", "morning", "change", "monthly"])
-            guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else { return }
+            c.removePendingNotificationRequests(withIdentifiers: ids)
+            let allowed = settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional
+            // 아침 요약: the next 7 mornings
+            for m in morningPlan(allowed: allowed, enabled: morning, scene: s, place: place, morningTime: morningTime, unitF: unitF, plus: plus, voice: voice) {
+                let n = UNMutableNotificationContent()
+                n.title = m.title
+                n.body = m.body   // no picture: the app icon is enough
+                c.add(UNNotificationRequest(identifier: m.id, content: n, trigger: UNCalendarNotificationTrigger(dateMatching: m.at, repeats: false)))
+            }
+            guard allowed else { return }
 
             // 비 오기 전: an hour before the first rainy hour (as the Live Activity does) (quiet hours 22:00–07:00 skipped)
             if rain, let first = firstRain(s, tz: TimeZone(identifier: place.timeZone) ?? .current) {
@@ -34,22 +42,14 @@ enum Notifications {
             }
 
             // the next morning at the chosen time (the user's own clock): still today's when the time is ahead (opening
-            // the app at 3 am must not wipe the 7 am summary), else tomorrow's — with that day's numbers
+            // the app at 3 am must not wipe the 7 am summary), else tomorrow's — for the change line below
             let t = Calendar.current.dateComponents([.hour, .minute], from: morningTime)
             var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date())
             comps.hour = t.hour ?? 7; comps.minute = t.minute ?? 0
             let stillToday = (Calendar.current.date(from: comps).map { $0.timeIntervalSinceNow > 60 } ?? false)
             if !stillToday { comps = Calendar.current.dateComponents([.year, .month, .day], from: Date().addingTimeInterval(86400)); comps.hour = t.hour ?? 7; comps.minute = t.minute ?? 0 }
-            let tomorrow = stillToday ? s.days.first : (s.days.count > 1 ? s.days[1] : nil)   // the day the summary is about
+            let tomorrow = stillToday ? s.days.first : (s.days.count > 1 ? s.days[1] : nil)   // the day the next summary is about
             let today = stillToday ? nil : s.days.first   // the day before it, for the change line (unknown once that day has begun)
-
-            // 아침 요약
-            if morning, let d = tomorrow {
-                let n = UNMutableNotificationContent()
-                n.title = voice.say(L("%@ · 오늘 %@ ~ %@", place.short, deg(d.lo), deg(d.hi)))
-                n.body = voice.say(morningDetail(s, day: d, plus: plus, today: stillToday, unitF: unitF))   // no picture: the app icon is enough
-                c.add(UNNotificationRequest(identifier: "morning", content: n, trigger: UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)))
-            }
 
             // 기온 변화: how tomorrow compares with today (said the next morning as "어제보다")
             if change, let d = tomorrow, let y = today {
@@ -71,6 +71,52 @@ enum Notifications {
                 n.userInfo = ["open": "calendar", "month": m.month]
                 c.add(UNNotificationRequest(identifier: "monthly", content: n, trigger: UNCalendarNotificationTrigger(dateMatching: m.at, repeats: false)))
             }
+        }
+    }
+
+    /// Every id plan() may leave pending, all cleared before each plan ("morning" was the one summary of builds up to 63)
+    static let ids = ["rain", "morning", "change", "monthly"] + morningIDs
+    static let morningIDs = (0..<7).map { "morning\($0)" }
+
+    struct Morning: Equatable {
+        var id: String
+        var at: DateComponents      // the user's own clock
+        var title: String
+        var body: String
+    }
+
+    /// The 아침 요약 to leave pending: none when notifications are not allowed or the summary is off
+    static func morningPlan(allowed: Bool, enabled: Bool, scene s: WeatherScene, place: Place, morningTime: Date, unitF: Bool,
+                            plus: Bool, voice: Voice = .polite, now: Date = Date(), calendar cal: Calendar = .current) -> [Morning] {
+        guard allowed, enabled else { return [] }
+        return mornings(s, place: place, morningTime: morningTime, unitF: unitF, plus: plus, voice: voice, now: now, calendar: cal)
+    }
+
+    /// The 아침 요약 for the next 7 mornings at the chosen time (the user's own clock), today's first while that time is
+    /// still ahead (opening the app at 3 am must not wipe the 7 am summary): the next three with that day's forecast
+    /// numbers, the four after them a plain reminder without numbers (a forecast that many days old is not worth
+    /// repeating). The app re-plans them all after every refresh, so a phone that opens the app keeps a fresh week.
+    static func mornings(_ s: WeatherScene, place: Place, morningTime: Date, unitF: Bool, plus: Bool, voice: Voice = .polite,
+                         now: Date = Date(), calendar cal: Calendar = .current) -> [Morning] {
+        let deg = { (v: Int) -> String in "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)°" }
+        let t = cal.dateComponents([.hour, .minute], from: morningTime)
+        func at(_ dayOffset: Int) -> DateComponents? {
+            guard let day = cal.date(byAdding: .day, value: dayOffset, to: cal.startOfDay(for: now)) else { return nil }
+            var c = cal.dateComponents([.year, .month, .day], from: day)
+            c.hour = t.hour ?? 7; c.minute = t.minute ?? 0
+            return c
+        }
+        let stillToday = at(0).flatMap { cal.date(from: $0) }.map { $0.timeIntervalSince(now) > 60 } ?? false
+        let first = stillToday ? 0 : 1
+        return (0..<7).compactMap { k -> Morning? in
+            let i = first + k               // the forecast's day (0 = today)
+            guard let c = at(i) else { return nil }
+            if k < 3, i < s.days.count {
+                let d = s.days[i]
+                return Morning(id: morningIDs[k], at: c, title: voice.say(L("%@ · 오늘 %@ ~ %@", place.short, deg(d.lo), deg(d.hi))),
+                               body: voice.say(morningDetail(s, day: d, plus: plus, today: i == 0, unitF: unitF)))
+            }
+            return Morning(id: morningIDs[k], at: c, title: place.short, body: voice.say(L("옷차림은 앱에서 확인해 보세요")))
         }
     }
 

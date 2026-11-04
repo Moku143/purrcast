@@ -950,6 +950,50 @@ final class PurrcastTests: XCTestCase {
         XCTAssertTrue(old.hasSuffix(HourLabel.clock(13 * 60 + 40, clock12: false)), old)
     }
 
+    /// 아침 요약 for a week: morning0…6 at the chosen time, today's first while that time is ahead; numbers only in the
+    /// next three; nothing when notifications are not allowed or the summary is off; every id (the older single
+    /// "morning" too) cleared before planning; Plus still adds its own lines, free does not
+    func testMorningSummaryWeek() {
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        let time = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 7, minute: 30))!
+        let early = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 5, minute: 0))!
+        let late = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 9, minute: 0))!
+        let s = SceneLibrary.scene("maybe")
+        var place = Place.here; place.short = "마포구"; place.name = "서울 마포구"
+        func plan(_ now: Date, plus: Bool = false, scene: WeatherScene? = nil) -> [Notifications.Morning] {
+            Notifications.mornings(scene ?? s, place: place, morningTime: time, unitF: false, plus: plus, now: now, calendar: cal)
+        }
+        let week = plan(early)
+        XCTAssertEqual(week.map(\.id), (0..<7).map { "morning\($0)" })
+        XCTAssertEqual(week.map { $0.at.day }, [4, 5, 6, 7, 8, 9, 10])          // today's while 7:30 is ahead
+        XCTAssertTrue(week.allSatisfy { $0.at.hour == 7 && $0.at.minute == 30 && $0.at.month == 11 })
+        XCTAssertEqual(plan(late).map { $0.at.day }, [5, 6, 7, 8, 9, 10, 11])   // 7:30 has passed: from tomorrow
+        // numbers for days 0–2 only (that day's range), none at all for days 3–6
+        XCTAssertEqual(week[0].title, L("%@ · 오늘 %@ ~ %@", "마포구", "\(s.days[0].lo)°", "\(s.days[0].hi)°"))
+        XCTAssertEqual(plan(late)[0].title, L("%@ · 오늘 %@ ~ %@", "마포구", "\(s.days[1].lo)°", "\(s.days[1].hi)°"))
+        for m in week.prefix(3) { XCTAssertTrue(m.title.contains("°"), m.title) }
+        for m in week.dropFirst(3) {
+            XCTAssertNil(m.title.rangeOfCharacter(from: .decimalDigits), m.title)
+            XCTAssertNil(m.body.rangeOfCharacter(from: .decimalDigits), m.body)
+            XCTAssertFalse(m.title.contains("°") || m.body.contains("°") || m.body.contains("%"), m.body)
+        }
+        // not allowed, or the summary off: nothing pending; every id cleared first (the one-summary "morning" too)
+        XCTAssertTrue(Notifications.morningPlan(allowed: false, enabled: true, scene: s, place: place, morningTime: time, unitF: false, plus: true, now: early, calendar: cal).isEmpty)
+        XCTAssertTrue(Notifications.morningPlan(allowed: true, enabled: false, scene: s, place: place, morningTime: time, unitF: false, plus: true, now: early, calendar: cal).isEmpty)
+        XCTAssertEqual(Notifications.morningPlan(allowed: true, enabled: true, scene: s, place: place, morningTime: time, unitF: false, plus: false, now: early, calendar: cal), week)
+        XCTAssertTrue(Set(Notifications.ids).isSuperset(of: Set(week.map(\.id) + ["morning", "rain", "change", "monthly"])))
+        // free and Plus as before: the day-to-day change is a Plus line (today's summary only)
+        var warmer = s; warmer.yday = 3; warmer.alert = nil
+        let said = L("어제보다 %d° 높아요", 3)
+        XCTAssertTrue(plan(early, plus: true, scene: warmer)[0].body.contains(said))
+        XCTAssertFalse(plan(early, plus: false, scene: warmer)[0].body.contains(said))
+        XCTAssertFalse(plan(early, plus: true, scene: warmer)[1].body.contains(said))     // tomorrow's is not "vs yesterday"
+        // a short forecast: the days it has, the plain reminder after
+        var short = s; short.days = Array(s.days.prefix(2))
+        let few = plan(early, scene: short)
+        XCTAssertTrue(few[1].title.contains("°")); XCTAssertEqual(few[2].title, "마포구")
+    }
+
     func testMonthReport() {
         func day(_ d: String, _ hi: Int, _ lo: Int, wet: String? = nil, dust: Int? = nil) -> DayRecord {
             var r = DayRecord(date: d, hi: hi, lo: lo, icon: wet == nil ? "sun" : "raincloud"); r.wet = wet; r.dust = dust; return r
