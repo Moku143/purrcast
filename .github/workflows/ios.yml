@@ -136,13 +136,19 @@ jobs:
           shot watch-ko-hours -lang ko -scene maybe -char cat -page 1
           shot watch-ko-days -lang ko -scene maybe -char cat -page 2
           shot watch-ko-locked -lang ko -scene maybe -char cat -locked
-      # A failed run keeps what the app and the system did meanwhile: "Failed to terminate app.purrcast.ios" has
-      # happened twice right after a screen was captured; this shows whether the app was hanging or the system was slow
+      # A failed run keeps what the app and the system did meanwhile: "Failed to terminate app.purrcast.ios" (and once
+      # "does not have a process ID" on launch) has happened on slow runners; this shows whether the app was hanging or
+      # the system was slow
       - name: Simulator log and test results when the tests fail
         if: failure()
         run: |
-          xcrun simctl spawn booted log show --last 20m --style compact \
-            --predicate 'process == "Purrcast" OR process == "runningboardd" OR process == "SpringBoard" OR process == "testmanagerd"' > sim.log 2>&1 || true
+          # xcodebuild has shut the simulator down by now ("No devices are booted"): boot the same phone again — its log
+          # is kept on disk — and read it from there
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,os,sys; d=json.load(sys.stdin)['devices']; n=os.environ.get('SIM_DEVICE') or 'iPhone 16'; c=[(k,x['udid']) for k,v in d.items() if '.iOS-' in k for x in v if x['name']==n]; c.sort(key=lambda t: [int(p) for p in t[0].split('.iOS-')[1].split('-')]); print(c[-1][1] if c else '')")
+          echo "phone: ${UDID:-not found}"
+          [ -n "$UDID" ] && { xcrun simctl bootstatus "$UDID" -b > /dev/null 2>&1 || true; }
+          xcrun simctl spawn "${UDID:-booted}" log show --last 90m --style compact \
+            --predicate 'process == "Purrcast" OR process == "runningboardd" OR process == "SpringBoard" OR process == "testmanagerd"' 2>&1 | tail -n 150000 > sim.log || true
           echo "sim.log: $(wc -l < sim.log) lines"; grep -iE "terminat|hang|watchdog|unresponsive|kill" sim.log | tail -20 || true
       - name: Keep the test results of a failed run
         if: failure()
