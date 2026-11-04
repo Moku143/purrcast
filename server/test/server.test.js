@@ -741,9 +741,10 @@ test('HTTP /v1/devices: only Plus is kept — a free registration answers ok and
   const dev = { id: 'HTTP1', lat: 37.49, lon: 126.84, tz: 'Asia/Seoul', region: 'kr', lang: 'ko', name: '오류동', char: 'cat' };
   let r = await (await post({ ...dev, plan: 'plus' })).json();
   assert.equal(r.ok, true); assert.equal(r.plan, 'plus'); assert.ok(kv.has('dev:HTTP1'), 'plus is kept');
+  const before = kv.get('dev:HTTP1');
   r = await (await post({ ...dev, plan: 'free' })).json();
   assert.equal(r.ok, true); assert.equal(r.plan, 'free'); assert.equal(r.push, false);
-  assert.ok(!kv.has('dev:HTTP1'), 'the free registration removed the earlier entry and kept nothing');
+  assert.equal(kv.get('dev:HTTP1'), before, 'a free registration stores nothing and deletes nothing — the old entry just stops being refreshed');
   // a rate-limit binding that says no answers 429 without touching the store
   const no = { limit: async () => ({ success: false }) };
   const limited = await worker.fetch(new Request('https://x/v1/devices', { method: 'POST', body: JSON.stringify({ ...dev, plan: 'plus' }) }),

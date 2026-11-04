@@ -198,8 +198,10 @@ async function devices(request, env) {
   if (!dev) return json({ error: 'bad device' }, 400);
   // one device: a few registrations a minute at most (the app sends one when something changed, or hourly)
   if (env.DEVICE_LIMIT && !(await env.DEVICE_LIMIT.limit({ key: `dev:${dev.id}` })).success) return json({ error: 'slow down' }, 429, { 'retry-after': '60' });
-  // only Plus is pushed to: a free registration (an older app) is not kept, and an earlier one goes
-  if (dev.plan !== 'plus') { await env.DEVICES.delete(`dev:${dev.id}`); return json({ ok: true, push: false, plan: 'free', start: false, act: false }); }
+  // only Plus is pushed to: a free registration (an older app) is simply not stored. An existing record is left
+  // alone — free posts stop refreshing it, so it expires on its own 45-day TTL (nothing stored is ever deleted
+  // here; a device asks for its own deletion through DELETE /v1/devices).
+  if (dev.plan !== 'plus') return json({ ok: true, push: false, plan: 'free', start: false, act: false });
   const saved = await saveDevice(env.DEVICES, dev);
   return json({ ok: true, push: hasAPNs(env), plan: saved.plan, start: !!saved.start, act: !!saved.act });
 }
