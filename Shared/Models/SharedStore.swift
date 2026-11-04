@@ -19,6 +19,7 @@ struct WeatherSnapshot: Codable {
     var isSample: Bool = false          // example weather (no server yet)
     var lang: String? = nil             // 설정 → 언어 on the phone ("" = the device's); the watch follows it
     var windUnit: String = "m/s"        // 설정 → 바람 단위: m/s · km/h · mph (the lock-screen wind circle)
+    var stale: Bool = false             // aged past the forecast's end (set by aged(at:), never saved)
 
     init(scene: WeatherScene, character: PurrCharacter, plus: Bool, characterName: String, placeShort: String, saved: Date,
          place: Place? = nil, plusUntil: Date? = nil, unitF: Bool = false, clock12: Bool = false, isSample: Bool = false, lang: String? = nil,
@@ -43,6 +44,7 @@ struct WeatherSnapshot: Codable {
         isSample = (try? c.decode(Bool.self, forKey: .isSample)) ?? false
         lang = try? c.decode(String.self, forKey: .lang)
         windUnit = (try? c.decode(String.self, forKey: .windUnit)) ?? "m/s"
+        stale = (try? c.decode(Bool.self, forKey: .stale)) ?? false
     }
 
     /// Plus, unless the paid period has ended since the app last ran.
@@ -52,12 +54,14 @@ struct WeatherSnapshot: Codable {
 
     /// The placeholder before the app has handed over anything (`waiting`): none of its numbers are real
     var isWaiting: Bool { isSample && saved == .distantPast }
-    func deg(_ v: Int) -> String { isWaiting ? "–" : "\(degNumber(v))°" }
+    /// Nothing real to show a number for: the first-data placeholder, or a forecast aged past its end
+    var showsDashes: Bool { isWaiting || stale }
+    func deg(_ v: Int) -> String { showsDashes ? "–" : "\(degNumber(v))°" }
     /// The number alone, for the rings that hang their own "°" ("–" on the placeholder)
-    func degNumber(_ v: Int) -> String { isWaiting ? "–" : "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)" }
+    func degNumber(_ v: Int) -> String { showsDashes ? "–" : "\(unitF ? Int((Double(v) * 1.8 + 32).rounded()) : v)" }
     /// "4m/s" (or km/h · mph, as set in the app)
     func windText(_ ms: Int) -> String {
-        if isWaiting { return "–" }
+        if showsDashes { return "–" }
         switch windUnit {
         case "km/h": return "\(Int((Double(ms) * 3.6).rounded()))km/h"
         case "mph": return "\(Int((Double(ms) * 2.237).rounded()))mph"
@@ -84,6 +88,78 @@ struct WeatherSnapshot: Codable {
         var s = SceneLibrary.scene("maybe"); s.place = Place.here.name
         return WeatherSnapshot(scene: s, character: .cat, plus: false, characterName: PurrCharacter.cat.defaultName,
                                placeShort: Place.here.short, saved: Date(), isSample: true)
+    }
+
+    /// The snapshot as a widget should show it at `date`, without a refresh. Under an hour old, a sample, the
+    /// placeholder or a forecast with no hourly rows: returned unchanged. Within the forecast: the hour that
+    /// holds `date` becomes "지금" — its temperature, the rows from it on, the clock, and day or night from the
+    /// sun — and past midnight the day list turns (hi · lo from the new first day; "어제보다" and the day's
+    /// 미세먼지 dropped, they belonged to a day now gone). Past the last forecast hour: the waiting dashes and
+    /// "앱을 열어 주세요" — numbers are never invented. The outfit and its prop stay as saved (the last real
+    /// feels-like chose them), and the aged hour's feels is its temperature (the saved feels went with its hour).
+    /// Pure: nothing is written back, so the app still sees how old the stored forecast really is.
+    func aged(at date: Date = Date()) -> WeatherSnapshot {
+        guard !isSample, !stale, scene.hours.count >= 2, let p = place, let tz = TimeZone(identifier: p.timeZone),
+              date.timeIntervalSince(saved) >= 3600 else { return self }
+        var out = self
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
+        var s = out.scene
+        guard let i = s.hourIndex(at: date, tz: tz, now: saved) else {
+            // the forecast has run out: no numbers at all, and the bubble asks for the app
+            s.hours = []; s.days = []; s.tiles = []
+            s.rain = "none"; s.yday = 0; s.dust = nil
+            s.feels = s.temp; s.hi = s.temp; s.lo = s.temp
+            s.bubble = WeatherScene.Bubble(kind: "thought", tone: "white", icon: "question", text: "")
+            s.cond = L("앱을 열어 주세요")
+            out.scene = s; out.stale = true
+            return out
+        }
+        let row = s.hours[i]
+        s.temp = row.temp; s.feels = row.temp
+        s.hours = Array(s.hours[i...])
+        s.hours[0].label = "지금"
+        let c = cal.dateComponents([.hour, .minute], from: date)
+        s.clock = String(format: "%02d:%02d", c.hour ?? 0, c.minute ?? 0)
+        if let sun = SunTimes.day(date, lat: p.lat, lon: p.lon, tz: tz) {
+            s.time = date >= sun.rise && date < sun.set ? "day" : "night"
+        }
+        let turned = cal.dateComponents([.day], from: cal.startOfDay(for: saved), to: cal.startOfDay(for: date)).day ?? 0
+        if turned > 0 {
+            if turned < s.days.count {
+                s.days = Array(s.days.dropFirst(turned))
+                s.days[0].name = L("오늘")
+                if s.days.count > 1 { s.days[1].name = L("내일") }
+                s.hi = s.days[0].hi; s.lo = s.days[0].lo
+            } else {
+                s.days = []; s.hi = s.temp; s.lo = s.temp
+            }
+            s.yday = 0
+            s.dust = nil
+        }
+        out.scene = s
+        return out
+    }
+
+    /// The widget timeline from `now` on: this snapshot aged at each hour boundary of the place's clock until
+    /// `until` (at most `cap` entries), plus one where the sun next rises or sets, so a widget whose refreshes
+    /// are deferred or failing still follows the clock. A sample or placeholder gets its single entry.
+    func timelineEntries(now: Date, until: Date, cap: Int = 24) -> [(date: Date, snap: WeatherSnapshot)] {
+        guard !isSample, let p = place, let tz = TimeZone(identifier: p.timeZone) else { return [(now, self)] }
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
+        var out: [(date: Date, snap: WeatherSnapshot)] = [(now, aged(at: now))]
+        var m = cal.dateComponents([.year, .month, .day, .hour], from: now)
+        m.minute = 0; m.second = 0
+        var t = (cal.date(from: m) ?? now).addingTimeInterval(3600)
+        while t < until, out.count < cap {
+            out.append((t, aged(at: t)))
+            t = t.addingTimeInterval(3600)
+        }
+        if let sun = SunTimes.next(after: now, lat: p.lat, lon: p.lon, tz: tz), sun.at.addingTimeInterval(30) < until,
+           !out.contains(where: { abs($0.date.timeIntervalSince(sun.at)) < 90 }) {
+            out.append((sun.at.addingTimeInterval(30), aged(at: sun.at.addingTimeInterval(30))))
+            out.sort { $0.date < $1.date }
+        }
+        return out
     }
 }
 

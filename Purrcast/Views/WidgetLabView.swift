@@ -19,9 +19,11 @@ struct WidgetLabView: View {
     private var stress: Bool { ProcessInfo.processInfo.arguments.contains("-labStress") }
     /// -labWaiting: what the widgets and complications show before the app has handed over anything (no numbers)
     private var waiting: Bool { ProcessInfo.processInfo.arguments.contains("-labWaiting") }
+    /// -labAged: the same widgets three hours after the app last ran (the saved forecast aged by the clock)
+    private var agedLab: Bool { ProcessInfo.processInfo.arguments.contains("-labAged") }
 
     var body: some View {
-        let snap = waiting ? WeatherSnapshot.waiting : (stress ? Self.stressed(model.snapshot) : model.snapshot)
+        let snap = waiting ? WeatherSnapshot.waiting : agedLab ? Self.agedLabSnap(model.snapshot) : (stress ? Self.stressed(model.snapshot) : model.snapshot)
         if third { watchPage(snap) } else if fourth { lockPage(snap) } else if fifth { inlinePage(snap) } else if second {
             VStack(spacing: 16) {
                 home("lab-hours", 364, 170, snap) { HoursWidgetView(snap: snap) }
@@ -179,6 +181,19 @@ struct WidgetLabView: View {
     }
 
     /// The snapshot some degrees warmer or colder (one-digit and below-zero numbers on the lab)
+    /// The lab's snapshot as it would look three hours after the app last ran. The sample scenes carry fixed hour
+    /// labels, so the rows are relabelled as consecutive hours from the pretended save, whatever the real clock.
+    static func agedLabSnap(_ base: WeatherSnapshot) -> WeatherSnapshot {
+        var s = base
+        s.isSample = false
+        s.saved = Date().addingTimeInterval(-3 * 3600)
+        if s.place == nil { s.place = Place.here }
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: s.place?.timeZone ?? "") ?? .current
+        let h0 = cal.component(.hour, from: s.saved)
+        for i in s.scene.hours.indices.dropFirst() { s.scene.hours[i].label = "\((h0 + i) % 24)시" }
+        return s.aged(at: Date())
+    }
+
     static func shifted(_ base: WeatherSnapshot, _ by: Int) -> WeatherSnapshot {
         var n = base
         n.scene.temp += by; n.scene.lo += by; n.scene.hi += by

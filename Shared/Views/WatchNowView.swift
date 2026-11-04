@@ -53,7 +53,7 @@ struct WatchNow: View {
                 VStack(alignment: .trailing, spacing: 1.2 * k) {
                     if let t = sunsetTile(s) { HStack(spacing: 3) { PixelIcon(name: "sunset", size: 14 * k).probe("sunsetIcon"); Text(t).font(.px(12 * k)).probe("sunsetText") }.padding(.bottom, 2.5 * k) }
                     Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels")
-                    if !snap.isWaiting { Text(L("강수 %d%%", s.hours.prefix(6).map { $0.chance }.max() ?? 0)).font(.px(12 * k)).probe("chance") }
+                    if !snap.showsDashes { Text(L("강수 %d%%", s.hours.prefix(6).map { $0.chance }.max() ?? 0)).font(.px(12 * k)).probe("chance") }
                 }
                 .lineLimit(1).minimumScaleFactor(0.7)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)

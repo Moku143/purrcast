@@ -235,6 +235,22 @@ struct WeatherScene: Codable, Identifiable {
         }
     }
     /// ["14시", "cloud", 18, 20, 0]  → label, icon, temp, chance %, mm
+    /// The index in `hours` of the row that holds `target`: rows after "지금" are consecutive hours of the
+    /// place's clock, counted on from `now` (the moment the forecast was made). nil before the first named hour
+    /// or past the last.
+    func hourIndex(at target: Date, tz: TimeZone, now: Date) -> Int? {
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
+        var prev = now
+        for (i, row) in hours.enumerated().dropFirst() {
+            guard let h = HourLabel.hour(row.label), var d = cal.date(bySettingHour: h, minute: 0, second: 0, of: prev) else { continue }
+            if d < prev { d = cal.date(byAdding: .day, value: 1, to: d) ?? d }
+            prev = d
+            if target >= d && target < d.addingTimeInterval(3600) { return i }
+            if d > target { break }
+        }
+        return nil
+    }
+
     struct HourRow: Codable {
         var label: String; var icon: String; var temp: Int; var chance: Int; var mm: Double
         init(from decoder: Decoder) throws {

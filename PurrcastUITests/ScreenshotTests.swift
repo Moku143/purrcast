@@ -438,6 +438,8 @@ final class ScreenshotTests: XCTestCase {
         // the 날씨 달력's farthest month, December four years on (through 2030 now): holidays may show, nothing invented
         let toLastDecember = (4 * 12) + (12 - Calendar.current.component(.month, from: Date()))
         screens.append(("cal-future", ["-scene", "maybe", "-plus", "-open", "calendar", "-calMonth", String(toLastDecember)], 0))
+        // the widgets three hours after the app last ran: the forecast aged by the clock, nothing repeated as "now"
+        screens.append(("widgetlab-aged", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab", "-labAged"], 0))
         // a past day from the calendar: the summary and the 미세먼지 tab speak in the past tense
         screens.append(("cal-past-day", ["-scene", "maybe", "-plus", "-open", "calendar", "-calDay", "1"], 0))
         screens.append(("cal-past-dust", ["-scene", "maybe", "-plus", "-open", "calendar", "-calDay", "1", "-calTab", "dust"], 0))

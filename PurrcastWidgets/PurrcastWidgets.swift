@@ -14,14 +14,15 @@ struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> WeatherEntry { WeatherEntry(date: Date(), snap: .sample) }
 
     func getSnapshot(in context: Context, completion: @escaping (WeatherEntry) -> Void) {
-        // the widget gallery shows a sample; a placed widget shows what the app saved (or asks to open the app)
-        completion(WeatherEntry(date: Date(), snap: context.isPreview ? (SharedStore.load() ?? .sample) : (SharedStore.load() ?? .waiting),
+        // the widget gallery shows a sample; a placed widget shows what the app saved (aged to now, or asks to open the app)
+        completion(WeatherEntry(date: Date(), snap: context.isPreview ? (SharedStore.load() ?? .sample) : (SharedStore.load()?.aged() ?? .waiting),
                                 preview: context.isPreview))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<WeatherEntry>) -> Void) {
         Task {
-            let snap = await fetch() ?? SharedStore.load() ?? .waiting
+            let fetchedSnap = await fetch()
+            let snap = fetchedSnap ?? SharedStore.load() ?? .waiting
             // free: the morning forecast, refreshed a few times a day; Plus: every 30 minutes
             let now = Date()
             var next = Calendar.current.date(byAdding: .minute, value: snap.plusActive ? 30 : 180, to: now) ?? now.addingTimeInterval(1800)
@@ -29,12 +30,10 @@ struct Provider: TimelineProvider {
             if let p = snap.place, let tz = TimeZone(identifier: p.timeZone), let close = DayLog.closingRefresh(after: now, regular: next, tz: tz) {
                 next = close
             }
-            var entries = [WeatherEntry(date: now, snap: snap)]
-            // the sunrise / sunset circle turns over right when the sun rises or sets, before the next refresh
-            if let p = snap.place, let tz = TimeZone(identifier: p.timeZone),
-               let sun = SunTimes.next(after: now, lat: p.lat, lon: p.lon, tz: tz), sun.at < next {
-                entries.append(WeatherEntry(date: sun.at.addingTimeInterval(30), snap: snap))
-            }
+            // the entries age the forecast by the hour (and at the sun's turn) instead of repeating its "now":
+            // when the fetch failed they go on to the forecast's end, covering the refreshes the system defers
+            let until = fetchedSnap != nil ? next : now.addingTimeInterval(24 * 3600)
+            let entries = snap.timelineEntries(now: now, until: until).map { WeatherEntry(date: $0.date, snap: $0.snap) }
             completion(Timeline(entries: entries, policy: .after(next)))
         }
     }

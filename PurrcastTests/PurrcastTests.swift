@@ -950,6 +950,102 @@ final class PurrcastTests: XCTestCase {
         XCTAssertTrue(old.hasSuffix(HourLabel.clock(13 * 60 + 40, clock12: false)), old)
     }
 
+    private func agingSnap(savedAt saved: Date, hours: String, days: [WeatherScene.DayRow]) throws -> WeatherSnapshot {
+        var s = SceneLibrary.scene("maybe")
+        s.temp = 12; s.feels = 11; s.hi = 19; s.lo = 8; s.yday = 2; s.time = "day"
+        s.rain = "umbrella"; s.level = 7
+        s.hours = try JSONDecoder().decode([WeatherScene.HourRow].self, from: Data(hours.utf8))
+        s.days = days
+        return WeatherSnapshot(scene: s, character: .cat, plus: true, characterName: "보리", placeShort: "마포구",
+                               saved: saved, place: Place.here)
+    }
+
+    /// The widgets age their saved forecast by the clock: an hour on, that hour's row becomes "지금" (its
+    /// temperature, the clock, the rain amounts); fresh, sample and waiting snapshots are untouched
+    func testWidgetAgesWithTheHourlyForecast() throws {
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        let saved = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 9, minute: 10))!
+        let snap = try agingSnap(savedAt: saved,
+                                 hours: #"[["지금","raincloud",12,70,1.2],["10시","raincloud",13,70,2],["11시","cloud",14,40,0],["12시","cloud",15,10,0],["13시","sun",16,0,0]]"#,
+                                 days: [.init(name: "오늘", icon: "raincloud", chance: 70, lo: 8, hi: 19)])
+        let at = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 11, minute: 20))!
+        let aged = snap.aged(at: at)
+        XCTAssertEqual(aged.scene.temp, 14)
+        XCTAssertEqual(aged.scene.feels, 14)
+        XCTAssertEqual(aged.scene.hours.map(\.label), ["지금", "12시", "13시"])
+        XCTAssertEqual(aged.scene.clock, "11:20")
+        XCTAssertEqual(aged.deg(aged.scene.temp), "14°")
+        XCTAssertEqual(aged.scene.hi, 19, "the same day keeps its range")
+        XCTAssertEqual(aged.scene.yday, 2, "the same day keeps its vs-yesterday line")
+        XCTAssertFalse(aged.stale)
+        XCTAssertEqual(aged.scene.level, 7, "the outfit stays as the last real feels-like chose it")
+        // the rain line follows the hour: it was raining at 9 (1.2mm), the 11-o'clock row is dry
+        XCTAssertEqual(snap.scene.hours[0].mm, 1.2, accuracy: 0.01)
+        XCTAssertLessThan(aged.scene.hours[0].mm, 0.1)
+        // under an hour: unchanged
+        XCTAssertEqual(snap.aged(at: saved.addingTimeInterval(1800)).scene.temp, 12)
+        // sample and waiting: unchanged
+        XCTAssertTrue(WeatherSnapshot.sample.aged(at: at).isSample)
+        XCTAssertTrue(WeatherSnapshot.waiting.aged(at: at).isWaiting)
+    }
+
+    /// Midnight turns the day list: the new day's name says 오늘, its range takes over, and the lines that
+    /// compared with a day now gone ("어제보다", the day's 미세먼지) are dropped
+    func testWidgetAgingAcrossMidnight() throws {
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        let saved = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 23, minute: 30))!
+        let snap = try agingSnap(savedAt: saved,
+                                 hours: #"[["지금","cloud",10,10,0],["0시","cloud",9,10,0],["1시","cloud",8,10,0],["2시","cloud",8,10,0]]"#,
+                                 days: [.init(name: "오늘", icon: "cloud", chance: 10, lo: 8, hi: 19),
+                                        .init(name: "내일", icon: "sun", chance: 0, lo: 6, hi: 15),
+                                        .init(name: "금", icon: "sun", chance: 0, lo: 5, hi: 14)])
+        let at = cal.date(from: DateComponents(year: 2026, month: 11, day: 5, hour: 1, minute: 10))!
+        let aged = snap.aged(at: at)
+        XCTAssertEqual(aged.scene.temp, 8)
+        XCTAssertEqual(aged.scene.days.map(\.name), [L("오늘"), L("내일")])
+        XCTAssertEqual(aged.scene.hi, 15); XCTAssertEqual(aged.scene.lo, 6)
+        XCTAssertEqual(aged.scene.yday, 0)
+        XCTAssertNil(aged.scene.dust)
+        XCTAssertEqual(aged.scene.time, "night")
+    }
+
+    /// Past the last forecast hour nothing is invented: the dashes of the waiting look, and the bubble asks for
+    /// the app — on every number the widgets and complications show
+    func testWidgetAgingBeyondTheForecast() throws {
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        let saved = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 9, minute: 10))!
+        let snap = try agingSnap(savedAt: saved,
+                                 hours: #"[["지금","raincloud",12,70,1.2],["10시","raincloud",13,70,2]]"#,
+                                 days: [.init(name: "오늘", icon: "raincloud", chance: 70, lo: 8, hi: 19)])
+        let aged = snap.aged(at: cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 15, minute: 0))!)
+        XCTAssertTrue(aged.stale); XCTAssertTrue(aged.showsDashes); XCTAssertFalse(aged.isWaiting)
+        XCTAssertEqual(aged.deg(aged.scene.temp), "–")
+        XCTAssertEqual(aged.degNumber(aged.scene.lo), "–")
+        XCTAssertEqual(aged.windText(4), "–")
+        XCTAssertTrue(aged.scene.hours.isEmpty); XCTAssertTrue(aged.scene.days.isEmpty)
+        XCTAssertEqual(aged.scene.cond, L("앱을 열어 주세요"))
+        XCTAssertEqual(aged.scene.yday, 0); XCTAssertNil(aged.scene.dust)
+        XCTAssertEqual(aged.placeShort, "마포구", "the place still names the widget")
+    }
+
+    /// The widget timeline holds one entry per hour of the place's clock, each aged to its moment
+    func testTimelineEntriesAreHourly() throws {
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        let saved = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 9, minute: 10))!
+        let snap = try agingSnap(savedAt: saved,
+                                 hours: #"[["지금","raincloud",12,70,1.2],["10시","raincloud",13,70,2],["11시","cloud",14,40,0],["12시","cloud",15,10,0],["13시","sun",16,0,0]]"#,
+                                 days: [.init(name: "오늘", icon: "raincloud", chance: 70, lo: 8, hi: 19)])
+        let now = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 9, minute: 40))!
+        let until = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 13, minute: 0))!
+        let entries = snap.timelineEntries(now: now, until: until)
+        XCTAssertEqual(entries.map { cal.dateComponents([.hour, .minute], from: $0.date) }.map { "\($0.hour!):\($0.minute!)" },
+                       ["9:40", "10:0", "11:0", "12:0"])
+        XCTAssertEqual(entries[0].snap.scene.temp, 12, "fresh at first")
+        XCTAssertEqual(entries[2].snap.scene.temp, 14, "the 11-o'clock entry carries the 11-o'clock row")
+        XCTAssertEqual(snap.timelineEntries(now: now, until: until, cap: 2).count, 2)
+        XCTAssertEqual(WeatherSnapshot.sample.timelineEntries(now: now, until: until).count, 1, "a sample has nothing to age")
+    }
+
     /// A 날씨 기록 day speaks in the past tense: every present-tense sentence the day sheet can show for a past
     /// day has a past form, none of the past forms gives advice, and all 12 languages translate each one (a
     /// missing entry would fall back to the Korean key, which the test catches)

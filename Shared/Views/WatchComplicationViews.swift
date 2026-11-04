@@ -28,7 +28,7 @@ struct WatchFacts {
     var feels: String { snap.deg(s.feels) }
     var chance: Int { s.hours.prefix(6).map { $0.chance }.max() ?? 0 }
     /// "40%" ("–" before the phone has sent anything)
-    var chanceText: String { snap.isWaiting ? "–" : "\(chance)%" }
+    var chanceText: String { snap.showsDashes ? "–" : "\(chance)%" }
     var rainIcon: String { chance >= 50 ? "umbrella" : "raindrop" }
     var feelsIcon: String { s.feels <= 5 ? "thermo_cold" : "thermo_hot" }
     /// The next sunset (or sunrise at night) and its time.
@@ -98,7 +98,7 @@ struct WatchTempGauge: View {
     let snap: WeatherSnapshot
     var body: some View {
         let s = snap.scene
-        let frac = snap.isWaiting ? 0 : max(0, min(1, Double(s.temp - s.lo) / Double(max(1, s.hi - s.lo))))
+        let frac = snap.showsDashes ? 0 : max(0, min(1, Double(s.temp - s.lo) / Double(max(1, s.hi - s.lo))))
         GeometryReader { g in
             let d = min(g.size.width, g.size.height), k = d / 54, lw = 5 * k, r = 22 * k
             let c = CGPoint(x: g.size.width / 2, y: g.size.height / 2)
@@ -230,7 +230,7 @@ struct WatchSummary: View {
                     Text(f.temp).font(.px(22)).foregroundStyle(.white)
                     Text(f.cond).font(.system(size: 12, weight: .semibold)).foregroundStyle(Color(hex: "#C9CDDC")).lineLimit(1).minimumScaleFactor(0.8)
                 }
-                if !snap.isWaiting { Text(vs).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.8) }
+                if !snap.showsDashes { Text(vs).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.8) }
                 Text("↑\(snap.deg(s.hi)) ↓\(snap.deg(s.lo))" + (f.chance >= 10 ? " · " + L("강수 %d%%", f.chance) : "")).font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Color(hex: "#9EA3B5")).lineLimit(1).minimumScaleFactor(0.8)
             }

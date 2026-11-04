@@ -16,8 +16,12 @@ struct WatchProvider: TimelineProvider {
         completion(WatchEntry(date: Date(), snap: SharedStore.load() ?? (context.isPreview ? .sample : .waiting)))
     }
     func getTimeline(in context: Context, completion: @escaping (Timeline<WatchEntry>) -> Void) {
-        let e = WatchEntry(date: Date(), snap: SharedStore.load() ?? .waiting)
-        completion(Timeline(entries: [e], policy: .after(Date().addingTimeInterval(1800))))
+        // aged by the hour: the complication follows the clock even when the system defers its reloads
+        let now = Date()
+        let snap = SharedStore.load() ?? .waiting
+        let entries = snap.timelineEntries(now: now, until: now.addingTimeInterval(12 * 3600), cap: 12)
+            .map { WatchEntry(date: $0.date, snap: $0.snap) }
+        completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(1800))))
     }
 }
 

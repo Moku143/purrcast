@@ -158,18 +158,10 @@ enum Notifications {
         return NotificationArt.attachment(c, level: lv, rain: d.chance >= 30 ? .bag : .none, sky: NotificationArt.sky(icon: d.icon), falling: false, id: id)
     }
 
-    /// The forecast row of the hour that holds `target` (rows after "지금" are consecutive hours of the place's clock).
+    /// The forecast row of the hour that holds `target` (WeatherScene.hourIndex walks the rows; the widgets age
+    /// their snapshot with the same walk).
     static func hourRow(_ s: WeatherScene, at target: Date, tz: TimeZone, now: Date = Date()) -> WeatherScene.HourRow? {
-        var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
-        var prev = now
-        for row in s.hours.dropFirst() {
-            guard let h = HourLabel.hour(row.label), var d = cal.date(bySettingHour: h, minute: 0, second: 0, of: prev) else { continue }
-            if d < prev { d = cal.date(byAdding: .day, value: 1, to: d) ?? d }
-            prev = d
-            if target >= d && target < d.addingTimeInterval(3600) { return row }
-            if d > target { break }
-        }
-        return nil
+        s.hourIndex(at: target, tz: tz, now: now).map { s.hours[$0] }
     }
 
     /// The whole morning, one thing per line: ① sky and rain (its hours and amount) ② the swing, how it feels, UV,
