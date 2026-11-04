@@ -130,6 +130,7 @@ struct Pills<T: Hashable>: View {
                     Text(o.1).font(.ui(13, .semibold))
                         .foregroundStyle(value == o.0 ? UI.ink : UI.sub)
                         .padding(.horizontal, 11).padding(.vertical, 6)
+                        .contentShape(Rectangle())      // the whole pill takes the tap, not only its letters
                         .background {
                             // the white pill slides between options
                             if value == o.0 {
