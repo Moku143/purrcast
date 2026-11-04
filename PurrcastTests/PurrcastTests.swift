@@ -706,6 +706,22 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(log.records(place.id).map(\.date).filter { $0.hasPrefix("2026-01") }, ["2026-01-03"])
     }
 
+    /// Holidays where the place is, from its time zone: substitute days included, in the app's language where there is one
+    func testHolidays() {
+        defer { Lang.current = .ko }
+        XCTAssertEqual(Holidays.country(timeZone: "Asia/Seoul"), "KR")
+        Lang.current = .ko
+        XCTAssertEqual(Holidays.name("2026-01-01", timeZone: "Asia/Seoul"), "신정")
+        XCTAssertTrue(Holidays.name("2026-10-05", timeZone: "Asia/Seoul")?.contains("대체") == true)   // 개천절 on a Saturday
+        XCTAssertNil(Holidays.name("2026-10-06", timeZone: "Asia/Seoul"))
+        XCTAssertEqual(Holidays.month("2026-10", timeZone: "Asia/Seoul").map(\.key), ["2026-10-03", "2026-10-05", "2026-10-09"])
+        Lang.current = .ja
+        XCTAssertEqual(Holidays.name("2026-05-06", timeZone: "Asia/Tokyo"), "振替休日")
+        Lang.current = .en
+        XCTAssertEqual(Holidays.name("2026-07-03", timeZone: "America/New_York"), "Independence Day (observed)")
+        XCTAssertEqual(Holidays.name("2026-10-03", timeZone: "Europe/Berlin"), "German Unity Day")
+    }
+
     func testMonthReport() {
         func day(_ d: String, _ hi: Int, _ lo: Int, wet: String? = nil, dust: Int? = nil) -> DayRecord {
             var r = DayRecord(date: d, hi: hi, lo: lo, icon: wet == nil ? "sun" : "raincloud"); r.wet = wet; r.dust = dust; return r

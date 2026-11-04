@@ -128,6 +128,16 @@ struct LicensesView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16).padding(.vertical, 14)
                         .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 14))
+                    // the 날씨 달력's holidays (Holidays.json is made from the package)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("holidays").font(.ui(15, .bold))
+                        Text("MIT").font(.ui(12.5)).foregroundStyle(UI.sub)
+                        Text(Self.text("HOLIDAYS-LICENSE")).font(.system(size: 11, design: .monospaced)).foregroundStyle(Color(hex: "#33405E"))
+                            .textSelection(.enabled).padding(.top, 4)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16).padding(.vertical, 14)
+                    .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 14))
                 }
                 .foregroundStyle(UI.ink)
                 .padding(.horizontal, 16).padding(.bottom, 30)

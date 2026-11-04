@@ -220,6 +220,7 @@ struct CalendarSheet: View {
         let first = min(all.first.map { String($0.date.prefix(7)) } ?? thisMonth, thisMonth)
         let m = month.isEmpty ? thisMonth : month
         let report = MonthReport.make(all, month: m)
+        let holidays = Holidays.month(m, timeZone: place.timeZone)
         VStack(spacing: 0) {
             SheetHeader(title: L("날씨 달력"), trailing: L("닫기")) { dismiss() }
             ScrollView(showsIndicators: false) {
@@ -228,7 +229,8 @@ struct CalendarSheet: View {
                     // the month and its report slide together; a sideways drag anywhere turns the month
                     ZStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 14) {
-                            grid(m, byDate: byDate, today: today)
+                            grid(m, byDate: byDate, today: today, holidays: holidays)
+                            if !holidays.isEmpty { holidayList(holidays) }
                             reportCard(report, month: m)
                         }
                         .id(m)
@@ -249,10 +251,11 @@ struct CalendarSheet: View {
             // a day with hours opens the same day sheet as a forecast day; one without, its numbers in rows
             if let r = byDate[d.id], let sc = r.scene(tz: tz), let date = DayLog.date(d.id) {
                 DayDetailView(start: 0, past: .init(scene: sc, date: date, air: r.aqiGrade.map { .init(value: r.aqi, grade: $0, main: r.aqiMain, kind: r.aqiKind ?? "cai", hour: r.aqiHour) },
-                                                    character: r.character, place: r.placeName(), here: place.id == "here"))
+                                                    character: r.character, place: r.placeName(), here: place.id == "here",
+                                                    holiday: Holidays.name(d.id, timeZone: place.timeZone)))
                     .presentationDetents([.large]).presentationCornerRadius(28)
             } else {
-                DayLogSheet(key: d.id, record: byDate[d.id]).presentationDetents([.large]).presentationCornerRadius(28)
+                DayLogSheet(key: d.id, record: byDate[d.id], holiday: Holidays.name(d.id, timeZone: place.timeZone)).presentationDetents([.large]).presentationCornerRadius(28)
             }
         }
         .task(id: "\(m)|\(all.count)|\(model.shownCharacter.rawValue)") {
@@ -448,7 +451,8 @@ struct CalendarSheet: View {
 
     // MARK: the month
 
-    private func grid(_ m: String, byDate: [String: DayRecord], today: String) -> some View {
+    private func grid(_ m: String, byDate: [String: DayRecord], today: String, holidays: [(key: String, name: String)]) -> some View {
+        let off = Set(holidays.map(\.key))
         let cal = DayLogText.calendar
         let firstDay = DayLogText.date(m) ?? Date()
         var utc = Calendar(identifier: .gregorian); utc.timeZone = TimeZone(identifier: "UTC")!
@@ -468,7 +472,7 @@ struct CalendarSheet: View {
             }
             LazyVGrid(columns: cols, spacing: 2) {
                 ForEach(Array(cells.enumerated()), id: \.offset) { _, k in
-                    if let k { cell(k, byDate[k], today: today) } else { Color.clear.frame(height: cellHeight) }
+                    if let k { cell(k, byDate[k], today: today, holiday: off.contains(k)) } else { Color.clear.frame(height: cellHeight) }
                 }
             }
         }
@@ -478,10 +482,26 @@ struct CalendarSheet: View {
 
     private var cellHeight: CGFloat { outfits ? 92 : 86 }
 
+    /// The month's holidays where the place is, under the month: "10월 3일  개천절"
+    private func holidayList(_ days: [(key: String, name: String)]) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(days, id: \.key) { d in
+                HStack(spacing: 10) {
+                    Text(DayLogText.day(d.key)).font(.ui(13, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? UI.ink).frame(minWidth: 64, alignment: .leading)
+                    Text(d.name).font(.ui(13)).foregroundStyle(UI.ink).lineLimit(2)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16).padding(.vertical, 12)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
+        .accessibilityIdentifier("cal-holidays")
+    }
+
     /// One day: its number (today in a dark circle), then its sky and range — or the outfit worn that day
-    private func cell(_ k: String, _ r: DayRecord?, today: String) -> some View {
+    private func cell(_ k: String, _ r: DayRecord?, today: String, holiday: Bool) -> some View {
         let isToday = k == today, future = k > today
-        let weekend = DayLogText.weekendInk(DayLogText.weekdayNumber(k))
+        let weekend = holiday ? DayLogText.weekendInk(1) : DayLogText.weekendInk(DayLogText.weekdayNumber(k))   // a holiday in Sunday's red
         return Button { guard !dragging else { return }; Haptic.soft(); selected = k; openDay = DayKey(id: k) } label: {
             VStack(spacing: 4) {
                 Text(String(Int(k.suffix(2)) ?? 0)).font(.ui(14, isToday ? .bold : .regular))

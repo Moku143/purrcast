@@ -7,10 +7,15 @@ struct DayLogSheet: View {
     @Environment(\.dismiss) private var dismiss
     let key: String
     let record: DayRecord?
+    var holiday: String? = nil
 
     var body: some View {
         VStack(spacing: 0) {
             SheetHeader(title: DayLogText.dayLong(key), trailing: L("닫기")) { dismiss() }
+            if let h = holiday {
+                Text(h).font(.ui(13, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? UI.sub)
+                    .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20).padding(.bottom, 6)
+            }
             ScrollView(showsIndicators: false) {
                 if let r = record {
                     list(r).padding(.bottom, 30)

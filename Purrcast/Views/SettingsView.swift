@@ -401,6 +401,7 @@ struct SourcesView: View {
             Text(L("그 밖에")).font(.ui(15, .bold))
             line(L("일출 · 일몰: 위치로 폰에서 계산"))
             line(L("지역 이름: countries-states-cities-database (ODbL 1.0) · 기상청 격자 위경도"))
+            line(L("공휴일: holidays 오픈소스 (MIT)"))
             line(L("글꼴: Purrcast Pixel Medium (MGalmuri10 기반 · SIL OFL 1.1)"))
             Button {
                 Haptic.soft(); route = nil

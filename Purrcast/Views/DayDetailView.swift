@@ -26,6 +26,8 @@ struct DayDetailView: View {
         /// Where the day was saved (지금 위치: where the phone was as the day ended)
         var place: String = ""
         var here = false
+        /// The public holiday that day where the place is ("개천절")
+        var holiday: String? = nil
     }
     @State private var metric: DayMetric = .temp
     @State private var fine = true           // 미세먼지 tab: PM2.5 (초미세) or PM10
@@ -99,6 +101,10 @@ struct DayDetailView: View {
         ZStack {
             VStack(spacing: 3) {
                 Text(title(c)).font(.px(17)).lineLimit(1).minimumScaleFactor(0.8)
+                if let h = past?.holiday {
+                    Text(h).font(.ui(12, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? c.ink.sub).lineLimit(1).minimumScaleFactor(0.8)
+                        .accessibilityIdentifier("past-holiday")
+                }
                 // a 날씨 기록 day: where it was saved
                 if let p = past, !p.place.isEmpty {
                     HStack(spacing: 3) {
