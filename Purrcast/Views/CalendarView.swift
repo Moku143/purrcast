@@ -208,6 +208,8 @@ struct CalendarSheet: View {
     @State private var dragging = false
     /// Opens this many months away from now (the store picture: last month, every day filled)
     var startMonths = 0
+    /// Bumped when a country's holidays arrive from the server (the month draws again)
+    @State private var holidaysCame = 0
 
     var body: some View {
         let place = model.currentPlace
@@ -221,7 +223,8 @@ struct CalendarSheet: View {
         let m = month.isEmpty ? thisMonth : month
         let report = MonthReport.make(all, month: m)
         // each day's holidays where it was spent (a recorded day keeps its place's time zone); other days: the place now
-        let holidays = Holidays.month(m, timeZone: { byDate[$0]?.tz ?? place.timeZone })
+        let dayZone: (String) -> String = { byDate[$0]?.tz ?? place.timeZone }
+        let holidays = holidaysCame >= 0 ? Holidays.month(m, timeZone: dayZone) : []
         VStack(spacing: 0) {
             SheetHeader(title: L("날씨 달력"), trailing: L("닫기")) { dismiss() }
             ScrollView(showsIndicators: false) {
@@ -258,6 +261,12 @@ struct CalendarSheet: View {
             } else {
                 DayLogSheet(key: d.id, record: byDate[d.id], holiday: Holidays.name(d.id, timeZone: byDate[d.id]?.tz ?? place.timeZone)).presentationDetents([.large]).presentationCornerRadius(28)
             }
+        }
+        .task(id: "holidays|\(m)|\(place.timeZone)") {
+            // this month's countries: where the place is now and where its recorded days were (a week-old table is asked again)
+            guard !model.isSample, let base = WeatherSource.serverURL else { return }
+            let zones = [place.timeZone] + all.filter { $0.date.hasPrefix(m + "-") }.compactMap(\.tz)
+            if await Holidays.refresh(Set(zones.compactMap(Holidays.country(timeZone:))), base: base) { holidaysCame += 1 }
         }
         .task(id: "\(m)|\(all.count)|\(model.shownCharacter.rawValue)") {
             shareImage = ShareCard.render(report: report, month: m, place: place.short, records: all.filter { $0.date.hasPrefix(m + "-") },
@@ -453,7 +462,7 @@ struct CalendarSheet: View {
     // MARK: the month
 
     private func grid(_ m: String, byDate: [String: DayRecord], today: String, holidays: [(key: String, name: String)]) -> some View {
-        let off = Set(holidays.map(\.key))
+        let off = Dictionary(holidays.map { ($0.key, $0.name) }, uniquingKeysWith: { a, _ in a })
         let cal = DayLogText.calendar
         let firstDay = DayLogText.date(m) ?? Date()
         var utc = Calendar(identifier: .gregorian); utc.timeZone = TimeZone(identifier: "UTC")!
@@ -473,7 +482,7 @@ struct CalendarSheet: View {
             }
             LazyVGrid(columns: cols, spacing: 2) {
                 ForEach(Array(cells.enumerated()), id: \.offset) { _, k in
-                    if let k { cell(k, byDate[k], today: today, holiday: off.contains(k)) } else { Color.clear.frame(height: cellHeight) }
+                    if let k { cell(k, byDate[k], today: today, holiday: off[k]) } else { Color.clear.frame(height: cellHeight) }
                 }
             }
         }
@@ -500,9 +509,9 @@ struct CalendarSheet: View {
     }
 
     /// One day: its number (today in a dark circle), then its sky and range — or the outfit worn that day
-    private func cell(_ k: String, _ r: DayRecord?, today: String, holiday: Bool) -> some View {
+    private func cell(_ k: String, _ r: DayRecord?, today: String, holiday: String?) -> some View {
         let isToday = k == today, future = k > today
-        let weekend = holiday ? DayLogText.weekendInk(1) : DayLogText.weekendInk(DayLogText.weekdayNumber(k))   // a holiday in Sunday's red
+        let weekend = holiday != nil ? DayLogText.weekendInk(1) : DayLogText.weekendInk(DayLogText.weekdayNumber(k))   // a holiday in Sunday's red
         return Button { guard !dragging else { return }; Haptic.soft(); selected = k; openDay = DayKey(id: k) } label: {
             VStack(spacing: 4) {
                 Text(String(Int(k.suffix(2)) ?? 0)).font(.ui(14, isToday ? .bold : .regular))
@@ -522,6 +531,10 @@ struct CalendarSheet: View {
                     }
                 }
                 Spacer(minLength: 0)
+                if let h = holiday {
+                    Text(h).font(.ui(9, .semibold)).foregroundStyle((DayLogText.weekendInk(1) ?? UI.sub).opacity(future ? 0.6 : 1))
+                        .lineLimit(1).minimumScaleFactor(0.6).padding(.horizontal, 1)
+                }
             }
             .frame(maxWidth: .infinity, minHeight: cellHeight, maxHeight: cellHeight)
             .contentShape(Rectangle())

@@ -14,13 +14,18 @@ name: TestFlight
 
 on:
   workflow_dispatch:
+    inputs:
+      runner:
+        description: 'Runner (macos-26 · macos-15 · macos-15-intel), when one has no machines free'
+        required: false
+        default: 'macos-26'
 
 permissions:
   contents: write
 
 jobs:
   upload:
-    runs-on: macos-26
+    runs-on: ${{ github.event.inputs.runner || 'macos-26' }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4

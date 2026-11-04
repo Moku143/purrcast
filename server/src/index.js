@@ -31,7 +31,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') {
-      const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, airkorea: !!env.AIRKOREA_SERVICE_KEY, openweather: !!env.OPENWEATHER_KEY, weatherkit: hasWeatherKit(env), freeDay: !!env.FREE_DAY, apns: hasAPNs(env), devices: !!env.DEVICES, time: new Date().toISOString() };
+      const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, airkorea: !!env.AIRKOREA_SERVICE_KEY, openweather: !!env.OPENWEATHER_KEY, weatherkit: hasWeatherKit(env), freeDay: !!env.FREE_DAY, apns: hasAPNs(env), devices: !!env.DEVICES, holidays: !!env.HOLIDAYS, time: new Date().toISOString() };
       if (url.searchParams.get('deep') === '1') out.check = await deepCheck(env);   // first-deploy check: can we reach both sources?
       return json(out);
     }
@@ -41,6 +41,10 @@ export default {
         const out = await airMapAnswer(url.searchParams, env, ctx);
         return json(out, 200, { 'cache-control': 'public, max-age=900' });
       } catch (e) { return json({ error: String(e.message || e) }, e.status || 502); }
+    }
+    if (url.pathname === '/v1/holidays') {
+      const out = await holidaysAnswer(url.searchParams, env);
+      return new Response(out.body, { status: out.status, headers: { ...JSON_HEADERS, 'cache-control': out.status === 200 ? 'public, max-age=86400' : 'no-store' } });
     }
     if (url.pathname === '/v1/history') {
       try {
@@ -70,6 +74,17 @@ export default {
     console.log('activities:', JSON.stringify(out));
   },
 };
+
+/** GET /v1/holidays?cc=KR — one country's public holidays for the 날씨 달력 (substitute days included), as
+ *  { cc, lang, made, days: { "2026-10-05": { "": "개천절 대체공휴일", en: "…" } } }. HOLIDAYS (KV, bound by the Server
+ *  workflow) holds `cc:KR` … written by tools/holidays/upload.mjs from the open-source `holidays` package (weekly and
+ *  at every deploy). A country with none known answers with no days. */
+export async function holidaysAnswer(sp, env) {
+  const cc = (sp.get('cc') || '').toUpperCase();
+  if (!/^[A-Z]{2}$/.test(cc)) return { status: 400, body: JSON.stringify({ error: 'cc: a two-letter country code' }) };
+  const body = env.HOLIDAYS ? await env.HOLIDAYS.get('cc:' + cc) : null;
+  return { status: 200, body: body || JSON.stringify({ cc, days: {} }) };
+}
 
 /** GET /v1/history?lat=&lon=&region=&tz=&from=YYYY-MM-DD&to=YYYY-MM-DD — 날씨 기록's missing days (the calendar, Plus):
  *  what each past day's weather was. Korea: the nearest 기상청 ASOS station's daily record; elsewhere (or when that

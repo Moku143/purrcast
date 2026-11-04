@@ -9,7 +9,7 @@ import { level, outfit, bubble, uvNote, whenWord, alertNote, condition, rainKind
 import { strings, normLang, warningName, hourLabel, LANGS } from '../src/i18n.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike, humidityWord, windWord } from '../src/physics.js';
-import worker, { forecast, readQuery, resetCache, setUpstreamTimeout, legacyIcons, airMapAnswer, historyAnswer } from '../src/index.js';
+import worker, { forecast, readQuery, resetCache, setUpstreamTimeout, legacyIcons, airMapAnswer, historyAnswer, holidaysAnswer } from '../src/index.js';
 import { nearestAsos, parseAsos, ASOS_STATIONS } from '../src/providers/history.js';
 import { sidoShort, stationIndex, airMap, gradeCAI, nationUrl, levelOf, pmLevel, subIndex, dayBefore, airDetail, owDetail } from '../src/providers/airkorea.js';
 import { beforeEach } from 'node:test';
@@ -1210,4 +1210,18 @@ test('날씨 기록 history: Korea from the nearest ASOS station, a wrong statio
   assert.ok(urls.some((u) => /dataSets=forecastDaily&dailyStart=2026-10-29T00:00:00Z/.test(u)));
   assert.deepEqual(await historyAnswer(sp('lat=35.68&lon=139.69&region=jp&tz=Asia/Tokyo&from=2026-11-04'), env, null, { now }), { days: [], src: null });
   await assert.rejects(historyAnswer(sp('lat=35.68&lon=139.69&region=jp&from=2026-10-01&to=2026-10-02'), {}, null, { now }), /no history source/);
+});
+
+test('holidays: one country from KV, none known → no days, a bad code → 400', async () => {
+  const kr = JSON.stringify({ cc: 'KR', lang: 'ko', days: { '2026-10-05': { '': '개천절 대체공휴일', en: 'Alternative holiday for National Foundation Day' } } });
+  const env = { HOLIDAYS: { get: async (k) => (k === 'cc:KR' ? kr : null) } };
+  const a = await holidaysAnswer(new URLSearchParams('cc=kr'), env);
+  assert.equal(a.status, 200);
+  assert.equal(JSON.parse(a.body).days['2026-10-05'][''], '개천절 대체공휴일');
+  assert.deepEqual(JSON.parse((await holidaysAnswer(new URLSearchParams('cc=ZZ'), env)).body).days, {});
+  assert.equal((await holidaysAnswer(new URLSearchParams('cc=korea'), env)).status, 400);
+  assert.deepEqual(JSON.parse((await holidaysAnswer(new URLSearchParams('cc=KR'), {})).body).days, {});   // no KV bound yet
+  const r = await worker.fetch(new Request('https://x/v1/holidays?cc=KR'), env, {});
+  assert.equal(r.status, 200);
+  assert.match(r.headers.get('cache-control'), /max-age=86400/);
 });

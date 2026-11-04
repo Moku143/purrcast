@@ -706,23 +706,31 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(log.records(place.id).map(\.date).filter { $0.hasPrefix("2026-01") }, ["2026-01-03"])
     }
 
-    /// Holidays where the place is, from its time zone: substitute days included, in the app's language where there is one
+    /// Holidays where the place is, from its time zone: each table from the server replaces the last; names in the
+    /// app's language where there is one, else English; a day recorded abroad takes that country's holidays
     func testHolidays() {
         defer { Lang.current = .ko }
         XCTAssertEqual(Holidays.country(timeZone: "Asia/Seoul"), "KR")
+        XCTAssertEqual(Holidays.country(timeZone: "America/New_York"), "US")
+        let kr = #"{"cc":"KR","lang":"ko","days":{"2026-10-03":{"":"개천절","en":"National Foundation Day"},"2026-10-05":{"":"개천절 대체공휴일","en":"Alternative holiday for National Foundation Day"},"2026-10-09":{"":"한글날","en":"Hangul Day"}}}"#
+        let jp = #"{"cc":"JP","lang":"ja","days":{"2026-10-12":{"":"スポーツの日","en":"Sports Day"}}}"#
+        let t0 = Date(timeIntervalSince1970: 1_790_000_000)
+        Holidays.install(Data(kr.utf8), fetched: t0)
+        Holidays.install(Data(jp.utf8), fetched: t0)
         Lang.current = .ko
-        XCTAssertEqual(Holidays.name("2026-01-01", timeZone: "Asia/Seoul"), "신정")
-        XCTAssertTrue(Holidays.name("2026-10-05", timeZone: "Asia/Seoul")?.contains("대체") == true)   // 개천절 on a Saturday
+        XCTAssertEqual(Holidays.name("2026-10-05", timeZone: "Asia/Seoul"), "개천절 대체공휴일")
         XCTAssertNil(Holidays.name("2026-10-06", timeZone: "Asia/Seoul"))
+        XCTAssertEqual(Holidays.name("2026-10-12", timeZone: "Asia/Tokyo"), "Sports Day")     // no Korean name: English
         XCTAssertEqual(Holidays.month("2026-10", timeZone: { _ in "Asia/Seoul" }).map(\.key), ["2026-10-03", "2026-10-05", "2026-10-09"])
-        // on a trip: the days spent in Tokyo take Japan's (10월 12일 スポーツの日), the rest Korea's
         let trip = Holidays.month("2026-10", timeZone: { $0 >= "2026-10-10" && $0 <= "2026-10-13" ? "Asia/Tokyo" : "Asia/Seoul" }).map(\.key)
         XCTAssertEqual(trip, ["2026-10-03", "2026-10-05", "2026-10-09", "2026-10-12"])
         Lang.current = .ja
-        XCTAssertEqual(Holidays.name("2026-05-06", timeZone: "Asia/Tokyo"), "振替休日")
-        Lang.current = .en
-        XCTAssertEqual(Holidays.name("2026-07-03", timeZone: "America/New_York"), "Independence Day (observed)")
-        XCTAssertEqual(Holidays.name("2026-10-03", timeZone: "Europe/Berlin"), "German Unity Day")
+        XCTAssertEqual(Holidays.name("2026-10-12", timeZone: "Asia/Tokyo"), "スポーツの日")
+        // a newer table takes the old one's place
+        Holidays.install(Data(#"{"cc":"KR","lang":"ko","days":{"2026-10-09":{"":"한글날"}}}"#.utf8), fetched: t0.addingTimeInterval(86400))
+        Lang.current = .ko
+        XCTAssertNil(Holidays.name("2026-10-03", timeZone: "Asia/Seoul"))
+        XCTAssertEqual(Holidays.table("KR")?.fetched, t0.addingTimeInterval(86400))
     }
 
     func testMonthReport() {
