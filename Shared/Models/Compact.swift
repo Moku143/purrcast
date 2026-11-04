@@ -68,7 +68,8 @@ enum Compact {
     }
 
     /// For the small bubble above the character: a word or two on one line; a longer line broken at the server's
-    /// " · " (Japanese ・) into two short lines ("미세먼지 나쁨" / "마스크 챙기세요"); longer still → the icon alone.
+    /// " · " (Japanese ・) into two short lines ("미세먼지 나쁨" / "마스크 챙기세요"), or one word that cannot break kept
+    /// whole when it fits a line ("Despejado"); longer still → the icon alone.
     static func bubbleWord(_ s: WeatherScene, max: Int) -> String {
         let h = head(s)
         if h.count <= max { return h }
@@ -93,6 +94,8 @@ enum Compact {
             parts = [String(ch[..<cut]), String(ch[cut...])]
         }
         if parts.count == 2, parts.allSatisfy({ $0.count <= perLine }) { return parts.joined(separator: "\n") }
+        // one word that cannot break ("Despejado", "Dégagé"): on one line when it is no wider than a broken line
+        if parts.count == 1, Lang.current.isLatinLike, !h.contains(" "), h.count <= perLine { return h }
         return ""
     }
 }

@@ -860,6 +860,17 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Compact.bubbleWord(s, max: 5), "空气较差")
     }
 
+    /// A long word with no space (Spanish "Despejado", French "Dégagé") stays in the bubble instead of leaving the icon alone
+    func testLongWordBubbleKeepsItsWord() {
+        Lang.current = .es
+        defer { Lang.current = .ko }
+        var s = WeatherScene()
+        s.cond = "Despejado"
+        XCTAssertEqual(Compact.bubbleWord(s, max: 5), "Despejado")
+        s.cond = "Superlongwordthatcannotfit"
+        XCTAssertEqual(Compact.bubbleWord(s, max: 5), "")
+    }
+
     /// The calendar's day card: the temperature hour by hour (seen over forecast), rain by the hour, the day's extremes
     func testDayDetail() throws {
         var s = WeatherScene(); s.temp = 12; s.feels = 10; s.precip = "rain"

@@ -70,6 +70,7 @@ final class CatalogTests: XCTestCase {
         case "e": partE()
         case "f": partF()
         case "g": partG()
+        case "h": partH()
         default: partB()
         }
     }
@@ -118,6 +119,15 @@ final class CatalogTests: XCTestCase {
             for _ in 0..<8 where !(card.exists && card.isHittable) { app.swipeUp(); sleep(1) }
             take()
             if card.exists { card.tap(); sleep(2); take() }          // free: the Plus page
+        }
+    }
+
+    /// Part h: a clear day's widgets (the bubble's single word: "Despejado", "Dégagé", "Sereno")
+    private func partH() {
+        for s in ["clear", "summer_night"] {
+            for (i, page) in [[], ["-labPage2"], ["-labPage4"], ["-labPage3"]].enumerated() {
+                seq("widgets.\(s)-\(i + 1)", ["-scene", s, "-plus", "-char", "cat", "-open", "widgetLab"] + page)
+            }
         }
     }
 
