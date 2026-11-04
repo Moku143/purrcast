@@ -435,6 +435,9 @@ final class ScreenshotTests: XCTestCase {
             ("livelab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "liveLab"], 0),
             ("widgetlab-2", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage2"], 0),
         ]
+        // the 날씨 달력's farthest month, December four years on (through 2030 now): holidays may show, nothing invented
+        let toLastDecember = (4 * 12) + (12 - Calendar.current.component(.month, from: Date()))
+        screens.append(("cal-future", ["-scene", "maybe", "-plus", "-open", "calendar", "-calMonth", String(toLastDecember)], 0))
         // the widgets in English and Japanese, and with the longest words each language can produce
         let lab = ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab"]
         // before the app has handed over anything: every widget, lock-screen line and complication without numbers

@@ -54,6 +54,9 @@ enum DayLogText {
         var utc = Calendar(identifier: .gregorian); utc.timeZone = TimeZone(identifier: "UTC")!
         return date(month).flatMap { utc.range(of: .day, in: .month, for: $0)?.count } ?? 30
     }
+    /// The last month the 날씨 달력 can turn to: December four years on — as far as the holiday tables reach
+    /// (tools/holidays/make.py builds last year to four years ahead, so through 2030 from 2026)
+    static func lastMonth(from thisMonth: String) -> String { String(format: "%04d-12", (Int(thisMonth.prefix(4)) ?? 2026) + 4) }
     /// The month after "2026-11" (or before, `by: -1`)
     static func shift(_ month: String, by n: Int) -> String {
         let p = month.split(separator: "-").compactMap { Int($0) }
@@ -220,6 +223,9 @@ struct CalendarSheet: View {
         let thisMonth = String(today.prefix(7))
         // back to the first month with a day recorded (only the days used with Plus are kept; nothing is filled in)
         let first = min(all.first.map { String($0.date.prefix(7)) } ?? thisMonth, thisMonth)
+        // and ahead to December four years on: as far as the holiday tables reach. Future days stay empty and
+        // shut; only their holidays show, and a month without records says so instead of inventing any.
+        let last = DayLogText.lastMonth(from: thisMonth)
         let m = month.isEmpty ? thisMonth : month
         let report = MonthReport.make(all, month: m)
         // each day's holidays where it was spent (a recorded day keeps its place's time zone); other days: the place now
@@ -229,7 +235,7 @@ struct CalendarSheet: View {
             SheetHeader(title: L("날씨 달력"), trailing: L("닫기")) { dismiss() }
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 14) {
-                    monthBar(m, first: first, thisMonth: thisMonth, place: place)
+                    monthBar(m, first: first, last: last, thisMonth: thisMonth, place: place)
                     // the month and its report slide together; a sideways drag anywhere turns the month
                     ZStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 14) {
@@ -246,7 +252,7 @@ struct CalendarSheet: View {
                 }
                 .padding(.horizontal, 16).padding(.bottom, 30)
                 .contentShape(Rectangle())
-                .simultaneousGesture(swipe(m, first: first, thisMonth: thisMonth))
+                .simultaneousGesture(swipe(m, first: first, last: last))
             }
             .clipped()
         }
@@ -290,7 +296,7 @@ struct CalendarSheet: View {
     }
 
     /// 오늘 (back to this month) · the month between its arrows (tapped: any month) · 날씨 | 옷차림
-    private func monthBar(_ m: String, first: String, thisMonth: String, place: Place) -> some View {
+    private func monthBar(_ m: String, first: String, last: String, thisMonth: String, place: Place) -> some View {
         HStack(spacing: 6) {
             Button { Haptic.soft(); turnTo(thisMonth, from: m) } label: {
                 Text(L("오늘")).font(.ui(13, .semibold)).foregroundStyle(m == thisMonth ? UI.faint : UI.ink)
@@ -313,13 +319,13 @@ struct CalendarSheet: View {
                 }
                 .buttonStyle(.press(0.96)).accessibilityIdentifier("cal-month")
                 .popover(isPresented: $picking, arrowEdge: .top) {
-                    MonthPicker(selected: m, first: first, last: thisMonth) { k in
+                    MonthPicker(selected: m, first: first, last: last) { k in
                         picking = false
                         if k != m { turnTo(k, from: m) }
                     }
                     .presentationCompactAdaptation(.popover)
                 }
-                arrow("chevron.right", enabled: m < thisMonth, label: L("다음")) { go(m, 1) }
+                arrow("chevron.right", enabled: m < last, label: L("다음")) { go(m, 1) }
             }
             .padding(.horizontal, 2).frame(height: 48).background(Color.white, in: Capsule())
             Spacer(minLength: 0)
@@ -369,13 +375,13 @@ struct CalendarSheet: View {
 
     /// A sideways drag anywhere on the page: the page follows the finger (held back where there is no month to go
     /// to), and past a third of a thumb's width the month turns
-    private func swipe(_ m: String, first: String, thisMonth: String) -> some Gesture {
+    private func swipe(_ m: String, first: String, last: String) -> some Gesture {
         DragGesture(minimumDistance: 18)
             .onChanged { v in
                 let w = v.translation.width
                 guard abs(w) > abs(v.translation.height) * 1.2 else { return }
                 dragging = true
-                let can = w < 0 ? m < thisMonth : m > first
+                let can = w < 0 ? m < last : m > first
                 pull = can ? w * 0.6 : w * 0.18
             }
             .onEnded { v in
@@ -385,7 +391,7 @@ struct CalendarSheet: View {
                 let sideways = abs(w) > abs(v.translation.height) * 1.2
                 let n = w < 0 ? 1 : -1
                 let next = DayLogText.shift(m, by: n)
-                if sideways, abs(w) > 60 || abs(far) > 160, next >= first, next <= thisMonth {
+                if sideways, abs(w) > 60 || abs(far) > 160, next >= first, next <= last {
                     Haptic.soft()
                     turnTo(next, from: m)
                 } else {

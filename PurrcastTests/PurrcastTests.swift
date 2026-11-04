@@ -950,6 +950,16 @@ final class PurrcastTests: XCTestCase {
         XCTAssertTrue(old.hasSuffix(HourLabel.clock(13 * 60 + 40, clock12: false)), old)
     }
 
+    /// 날씨 달력 browses to December four years on (the holiday tables' reach), never further, and back to the
+    /// first record; the debug shift walks there and home across the years
+    func testCalendarBrowsesFourYearsAhead() {
+        XCTAssertEqual(DayLogText.lastMonth(from: "2026-11"), "2030-12")
+        XCTAssertEqual(DayLogText.lastMonth(from: "2027-01"), "2031-12")
+        XCTAssertEqual(DayLogText.shift("2026-11", by: 49), "2030-12")
+        XCTAssertEqual(DayLogText.shift("2030-12", by: -49), "2026-11")
+        XCTAssertEqual(DayLogText.length("2030-12"), 31)
+    }
+
     /// 아침 요약 for a week: morning0…6 at the chosen time, today's first while that time is ahead; numbers only in the
     /// next three; nothing when notifications are not allowed or the summary is off; every id (the older single
     /// "morning" too) cleared before planning; Plus still adds its own lines, free does not
