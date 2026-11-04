@@ -800,6 +800,47 @@ final class PurrcastTests: XCTestCase {
         XCTAssertNotNil(m.lastError)            // said as a wait, with C's own data on screen
     }
 
+    /// Launched offline with a saved forecast: this place's weather stays on screen with its own id (the scene is
+    /// stored without one), and a forecast saved for another place is never taken for this one's
+    @MainActor func testOfflineLaunchKeepsTheSavedForecast() async {
+        let d = SharedStore.defaults
+        let keys = ["snapshot.v1", "places", "lastRefresh"]
+        let before = keys.map { d.object(forKey: $0) }
+        defer { for (k, v) in zip(keys, before) { if let v { d.set(v, forKey: k) } else { d.removeObject(forKey: k) } } }
+        let a = testPlace("test-a"), b = testPlace("test-b")
+        d.set(try? JSONEncoder().encode([a, b]), forKey: "places")
+        func saved(for p: Place) {
+            var s = SceneLibrary.scene("clear"); s.id = p.id; s.temp = 23
+            SharedStore.save(WeatherSnapshot(scene: s, character: .cat, plus: false, characterName: "", placeShort: p.short, saved: Date(), place: p))
+        }
+        let fake = FakeWeather()
+        fake.failing = [a.id, b.id]
+
+        // saved for A, the list starting at A: A's weather, with A's id back
+        saved(for: a)
+        XCTAssertEqual(SharedStore.load()?.scene.id, "")         // the id really is not stored
+        let m = AppModel(provider: fake)
+        XCTAssertTrue(m.hasData)
+        XCTAssertEqual(m.raw.id, a.id)
+        XCTAssertEqual(m.raw.temp, 23)
+        await m.refresh(force: true); await settle(m)
+        XCTAssertTrue(m.hasData)                                 // offline: the saved weather stays
+        XCTAssertEqual(m.raw.id, a.id)
+        XCTAssertEqual(m.raw.temp, 23)
+        XCTAssertNotNil(m.lastError)                             // said as a wait, with the saved weather on screen
+
+        // saved for B, the list starting at A: B's weather is not shown as A's, and B's id never comes in
+        saved(for: b)
+        let other = AppModel(provider: fake)
+        XCTAssertFalse(other.hasData)
+        XCTAssertNotEqual(other.raw.id, b.id)
+        XCTAssertNotEqual(other.raw.id, a.id)
+        await other.refresh(force: true); await settle(other)
+        XCTAssertFalse(other.hasData)
+        XCTAssertNotEqual(other.raw.id, b.id)
+        XCTAssertNotEqual(other.raw.temp, 23)
+    }
+
     /// A failure that comes back after the switch (the old place's request) leaves the new place's screen alone
     @MainActor func testLateFailureLeavesTheNewPlace() async {
         let fake = FakeWeather()
