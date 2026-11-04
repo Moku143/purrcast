@@ -75,7 +75,7 @@ struct WatchAnalogPreview: View {
                     HStack {
                         WatchCornerPreview(icon: f.icon, text: f.temp, color: .white).probe("cornerTL")
                         Spacer(minLength: 0)
-                        WatchCornerPreview(icon: f.rainIcon, text: "\(f.chance)%", color: Color(hex: "#8EC5FF"), leading: false).probe("cornerTR")
+                        WatchCornerPreview(icon: f.rainIcon, text: f.chanceText, color: Color(hex: "#8EC5FF"), leading: false).probe("cornerTR")
                     }
                     Spacer(minLength: 0)
                     HStack {

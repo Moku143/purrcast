@@ -923,6 +923,8 @@ final class PurrcastTests: XCTestCase {
         // nor the example's advice: no umbrella, no "vs yesterday", no 미세먼지 grade, no rain chance on the watch
         XCTAssertEqual(w.scene.rain, "none"); XCTAssertEqual(w.scene.yday, 0); XCTAssertNil(w.scene.dust)
         XCTAssertFalse(LockText.inline(w).contains(L("우산")), LockText.inline(w))
+        XCTAssertFalse(LockText.inline(w).contains(L("큰 일교차")), LockText.inline(w))
+        XCTAssertEqual(Compact.tail(w.scene, deg: w.deg, weather: true), L("최저 %@", "–"))
         XCTAssertEqual(WatchFacts(snap: w).chanceText, "–")
         XCTAssertEqual(WatchFacts(snap: .sample).chanceText, "\(WatchFacts(snap: .sample).chance)%")
         // the gallery preview and a real saved forecast are not the placeholder

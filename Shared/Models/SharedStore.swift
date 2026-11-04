@@ -73,7 +73,8 @@ struct WeatherSnapshot: Codable {
         s.bubble = WeatherScene.Bubble(kind: "thought", tone: "white", icon: "question", text: "")
         s.cond = L("앱을 열어 주세요")
         s.hours = []; s.days = []; s.tiles = []        // no example forecast on a widget that has nothing yet
-        s.rain = "none"; s.yday = 0; s.dust = nil       // nor the example's umbrella, its "vs yesterday" or its 미세먼지
+        s.rain = "none"; s.yday = 0; s.dust = nil       // nor the example's umbrella, its "vs yesterday" or its 미세먼지,
+        s.feels = s.temp; s.hi = s.temp; s.lo = s.temp  // nor its "체감" or "큰 일교차" hints
         return WeatherSnapshot(scene: s, character: .cat, plus: false, characterName: PurrCharacter.cat.defaultName,
                                placeShort: Brand.name, saved: .distantPast, isSample: true)
     }
