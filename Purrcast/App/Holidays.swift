@@ -24,9 +24,12 @@ enum Holidays {
         return d[lang.rawValue] ?? d["en"] ?? d[""]
     }
 
-    /// The month's holidays ("2026-10"), day by day
-    static func month(_ month: String, timeZone: String, lang: Lang = .current) -> [(key: String, name: String)] {
-        guard let cc = country(timeZone: timeZone), let c = file?.countries[cc] else { return [] }
-        return c.days.keys.filter { $0.hasPrefix(month + "-") }.sorted().compactMap { k in name(k, timeZone: timeZone, lang: lang).map { (k, $0) } }
+    /// The month's holidays ("2026-10"), day by day — each day where it was spent (`timeZone` of the day: on a trip
+    /// the days abroad take that country's holidays)
+    static func month(_ month: String, timeZone: (String) -> String, lang: Lang = .current) -> [(key: String, name: String)] {
+        (1...DayLogText.length(month)).compactMap { d in
+            let k = String(format: "%@-%02d", month, d)
+            return name(k, timeZone: timeZone(k), lang: lang).map { (k, $0) }
+        }
     }
 }

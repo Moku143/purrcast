@@ -714,7 +714,10 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Holidays.name("2026-01-01", timeZone: "Asia/Seoul"), "신정")
         XCTAssertTrue(Holidays.name("2026-10-05", timeZone: "Asia/Seoul")?.contains("대체") == true)   // 개천절 on a Saturday
         XCTAssertNil(Holidays.name("2026-10-06", timeZone: "Asia/Seoul"))
-        XCTAssertEqual(Holidays.month("2026-10", timeZone: "Asia/Seoul").map(\.key), ["2026-10-03", "2026-10-05", "2026-10-09"])
+        XCTAssertEqual(Holidays.month("2026-10", timeZone: { _ in "Asia/Seoul" }).map(\.key), ["2026-10-03", "2026-10-05", "2026-10-09"])
+        // on a trip: the days spent in Tokyo take Japan's (10월 12일 スポーツの日), the rest Korea's
+        let trip = Holidays.month("2026-10", timeZone: { $0 >= "2026-10-10" && $0 <= "2026-10-13" ? "Asia/Tokyo" : "Asia/Seoul" }).map(\.key)
+        XCTAssertEqual(trip, ["2026-10-03", "2026-10-05", "2026-10-09", "2026-10-12"])
         Lang.current = .ja
         XCTAssertEqual(Holidays.name("2026-05-06", timeZone: "Asia/Tokyo"), "振替休日")
         Lang.current = .en

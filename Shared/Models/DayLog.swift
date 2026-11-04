@@ -32,6 +32,7 @@ struct DayRecord: Codable, Equatable, Identifiable {
     var wetTo: Int? = nil
     var lat: Double? = nil              // where the day was (sunrise · sunset)
     var lon: Double? = nil
+    var tz: String? = nil               // that place's time zone (its country: the day's holidays, on a trip too)
     /// The day sheet's own rows for the day (the last forecast of it seen, past hours as they were) and that day's
     /// 미세먼지 readings by the hour: the past day opens in the same day sheet as a forecast day. Kept a little over a
     /// year; older days keep their summary only.
@@ -167,6 +168,7 @@ struct DayLog {
         r.icon = today.icon
         r.chance = today.chance
         r.place = place.short
+        r.tz = place.timeZone
         r.placeKo = place.region == "kr" ? place.ko.flatMap { $0.split(separator: " ").last.map(String.init) } : nil
         // rain or snow: falling now (this hour's amount counted once), or the day forecast wet at 60 %+
         let falling = s.precip != "none"

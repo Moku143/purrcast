@@ -220,7 +220,8 @@ struct CalendarSheet: View {
         let first = min(all.first.map { String($0.date.prefix(7)) } ?? thisMonth, thisMonth)
         let m = month.isEmpty ? thisMonth : month
         let report = MonthReport.make(all, month: m)
-        let holidays = Holidays.month(m, timeZone: place.timeZone)
+        // each day's holidays where it was spent (a recorded day keeps its place's time zone); other days: the place now
+        let holidays = Holidays.month(m, timeZone: { byDate[$0]?.tz ?? place.timeZone })
         VStack(spacing: 0) {
             SheetHeader(title: L("날씨 달력"), trailing: L("닫기")) { dismiss() }
             ScrollView(showsIndicators: false) {
@@ -252,10 +253,10 @@ struct CalendarSheet: View {
             if let r = byDate[d.id], let sc = r.scene(tz: tz), let date = DayLog.date(d.id) {
                 DayDetailView(start: 0, past: .init(scene: sc, date: date, air: r.aqiGrade.map { .init(value: r.aqi, grade: $0, main: r.aqiMain, kind: r.aqiKind ?? "cai", hour: r.aqiHour) },
                                                     character: r.character, place: r.placeName(), here: place.id == "here",
-                                                    holiday: Holidays.name(d.id, timeZone: place.timeZone)))
+                                                    holiday: Holidays.name(d.id, timeZone: r.tz ?? place.timeZone)))
                     .presentationDetents([.large]).presentationCornerRadius(28)
             } else {
-                DayLogSheet(key: d.id, record: byDate[d.id], holiday: Holidays.name(d.id, timeZone: place.timeZone)).presentationDetents([.large]).presentationCornerRadius(28)
+                DayLogSheet(key: d.id, record: byDate[d.id], holiday: Holidays.name(d.id, timeZone: byDate[d.id]?.tz ?? place.timeZone)).presentationDetents([.large]).presentationCornerRadius(28)
             }
         }
         .task(id: "\(m)|\(all.count)|\(model.shownCharacter.rawValue)") {
