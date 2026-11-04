@@ -688,6 +688,24 @@ final class PurrcastTests: XCTestCase {
         XCTAssertTrue(log.records(place.id).isEmpty)
     }
 
+    /// The calendar keeps the days used with Plus: a day seen with Plus stays a Plus day; days only the server filled
+    /// in (an older build) are dropped, days the phone saw are kept
+    func testDayLogPlusDays() {
+        let log = dayLog()
+        var place = Place.here; place.timeZone = "Asia/Seoul"
+        let t = Date(timeIntervalSince1970: 1_780_000_000)
+        log.record(scene(temp: 9, hi: 15, lo: 8), place: place, plus: false, at: t)
+        XCTAssertEqual(log.records(place.id).last?.plus, false)
+        log.record(scene(temp: 10, hi: 15, lo: 8), place: place, plus: true, at: t.addingTimeInterval(3600))
+        log.record(scene(temp: 11, hi: 15, lo: 8), place: place, plus: false, at: t.addingTimeInterval(7200))
+        XCTAssertEqual(log.records(place.id).last?.plus, true)
+        var filled = DayRecord(date: "2026-01-02", hi: 3, lo: -4, icon: "sun"); filled.obs = true
+        var seen = DayRecord(date: "2026-01-03", hi: 4, lo: -3, icon: "sun"); seen.obs = true; seen.seenHi = 4
+        log.save(log.records(place.id) + [filled, seen], for: place.id)
+        log.dropFilled(place.id)
+        XCTAssertEqual(log.records(place.id).map(\.date).filter { $0.hasPrefix("2026-01") }, ["2026-01-03"])
+    }
+
     func testMonthReport() {
         func day(_ d: String, _ hi: Int, _ lo: Int, wet: String? = nil, dust: Int? = nil) -> DayRecord {
             var r = DayRecord(date: d, hi: hi, lo: lo, icon: wet == nil ? "sun" : "raincloud"); r.wet = wet; r.dust = dust; return r

@@ -136,6 +136,7 @@ final class AppModel: ObservableObject {
         morningTime = d.object(forKey: "morningTime") as? Date ?? Calendar.current.date(from: DateComponents(hour: 7, minute: 0)) ?? Date()
         onboarded = testing ? !args.contains("-onboarding") : d.bool(forKey: "onboarded")
         FontPref.pixel = pixelFont
+        if !testing { for p in places { dayLog.dropFilled(p.id) } }   // days an older build filled in from the server
     }
 
     // MARK: weather
@@ -166,8 +167,7 @@ final class AppModel: ObservableObject {
                 raw = s; hasData = true; lastError = nil; lastRefresh = Date()
                 lastLevel[place.id] = s.level
                 if !provider.isSample {
-                    dayLog.record(s, place: place, character: shownCharacter); dayLogVersion += 1
-                    Task { await fillHistory(for: place) }      // Plus: the week's missed days
+                    dayLog.record(s, place: place, character: shownCharacter, plus: plus); dayLogVersion += 1
                 }
                 publish()
                 #if DEBUG
@@ -219,7 +219,7 @@ final class AppModel: ObservableObject {
         for p in places {
             if let s = try? await provider.forecast(for: p, plus: plus, previousLevel: lastLevel[p.id]) {
                 previews[p.id] = s
-                if !provider.isSample { dayLog.record(s, place: p, character: shownCharacter) }
+                if !provider.isSample { dayLog.record(s, place: p, character: shownCharacter, plus: plus) }
             }
         }
     }
@@ -280,40 +280,9 @@ final class AppModel: ObservableObject {
         let d = unitF ? Int((Double(abs(v)) * 1.8).rounded()) : abs(v)
         return v > 0 ? "+\(d)°" : (v < 0 ? "−\(d)°" : L("같음"))
     }
-    /// Plus: the place's past days the phone missed (or only saw in part), filled in from what the weather was —
-    /// the last week (the home card) or one month (the calendar). Each range is asked once a session; days already
-    /// observed are not asked again (past weather does not change).
-    private var historyAsked: Set<String> = []
-    func fillHistory(for place: Place, month: String? = nil) async {
-        guard plus, !isSample else { return }
-        let tz = TimeZone(identifier: place.timeZone) ?? .current
-        let yesterday = DayLog.dayKey(Date().addingTimeInterval(-86400), tz: tz)
-        var from: String, to = yesterday
-        if let m = month {
-            from = m + "-01"
-            let end = String(format: "%@-%02d", m, DayLogText.length(m))
-            if end < to { to = end }
-        } else {
-            from = DayLog.dayKey(Date().addingTimeInterval(-7 * 86400), tz: tz)
-        }
-        guard from <= to else { return }
-        let have = Set(dayLog.records(place.id).filter { $0.obs == true }.map(\.date))
-        var want: [String] = []
-        var d = from
-        while d <= to { if !have.contains(d) { want.append(d) }; d = Self.nextDay(d) }
-        guard let first = want.first, let last = want.last else { return }
-        let key = "\(place.id)|\(first)|\(last)"
-        guard !historyAsked.contains(key) else { return }
-        historyAsked.insert(key)
-        guard let days = try? await provider.history(for: place, from: first, to: last), !days.isEmpty else { return }
-        dayLog.merge(days, placeID: place.id, near: (place.lat, place.lon))
-        dayLogVersion += 1
-    }
-
-    static func nextDay(_ k: String) -> String {
-        var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "UTC")!
-        guard let d = DayLogText.date(k), let n = c.date(byAdding: .day, value: 1, to: d) else { return "9999-12-31" }
-        return DayLog.dayKey(n, tz: TimeZone(identifier: "UTC")!)
+    /// The 날씨 달력's days: the days the phone recorded while Plus was on (nothing filled in from before)
+    func calendarDays(for place: Place) -> [DayRecord] {
+        days(for: place).filter { $0.plus != false && ($0.obs != true || $0.seenHi != nil) }
     }
 
     /// Fetch the 대기질 지도 for the place on screen, again when the forecast was refreshed (the readings are hourly)
@@ -418,7 +387,7 @@ final class AppModel: ObservableObject {
         // the 월간 리포트: Plus, for a month that has days recorded
         var monthly: Notifications.MonthlyFire?
         if notifyMonthly && plus && !isSample, let f = Notifications.monthlyFire(after: Date(), morning: morningTime),
-           dayLog.records(currentPlace.id).contains(where: { $0.date.hasPrefix(f.month + "-") }) { monthly = f }
+           calendarDays(for: currentPlace).contains(where: { $0.date.hasPrefix(f.month + "-") }) { monthly = f }
         Notifications.plan(scene: scene, place: currentPlace, rain: rainHere, morning: notifyMorning && !isSample,
                            change: notifyChange && plus && !isSample, morningTime: morningTime, unitF: unitF, voice: voice, clock12: clock12,
                            character: shownCharacter, plus: plus, monthly: monthly)

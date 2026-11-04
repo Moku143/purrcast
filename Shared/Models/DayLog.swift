@@ -47,6 +47,8 @@ struct DayRecord: Codable, Equatable, Identifiable {
     /// The day's average feels-like (°C, its hours as last seen) and the character shown as the day ended
     var feels: Double? = nil
     var char: String? = nil
+    /// Recorded while Plus was on (the 날씨 달력 keeps only these days; nil: a day kept before this was known)
+    var plus: Bool? = nil
 
     var id: String { date }
     /// The day's outfit: its average feels-like; the middle of its range for a day without hours
@@ -120,6 +122,13 @@ struct DayLog {
         if let d = try? JSONEncoder().encode(r) { try? d.write(to: file(placeID), options: .atomic) }
     }
 
+    /// The days only the server filled in (the phone never saw them) go: the calendar keeps the days used
+    func dropFilled(_ placeID: String) {
+        let all = records(placeID)
+        let kept = all.filter { $0.obs != true || $0.seenHi != nil }
+        if kept.count != all.count { save(kept, for: placeID) }
+    }
+
     /// Places no longer in the list lose their days (the app passes the ids it still has)
     func keepOnly(_ ids: Set<String>) {
         guard let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) else { return }
@@ -137,7 +146,7 @@ struct DayLog {
     /// rain or snow seen falling, the worst 미세먼지, the character shown.
     /// The day is where the phone was as it ended: "지금 위치" moved more than `moveKm` starts the day over at the new
     /// place (its forecast has the whole day, the past hours as they were), so the last look before midnight decides it.
-    func record(_ s: WeatherScene, place: Place, character: PurrCharacter? = nil, at now: Date = Date()) {
+    func record(_ s: WeatherScene, place: Place, character: PurrCharacter? = nil, plus: Bool? = nil, at now: Date = Date()) {
         guard let today = s.days.first else { return }
         let tz = TimeZone(identifier: place.timeZone) ?? .current
         let key = Self.dayKey(now, tz: tz)
@@ -150,6 +159,7 @@ struct DayLog {
         if r.obs == true { return }                       // an observed day stays as observed
         if let la = r.lat, let lo = r.lon, Self.km(la, lo, place.lat, place.lon) > Self.moveKm { r = fresh }
         if let c = character { r.char = c.rawValue }
+        if let p = plus, r.plus != true { r.plus = p }     // a day seen with Plus at any time stays a Plus day
         r.seenHi = max(r.seenHi ?? s.temp, s.temp)
         r.seenLo = min(r.seenLo ?? s.temp, s.temp)
         r.hi = max(today.hi, r.seenHi ?? today.hi)

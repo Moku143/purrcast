@@ -68,7 +68,7 @@ App Store Connect → 앱 → 구독:
 | 식별자 · 기기 ID | 예 | 예 | 아니요 | 앱 기능 |
 
 왜 "연결 예"인가: 비 알림(Live Activity)을 앱을 열지 않아도 보내려고, 서버가 앱이 만든 무작위 기기 ID와 약 1km 좌표 · 푸시 토큰을 함께 45일 동안 보관해요(`server/src/push.js`). 이름 · Apple ID와는 관계없지만 Apple 기준으로는 기기와 연결된 데이터라 "예"가 안전해요.
-날씨 달력 기록(매일의 날씨 · 옷차림 · 저장된 위치 이름)은 **기기 안에만** 저장돼요. 앱을 안 연 날을 채울 때 서버에 보내는 건 좌표와 날짜뿐이고 서버는 저장하지 않아요.
+날씨 달력 기록(매일의 날씨 · 옷차림 · 저장된 위치 이름)은 **기기 안에만** 저장돼요. Plus를 쓰는 날, 앱이나 위젯이 받은 날씨로만 쌓이고 서버에서 지난날을 채우지 않아요.
 그 밖의 항목(연락처, 사용 데이터, 진단 등)은 모두 수집 안 함. 결제는 Apple이 처리해요.
 
 ## 심사 메모 (App Review Information → Notes)
@@ -79,7 +79,7 @@ Purrcast (Korean name: 그르릉날씨) is a weather app: a pixel character chan
 - No login. Location is used only to get the forecast for the current place (rounded to ~1 km); the user can turn it off and pick places instead. Widgets may use the location too, to show the weather where the phone is.
 - Weather comes from our own server: KMA 기상청 for Korea (with Apple Weather for the later hours), Apple Weather (WeatherKit) elsewhere, MET Norway for the forecast comparison; air quality from AirKorea (Korea) and OpenWeather (elsewhere). Credited in Settings > Data sources.
 - Widgets: Home Screen (small, medium, hourly), Lock Screen (circular and rectangular) and the line above the Lock Screen clock (the dressed character with the temperature, the place, rain, UV, sunrise/sunset, wind, air, or all in one line).
-- Weather calendar (Plus): each day's weather and outfit is saved on the device, at the place where the phone was at midnight. Days the app was not opened are filled from past observations (KMA in Korea, Apple Weather elsewhere) through our server, which receives only the coordinates and dates and keeps nothing. A monthly report notification comes on the 1st.
+- Weather calendar (Plus): each day used with Plus, the day's weather and outfit is saved on the device only, at the place where the phone was at midnight. Nothing is filled in from the server. A monthly report notification comes on the 1st.
 - For the rain alert on the Lock Screen / Dynamic Island, the app registers a random device ID, the place rounded to ~1 km and an ActivityKit push token with our server; it is deleted after 45 days without a check-in.
 - Purrcast Plus (auto-renewable subscription, yearly / monthly, free trial for new subscribers) unlocks: forecast refresh with every new run, the next-6-hours rain card, short Live Activity alerts (rain or snow an hour before and as it starts, official warnings, poor air, temperature changes), the air quality map with hourly fine dust readings and the Lock Screen air widget, the weather calendar and monthly report, the Apple Watch app and complications, unlimited places, and two more characters. Purchase and restore are on the Plus screen (gear icon > Purrcast Plus, or the character button).
 - To test Plus, please use a Sandbox account. The Apple Watch app shows its content only with Plus and gets its data from the iPhone app.

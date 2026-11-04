@@ -35,6 +35,15 @@ enum DayLogText {
     static func dayLong(_ key: String) -> String { format(key, "MMMdEEE") }
     /// "화" · "Tue"
     static func weekday(_ key: String) -> String { format(key, "EEE") }
+    /// 1 = Sunday … 7 = Saturday
+    static func weekdayNumber(_ key: String) -> Int {
+        var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "UTC")!
+        return date(key).map { c.component(.weekday, from: $0) } ?? 0
+    }
+    /// The weekend in color, as Korean and Japanese calendars have it: Sunday red, Saturday blue (nil on weekdays)
+    static func weekendInk(_ weekday: Int) -> Color? {
+        weekday == 1 ? Color(hex: "#E5484D") : weekday == 7 ? Color(hex: "#3B6FE0") : nil
+    }
     static func days(_ n: Int) -> String { n == 1 ? L("하루") : L("%d일", n) }
     static func mm(_ v: Double, snow: Bool) -> String {
         let n = v >= 10 ? String(Int(v.rounded())) : (v == v.rounded() ? String(Int(v)) : String(format: "%.1f", v))
@@ -91,16 +100,18 @@ struct CalendarPreview: View {
         let heads = (0..<7).map { symbols[(cal.firstWeekday - 1 + $0) % 7] }
         VStack(spacing: 6) {
             HStack(spacing: 0) {
-                ForEach(Array(heads.enumerated()), id: \.offset) { _, h in
-                    Text(h).font(.ui(cell * 0.26)).foregroundStyle(UI.faint).lineLimit(1).minimumScaleFactor(0.6).frame(width: cell)
+                ForEach(Array(heads.enumerated()), id: \.offset) { i, h in
+                    Text(h).font(.ui(cell * 0.26)).foregroundStyle(DayLogText.weekendInk((cal.firstWeekday - 1 + i) % 7 + 1) ?? UI.faint)
+                        .lineLimit(1).minimumScaleFactor(0.6).frame(width: cell)
                 }
             }
             LazyVGrid(columns: Array(repeating: GridItem(.fixed(cell), spacing: 0), count: 7), spacing: cell * 0.12) {
                 ForEach(Array(Self.days.enumerated()), id: \.offset) { i, d in
                     let isToday = i == Self.today, future = i > Self.today
+                    let weekend = DayLogText.weekendInk((cal.firstWeekday - 1 + i % 7) % 7 + 1)
                     VStack(spacing: cell * 0.06) {
                         Text("\(i + 3)").font(.ui(cell * 0.3, isToday ? .bold : .regular))
-                            .foregroundStyle(isToday ? Color.white : (future ? UI.faint : UI.ink))
+                            .foregroundStyle(isToday ? Color.white : (weekend.map { future ? $0.opacity(0.45) : $0 } ?? (future ? UI.faint : UI.ink)))
                             .frame(width: cell * 0.62, height: cell * 0.62)
                             .background(Circle().fill(isToday ? UI.ink : Color.clear))
                         if !future {
@@ -200,14 +211,13 @@ struct CalendarSheet: View {
 
     var body: some View {
         let place = model.currentPlace
-        let all = model.days(for: place)
+        let all = model.calendarDays(for: place)
         let byDate = Dictionary(all.map { ($0.date, $0) }, uniquingKeysWith: { a, _ in a })
         let tz = TimeZone(identifier: place.timeZone) ?? .current
         let today = DayLog.dayKey(Date(), tz: tz)
         let thisMonth = String(today.prefix(7))
-        // back to January two years ago (the days are kept three years): the days the phone missed are filled in from
-        // what the weather was
-        let first = min(all.first.map { String($0.date.prefix(7)) } ?? thisMonth, String(format: "%04d-01", (Int(thisMonth.prefix(4)) ?? 2026) - 2))
+        // back to the first month with a day recorded (only the days used with Plus are kept; nothing is filled in)
+        let first = min(all.first.map { String($0.date.prefix(7)) } ?? thisMonth, thisMonth)
         let m = month.isEmpty ? thisMonth : month
         let report = MonthReport.make(all, month: m)
         VStack(spacing: 0) {
@@ -245,7 +255,6 @@ struct CalendarSheet: View {
                 DayLogSheet(key: d.id, record: byDate[d.id]).presentationDetents([.large]).presentationCornerRadius(28)
             }
         }
-        .task(id: "fill|\(m)|\(place.id)") { await model.fillHistory(for: place, month: m) }   // the month's missed days
         .task(id: "\(m)|\(all.count)|\(model.shownCharacter.rawValue)") {
             shareImage = ShareCard.render(report: report, month: m, place: place.short, records: all.filter { $0.date.hasPrefix(m + "-") },
                                           character: report.character ?? model.shownCharacter, deg: model.deg)
@@ -452,8 +461,9 @@ struct CalendarSheet: View {
         let cols = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
         return VStack(spacing: 8) {
             HStack(spacing: 0) {
-                ForEach(Array(heads.enumerated()), id: \.offset) { _, h in
-                    Text(h).font(.ui(12)).foregroundStyle(UI.faint).lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: .infinity)
+                ForEach(Array(heads.enumerated()), id: \.offset) { i, h in
+                    Text(h).font(.ui(12)).foregroundStyle(DayLogText.weekendInk((cal.firstWeekday - 1 + i) % 7 + 1) ?? UI.faint)
+                        .lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: .infinity)
                 }
             }
             LazyVGrid(columns: cols, spacing: 2) {
@@ -471,10 +481,11 @@ struct CalendarSheet: View {
     /// One day: its number (today in a dark circle), then its sky and range — or the outfit worn that day
     private func cell(_ k: String, _ r: DayRecord?, today: String) -> some View {
         let isToday = k == today, future = k > today
+        let weekend = DayLogText.weekendInk(DayLogText.weekdayNumber(k))
         return Button { guard !dragging else { return }; Haptic.soft(); selected = k; openDay = DayKey(id: k) } label: {
             VStack(spacing: 4) {
                 Text(String(Int(k.suffix(2)) ?? 0)).font(.ui(14, isToday ? .bold : .regular))
-                    .foregroundStyle(isToday ? Color.white : (future ? UI.faint : UI.ink))
+                    .foregroundStyle(isToday ? Color.white : (weekend.map { future ? $0.opacity(0.45) : $0 } ?? (future ? UI.faint : UI.ink)))
                     .frame(width: 28, height: 28)
                     .background(Circle().fill(isToday ? UI.ink : Color.clear))
                 if let r {
