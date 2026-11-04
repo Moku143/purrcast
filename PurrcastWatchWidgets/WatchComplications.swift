@@ -86,7 +86,7 @@ struct PieceComplication: View {
         let (icon, text, color): (String, String, Color) = {
             switch piece {
             case .temp: return (f.icon, f.temp, .white)
-            case .rain: return (f.rainIcon, "\(f.chance)%", Color(hex: "#8EC5FF"))
+            case .rain: return (f.rainIcon, f.chanceText, Color(hex: "#8EC5FF"))
             case .feels: return (f.feelsIcon, f.feels, TempColor.of(f.s.feels))
             case .sun: return (f.sun.icon, f.sun.time, Color(hex: "#FFD59A"))
             case .dust:

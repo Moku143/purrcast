@@ -221,7 +221,7 @@ struct WidgetLabView: View {
                 }
                 HStack(spacing: 16) {
                     WatchCornerPreview(icon: f.icon, text: f.temp, color: .white)
-                    WatchCornerPreview(icon: f.rainIcon, text: "\(f.chance)%", color: Color(hex: "#8EC5FF"))
+                    WatchCornerPreview(icon: f.rainIcon, text: f.chanceText, color: Color(hex: "#8EC5FF"))
                     WatchCornerPreview(icon: f.feelsIcon, text: f.feels, color: TempColor.of(f.s.feels))
                     WatchCornerPreview(icon: f.sun.icon, text: f.sun.time, color: Color(hex: "#FFD59A"))
                     if let d = snap.scene.dust { WatchCornerPreview(icon: DustFacts.icon(d), text: L(DustScale.words[max(0, min(3, d.grade))]), color: Color(hex: DustScale.colors[max(0, min(3, d.grade))])) }

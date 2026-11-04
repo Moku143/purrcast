@@ -920,6 +920,11 @@ final class PurrcastTests: XCTestCase {
         for k: LockInlineView.Kind in [.temp, .rain, .uv, .sun, .wind] { XCTAssertEqual(LockInlineView.line(k, w).1, "–", "\(k)") }
         XCTAssertEqual(LockInlineView.line(.place, w).1, w.placeShort)
         XCTAssertEqual(LockInlineView.line(.dust, w).1, "\(L("미세먼지")) · Plus")
+        // nor the example's advice: no umbrella, no "vs yesterday", no 미세먼지 grade, no rain chance on the watch
+        XCTAssertEqual(w.scene.rain, "none"); XCTAssertEqual(w.scene.yday, 0); XCTAssertNil(w.scene.dust)
+        XCTAssertFalse(LockText.inline(w).contains(L("우산")), LockText.inline(w))
+        XCTAssertEqual(WatchFacts(snap: w).chanceText, "–")
+        XCTAssertEqual(WatchFacts(snap: .sample).chanceText, "\(WatchFacts(snap: .sample).chance)%")
         // the gallery preview and a real saved forecast are not the placeholder
         let sample = WeatherSnapshot.sample
         XCTAssertFalse(sample.isWaiting)

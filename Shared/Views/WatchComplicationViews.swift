@@ -27,6 +27,8 @@ struct WatchFacts {
     var temp: String { snap.deg(s.temp) }
     var feels: String { snap.deg(s.feels) }
     var chance: Int { s.hours.prefix(6).map { $0.chance }.max() ?? 0 }
+    /// "40%" ("–" before the phone has sent anything)
+    var chanceText: String { snap.isWaiting ? "–" : "\(chance)%" }
     var rainIcon: String { chance >= 50 ? "umbrella" : "raindrop" }
     var feelsIcon: String { s.feels <= 5 ? "thermo_cold" : "thermo_hot" }
     /// The next sunset (or sunrise at night) and its time.
@@ -151,7 +153,7 @@ struct WatchRainRing: View {
                     .rotationEffect(.degrees(-90)).frame(width: r * 2, height: r * 2).position(c)
                 VStack(spacing: 1 * k) {
                     PixelIcon(name: f.rainIcon, size: 13 * k)
-                    Text("\(f.chance)%").font(.px(12 * k)).foregroundStyle(.white)
+                    Text(f.chanceText).font(.px(12 * k)).foregroundStyle(.white)
                 }
                 .position(c)
             }
@@ -228,7 +230,7 @@ struct WatchSummary: View {
                     Text(f.temp).font(.px(22)).foregroundStyle(.white)
                     Text(f.cond).font(.system(size: 12, weight: .semibold)).foregroundStyle(Color(hex: "#C9CDDC")).lineLimit(1).minimumScaleFactor(0.8)
                 }
-                Text(vs).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.8)
+                if !snap.isWaiting { Text(vs).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.8) }
                 Text("↑\(snap.deg(s.hi)) ↓\(snap.deg(s.lo))" + (f.chance >= 10 ? " · " + L("강수 %d%%", f.chance) : "")).font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Color(hex: "#9EA3B5")).lineLimit(1).minimumScaleFactor(0.8)
             }
