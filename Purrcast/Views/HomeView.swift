@@ -237,7 +237,7 @@ struct HomeView: View {
         .background(alignment: .topLeading) {
             // weather pixels (clouds, rain, snow, wind …), edge to edge from the very top of the screen (behind the
             // status bar and the place row too), two tiles high, fading out above the first card
-            SkyParticles(scene: s, width: skyWidth, tiles: 2)
+            SkyParticles(scene: s, width: skyWidth, tiles: 2, animate: !reduce)     // Reduce Motion: one still frame, as on the widgets
                 .frame(width: skyWidth, height: heroH + topInset, alignment: .top)
                 .clipped()
                 .mask(LinearGradient(stops: [.init(color: .black, location: 0.7), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
