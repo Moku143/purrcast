@@ -112,7 +112,6 @@ final class AppModel: ObservableObject {
             hasData = true
         } else if let last = SharedStore.load(), !last.isSample, last.place?.id == loadedPlaces[0].id {
             var s = last.scene
-            s.id = loadedPlaces[0].id       // the id is not stored with the scene: this place's, as checked above
             raw = s
             hasData = true
             lastRefresh = d.object(forKey: "lastRefresh") as? Date
