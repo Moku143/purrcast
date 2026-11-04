@@ -144,6 +144,19 @@ final class Purchases: ObservableObject {
         active = on; expires = until; activeProduct = which; willRenew = renew
     }
 
+    /// How long past the paid period's end the widgets and the watch keep Plus when it renews by itself: they cannot
+    /// ask the App Store, so a renewal at night must not turn them to Free before the app has opened and seen it
+    nonisolated static let widgetAllowance: TimeInterval = 3 * 86400
+
+    /// The end of Plus handed to the widgets and the watch: the paid period's end, 3 days more when auto-renew is on;
+    /// nil (no limit) for an active plan without an end. Not active (expired, revoked or refunded): the TestFlight test
+    /// Plus's end, if that is on, else nil — the snapshot's plan is Free then anyway.
+    nonisolated static func widgetPlusUntil(active: Bool, expires: Date?, willRenew: Bool, testUntil: Date?) -> Date? {
+        guard active else { return testUntil }
+        guard let e = expires else { return nil }
+        return willRenew ? e.addingTimeInterval(widgetAllowance) : e
+    }
+
     /// Whether one subscription gives Plus now, and until when: its paid period; past its end only while the App Store
     /// says it is in the billing grace period, until the grace ends. Refunded or revoked, expired, or in billing retry
     /// without a grace period: no Plus.

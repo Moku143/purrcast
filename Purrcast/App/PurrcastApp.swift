@@ -68,6 +68,7 @@ struct PurrcastApp: App {
                 .onChange(of: model.plus) { _, p in AppIcon.dropPlusIcon(plus: p) }
                 .onChange(of: purchases.active) { _, _ in syncPlan() }
                 .onChange(of: purchases.expires) { _, _ in syncPlan() }
+                .onChange(of: purchases.willRenew) { _, _ in syncPlan() }      // the widgets' allowance follows auto-renew
                 .onChange(of: purchases.testUntil) { _, _ in syncPlan() }
                 .onChange(of: purchases.testBuild) { _, _ in syncPlan() }
         }
@@ -76,7 +77,8 @@ struct PurrcastApp: App {
     /// StoreKit decides the plan; a TestFlight test trial or the debug launch flag (debug builds only) can turn it on.
     private func syncPlan() {
         model.plus = purchases.active || purchases.testActive || model.debugPlus
-        model.plusUntil = purchases.active ? purchases.expires : (purchases.testActive ? purchases.testUntil : nil)
+        model.plusUntil = Purchases.widgetPlusUntil(active: purchases.active, expires: purchases.expires, willRenew: purchases.willRenew,
+                                                    testUntil: purchases.testActive ? purchases.testUntil : nil)
     }
 }
 
