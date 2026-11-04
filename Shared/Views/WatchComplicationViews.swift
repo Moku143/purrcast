@@ -34,7 +34,7 @@ struct WatchFacts {
     /// The next sunset (or sunrise at night) and its time.
     var sun: (icon: String, time: String) {
         let t = s.tiles.first { $0.icon == "sunset" || $0.icon == "sunrise" }
-        return (t?.icon ?? (s.isNight ? "sunrise" : "sunset"), t?.value ?? "--:--")
+        return (t?.icon ?? (s.isNight ? "sunrise" : "sunset"), t?.value ?? "–")
     }
     /// The bubble's words, or the weather in one word.
     var head: String { s.bubble?.text ?? cond }

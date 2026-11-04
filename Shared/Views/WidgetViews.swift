@@ -288,7 +288,10 @@ struct LockRectangularView: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(snap.deg(s.temp)).font(.system(size: 15, weight: .semibold)).opacity(0.92).probe("lockTemp")
                 Text(Compact.head(s, weather: true)).font(.ui(12, .medium)).lineLimit(1).minimumScaleFactor(0.7).opacity(0.85).probe("lockLine")
-                Text("\(Compact.tail(s, deg: snap.deg, weather: true)) · \(snap.deg(s.lo))~\(snap.deg(s.hi))").font(.ui(11)).opacity(0.65).probe("lockTail")
+                // the placeholder and a stale widget drop the "–~–" range: one dash line reads, three look broken
+                Text(snap.showsDashes ? Compact.tail(s, deg: snap.deg, weather: true)
+                                      : "\(Compact.tail(s, deg: snap.deg, weather: true)) · \(snap.deg(s.lo))~\(snap.deg(s.hi))")
+                    .font(.ui(11)).opacity(0.65).probe("lockTail")
             }
             Spacer(minLength: 0)
         }
