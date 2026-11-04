@@ -890,11 +890,12 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(h?.unitF, true); XCTAssertEqual(h?.character, .brit)
     }
 
-    /// The end of Plus the widgets get: 3 days past the paid period when it renews by itself, the paid period's end
+    /// The end of Plus the widgets get: a day past the paid period when it renews by itself, the paid period's end
     /// when it will not; nothing when the plan is not active (expired, revoked or refunded)
     func testWidgetPlusAllowance() {
         let end = Date(timeIntervalSince1970: 1_790_000_000)
-        XCTAssertEqual(Purchases.widgetPlusUntil(active: true, expires: end, willRenew: true, testUntil: nil), end.addingTimeInterval(3 * 86400))
+        XCTAssertEqual(Purchases.widgetAllowance, 86400)
+        XCTAssertEqual(Purchases.widgetPlusUntil(active: true, expires: end, willRenew: true, testUntil: nil), end.addingTimeInterval(86400))
         XCTAssertEqual(Purchases.widgetPlusUntil(active: true, expires: end, willRenew: false, testUntil: nil), end)
         XCTAssertNil(Purchases.widgetPlusUntil(active: false, expires: end, willRenew: true, testUntil: nil))     // revoked, refunded or expired
         XCTAssertNil(Purchases.widgetPlusUntil(active: true, expires: nil, willRenew: true, testUntil: nil))
@@ -902,11 +903,11 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Purchases.widgetPlusUntil(active: false, expires: nil, willRenew: false, testUntil: test), test)   // TestFlight test Plus
         // as the widgets see it: renewed last night with the app not opened since → still Plus; cancelled → Free at the end
         var snap = WeatherSnapshot.sample; snap.plus = true
-        snap.plusUntil = Purchases.widgetPlusUntil(active: true, expires: Date().addingTimeInterval(-86400), willRenew: true, testUntil: nil)
+        snap.plusUntil = Purchases.widgetPlusUntil(active: true, expires: Date().addingTimeInterval(-6 * 3600), willRenew: true, testUntil: nil)
         XCTAssertTrue(snap.plusActive)
-        snap.plusUntil = Purchases.widgetPlusUntil(active: true, expires: Date().addingTimeInterval(-86400), willRenew: false, testUntil: nil)
+        snap.plusUntil = Purchases.widgetPlusUntil(active: true, expires: Date().addingTimeInterval(-6 * 3600), willRenew: false, testUntil: nil)
         XCTAssertFalse(snap.plusActive)
-        snap.plusUntil = Purchases.widgetPlusUntil(active: true, expires: Date().addingTimeInterval(-4 * 86400), willRenew: true, testUntil: nil)
+        snap.plusUntil = Purchases.widgetPlusUntil(active: true, expires: Date().addingTimeInterval(-25 * 3600), willRenew: true, testUntil: nil)
         XCTAssertFalse(snap.plusActive)       // past the allowance too
     }
 
