@@ -111,8 +111,9 @@ final class AppModel: ObservableObject {
             raw = SceneLibrary.scene(pinned ?? loadedPlaces[0].sample)
             hasData = true
         } else if let last = SharedStore.load(), !last.isSample, last.place?.id == loadedPlaces[0].id {
-            raw = last.scene
-            raw.id = loadedPlaces[0].id     // the id is not stored with the scene: this place's, as checked above
+            var s = last.scene
+            s.id = loadedPlaces[0].id       // the id is not stored with the scene: this place's, as checked above
+            raw = s
             hasData = true
             lastRefresh = d.object(forKey: "lastRefresh") as? Date
         } else {
