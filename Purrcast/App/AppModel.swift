@@ -80,7 +80,8 @@ final class AppModel: ObservableObject {
     private var locationWatch: AnyCancellable?
     private var lastLevel: [String: Int] = [:]
 
-    init() {
+    /// `provider`: a stand-in weather source (unit tests); nil → the server, or the example weather without one
+    init(provider injected: WeatherProvider? = nil) {
         #if DEBUG
         let args = ProcessInfo.processInfo.arguments
         #else
@@ -95,7 +96,7 @@ final class AppModel: ObservableObject {
         if testing && !args.contains("-keepLanguage") { Lang.picked = nil }   // screenshots follow the simulator's language
         if let l = arg("-lang"), let lang = Lang(rawValue: l) { Lang.picked = lang }   // -lang en: screenshots in that language
 
-        let prov = WeatherSource.make(sceneOverride: pinned)
+        let prov = injected ?? WeatherSource.make(sceneOverride: pinned)
         provider = prov
 
         var loadedPlaces = [Place.here]
@@ -111,6 +112,7 @@ final class AppModel: ObservableObject {
             hasData = true
         } else if let last = SharedStore.load(), !last.isSample, last.place?.id == loadedPlaces[0].id {
             raw = last.scene
+            raw.id = loadedPlaces[0].id     // the id is not stored with the scene: this place's, as checked above
             hasData = true
             lastRefresh = d.object(forKey: "lastRefresh") as? Date
         } else {
@@ -198,8 +200,9 @@ final class AppModel: ObservableObject {
                 if Self.isCancel(error) { return }
                 if attempt == 0 { try? await Task.sleep(nanoseconds: 1_500_000_000); guard mine == generation else { return }; continue }
                 // the place was switched (or deleted) offline: its own last forecast from the places list, else nothing
+                // (its fetch time is unknown here, so the notice falls back to the forecast's own time)
                 if !isSample, raw.id != place.id {
-                    if let p = previews[place.id] { raw = p } else { hasData = false }
+                    if let p = previews[place.id] { raw = p; hasData = true; lastRefresh = nil } else { hasData = false }
                 }
                 // said as a wait, not a failure; with data on screen, which time it is from
                 lastError = hasData ? L("새 날씨를 불러오는 중이에요 · 지금은 %@ 날씨예요", shownTime) : L("날씨를 불러오는 데 시간이 걸리고 있어요. 잠시 후 아래로 당겨 주세요.")

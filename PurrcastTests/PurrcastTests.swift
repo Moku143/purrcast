@@ -752,6 +752,72 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(AppModel.nextHere(previous: tokyo, fix: named, allowed: true), named)
     }
 
+    /// A stand-in server: answers each place with a scene of its own id, fails the places in `failing`, and holds
+    /// the answers for the places in `slow` a while (a request that comes back late)
+    private final class FakeWeather: WeatherProvider {
+        private let lock = NSLock()
+        private var _failing: Set<String> = [], _slow: Set<String> = [], _asked: [String] = []
+        var failing: Set<String> { get { lock.withLock { _failing } } set { lock.withLock { _failing = newValue } } }
+        var slow: Set<String> { get { lock.withLock { _slow } } set { lock.withLock { _slow = newValue } } }
+        var asked: [String] { lock.withLock { _asked } }
+        var name: String { "fake" }
+        var isSample: Bool { false }
+        func forecast(for place: Place, plus: Bool, previousLevel: Int?, fresh: Bool) async throws -> WeatherScene {
+            lock.withLock { _asked.append(place.id) }
+            if slow.contains(place.id) { try await Task.sleep(nanoseconds: 600_000_000) }
+            if failing.contains(place.id) { throw URLError(.notConnectedToInternet) }
+            var s = SceneLibrary.scene("clear")
+            s.id = place.id; s.place = place.name
+            return s
+        }
+    }
+
+    private func testPlace(_ id: String) -> Place {
+        var p = Place.here; p.id = id; p.name = id; p.short = id; p.ko = nil; p.region = "jp"; p.timeZone = "Asia/Tokyo"
+        return p
+    }
+
+    /// Waits for the model's refreshes to settle (a place switch starts one of its own)
+    @MainActor private func settle(_ m: AppModel) async {
+        for _ in 0..<100 where m.loading { try? await Task.sleep(nanoseconds: 50_000_000) }
+    }
+
+    /// Offline, switched from A to C: C's own forecast from the places list shows (with data), never A's
+    @MainActor func testOfflineSwitchShowsThatPlacesForecast() async {
+        let fake = FakeWeather()
+        let m = AppModel(provider: fake)
+        let a = testPlace("test-a"), c = testPlace("test-c")
+        m.places = [a, c]
+        m.currentIndex = 0
+        await m.refresh(force: true); await settle(m)
+        XCTAssertEqual(m.raw.id, a.id)
+        await m.refreshPreviews()
+        fake.failing = [c.id]
+        m.currentIndex = 1
+        await m.refresh(force: true); await settle(m)
+        XCTAssertEqual(m.raw.id, c.id)
+        XCTAssertTrue(m.hasData)
+        XCTAssertNotNil(m.lastError)            // said as a wait, with C's own data on screen
+    }
+
+    /// A failure that comes back after the switch (the old place's request) leaves the new place's screen alone
+    @MainActor func testLateFailureLeavesTheNewPlace() async {
+        let fake = FakeWeather()
+        let m = AppModel(provider: fake)
+        let a = testPlace("test-a"), c = testPlace("test-c")
+        m.places = [a, c]
+        m.currentIndex = 0
+        await settle(m)
+        fake.failing = [a.id]; fake.slow = [a.id]
+        let old = Task { await m.refresh(force: true) }
+        for _ in 0..<40 where !fake.asked.contains(a.id) { try? await Task.sleep(nanoseconds: 25_000_000) }
+        m.currentIndex = 1                      // starts C's refresh, which answers at once
+        await old.value; await settle(m)
+        XCTAssertEqual(m.raw.id, c.id)
+        XCTAssertTrue(m.hasData)
+        XCTAssertNil(m.lastError)
+    }
+
     /// The time an offline forecast is from: the clock today, the date with it on another day
     func testFetchedLabelSaysTheDay() {
         var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "Asia/Seoul")!
