@@ -13,10 +13,10 @@ struct BackToSettings: View {
             } label: {
                 HStack(spacing: 4) { Image(systemName: "chevron.left").font(.ui(13, .bold)); Text(L("설정")) }
             }
-            .font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent).buttonStyle(.press(0.94))
+            .font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(hex: "#BD4D10")).buttonStyle(.press(0.94))
             .accessibilityIdentifier("back-settings")
             Spacer()
-            Button { Haptic.soft(); dismiss() } label: { Text(L("완료")).tapArea() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent)
+            Button { Haptic.soft(); dismiss() } label: { Text(L("완료")).tapArea() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(hex: "#BD4D10"))  // darker than the accent for this text only, like SheetHeader
                 .buttonStyle(.press(0.94)).accessibilityIdentifier("sheet-close")
         }
         .padding(.horizontal, 20).padding(.top, 22).padding(.bottom, 14)
