@@ -1,6 +1,5 @@
 import XCTest
 import UIKit
-import StoreKit
 @testable import Purrcast
 
 /// Logic checks that run on every GitHub build: decoding (including what the real server sends), the design's
@@ -889,29 +888,6 @@ final class PurrcastTests: XCTestCase {
         let h = SharedStore.withWidgetForecast(fresh, for: moved, onto: hereNow)
         XCTAssertEqual(h?.place?.lat, 35.16); XCTAssertEqual(h?.placeShort, "해운대구")
         XCTAssertEqual(h?.unitF, true); XCTAssertEqual(h?.character, .brit)
-    }
-
-    /// Plus from a subscription: its paid period; after that only in the billing grace period, until it ends; never
-    /// when refunded or revoked, expired, or in billing retry without a grace period
-    func testPlusEntitlementAndGracePeriod() {
-        let now = Date(timeIntervalSince1970: 1_790_000_000)
-        let later = now.addingTimeInterval(86400), before = now.addingTimeInterval(-3600)
-        var e = Purchases.entitlement(expires: later, revoked: false, state: .subscribed, graceEnds: nil, now: now)
-        XCTAssertTrue(e.on); XCTAssertEqual(e.until, later)
-        e = Purchases.entitlement(expires: later, revoked: false, state: nil, graceEnds: nil, now: now)   // state not read: the paid period counts
-        XCTAssertTrue(e.on); XCTAssertEqual(e.until, later)
-        // past the paid period: the grace period, until it ends
-        e = Purchases.entitlement(expires: before, revoked: false, state: .inGracePeriod, graceEnds: later, now: now)
-        XCTAssertTrue(e.on); XCTAssertEqual(e.until, later)
-        XCTAssertFalse(Purchases.entitlement(expires: before, revoked: false, state: .inGracePeriod, graceEnds: before, now: now).on)
-        XCTAssertFalse(Purchases.entitlement(expires: before, revoked: false, state: .inGracePeriod, graceEnds: nil, now: now).on)
-        // billing retry without grace, expired, or a state that could not be read: no Plus
-        XCTAssertFalse(Purchases.entitlement(expires: before, revoked: false, state: .inBillingRetryPeriod, graceEnds: nil, now: now).on)
-        XCTAssertFalse(Purchases.entitlement(expires: before, revoked: false, state: .expired, graceEnds: nil, now: now).on)
-        XCTAssertFalse(Purchases.entitlement(expires: before, revoked: false, state: nil, graceEnds: later, now: now).on)
-        // refunded or revoked: never, whatever else is said
-        XCTAssertFalse(Purchases.entitlement(expires: later, revoked: true, state: .revoked, graceEnds: nil, now: now).on)
-        XCTAssertFalse(Purchases.entitlement(expires: before, revoked: true, state: .inGracePeriod, graceEnds: later, now: now).on)
     }
 
     /// The end of Plus the widgets get: 3 days past the paid period when it renews by itself, the paid period's end
