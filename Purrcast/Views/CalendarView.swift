@@ -195,6 +195,8 @@ struct CalendarSheet: View {
     @State private var pull: CGFloat = 0
     /// A sideways drag is turning the month: a day under the finger is not opened when it lifts
     @State private var dragging = false
+    /// Opens this many months away from now (the store picture: last month, every day filled)
+    var startMonths = 0
 
     var body: some View {
         let place = model.currentPlace
@@ -250,6 +252,7 @@ struct CalendarSheet: View {
         }
         .onAppear {
             if let asked = model.calendarMonth { month = asked; model.calendarMonth = nil }    // a 월간 리포트 tapped
+            else if startMonths != 0, month.isEmpty { month = DayLogText.shift(thisMonth, by: startMonths) }
             #if DEBUG
             let args = ProcessInfo.processInfo.arguments
             func arg(_ k: String) -> String? { args.firstIndex(of: k).flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil } }

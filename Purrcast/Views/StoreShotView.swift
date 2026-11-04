@@ -276,11 +276,12 @@ struct StoreShotView: View {
 
     // MARK: 8 · 매일 날씨가 쌓여요 — 날씨 달력 · 월간 리포트 (Plus)
 
-    /// The 날씨 달력 itself (the month on the made-up days of the example weather) in a phone, cut short above the report
+    /// The 날씨 달력 itself — last month, every day of it filled with the made-up days of the example weather — in a
+    /// phone, cut short in the report
     private var calendar: some View {
         shot(L("매일의 날씨와 옷차림이"), L("달력에 쌓여요"), bg: Tone.calendar, plus: true) {
             phone(dark: false, scale: 0.86, topInset: 36) {
-                CalendarSheet().environmentObject(model)
+                CalendarSheet(startMonths: -1).environmentObject(model)
             }
             .frame(height: 690, alignment: .top).clipped()
         }
