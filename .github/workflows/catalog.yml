@@ -22,14 +22,14 @@ permissions:
 
 jobs:
   phone:
-    runs-on: macos-26
+    runs-on: macos-15-intel
     timeout-minutes: 130
     strategy:
       fail-fast: false
       matrix:
-        # a push takes every language and half (edit to re-take a few); a dispatch takes the inputs
-        lang: ${{ fromJSON(github.event.inputs.langs || '["ko","en","ja"]') }}
-        part: ${{ fromJSON(github.event.inputs.parts || '["a","b"]') }}
+        include:
+          - { lang: ko, part: e }
+          - { lang: de, part: e }
     steps:
       - uses: actions/checkout@v4
       - name: Xcode 26
@@ -53,7 +53,7 @@ jobs:
         run: |
           set -o pipefail
           extra=""
-          if [ "${{ matrix.lang }}${{ matrix.part }}" = "kob" ]; then extra="-only-testing:PurrcastTests"; fi
+          if [ "${{ matrix.lang }}${{ matrix.part }}" = "koe" ]; then extra="-only-testing:PurrcastTests"; fi
           xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast \
             -only-testing:PurrcastUITests/CatalogTests/testCatalog $extra \
             -destination "platform=iOS Simulator,name=iPhone 16,OS=latest" \
@@ -87,10 +87,10 @@ jobs:
           echo "run=${{ github.run_id }} sha=${{ github.sha }} lang=${{ matrix.lang }} part=${{ matrix.part }} $(date -u)" > out/RUN.txt
           cd out && git init -q && git checkout -q -b b
           git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "catalog ${{ matrix.lang }} ${{ matrix.part }}"
-          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} b:catalog-out-${{ matrix.lang }}-${{ matrix.part }}
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} b:catalog-out23-${{ matrix.lang }}-${{ matrix.part }}
 
   watch:
-    if: github.event_name == 'workflow_dispatch'      # a push re-takes only the phone screens
+    if: false      # this run: the phone only
     runs-on: macos-15
     timeout-minutes: 60
     strategy:
