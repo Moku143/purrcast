@@ -274,9 +274,11 @@ final class ScreenshotTests: XCTestCase {
     }
 
     /// The Apple Watch App Store faces (on a 2× phone: cut out at 416 × 496): the analog and the modular face with the
-    /// complications, on the 장맛비 day, in each language
+    /// complications, on the 장맛비 day, in every language the app speaks (STORE_LANGS="ko en" takes a few)
     func test16WatchStore() {
-        for lang in ["ko", "en", "ja"] {
+        let all = ["ko", "en", "ja", "es", "fr", "de", "pt-BR", "it", "id", "ru", "zh-Hans", "zh-Hant"]
+        let langs = ProcessInfo.processInfo.environment["STORE_LANGS"].map { $0.split(separator: " ").map(String.init) } ?? all
+        for lang in langs {
             for face in ["analog", "modular"] {
                 let args = ["-scene", "summer_monsoon", "-plus", "-char", "cat", "-watchFace", face, "-storeTime", "10:09"] + (lang == "en" ? ["-clock12"] : [])
                 shot("watchface-\(lang)-\(face)", args, wait: 2, lang: lang)

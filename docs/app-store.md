@@ -1,22 +1,33 @@
 # App Store 등록 자료 (복사해서 붙여 넣기용)
 
-App Store Connect → 앱 → 각 칸에 그대로 넣으면 돼요. 글자 수는 Apple 제한 안에 맞춰 두었어요.
+App Store Connect → 앱 → 각 칸에 그대로 넣으면 돼요. 글자 수는 모두 Apple 제한 안이에요 (`python3 docs/store/listing.py`가 확인하고 언어별 페이지를 다시 만들어요).
+
+## 언어 12개
+
+**기본 언어는 영어(미국)**, 나머지 11개를 추가해요. 언어마다 이름 · 부제 · 프로모션 텍스트 · 설명 · 키워드 · 구독 표시 이름이 한 페이지에 있어요.
+
+| App Store Connect 언어 | 앱 언어 | 이름 | 부제 | 페이지 |
+|---|---|---|---|---|
+| 영어(미국) — 기본 | en | Purrcast: Weather & Outfits | Pixel pets dress for the sky | [store/en-US.md](store/en-US.md) |
+| 한국어 | ko | 그르릉날씨 - 날씨, 기온별 옷차림 | 픽셀 친구가 옷 입고 알려주는 날씨 | [store/ko.md](store/ko.md) |
+| 일본어 | ja | ゴロゴロ天気 - 天気と服装 | ドット絵のキャラが着替えて伝える天気 | [store/ja.md](store/ja.md) |
+| 스페인어(스페인) | es | Purrcast: Tiempo y Ropa | Una mascota pixel que se viste | [store/es-ES.md](store/es-ES.md) |
+| 프랑스어 | fr | Purrcast : Météo et Tenues | Un ami pixel qui s’habille | [store/fr-FR.md](store/fr-FR.md) |
+| 독일어 | de | Purrcast: Wetter & Outfits | Pixel-Freunde im Wetter-Outfit | [store/de-DE.md](store/de-DE.md) |
+| 포르투갈어(브라질) | pt-BR | Purrcast: Clima e Roupas | Um amigo pixel que se veste | [store/pt-BR.md](store/pt-BR.md) |
+| 이탈리아어 | it | Purrcast: Meteo e Outfit | Un amico pixel che si veste | [store/it.md](store/it.md) |
+| 인도네시아어 | id | Purrcast: Cuaca & Pakaian | Teman piksel berbaju cuaca | [store/id.md](store/id.md) |
+| 러시아어 | ru | Purrcast: погода и одежда | Пиксельный друг одет по погоде | [store/ru.md](store/ru.md) |
+| 중국어(간체) | zh-Hans | Purrcast：天气穿搭 | 像素角色换装告诉你天气 | [store/zh-Hans.md](store/zh-Hans.md) |
+| 중국어(번체) | zh-Hant | Purrcast：天氣穿搭 | 像素角色換裝告訴你天氣 | [store/zh-Hant.md](store/zh-Hant.md) |
+
+- 스페인어(멕시코) · 영어(영국) 등 같은 말의 다른 지역도 추가하고 싶으면 위 페이지를 그대로 복사해 넣으면 돼요 (앱은 지역과 상관없이 같은 말로 나와요).
+- 목록에 없는 언어의 나라에서는 기본 언어인 영어가 보여요. 앱도 같아요: 기기 언어가 12개 중 하나면 그 말, 아니면 영어.
+- 홈 화면 아이콘 아래 이름: 한국어 아이폰 **그르릉날씨**, 일본어 아이폰 **ゴロゴロ天気**, 그 밖은 **Purrcast** (`Shared/Localization/*/InfoPlist.strings`).
+- 홍보 문구에는 "고양이" 대신 **캐릭터 · 픽셀 친구**로 써 두었어요. 키워드에는 검색량 때문에 고양이(cat · 猫 …)를 남겼어요.
+- 키워드 칸이 글자가 아니라 바이트로 세져서 넘친다고 나오면 뒤에서부터 빼 주세요.
 
 ## 기본 정보
-
-앱은 하나, 이름은 언어별로 달라요. **기본 언어는 영어(미국)**로 두고 **한국어**와 **일본어**를 추가해요.
-(한국어 · 일본어 · 영어가 아닌 나라에서는 기본 언어인 영어 이름이 보여요. 앱도 같은 규칙: 기기 언어가 ko → 한국어, ja → 일본어, 그 밖은 영어.)
-
-| 칸 | 영어 (기본) | 한국어 | 일본어 |
-|---|---|---|---|
-| 이름 (30자) | Purrcast: Weather & Outfits | 그르릉날씨 - 날씨, 기온별 옷차림 | ゴロゴロ天気 - 天気と服装 |
-| 부제 (30자) | Pixel pets dress for the sky | 픽셀 친구가 옷 입고 알려주는 날씨 | ドット絵の猫が着替えて伝える天気 |
-| 키워드 (100자) | 아래 영어 키워드 | 아래 한국어 키워드 | 아래 일본어 키워드 |
-
-글자 수 확인: 영어 이름 27자 · 부제 28자, 한국어 이름 19자 · 부제 19자, 일본어 이름 14자 · 부제 16자 — 모두 30자 안.
-영어 키워드는 아래 그대로 95자, 일본어 키워드는 54자(바이트로 세면 140이라 넘친다고 나오면 뒤에서부터 빼요).
-
-홈 화면 아이콘 아래 이름도 같아요: 한국어 아이폰은 **그르릉날씨**, 일본어 아이폰은 **ゴロゴロ天気**, 그 밖은 **Purrcast** (앱에 이미 넣어 두었어요: `Shared/Localization/*/InfoPlist.strings`).
 
 | 칸 | 값 |
 |---|---|
@@ -29,138 +40,11 @@ App Store Connect → 앱 → 각 칸에 그대로 넣으면 돼요. 글자 수�
 | 지원 URL | https://moku143.github.io/purrcast/support.html |
 | 저작권 | © 2026 Purrcast |
 
-## 프로모션 텍스트 (170자, 언제든 바꿀 수 있어요)
-
-체감온도에 맞춰 옷을 갈아입는 픽셀 고양이가 오늘 날씨를 알려 줘요. 비가 오면 우산을 펴고, 곧 올 비는 가방에 챙겨요.
-
-## 설명
-
-```
-오늘 뭐 입지? 고양이를 보면 알아요.
-
-그르릉날씨는 픽셀 고양이가 체감온도에 맞춰 옷을 갈아입고, 비가 오면 우산을 펴서 날씨를 보여 주는 날씨 앱이에요. 숫자를 읽지 않아도 한눈에 오늘 날씨가 보여요.
-
-• 옷 15단계: 민소매부터 롱패딩·털 후드까지, 체감온도에 맞춰 갈아입어요
-• 우산 3단계: 지금 비가 오면 우산을 펴고, 곧 올 비는 가방에 챙기고, 애매하면 고민해요
-• 비 오는 시간을 미리: "15~17시 비 예보"처럼 알려 주고 우산을 챙겨요
-• 날씨 그림: 구름이 흐르고, 비와 눈이 내리고, 별이 반짝이고, 번개가 쳐요
-• 시간별 · 10일 예보, 자외선 · 일출 · 일몰 · 습도 · 바람
-• 홈 화면 · 잠금 화면 위젯
-• 아침 요약 알림
-• °C / °F, 24시간 / 12시간
-
-그르릉날씨 Plus
-• 새 예보가 나올 때마다 업데이트
-• 가까운 비: 앞으로 6시간, 언제 얼마나 오는지
-• 비 오기 전 알림 · 기온 변화 · 기상특보 알림
-• 애플워치 앱 · 컴플리케이션
-• 지역 여러 곳
-• 캐릭터 바꾸기: 아비시니안 · 브리티시숏헤어
-
-날씨 정보: 기상청(공공누리 제1유형), MET Norway(CC BY 4.0)
-
-구독 안내
-Plus는 연간 또는 월간 자동 갱신 구독이에요. 처음 구독하면 무료 체험이 있을 수 있고, 체험이 끝나면 선택한 요금이 Apple 계정으로 결제돼요. 기간이 끝나기 24시간 전까지 해지하지 않으면 자동으로 갱신되고, 해지는 기기의 설정 > Apple 계정 > 구독에서 언제든 할 수 있어요.
-이용약관: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-개인정보 처리방침: https://moku143.github.io/purrcast/privacy.html
-```
-
-## 영어 프로모션 텍스트 · 설명 (영어 화면 작업 후 사용)
-
-```
-A pixel cat dresses for the feels-like temperature and opens an umbrella when it rains. Know what to wear at a glance.
-```
-
-```
-What should I wear today? Ask the cat.
-
-Purrcast shows the weather through a pixel pet: it changes clothes with the feels-like temperature and opens its umbrella when rain comes. No numbers to read — one look and you know.
-
-• 15 outfits, from tank top to fur-hooded puffer
-• Umbrella states: raining now, rain later (packed in the bag), maybe
-• Rain ahead: "Rain 3–5PM" — and the umbrella goes in the bag
-• Living sky: clouds drift, rain and snow fall, stars twinkle, lightning flashes
-• Hourly and 10-day forecast, UV, sunrise and sunset, humidity, wind
-• Home Screen and Lock Screen widgets
-• Rain-soon alert and morning summary
-• °C / °F, 24-hour / 12-hour
-
-Purrcast Plus
-• Updates with every new forecast run
-• Next 6 hours of rain: when and how much
-• Apple Watch app and complications
-• Unlimited places
-• More characters: Abyssinian and British Shorthair
-
-Weather data: Korea Meteorological Administration (KOGL Type 1), MET Norway (CC BY 4.0)
-
-Subscriptions
-Plus is an auto-renewing yearly or monthly subscription. New subscribers may get a free trial; after it ends, the selected price is charged to your Apple Account. It renews automatically unless cancelled at least 24 hours before the end of the period. Manage or cancel any time in Settings > Apple Account > Subscriptions.
-Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-Privacy Policy: https://moku143.github.io/purrcast/privacy.html
-```
-
-## 일본어 프로모션 텍스트 · 설명
-
-프로모션 텍스트 (170자):
-```
-体感温度に合わせて着替えるドット絵の猫が、今日の天気を伝えます。雨が降れば傘をさし、これから降る雨はかばんに傘を入れて備えます。
-```
-
-설명:
-```
-今日は何を着る？ 猫を見ればわかります。
-
-ゴロゴロ天気は、ドット絵の猫が体感温度に合わせて着替え、雨が降ると傘をさして天気を伝える天気アプリです。数字を読まなくても、ひと目で今日の天気がわかります。
-
-• 服装15段階: タンクトップからファー付きフードのダウンまで、体感温度に合わせて着替えます
-• 傘の3段階: 今降っていれば傘をさし、これから降るならかばんに入れ、微妙なときは迷います
-• 雨の時間を前もって: 「15〜17時に雨の予報です」のように伝え、傘を準備します
-• 動く空: 雲が流れ、雨や雪が降り、星がまたたき、雷が光ります
-• 時間ごと・10日間の予報、紫外線・日の出・日の入り・湿度・風
-• ホーム画面・ロック画面ウィジェット
-• 雨の前の通知、朝のまとめ
-• °C / °F、24時間 / 12時間
-
-ゴロゴロ天気 Plus
-• 新しい予報が出るたびに更新
-• 近づく雨: これから6時間、いつどれくらい降るか
-• Apple Watch アプリ・コンプリケーション
-• 複数の地域
-• キャラクター変更: アビシニアン・ブリティッシュショートヘア
-
-気象データ: 韓国気象庁（KOGL 第1類型）、MET Norway（CC BY 4.0）
-
-サブスクリプションについて
-Plusは年額または月額の自動更新サブスクリプションです。初めての登録には無料体験がある場合があり、体験が終わると選んだ料金がApple アカウントに請求されます。期間終了の24時間前までに解約しない限り自動的に更新され、解約は端末の設定 > Apple アカウント > サブスクリプションからいつでもできます。
-利用規約: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-プライバシーポリシー: https://moku143.github.io/purrcast/privacy.html
-```
-
-## 키워드 (100자, 쉼표로 · 띄어쓰기 없이)
-
-키워드 칸이 글자가 아니라 바이트로 세져서 넘친다고 나오면 뒤에서부터 빼 주세요.
-
-한국어 (이름 · 부제에 이미 있는 날씨 · 옷차림 · 기온별은 빼서 자리를 아꼈어요):
-```
-고양이,위젯,우산,비알림,체감온도,픽셀,잠금화면,애플워치,강수,예보,기상청,오늘날씨,일교차,미세먼지,코디
-```
-
-영어 (95자 · 이름 · 부제에 있는 weather · outfits는 뺐고, pixel은 검색량이 있어 남겼어요):
-```
-rain,umbrella,widget,what to wear,forecast,cat,pixel,lock screen,watch,clothes,temperature,cute
-```
-
-일본어 (이름 · 부제에 있는 天気 · 服装 · 猫 · ドット絵은 뺐어요):
-```
-傘,雨,ウィジェット,コーデ,体感温度,ロック画面,天気予報,降水確率,寒暖差,猫アプリ,ピクセル,かわいい
-```
-
 ## 앱 내 구입 (구독)
 
 App Store Connect → 앱 → 구독:
 
-1. 구독 그룹 만들기: 이름 `Purrcast Plus`, 표시 이름 영어 `Purrcast Plus` · 한국어 `그르릉날씨 Plus` · 일본어 `ゴロゴロ天気 Plus`
+1. 구독 그룹 만들기: 참조 이름 `Purrcast Plus`, 표시 이름은 언어별 페이지의 "구독 그룹 표시 이름"
 2. 구독 두 개 (ID는 앱 코드와 같아야 해요):
 
 | 참조 이름 | 제품 ID | 기간 | 가격 (대한민국) | 체험 |
@@ -168,14 +52,11 @@ App Store Connect → 앱 → 구독:
 | Plus Yearly | `app.purrcast.plus.yearly` | 1년 | 19,000원에 가장 가까운 가격 단계 | 신규 구독자 3일 무료 |
 | Plus Monthly | `app.purrcast.plus.monthly` | 1개월 | 2,500원에 가장 가까운 가격 단계 | 신규 구독자 3일 무료 |
 
-3. 각 구독의 현지화
-   - 한국어: 표시 이름 `그르릉날씨 Plus 연간` / `그르릉날씨 Plus 월간`, 설명 `가까운 비 · 대기질 · 애플워치 · 캐릭터 · 지역 여러 곳`
-   - 영어: 표시 이름 `Purrcast Plus Yearly` / `Purrcast Plus Monthly`, 설명 `Rain soon, air quality, Apple Watch, characters, places` (55자 제한 안)
-   - 일본어: 표시 이름 `ゴロゴロ天気 Plus 年額` / `ゴロゴロ天気 Plus 月額`, 설명 `近づく雨・大気質・Apple Watch・キャラクター・複数の地域`
-4. 심사용 스크린샷: GitHub Actions의 "Store screenshots"에서 나온 Plus 화면을 올려요
+3. 각 구독의 현지화: 12개 언어 모두 언어별 페이지 맨 아래 "구독" 표 (표시 이름 · 설명 55자 안)
+4. 심사용 스크린샷: Plus 화면 (`store-frames` 브랜치의 2번 · 9번처럼 Plus가 보이는 장, 또는 앱의 Plus 화면 캡처)
 5. **첫 심사 때는 구독을 앱 버전과 같이 제출**해야 해요 (버전 페이지의 "앱 내 구입 및 구독"에 두 개 추가)
 
-앱은 가격 · 기간 · 체험 여부를 App Store에서 받아서 보여 주니, 가격을 바꿔도 앱을 고칠 필요가 없어요.
+앱은 가격 · 기간 · 체험 여부를 App Store에서 받아서 보여 주니, 가격을 바꿔도 앱을 고칠 필요가 없어요. (가격은 ChatGPT · Gemini와 다시 논의 중)
 
 ## 앱 개인정보 (개인정보 라벨)
 
@@ -187,17 +68,20 @@ App Store Connect → 앱 → 구독:
 | 식별자 · 기기 ID | 예 | 예 | 아니요 | 앱 기능 |
 
 왜 "연결 예"인가: 비 알림(Live Activity)을 앱을 열지 않아도 보내려고, 서버가 앱이 만든 무작위 기기 ID와 약 1km 좌표 · 푸시 토큰을 함께 45일 동안 보관해요(`server/src/push.js`). 이름 · Apple ID와는 관계없지만 Apple 기준으로는 기기와 연결된 데이터라 "예"가 안전해요.
+날씨 달력 기록(매일의 날씨 · 옷차림 · 저장된 위치 이름)은 **기기 안에만** 저장돼요. 앱을 안 연 날을 채울 때 서버에 보내는 건 좌표와 날짜뿐이고 서버는 저장하지 않아요.
 그 밖의 항목(연락처, 사용 데이터, 진단 등)은 모두 수집 안 함. 결제는 Apple이 처리해요.
 
 ## 심사 메모 (App Review Information → Notes)
 
 ```
-Purrcast (Korean name: 그르릉날씨) is a weather app: a pixel cat changes clothes by the feels-like temperature and holds an umbrella when it rains.
+Purrcast (Korean name: 그르릉날씨) is a weather app: a pixel character changes clothes by the feels-like temperature and holds an umbrella when it rains. The app is in 12 languages.
 
-- No login. Location is used only to get the forecast for the current place (rounded to ~1 km); the user can turn it off and pick places instead.
+- No login. Location is used only to get the forecast for the current place (rounded to ~1 km); the user can turn it off and pick places instead. Widgets may use the location too, to show the weather where the phone is.
 - Weather comes from our own server: KMA 기상청 for Korea (with Apple Weather for the later hours), Apple Weather (WeatherKit) elsewhere, MET Norway for the forecast comparison; air quality from AirKorea (Korea) and OpenWeather (elsewhere). Credited in Settings > Data sources.
+- Widgets: Home Screen (small, medium, hourly), Lock Screen (circular and rectangular) and the line above the Lock Screen clock (the dressed character with the temperature, the place, rain, UV, sunrise/sunset, wind, air, or all in one line).
+- Weather calendar (Plus): each day's weather and outfit is saved on the device, at the place where the phone was at midnight. Days the app was not opened are filled from past observations (KMA in Korea, Apple Weather elsewhere) through our server, which receives only the coordinates and dates and keeps nothing. A monthly report notification comes on the 1st.
 - For the rain alert on the Lock Screen / Dynamic Island, the app registers a random device ID, the place rounded to ~1 km and an ActivityKit push token with our server; it is deleted after 45 days without a check-in.
-- Purrcast Plus (auto-renewable subscription, yearly / monthly, free trial for new subscribers) unlocks: forecast refresh with every new run, the next-6-hours rain card, short Live Activity alerts (rain or snow an hour before and as it starts, official warnings, poor air), the air quality map with hourly fine dust readings and the Lock Screen fine dust widget, the Apple Watch app and complications, unlimited places, and two more characters. Purchase and restore are on the Plus screen (gear icon > Purrcast Plus, or the character button).
+- Purrcast Plus (auto-renewable subscription, yearly / monthly, free trial for new subscribers) unlocks: forecast refresh with every new run, the next-6-hours rain card, short Live Activity alerts (rain or snow an hour before and as it starts, official warnings, poor air, temperature changes), the air quality map with hourly fine dust readings and the Lock Screen air widget, the weather calendar and monthly report, the Apple Watch app and complications, unlimited places, and two more characters. Purchase and restore are on the Plus screen (gear icon > Purrcast Plus, or the character button).
 - To test Plus, please use a Sandbox account. The Apple Watch app shows its content only with Plus and gets its data from the iPhone app.
 ```
 
@@ -205,4 +89,19 @@ Purrcast (Korean name: 그르릉날씨) is a weather app: a pixel cat changes cl
 
 ## 스크린샷
 
-GitHub → Actions → **Store screenshots** → Run workflow → 끝나면 `store-shots` 브랜치에 6.9인치(1320×2868) 6장이 생겨요. 6.9인치만 올리면 다른 크기는 Apple이 줄여서 써요. 애플워치 스크린샷은 iOS 빌드의 `ci-output` 브랜치 `shots/watch-*.png`.
+GitHub → Actions → **Store screenshots** → Run workflow (언어 칸을 비우면 12개 모두) → 끝나면 `store-frames` 브랜치에 `<언어>/01.png … 10.png`가 생겨요. 6.9인치(1320×2868)만 올리면 다른 크기는 Apple이 줄여서 써요.
+
+| 장 | 내용 |
+|---|---|
+| 1 | 오늘 뭐 입지 |
+| 2 | 옷차림 15단계 |
+| 3 | 날씨별 하늘 |
+| 4 | 비 알림 |
+| 5 | 다음 6시간 (Plus) |
+| 6 | 10일 예보 |
+| 7 | 미세먼지 · 대기질 (Plus) |
+| 8 | 날씨 달력 · 월간 리포트 (Plus) |
+| 9 | 홈 화면 · 잠금화면 위젯 · 시계 위 한 줄 |
+| 10 | 애플워치 (Plus) |
+
+애플워치 스크린샷은 Actions → **Watch store screenshots**.

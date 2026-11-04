@@ -1,6 +1,6 @@
 name: Watch store pictures
 
-# The Apple Watch App Store pictures (416 × 496, Series 10/11/12 46 mm) in Korean, English and Japanese:
+# The Apple Watch App Store pictures (416 × 496, Series 10/11/12 46 mm) in every language the app speaks (or the ones given):
 # the analog and the modular face with the complications (drawn by the phone app on a 2× iPhone and cut out), and the
 # watch app's three pages from the watch simulator without the page dots or scroll bar.
 # Started by pushing to the watch-store-run branch; the raw pictures go to watch-store-out-faces / watch-store-out-app.
@@ -8,14 +8,23 @@ on:
   push:
     branches: [watch-store-run]
   workflow_dispatch:
+    inputs:
+      langs:
+        description: 'Languages, space-separated (empty: all twelve)'
+        required: false
+        default: ''
+      runner:
+        description: 'Runner (macos-15 · macos-15-intel · macos-26)'
+        required: false
+        default: 'macos-15-intel'
 
 permissions:
   contents: write
 
 jobs:
   faces:
-    runs-on: macos-26
-    timeout-minutes: 60
+    runs-on: ${{ github.event.inputs.runner || 'macos-15-intel' }}
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - name: Xcode 26
@@ -33,7 +42,10 @@ jobs:
       - name: Generate project
         run: brew install xcodegen && xcodegen generate
       - name: Faces
+        env:
+          TEST_RUNNER_STORE_LANGS: ${{ github.event.inputs.langs }}
         run: |
+          [ -n "$TEST_RUNNER_STORE_LANGS" ] || unset TEST_RUNNER_STORE_LANGS
           set -o pipefail
           xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast \
             -only-testing:PurrcastUITests/ScreenshotTests/test16WatchStore \
@@ -63,8 +75,8 @@ jobs:
           git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} b:watch-store-out-faces
 
   app:
-    runs-on: macos-26
-    timeout-minutes: 60
+    runs-on: ${{ github.event.inputs.runner || 'macos-15-intel' }}
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - name: Xcode 26
@@ -74,6 +86,8 @@ jobs:
       - name: Generate project
         run: brew install xcodegen && xcodegen generate
       - name: Watch app pages
+        env:
+          LANGS: ${{ github.event.inputs.langs }}
         run: |
           set -o pipefail
           mkdir -p shots
@@ -89,9 +103,10 @@ jobs:
           xcrun simctl status_bar "$DEV" override --time "10:09" || echo "no status bar override on the watch"
           xcrun simctl install "$DEV" "$APP"
           shot() { xcrun simctl launch --terminate-running-process "$DEV" app.purrcast.ios.watchkitapp "${@:2}" || true; sleep 8; xcrun simctl io "$DEV" screenshot "shots/$1.png" || true; }
-          for L in ko en ja; do
+          for L in ${LANGS:-ko en ja es fr de pt-BR it id ru zh-Hans zh-Hant}; do
             clock=""; [ "$L" = "en" ] && clock="-clock12"
-            for p in 0 1 2; do shot "watchapp-$L-$p" -lang $L -scene clear -char cat -page $p -storeShot $clock; done
+            code=$L; [ "$L" = "pt-BR" ] && code=pt   # the watch's -lang takes the app's language code
+            for p in 0 1 2; do shot "watchapp-$L-$p" -lang $code -scene clear -char cat -page $p -storeShot $clock; done
           done
       - name: Publish
         if: always()
