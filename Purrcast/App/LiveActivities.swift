@@ -5,7 +5,8 @@ import ActivityKit
 /// goes to the server with the place, plan and character (`POST /v1/devices`); the server's half-hourly pass then
 /// pushes the alert about an hour before the rain — a Live Activity that shows on the Dynamic Island / lock screen
 /// for a few minutes, with the banner — so the app need not be open. Without a server (the sample provider) nothing
-/// is sent and the app's own scheduled notification stays.
+/// is sent and the app's own scheduled notification stays. Only Plus is registered: the server pushes nothing to the
+/// free plan, so a free device has no record there.
 @MainActor
 final class LiveActivities {
     static let shared = LiveActivities()
@@ -30,6 +31,28 @@ final class LiveActivities {
         get { UserDefaults.standard.string(forKey: "la.start") }
         set { UserDefaults.standard.set(newValue, forKey: "la.start") }
     }
+    /// The server has no record of this device (forgotten after Plus ended, or never registered since)
+    private var forgotten: Bool {
+        get { UserDefaults.standard.bool(forKey: "la.forgotten") }
+        set { UserDefaults.standard.set(newValue, forKey: "la.forgotten") }
+    }
+
+    /// What the server should hear about this device now: Plus is registered once ActivityKit has handed out a push
+    /// token; without Plus there is nothing for it to send, so a device it may know (registered while Plus, or by an
+    /// older build that registered free devices too) is forgotten once, and then nothing more is sent.
+    enum Step: Equatable { case nothing, register, forget }
+    nonisolated static func step(plus: Bool, hasToken: Bool, forgotten: Bool) -> Step {
+        if plus { return hasToken ? .register : .nothing }
+        return hasToken && !forgotten ? .forget : .nothing
+    }
+
+    /// The registration: the alert toggles travel with it, read from the phone each time, so forgetting the device
+    /// loses none of them (they are there again the moment Plus is)
+    nonisolated static func body(id: String, place p: Place, lang: String, character: PurrCharacter, start: String, rain: Bool, alert: Bool) -> [String: Any] {
+        ["id": id, "lat": (p.lat * 100).rounded() / 100, "lon": (p.lon * 100).rounded() / 100, "tz": p.timeZone,
+         "region": p.region, "lang": lang, "name": p.short, "char": character.rawValue,
+         "plan": "plus", "start": start, "rain": rain, "alert": alert]
+    }
 
     /// Call once at launch: follow the tokens ActivityKit hands out and register each new one.
     func watch(_ model: AppModel) {
@@ -49,13 +72,15 @@ final class LiveActivities {
 
     /// The device as the server should know it now. Sent when something changed (or an hour has passed).
     func register(_ model: AppModel, force: Bool = false) async {
-        guard let base = WeatherSource.serverURL, !model.isSample, let start = startToken else { return }
-        let p = model.currentPlace
-        let body: [String: Any] = [
-            "id": Self.deviceID, "lat": (p.lat * 100).rounded() / 100, "lon": (p.lon * 100).rounded() / 100, "tz": p.timeZone,
-            "region": p.region, "lang": Lang.current.code, "name": p.short, "char": model.shownCharacter.rawValue,
-            "plan": model.plus ? "plus" : "free", "start": start, "rain": model.notifyRain, "alert": model.notifyAlert,
-        ]
+        guard let base = WeatherSource.serverURL, !model.isSample else { return }
+        switch Self.step(plus: model.plus, hasToken: startToken != nil, forgotten: forgotten) {
+        case .nothing: return
+        case .forget: await forget(base, model); return
+        case .register: break
+        }
+        guard let start = startToken else { return }
+        let body = Self.body(id: Self.deviceID, place: model.currentPlace, lang: Lang.current.code, character: model.shownCharacter,
+                             start: start, rain: model.notifyRain, alert: model.notifyAlert)
         guard let data = try? JSONSerialization.data(withJSONObject: body, options: [.sortedKeys]) else { return }
         let key = String(decoding: data, as: UTF8.self)
         if !force, key == lastSent, let t = lastSentAt, Date().timeIntervalSince(t) < 3600 { return }
@@ -63,11 +88,24 @@ final class LiveActivities {
         req.httpMethod = "POST"; req.httpBody = data
         req.setValue("application/json", forHTTPHeaderField: "content-type")
         guard let (out, resp) = try? await session.data(for: req), (resp as? HTTPURLResponse)?.statusCode == 200 else { return }
-        lastSent = key; lastSentAt = Date()
+        lastSent = key; lastSentAt = Date(); forgotten = false
         if let j = try? JSONSerialization.jsonObject(with: out) as? [String: Any], let ok = j["push"] as? Bool {
             let was = pushOK
             pushOK = ok
             if ok != was { model.planNotifications() }
         }
+    }
+
+    /// DELETE /v1/devices?id= once Plus is over: the server stops sending, and the app plans its own rain alert again
+    /// if Plus comes back before the server does (the toggles stay on the phone)
+    private func forget(_ base: URL, _ model: AppModel) async {
+        var c = URLComponents(url: base.appendingPathComponent("v1/devices"), resolvingAgainstBaseURL: false)!
+        c.queryItems = [URLQueryItem(name: "id", value: Self.deviceID)]
+        guard let url = c.url else { return }
+        var req = URLRequest(url: url)
+        req.httpMethod = "DELETE"
+        guard let (_, resp) = try? await session.data(for: req), (resp as? HTTPURLResponse)?.statusCode == 200 else { return }
+        forgotten = true; lastSent = nil; lastSentAt = nil
+        if pushOK { pushOK = false; model.planNotifications() }
     }
 }

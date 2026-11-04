@@ -994,6 +994,31 @@ final class PurrcastTests: XCTestCase {
         XCTAssertTrue(few[1].title.contains("°")); XCTAssertEqual(few[2].title, "마포구")
     }
 
+    /// Only Plus is registered with the server (its pushes are Plus-only): a free device posts nothing; becoming Plus
+    /// registers; losing Plus forgets the device once and then sends nothing; the alert toggles stay on the phone and
+    /// go with every registration, so a forget loses none of them
+    func testDeviceRegistrationFollowsPlus() {
+        // free: nothing posted; a device the server may know from before (it had a push token) is forgotten once
+        XCTAssertEqual(LiveActivities.step(plus: false, hasToken: false, forgotten: false), .nothing)
+        XCTAssertEqual(LiveActivities.step(plus: false, hasToken: true, forgotten: false), .forget)
+        XCTAssertEqual(LiveActivities.step(plus: false, hasToken: true, forgotten: true), .nothing)
+        // free → Plus: registered once ActivityKit has handed out a token
+        XCTAssertEqual(LiveActivities.step(plus: true, hasToken: true, forgotten: true), .register)
+        XCTAssertEqual(LiveActivities.step(plus: true, hasToken: false, forgotten: true), .nothing)
+        XCTAssertEqual(LiveActivities.step(plus: true, hasToken: true, forgotten: false), .register)
+        // Plus → free (a lapse seen at launch too): forgotten, then quiet
+        XCTAssertEqual(LiveActivities.step(plus: false, hasToken: true, forgotten: false), .forget)
+        // the registration says Plus and carries the phone's toggles as they are now
+        var p = Place.here; p.lat = 37.5665; p.lon = 126.978
+        for (rain, alert) in [(false, true), (true, false)] {
+            let b = LiveActivities.body(id: "dev", place: p, lang: "ko", character: .brit, start: "ab12", rain: rain, alert: alert)
+            XCTAssertEqual(b["plan"] as? String, "plus")
+            XCTAssertEqual(b["rain"] as? Bool, rain); XCTAssertEqual(b["alert"] as? Bool, alert)
+            XCTAssertEqual(b["lat"] as? Double, 37.57); XCTAssertEqual(b["lon"] as? Double, 126.98)   // ~1 km, as before
+            XCTAssertEqual(b["start"] as? String, "ab12"); XCTAssertEqual(b["char"] as? String, "brit")
+        }
+    }
+
     func testMonthReport() {
         func day(_ d: String, _ hi: Int, _ lo: Int, wet: String? = nil, dust: Int? = nil) -> DayRecord {
             var r = DayRecord(date: d, hi: hi, lo: lo, icon: wet == nil ? "sun" : "raincloud"); r.wet = wet; r.dust = dust; return r
