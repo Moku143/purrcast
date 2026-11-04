@@ -1,0 +1,2 @@
+Test Case '-[PurrcastUITests.CatalogTests testCatalog]' started.
+Test Case '-[PurrcastUITests.CatalogTests testCatalog]' passed (1408.711 seconds).
