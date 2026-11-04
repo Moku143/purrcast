@@ -12,14 +12,50 @@ final class ScreenshotTests: XCTestCase {
         let locale = ["ko": "ko_KR", "en": "en_US", "ja": "ja_JP", "es": "es_ES", "fr": "fr_FR", "de": "de_DE", "pt-BR": "pt_BR", "it": "it_IT",
                       "id": "id_ID", "ru": "ru_RU", "zh-Hans": "zh_CN", "zh-Hant": "zh_TW"][lang] ?? "en_US"
         app.launchArguments = args + ["-AppleLanguages", "(\(lang))", "-AppleLocale", locale]   // Korean phone by default: 그르릉날씨
-        app.launch()
-        sleep(wait)
-        then?(app)
-        let a = XCTAttachment(screenshot: app.screenshot())
+        var picture: XCUIScreenshot!
+        for attempt in 0..<3 {
+            if attempt > 0 { app.terminate(); print("torn picture \(name), again (\(attempt + 1))") }
+            app.launch()
+            sleep(wait)
+            then?(app)
+            picture = app.screenshot()
+            if Self.torn(picture.image) { sleep(2); picture = app.screenshot() }
+            if !Self.torn(picture.image) { break }
+        }
+        let a = XCTAttachment(screenshot: picture)
         a.name = name
         a.lifetime = .keepAlways
         add(a)
         app.terminate()
+    }
+
+    /// The Intel simulator now and then hands back a torn frame: bands of pure black rows across the picture.
+    /// (Nothing the app draws is pure black from edge to edge.)
+    private static func torn(_ image: UIImage) -> Bool {
+        guard let cg = image.cgImage else { return false }
+        let w = cg.width, h = cg.height
+        var px = [UInt8](repeating: 0, count: w * h * 4)
+        let drawn: Bool = px.withUnsafeMutableBytes { buf in
+            guard let ctx = CGContext(data: buf.baseAddress, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                      space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+            ctx.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+            return true
+        }
+        guard drawn else { return false }
+        // separate bands of black rows (the Dynamic Island grown into a Live Activity is one band, a torn frame many)
+        var bands = 0, inBand = false
+        for y in stride(from: 0, to: h, by: 2) {
+            var black = 0, n = 0
+            for x in stride(from: 0, to: w, by: 8) {
+                let i = (y * w + x) * 4
+                n += 1
+                if px[i] < 4 && px[i + 1] < 4 && px[i + 2] < 4 { black += 1 }
+            }
+            let row = black * 10 > n * 9
+            if row && !inBand { bands += 1 }
+            inBand = row
+        }
+        return bands >= 3
     }
 
     func test1HomeScreens() {
