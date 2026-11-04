@@ -43,6 +43,7 @@ jobs:
           xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast -destination "id=$DEV" \
             -only-testing:PurrcastUITests/ScreenshotTests/test11StoreFrames \
             -resultBundlePath Store.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST " || true
+          grep -q "\*\* TEST SUCCEEDED \*\*" test.log || { echo "::error::Tests did not pass: $(grep -cE "Test Case '-\[.*\]' failed" test.log) failed"; exit 1; }
       - name: Export
         if: always()
         run: |

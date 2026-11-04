@@ -58,6 +58,7 @@ jobs:
             -only-testing:PurrcastUITests/CatalogTests/testCatalog $extra \
             -destination "platform=iOS Simulator,name=iPhone 16,OS=latest" \
             -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST |BUILD " || true
+          grep -q "\*\* TEST SUCCEEDED \*\*" test.log || { echo "::error::Tests did not pass: $(grep -cE "Test Case '-\[.*\]' failed" test.log) failed"; exit 1; }
       - name: Export pictures
         if: always()
         run: |
