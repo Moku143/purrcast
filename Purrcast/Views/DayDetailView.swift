@@ -928,14 +928,15 @@ struct DayDetailView: View {
         let badge = gap > 0 ? L("실제보다 -%d°", dd(gap)) : gap < 0 ? L("실제보다 +%d°", dd(gap)) : L("실제와 비슷")
         let mid = roundHalfUp(Double(lo + hi) / 2)
         let word = mid <= -10 ? L("매우 추운") : mid <= 0 ? L("추운") : mid <= 8 ? L("쌀쌀한") : mid <= 16 ? L("선선한") : mid <= 22 ? L("온화한") : mid <= 27 ? L("따뜻한") : mid <= 32 ? L("더운") : L("매우 더운")
-        var t = L("체감 %@~%@, %@ 날이에요.", degNumber(lo), model.deg(hi), word)
+        func w(_ k: String) -> String { PastWords.key(k, past: c.past) }
+        var t = L(w("체감 %@~%@, %@ 날이에요."), degNumber(lo), model.deg(hi), word)
         let windy = (h.wind.max() ?? 0) >= 8
-        if gap < 0 { t += " " + L("습해서 실제 기온보다 %d° 높게 느껴져요.", dd(gap)) }
+        if gap < 0 { t += " " + L(w("습해서 실제 기온보다 %d° 높게 느껴져요."), dd(gap)) }
         else if gap > 0 {
-            t += " " + (windy ? L("바람이 세서 실제 기온보다 %d° 낮게 느껴져요.", dd(gap))
-                        : h.rainy ? (c.snowy ? L("눈 때문에 실제 기온보다 %d° 낮게 느껴져요.", dd(gap)) : L("비 때문에 실제 기온보다 %d° 낮게 느껴져요.", dd(gap)))
-                        : L("실제 기온보다 %d° 낮게 느껴져요.", dd(gap)))
-        } else { t += " " + L("실제 기온과 비슷해요.") }
+            t += " " + (windy ? L(w("바람이 세서 실제 기온보다 %d° 낮게 느껴져요."), dd(gap))
+                        : h.rainy ? (c.snowy ? L(w("눈 때문에 실제 기온보다 %d° 낮게 느껴져요."), dd(gap)) : L(w("비 때문에 실제 기온보다 %d° 낮게 느껴져요."), dd(gap)))
+                        : L(w("실제 기온보다 %d° 낮게 느껴져요."), dd(gap)))
+        } else { t += " " + L(w("실제 기온과 비슷해요.")) }
         if c.index == 0, let now = h.now { t += " " + L("지금 체감은 %@예요.", model.deg(Int(h.feel[now].rounded()))) }
         return Brief(value: "\(model.deg(hi)) / \(model.deg(lo))", badge: badge, badgeColor: DayTempColor.color(vmax), badgeInk: UI.ink, summary: t)
     }
@@ -1024,8 +1025,9 @@ struct DayDetailView: View {
     private func briefWind(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let wmin = Int((h.wind.min() ?? 0).rounded()), wmax = Int((h.wind.max() ?? 0).rounded()), gmax = Int((h.gust.max() ?? 0).rounded())
         let lvl = windLevel(h)
-        var t = [L("바람이 약해요."), L("바람이 조금 있어요."), L("바람이 강해요."), c.past ? L("바람이 강해요.") : L("바람이 매우 강해요. 바깥 활동은 줄이는 게 좋아요.")][lvl]
-        if lvl >= 1, let peak = h.wind.firstIndex(of: h.wind.max() ?? 0) { t += " " + L("%@에 가장 세요.", partOfDayInText(peak)) }
+        func w(_ k: String) -> String { PastWords.key(k, past: c.past) }
+        var t = [L(w("바람이 약해요.")), L(w("바람이 조금 있어요.")), L(w("바람이 강해요.")), c.past ? L(w("바람이 강해요.")) : L("바람이 매우 강해요. 바깥 활동은 줄이는 게 좋아요.")][lvl]
+        if lvl >= 1, let peak = h.wind.firstIndex(of: h.wind.max() ?? 0) { t += " " + L(w("%@에 가장 세요."), partOfDayInText(peak)) }
         let value = wmin == wmax ? model.windText(wmax) : "\(model.windNumber(wmin))~\(model.windText(wmax))"
         return Brief(value: value, badge: L("돌풍 %@", model.windNumber(gmax)), badgeColor: c.windColor, badgeInk: .white, summary: t)
     }
@@ -1036,8 +1038,10 @@ struct DayDetailView: View {
         var t = [L("자외선이 약해요."), L("자외선 보통이에요. 한낮엔 선크림을 바르는 게 좋아요."), L("자외선이 강해요. 선크림과 모자를 챙기세요."),
                  L("자외선이 매우 강해요. 한낮엔 바깥 활동을 줄이는 게 좋아요."), L("자외선이 위험 수준이에요. 한낮엔 바깥 활동을 피하는 게 좋아요.")][k]
         let strong = h.uv.indices.filter { h.uv[$0] >= 3 }
-        if c.past { t = strong.isEmpty ? L("자외선이 약해요.") : "" }      // a day gone by: when it was strong, no advice
-        if let a = strong.first, let b = strong.last { t += (t.isEmpty ? "" : " ") + L("%@에 3 이상이에요.", HourLabel.window(a, b + 1, clock12: model.clock12)) }
+        if c.past { t = strong.isEmpty ? L("자외선이 약했어요.") : "" }      // a day gone by: when it was strong, no advice
+        if let a = strong.first, let b = strong.last {
+            t += (t.isEmpty ? "" : " ") + L(PastWords.key("%@에 3 이상이에요.", past: c.past), HourLabel.window(a, b + 1, clock12: model.clock12))
+        }
         return Brief(value: L("최고 %@", String(m)), badge: L(b.word), badgeColor: Color(hex: b.color), badgeInk: Color(hex: b.onColor), summary: t)
     }
 
@@ -1065,7 +1069,7 @@ struct DayDetailView: View {
             let m = known.max() ?? 0, peakAt = known.firstIndex(of: m) ?? 0
             let g = DustScale.grade(m, pm25: c.fine, who: c.who)
             let what = c.fine ? L("초미세먼지") : L("PM10")
-            let t = L("%@ %@이에요.", what, L(DustScale.words[g])) + " " + L("%@에 %@로 가장 높았어요.", HourLabel.word(peakAt, clock12: model.clock12), String(Int(m.rounded())))
+            let t = L("%@ %@이었어요.", what, L(DustScale.words[g])) + " " + L("%@에 %@로 가장 높았어요.", HourLabel.word(peakAt, clock12: model.clock12), String(Int(m.rounded())))
             return Brief(value: L("최고 %@", String(Int(m.rounded()))), badge: L(DustScale.words[g]), badgeColor: Color(hex: DustScale.colors[g]), badgeInk: Color(hex: DustScale.onColors[g]), summary: t)
         }
         // today: the reading now and its step, when today's highest was (and how high), tomorrow's step forecast
@@ -1090,9 +1094,10 @@ struct DayDetailView: View {
     private func briefHumidity(_ c: DayCtx, _ h: DayHourly) -> Brief {
         let (k, avg, dew) = humidityLevel(h)
         let badge = [L("건조"), L("보송"), avg >= 70 ? L("조금 습함") : L("적당"), dew >= 18 ? L("꿉꿉") : L("습함"), L("끈적")][k]
-        let t = [c.past ? L("건조해요.") : L("건조해요. 물을 자주 마시는 게 좋아요."), L("보송해요."), avg >= 70 ? L("조금 습해요.") : L("적당해요."),
-                 dew >= 18 ? L("꿉꿉해요.") : L("습해요."),
-                 dew >= 24 ? L("매우 끈적해요. 불쾌지수가 매우 높아요.") : L("끈적해요. 불쾌지수가 높아요.")][k] + " " + L("이슬점은 %@예요.", model.deg(dew))
+        func w(_ k: String) -> String { PastWords.key(k, past: c.past) }
+        let t = [c.past ? L("건조했어요.") : L("건조해요. 물을 자주 마시는 게 좋아요."), L(w("보송해요.")), avg >= 70 ? L(w("조금 습해요.")) : L(w("적당해요.")),
+                 dew >= 18 ? L(w("꿉꿉해요.")) : L(w("습해요.")),
+                 dew >= 24 ? L(w("매우 끈적해요. 불쾌지수가 매우 높아요.")) : L(w("끈적해요. 불쾌지수가 높아요."))][k] + " " + L(w("이슬점은 %@예요."), model.deg(dew))
         return Brief(value: L("평균 %d%%", avg), badge: badge, badgeColor: c.humColor, badgeInk: .white, summary: t)
     }
 }
@@ -1100,6 +1105,37 @@ struct DayDetailView: View {
 // MARK: - model
 
 enum DayMetric: Int { case temp, feels, rain, wind, uv, humidity, dust }
+
+/// What a sentence becomes on a 날씨 기록 day: what happened, in the past tense — never advice or a forecast.
+/// Every present-tense sentence a past day can show must be here; `key` hands back the past form on such a day.
+enum PastWords {
+    static let said: [String: String] = [
+        "바람이 약해요.": "바람이 약했어요.",
+        "바람이 조금 있어요.": "바람이 조금 있었어요.",
+        "바람이 강해요.": "바람이 강했어요.",
+        "%@에 가장 세요.": "%@에 가장 셌어요.",
+        "자외선이 약해요.": "자외선이 약했어요.",
+        "%@에 3 이상이에요.": "%@에 3 이상이었어요.",
+        "%@ %@이에요.": "%@ %@이었어요.",
+        "건조해요.": "건조했어요.",
+        "보송해요.": "보송했어요.",
+        "적당해요.": "적당했어요.",
+        "조금 습해요.": "조금 습했어요.",
+        "꿉꿉해요.": "꿉꿉했어요.",
+        "습해요.": "습했어요.",
+        "끈적해요. 불쾌지수가 높아요.": "끈적했어요. 불쾌지수가 높았어요.",
+        "매우 끈적해요. 불쾌지수가 매우 높아요.": "매우 끈적했어요. 불쾌지수가 매우 높았어요.",
+        "이슬점은 %@예요.": "이슬점은 %@였어요.",
+        "체감 %@~%@, %@ 날이에요.": "체감 %@~%@, %@ 날이었어요.",
+        "습해서 실제 기온보다 %d° 높게 느껴져요.": "습해서 실제 기온보다 %d° 높게 느껴졌어요.",
+        "바람이 세서 실제 기온보다 %d° 낮게 느껴져요.": "바람이 세서 실제 기온보다 %d° 낮게 느껴졌어요.",
+        "눈 때문에 실제 기온보다 %d° 낮게 느껴져요.": "눈 때문에 실제 기온보다 %d° 낮게 느껴졌어요.",
+        "비 때문에 실제 기온보다 %d° 낮게 느껴져요.": "비 때문에 실제 기온보다 %d° 낮게 느껴졌어요.",
+        "실제 기온보다 %d° 낮게 느껴져요.": "실제 기온보다 %d° 낮게 느껴졌어요.",
+        "실제 기온과 비슷해요.": "실제 기온과 비슷했어요.",
+    ]
+    static func key(_ k: String, past: Bool) -> String { past ? (said[k] ?? k) : k }
+}
 
 /// Everything the subviews need for one day, resolved once per render. Colours are the prototype's.
 private struct DayCtx {

@@ -213,6 +213,8 @@ struct CalendarSheet: View {
     var startMonths = 0
     /// Bumped when a country's holidays arrive from the server (the month draws again)
     @State private var holidaysCame = 0
+    /// Screenshots: the tab a day opened by -calDay starts on ("-calTab dust")
+    @State private var calTab: DayMetric = .temp
 
     var body: some View {
         let place = model.currentPlace
@@ -260,7 +262,7 @@ struct CalendarSheet: View {
         .sheet(item: $openDay) { d in
             // a day with hours opens the same day sheet as a forecast day; one without, its numbers in rows
             if let r = byDate[d.id], let sc = r.scene(tz: tz), let date = DayLog.date(d.id) {
-                DayDetailView(start: 0, past: .init(scene: sc, date: date, air: r.aqiGrade.map { .init(value: r.aqi, grade: $0, main: r.aqiMain, kind: r.aqiKind ?? "cai", hour: r.aqiHour) },
+                DayDetailView(start: 0, startMetric: calTab, past: .init(scene: sc, date: date, air: r.aqiGrade.map { .init(value: r.aqi, grade: $0, main: r.aqiMain, kind: r.aqiKind ?? "cai", hour: r.aqiHour) },
                                                     character: r.character, place: r.placeName(), here: place.id == "here",
                                                     holiday: Holidays.name(d.id, timeZone: r.tz ?? place.timeZone)))
                     .presentationDetents([.large]).presentationCornerRadius(28)
@@ -287,6 +289,9 @@ struct CalendarSheet: View {
             if let n = arg("-calMonth").flatMap(Int.init) { month = DayLogText.shift(thisMonth, by: n) }
             if args.contains("-calOutfits") { outfits = true }
             if args.contains("-calPick") { picking = true }
+            if let t = arg("-calTab"), let i = ["temp", "feels", "rain", "wind", "uv", "humidity", "dust"].firstIndex(of: t) {
+                calTab = DayMetric(rawValue: i) ?? .temp
+            }
             if let n = arg("-calDay").flatMap(Int.init) {
                 let k = DayLog.dayKey(Date().addingTimeInterval(Double(-n) * 86400), tz: tz)
                 selected = k; openDay = DayKey(id: k)

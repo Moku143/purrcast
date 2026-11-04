@@ -792,3 +792,28 @@
 "홈 화면도 잠금화면도" = "Home e schermata di blocco";
 "한눈에 확인해요" = "a colpo d’occhio";
 "공휴일: holidays 오픈소스 (MIT)" = "Festività: pacchetto open source holidays (MIT)";
+
+// 날씨 기록 day sheet: what happened, in the past tense (DayDetailView.PastWords)
+"바람이 약했어요." = "Vento debole.";
+"바람이 조금 있었어요." = "C'era un po' di vento.";
+"바람이 강했어요." = "Vento forte.";
+"%@에 가장 셌어요." = "Più forte di %@.";
+"자외선이 약했어요." = "UV basso.";
+"%@에 3 이상이었어요." = "3 o più nella fascia %@.";
+"%@ %@이었어요." = "Livello %1$@: %2$@.";
+"건조했어요." = "Aria secca.";
+"보송했어요." = "Aria asciutta.";
+"적당했어요." = "Confortevole.";
+"조금 습했어요." = "Aria un po' umida.";
+"꿉꿉했어요." = "Aria pesante.";
+"습했어요." = "Aria umida.";
+"끈적했어요. 불쾌지수가 높았어요." = "Afoso. L'indice di disagio era alto.";
+"매우 끈적했어요. 불쾌지수가 매우 높았어요." = "Molto afoso. L'indice di disagio era molto alto.";
+"이슬점은 %@였어요." = "Il punto di rugiada era di %@.";
+"체감 %@~%@, %@ 날이었어요." = "Percepita da %1$@ a %2$@: giornata %3$@.";
+"습해서 실제 기온보다 %d° 높게 느껴졌어요." = "L'umidità ha fatto percepire %d° in più della temperatura reale.";
+"바람이 세서 실제 기온보다 %d° 낮게 느껴졌어요." = "Il vento ha fatto percepire %d° in meno della temperatura reale.";
+"눈 때문에 실제 기온보다 %d° 낮게 느껴졌어요." = "La neve ha fatto percepire %d° in meno della temperatura reale.";
+"비 때문에 실제 기온보다 %d° 낮게 느껴졌어요." = "La pioggia ha fatto percepire %d° in meno della temperatura reale.";
+"실제 기온보다 %d° 낮게 느껴졌어요." = "Si percepivano %d° in meno della temperatura reale.";
+"실제 기온과 비슷했어요." = "Più o meno come la temperatura reale.";

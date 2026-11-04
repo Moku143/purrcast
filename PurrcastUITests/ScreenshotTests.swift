@@ -438,6 +438,9 @@ final class ScreenshotTests: XCTestCase {
         // the 날씨 달력's farthest month, December four years on (through 2030 now): holidays may show, nothing invented
         let toLastDecember = (4 * 12) + (12 - Calendar.current.component(.month, from: Date()))
         screens.append(("cal-future", ["-scene", "maybe", "-plus", "-open", "calendar", "-calMonth", String(toLastDecember)], 0))
+        // a past day from the calendar: the summary and the 미세먼지 tab speak in the past tense
+        screens.append(("cal-past-day", ["-scene", "maybe", "-plus", "-open", "calendar", "-calDay", "1"], 0))
+        screens.append(("cal-past-dust", ["-scene", "maybe", "-plus", "-open", "calendar", "-calDay", "1", "-calTab", "dust"], 0))
         // the widgets in English and Japanese, and with the longest words each language can produce
         let lab = ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab"]
         // before the app has handed over anything: every widget, lock-screen line and complication without numbers

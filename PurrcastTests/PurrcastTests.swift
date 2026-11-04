@@ -950,6 +950,27 @@ final class PurrcastTests: XCTestCase {
         XCTAssertTrue(old.hasSuffix(HourLabel.clock(13 * 60 + 40, clock12: false)), old)
     }
 
+    /// A 날씨 기록 day speaks in the past tense: every present-tense sentence the day sheet can show for a past
+    /// day has a past form, none of the past forms gives advice, and all 12 languages translate each one (a
+    /// missing entry would fall back to the Korean key, which the test catches)
+    func testPastDayWordsAreInThePastTense() {
+        XCTAssertEqual(PastWords.said.count, 23)
+        XCTAssertEqual(PastWords.key("%@ %@이에요.", past: true), "%@ %@이었어요.")        // 미세먼지 좋음"이었어요"
+        XCTAssertEqual(PastWords.key("%@ %@이에요.", past: false), "%@ %@이에요.")
+        XCTAssertEqual(PastWords.key("바람이 약해요.", past: true), "바람이 약했어요.")
+        XCTAssertEqual(PastWords.key("자외선이 약해요.", past: true), "자외선이 약했어요.")
+        XCTAssertEqual(PastWords.key("체감 %@~%@, %@ 날이에요.", past: true), "체감 %@~%@, %@ 날이었어요.")
+        for (present, past) in PastWords.said {
+            XCTAssertNotEqual(present, past, present)
+            for bad in ["좋아요", "주세요", "챙기", "조심", "느껴져요", "이에요.", "해요.", "세요.", "예요."] {
+                XCTAssertFalse(past.contains(bad), "a present-tense or advice word on a past day: \(past)")
+            }
+            for l in Lang.allCases where l != .ko {
+                XCTAssertNotEqual(l.string(past), past, "\(l.rawValue): no translation for \(past)")
+            }
+        }
+    }
+
     /// 날씨 달력 browses to December four years on (the holiday tables' reach), never further, and back to the
     /// first record; the debug shift walks there and home across the years
     func testCalendarBrowsesFourYearsAhead() {
