@@ -125,20 +125,35 @@ final class Purchases: ObservableObject {
     }
 
     func refresh() async {
-        var on = false, until: Date?, which: String?
+        var on = false, until: Date?, which: String?, renew = true
         for await result in Transaction.currentEntitlements {
-            guard case .verified(let t) = result, Self.ids.contains(t.productID), t.revocationDate == nil else { continue }
-            if let e = t.expirationDate, e < Date() { continue }
-            on = true; which = t.productID
-            if let e = t.expirationDate, until == nil || e > until! { until = e }
-        }
-        var renew = true
-        if on, let id = which, let statuses = try? await product(id)?.subscription?.status {
-            for s in statuses where s.state == .subscribed || s.state == .inGracePeriod || s.state == .inBillingRetryPeriod {
-                if case .verified(let info) = s.renewalInfo { renew = info.willAutoRenew }
+            guard case .verified(let t) = result, Self.ids.contains(t.productID) else { continue }
+            // the subscription's state as the App Store has it (no product list needed, so it is there at launch too)
+            var state: Product.SubscriptionInfo.RenewalState?, graceEnds: Date?, autoRenew: Bool?
+            if let group = t.subscriptionGroupID, let statuses = try? await Product.SubscriptionInfo.status(for: group),
+               let s = statuses.first(where: { if case .verified(let st) = $0.transaction { return st.originalID == t.originalID }; return false }) ?? statuses.first {
+                state = s.state
+                if case .verified(let info) = s.renewalInfo { graceEnds = info.gracePeriodExpirationDate; autoRenew = info.willAutoRenew }
             }
+            let e = Self.entitlement(expires: t.expirationDate, revoked: t.revocationDate != nil, state: state, graceEnds: graceEnds)
+            guard e.on else { continue }
+            on = true; which = t.productID
+            if let r = autoRenew { renew = r }
+            if let u = e.until, until == nil || u > until! { until = u }
         }
         active = on; expires = until; activeProduct = which; willRenew = renew
+    }
+
+    /// Whether one subscription gives Plus now, and until when: its paid period; past its end only while the App Store
+    /// says it is in the billing grace period, until the grace ends. Refunded or revoked, expired, or in billing retry
+    /// without a grace period: no Plus.
+    nonisolated static func entitlement(expires: Date?, revoked: Bool, state: Product.SubscriptionInfo.RenewalState?,
+                                        graceEnds: Date?, now: Date = Date()) -> (on: Bool, until: Date?) {
+        if revoked { return (false, nil) }
+        guard let end = expires else { return (true, nil) }
+        if end > now { return (true, end) }
+        if state == .inGracePeriod, let g = graceEnds, g > now { return (true, g) }
+        return (false, nil)
     }
 
     /// "연간 · 2027년 10월 21일에 자동 갱신" / "월간 · 11월 21일에 끝나요"
