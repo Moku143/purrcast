@@ -105,7 +105,7 @@ struct SettingsView: View {
         Group {
             SectionLabel(text: L("지역"))
             RowGroup {
-                SettingRow(symbol: "location.fill", title: L("지금 위치 쓰기"), subtitle: hereSubtitle) { toggle($model.useLocation) }
+                SettingRow(symbol: "location.fill", title: L("지금 위치 쓰기"), subtitle: hereSubtitle) { toggle($model.useLocation, L("지금 위치 쓰기")) }
                 RowDivider()
                 Button { go(.places) } label: {
                     SettingRow(icon: "daynight", title: L("저장한 지역")) { RowValue(text: L("%d곳", model.places.count)) }
@@ -136,21 +136,21 @@ struct SettingsView: View {
             SectionLabel(text: L("알림"))
             RowGroup {
                 // free: the morning summary only; rain, the day-to-day change and warnings are Plus
-                SettingRow(icon: "umbrella_closed", title: L("비 오기 전"), subtitle: L("비·눈이 오기 1시간 전과 올 때 잠깐 알려 드려요")) { if model.plus { toggle($model.notifyRain) } else { PlusTag() } }
+                SettingRow(icon: "umbrella_closed", title: L("비 오기 전"), subtitle: L("비·눈이 오기 1시간 전과 올 때 잠깐 알려 드려요")) { if model.plus { toggle($model.notifyRain, L("비 오기 전")) } else { PlusTag() } }
                 RowDivider()
                 SettingRow(icon: "sun", title: L("아침 요약")) {
                     HStack(spacing: 8) {
                         DatePicker("", selection: $model.morningTime, displayedComponents: .hourAndMinute).labelsHidden()
                             .onChange(of: model.morningTime) { _, _ in Haptic.select() }
-                        toggle($model.notifyMorning)
+                        toggle($model.notifyMorning, L("아침 요약"))
                     }
                 }
                 RowDivider()
-                SettingRow(icon: "daynight", title: L("기온 변화"), subtitle: L("아침에 어제와 비교해 알려 드려요")) { if model.plus { toggle($model.notifyChange) } else { PlusTag() } }
+                SettingRow(icon: "daynight", title: L("기온 변화"), subtitle: L("아침에 어제와 비교해 알려 드려요")) { if model.plus { toggle($model.notifyChange, L("기온 변화")) } else { PlusTag() } }
                 RowDivider()
-                SettingRow(icon: "star", title: L("월간 리포트"), subtitle: L("매달 1일 아침에 지난달 날씨를 정리해 알려 드려요")) { if model.plus { toggle($model.notifyMonthly) } else { PlusTag() } }
+                SettingRow(icon: "star", title: L("월간 리포트"), subtitle: L("매달 1일 아침에 지난달 날씨를 정리해 알려 드려요")) { if model.plus { toggle($model.notifyMonthly, L("월간 리포트")) } else { PlusTag() } }
                 RowDivider()
-                SettingRow(icon: "exclaim", title: L("기상특보 · 미세먼지"), subtitle: L("특보·황사·미세먼지 주의보가 내려지거나 미세먼지가 나빠지면 잠깐 알려 드려요")) { if model.plus { toggle($model.notifyAlert) } else { PlusTag() } }
+                SettingRow(icon: "exclaim", title: L("기상특보 · 미세먼지"), subtitle: L("특보·황사·미세먼지 주의보가 내려지거나 미세먼지가 나빠지면 잠깐 알려 드려요")) { if model.plus { toggle($model.notifyAlert, L("기상특보 · 미세먼지")) } else { PlusTag() } }
                 RowDivider()
                 SettingRow(icon: "zzz", title: L("조용한 시간")) { RowValue(text: "22:00~07:00", chevron: false) }
             }
@@ -173,7 +173,7 @@ struct SettingsView: View {
             SectionLabel(text: L("가까운 비"))
             RowGroup {
                 SettingRow(icon: "raindrop", title: nearRain.0, subtitle: nearRain.1) {
-                    if model.plus { toggle($model.notifyNearRain) } else { PlusTag() }
+                    if model.plus { toggle($model.notifyNearRain, nearRain.0) } else { PlusTag() }
                 }
             }
         }
@@ -259,8 +259,9 @@ struct SettingsView: View {
 
     // MARK: helpers
 
-    private func toggle(_ b: Binding<Bool>) -> some View {
-        Toggle("", isOn: b).labelsHidden().tint(UI.accent).onChange(of: b.wrappedValue) { _, _ in Haptic.select() }
+    /// `label`: the row's title, for VoiceOver (the row shows it already, so the switch hides its own)
+    private func toggle(_ b: Binding<Bool>, _ label: String) -> some View {
+        Toggle(label, isOn: b).labelsHidden().tint(UI.accent).onChange(of: b.wrappedValue) { _, _ in Haptic.select() }
     }
 
     private func go(_ r: Route) {
