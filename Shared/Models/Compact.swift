@@ -19,11 +19,16 @@ enum Compact {
         return !b.text.lowercased().contains(L("황사").lowercased())
     }
 
+    /// The bubble's words without their exclamation marks (Spanish opens one too: "¡Noche tropical!" → "Noche tropical")
+    static func bare(_ t: String) -> String {
+        t.filter { !"!¡！".contains($0) }.trimmingCharacters(in: .whitespaces)
+    }
+
     /// The first word: the alert name when there is one, the weather otherwise. `weather`: the weather widgets
     /// (the lock-screen rectangle and line) leave 미세먼지 out — it has its own circle.
     static func head(_ s: WeatherScene, weather: Bool = false) -> String {
         if weather && isDustBubble(s) { return condWord(s) }
-        if let t = s.bubble?.text.replacingOccurrences(of: "!", with: "").trimmingCharacters(in: .whitespaces), !t.isEmpty {
+        if let t = s.bubble.map({ bare($0.text) }), !t.isEmpty {
             if keep.contains(t) || t.hasSuffix(L("주의보")) || t.hasSuffix(L("경보")) || t.hasSuffix(L("특보")) { return t }
             let forecast = L(" 예보"), expected = L(" 예정")
             if t.hasSuffix(forecast) { return String(t.dropLast(forecast.count)) }   // "15~17시 비 예보" → "15~17시 비"
@@ -75,7 +80,7 @@ enum Compact {
         if h.count <= max { return h }
         let perLine = Lang.current.isLatinLike ? max * 3 : max + 6   // "미세먼지 매우 나쁨" · "PM2.5 とても悪い" · "Very poor air"
         // the whole line (name · advice) when its two halves are short enough, else the name broken at its middle
-        let raw = s.bubble?.text.replacingOccurrences(of: "!", with: "").trimmingCharacters(in: .whitespaces) ?? h
+        let raw = s.bubble.map { bare($0.text) } ?? h
         var parts = raw.components(separatedBy: " · ")
         if parts.count == 1 { parts = raw.components(separatedBy: "・") }
         if parts.count == 1, h.count <= perLine * 2 {

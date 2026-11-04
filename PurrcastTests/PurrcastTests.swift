@@ -869,6 +869,9 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Compact.bubbleWord(s, max: 5), "Despejado")
         s.cond = "Superlongwordthatcannotfit"
         XCTAssertEqual(Compact.bubbleWord(s, max: 5), "")
+        // Spanish opens its exclamation too: neither mark stays in a widget's words
+        s.bubble = WeatherScene.Bubble(kind: "alert", tone: "warm", icon: "moon", text: "¡Noche tropical!")
+        XCTAssertEqual(Compact.head(s), "Noche tropical")
     }
 
     /// The calendar's day card: the temperature hour by hour (seen over forecast), rain by the hour, the day's extremes

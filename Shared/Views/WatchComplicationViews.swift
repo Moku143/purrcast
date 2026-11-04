@@ -202,7 +202,7 @@ struct WatchSummary: View {
                     if s.bubble != nil {
                         HStack(spacing: 3) {
                             PixelIcon(name: f.headIcon, size: 11)
-                            Text(f.head.replacingOccurrences(of: "!", with: "")).font(.px(10)).lineLimit(1).minimumScaleFactor(0.7)
+                            Text(Compact.bare(f.head)).font(.px(10)).lineLimit(1).minimumScaleFactor(0.7)
                         }
                         .foregroundStyle(Color(hex: "#1A2440"))
                         .padding(.horizontal, 4).padding(.vertical, 2)
