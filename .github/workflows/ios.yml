@@ -136,11 +136,28 @@ jobs:
           shot watch-ko-hours -lang ko -scene maybe -char cat -page 1
           shot watch-ko-days -lang ko -scene maybe -char cat -page 2
           shot watch-ko-locked -lang ko -scene maybe -char cat -locked
+      # A failed run keeps what the app and the system did meanwhile: "Failed to terminate app.purrcast.ios" has
+      # happened twice right after a screen was captured; this shows whether the app was hanging or the system was slow
+      - name: Simulator log and test results when the tests fail
+        if: failure()
+        run: |
+          xcrun simctl spawn booted log show --last 20m --style compact \
+            --predicate 'process == "Purrcast" OR process == "runningboardd" OR process == "SpringBoard" OR process == "testmanagerd"' > sim.log 2>&1 || true
+          echo "sim.log: $(wc -l < sim.log) lines"; grep -iE "terminat|hang|watchdog|unresponsive|kill" sim.log | tail -20 || true
+      - name: Keep the test results of a failed run
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            TestResults.xcresult
+            sim.log
+          retention-days: 7
       - name: Publish results to the ci-output branch
         if: always()
         run: |
           mkdir -p out && cp -r shots out/ 2>/dev/null || true
-          cp build.log test.log watch.log out/ 2>/dev/null || true
+          cp build.log test.log watch.log sim.log out/ 2>/dev/null || true
           grep -E "error:|warning: unre" build.log > out/errors.txt 2>/dev/null || true
           grep -E "error:" watch.log | sed 's/^/[watch] /' >> out/errors.txt 2>/dev/null || true
           grep -E "error:|failed|Test Case" test.log >> out/errors.txt 2>/dev/null || true
