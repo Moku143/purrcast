@@ -1,42 +1,71 @@
 name: Store screenshots
 
 # Manual: Actions → Store screenshots → Run workflow.
-# Takes the App Store screenshots on the 6.9-inch simulator (1320 × 2868) and the watch (Series 10 46 mm)
-# and publishes them to the store-shots branch, ready to upload in App Store Connect.
+# The App Store pictures on the 6.9-inch simulator (1320 × 2868): the ten framed pages (StoreShotView, test11StoreFrames)
+# in every language the app speaks — or the languages given — published to the store-frames branch as
+# <lang>/<n>.png, ready to upload in App Store Connect. (The watch pictures come from watch-store.yml.)
 
 on:
   workflow_dispatch:
+    inputs:
+      langs:
+        description: 'Languages, space-separated (empty: all twelve)'
+        required: false
+        default: ''
+      runner:
+        description: 'Runner (macos-15 · macos-15-intel · macos-26)'
+        required: false
+        default: 'macos-15-intel'
 
 permissions:
   contents: write
 
 jobs:
-  shots:
-    runs-on: macos-15
-    timeout-minutes: 60
+  frames:
+    runs-on: ${{ github.event.inputs.runner || 'macos-15-intel' }}
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
+      - name: Xcode 26 (the SDK the store build uses)
+        run: |
+          latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$latest" ]; then sudo xcode-select -s "$latest"; fi
+          xcodebuild -version
       - run: brew install xcodegen && xcodegen generate
       - name: iPhone 6.9"
+        env:
+          TEST_RUNNER_STORE_LANGS: ${{ github.event.inputs.langs }}
         run: |
           set -o pipefail
           DEV=$(xcrun simctl list devices available | grep -E "iPhone 1[6-9] Pro Max" | head -1 | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/')
           echo "device $DEV"
+          [ -n "$TEST_RUNNER_STORE_LANGS" ] || unset TEST_RUNNER_STORE_LANGS
           xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast -destination "id=$DEV" \
-            -only-testing:PurrcastUITests/ScreenshotTests/test5StoreShots \
-            -resultBundlePath Store.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "error:|Test Case|TEST " || true
+            -only-testing:PurrcastUITests/ScreenshotTests/test11StoreFrames \
+            -resultBundlePath Store.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST " || true
+      - name: Export
+        if: always()
+        run: |
           mkdir -p raw out
-          xcrun xcresulttool export attachments --path Store.xcresult --output-path raw
+          [ -d Store.xcresult ] && xcrun xcresulttool export attachments --path Store.xcresult --output-path raw || true
           python3 - <<'PY'
-          import json, shutil, os
-          for t in json.load(open('raw/manifest.json')):
+          import json, shutil, os, re
+          try: m = json.load(open('raw/manifest.json'))
+          except Exception: m = []
+          for t in m:
               for a in t.get('attachments', []):
                   n = (a.get('suggestedHumanReadableName') or a['exportedFileName']).split('_0_')[0]
-                  shutil.copy(os.path.join('raw', a['exportedFileName']), os.path.join('out', n if n.endswith('.png') else n + '.png'))
-          print(sorted(os.listdir('out')))
+                  r = re.match(r'frame-(.+)-(\d+)$', n.replace('.png', ''))
+                  if not r: continue
+                  os.makedirs(os.path.join('out', r.group(1)), exist_ok=True)
+                  shutil.copy(os.path.join('raw', a['exportedFileName']), os.path.join('out', r.group(1), f'{int(r.group(2)):02d}.png'))
+          for d in sorted(os.listdir('out')): print(d, sorted(os.listdir(os.path.join('out', d))))
           PY
+          cp test.log out/ 2>/dev/null || true
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt
       - name: Publish
+        if: always()
         run: |
-          cd out && git init -q && git checkout -q -b store-shots
-          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "store screenshots ${{ github.run_id }}"
-          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} store-shots
+          cd out && git init -q && git checkout -q -b store-frames
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "store frames ${{ github.run_id }}"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} store-frames

@@ -31,8 +31,8 @@ struct StoreShotView: View {
         case 5: nextHours
         case 6: tenDays
         case 7: dust
-        case 8: widgets
-        case 9: lockScreen
+        case 8: calendar
+        case 9: screens
         case 10: watch
         default: hero
         }
@@ -43,7 +43,7 @@ struct StoreShotView: View {
     private enum Tone {
         static let hero = ["#8DB6EC", "#5C8ED6"], skies = ["#86A2E2", "#5873C6"], rain = ["#3A4890", "#1A2050"]
         static let hours = ["#7FAEE6", "#4C7CC6"], days = ["#8FB2E8", "#6185CF"], dust = ["#94A6DD", "#6878BE"], widgets = ["#86B9DF", "#5A8CC4"]
-        static let lock = ["#5B66A8", "#2E3470"], watch = ["#363B5E", "#121428"]
+        static let lock = ["#5B66A8", "#2E3470"], watch = ["#363B5E", "#121428"], calendar = ["#9CC3E8", "#6C93D4"]
     }
 
     // MARK: 1 · 오늘 뭐 입지? 고양이를 보면 알아요
@@ -274,64 +274,53 @@ struct StoreShotView: View {
         }
     }
 
-    // MARK: 7 · 홈 화면에서 바로 확인해요
+    // MARK: 8 · 매일 날씨가 쌓여요 — 날씨 달력 · 월간 리포트 (Plus)
 
-    private var widgets: some View {
-        let snap = model.snapshot
-        return shot(L("홈 화면에서"), L("바로 확인해요"), bg: Tone.widgets) {
-            phone(dark: false) {
-                ZStack(alignment: .top) {
-                    LinearGradient(colors: [Color(hex: "#B9D3F2"), Color(hex: "#E8D9F2")], startPoint: .top, endPoint: .bottom)
-                    VStack(spacing: 22) {
-                        widget(364, 170, snap) { MediumWidgetView(snap: snap) }
-                        widget(364, 170, snap) { HoursWidgetView(snap: snap) }
-                        HStack(alignment: .top, spacing: 24) {
-                            widget(170, 170, snap) { SmallWidgetView(snap: snap) }
-                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(62), spacing: 24), count: 2), spacing: 24) {
-                                ForEach(0..<4, id: \.self) { _ in blankIcon }
-                            }
-                        }
-                        Spacer()
-                        HStack(spacing: 28) { ForEach(0..<4, id: \.self) { _ in blankIcon } }
-                            .padding(.vertical, 14).padding(.horizontal, 18)
-                            .background(Color.white.opacity(0.28), in: RoundedRectangle(cornerRadius: 32, style: .continuous))
-                            .padding(.bottom, 14)
-                    }
-                    .padding(.top, 70)
-                }
+    /// The 날씨 달력 itself (the month on the made-up days of the example weather) in a phone, cut short above the report
+    private var calendar: some View {
+        shot(L("매일의 날씨와 옷차림이"), L("달력에 쌓여요"), bg: Tone.calendar, plus: true) {
+            phone(dark: false, scale: 0.86, topInset: 36) {
+                CalendarSheet().environmentObject(model)
             }
+            .frame(height: 690, alignment: .top).clipped()
         }
     }
 
-    // MARK: 8 · 잠금화면에서도 바로 보여요
+    // MARK: 9 · 홈 화면도 잠금화면도 바로 확인해요
 
-    /// The top of a lock screen, large: the inline line over the time, the rectangle and two circles under it, the
-    /// app's sky as the wallpaper, the character in front
-    private var lockScreen: some View {
-        let snap = model.snapshot, s = snap.scene, lv = Rules.clamp(s.level)
-        return shot(L("잠금화면에서도"), L("바로 보여요"), bg: []) {
-            VStack(spacing: 6) {
-                Text(LockText.inline(snap)).font(.system(size: 19, weight: .semibold)).lineLimit(1)
-                Text("9:41").font(.system(size: 112, weight: .bold, design: .rounded)).padding(.top, -10)
-                HStack(alignment: .top, spacing: 10) {
-                    glass(166, 74) { LockRectangularView(snap: snap) }
-                    glass(74, 74, circle: true) { LockCircularView(snap: snap) }
-                    glass(74, 74, circle: true) { LockDustCircularView(snap: snap) }
+    /// The lock screen on top — the line above the clock (the character dressed for now and the temperature), the
+    /// rectangle and the circles — and the home screen's widgets under it
+    private var screens: some View {
+        let snap = model.snapshot
+        return shot(L("홈 화면도 잠금화면도"), L("한눈에 확인해요"), bg: Tone.widgets) {
+            VStack(spacing: 18) {
+                VStack(spacing: 4) {
+                    HStack(spacing: 8) {
+                        Text(DayLogText.dayLong(DayLog.dayKey(Date(), tz: .current)))
+                        LockInlineView(kind: .temp, snap: snap)
+                    }
+                    .font(.system(size: 17, weight: .semibold)).lineLimit(1)
+                    Text("9:41").font(.system(size: 92, weight: .bold, design: .rounded)).padding(.top, -8)
+                    HStack(alignment: .top, spacing: 10) {
+                        glass(166, 74) { LockRectangularView(snap: snap) }
+                        glass(74, 74, circle: true) { LockCircularView(snap: snap) }
+                        glass(74, 74, circle: true) { LockRainCircularView(snap: snap) }
+                    }
+                    .padding(.top, 8)
                 }
-                .scaleEffect(1.15)
-                .padding(.top, 16)
-                CharacterSprite(character: model.shownCharacter, level: lv, rain: RainState(rawValue: s.rain) ?? .none, width: 270, animate: false)
-                    .padding(.top, 40)
+                .foregroundStyle(.white)
+                .padding(.vertical, 20).frame(width: 404)
+                .background {
+                    ZStack(alignment: .top) {
+                        LinearGradient(colors: Tone.lock.map { Color(hex: $0) }, startPoint: .top, endPoint: .bottom)
+                        SkyParticles(scene: snap.scene, width: 404, tiles: 2, animate: false).frame(width: 404, height: 330, alignment: .top).opacity(0.5)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
+                }
+                widget(364, 170, snap) { MediumWidgetView(snap: snap) }
+                widget(364, 170, snap) { HoursWidgetView(snap: snap) }
             }
-            .foregroundStyle(.white)
-            .padding(.top, 14)
-        }
-        .background {
-            ZStack(alignment: .top) {
-                LinearGradient(colors: Tone.lock.map { Color(hex: $0) }, startPoint: .top, endPoint: .bottom)
-                SkyParticles(scene: s, width: Self.canvas.width, tiles: 3, animate: false)
-                    .frame(width: Self.canvas.width, height: Self.canvas.height, alignment: .top).opacity(0.5)
-            }
+            .padding(.top, 4)
         }
     }
 

@@ -301,7 +301,6 @@
 "지역 여러 곳" = "Più luoghi";
 "무료는 1곳 더, Plus는 제한 없이." = "Gratis: un luogo in più. Plus: senza limiti.";
 "캐릭터 바꾸기" = "Cambia personaggio";
-"아비시니안 · 브리티시숏헤어 · 추후 업데이트로 추가 예정" = "Abissino · British Shorthair · Altri nei prossimi aggiornamenti";
 "닫기" = "Chiudi";
 "구독 복원" = "Ripristina acquisti";
 "옆으로 넘겨 보세요" = "Scorri per vederne altri";
@@ -592,8 +591,6 @@
 "비가 오는지" = "pioggia arriva";
 "미세먼지도" = "Anche le polveri sottili,";
 "한눈에" = "a colpo d'occhio";
-"홈 화면에서" = "Direttamente sulla";
-"바로 확인해요" = "schermata Home";
 "애플워치에서도" = "Anche su Apple Watch,";
 "캐릭터와 함께" = "il tuo micio ti segue";
 "세 마리 중에" = "Scegli il tuo";
@@ -603,8 +600,6 @@
 "비와 눈이 내려요" = "cadono pioggia e neve";
 "열흘 뒤 날씨까지" = "Dieci giorni in anticipo,";
 "미리 볼 수 있어요" = "tutti in una lista";
-"잠금화면에서도" = "Sulla schermata di blocco,";
-"바로 보여요" = "senza sbloccare";
 "폭염!" = "Caldo intenso!";
 "일교차 커요!" = "Forte escursione!";
 "미세먼지 나쁨 · 마스크 챙기세요" = "Aria scadente · Porta la mascherina";
@@ -756,7 +751,6 @@
 "하루" = "1 giorno";
 "%d일" = "%d giorni";
 "날씨 달력 · 월간 리포트" = "Calendario · Resoconto mensile";
-"날씨를 볼 때마다 그날 날씨가 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷" = "Ogni giorno che guardi finisce nel calendario\nOgni mese: giorni di pioggia · giorno più caldo · il più indossato";
 "관측으로 채운 날" = "Completato con le osservazioni";
 "날씨 기록: 지상관측(ASOS) 일자료 (Plus)" = "Registro: osservazioni giornaliere ASOS (Plus)";
 "날씨 기록: 지난 날씨 (한국 밖 · Plus)" = "Registro: giorni passati (fuori dalla Corea · Plus)";
@@ -786,3 +780,14 @@
 "10일 동안 비 소식 없어요" = "Niente pioggia per 10 giorni";
 "날씨를 보고 있는 곳의 이름" = "Il luogo delle previsioni";
 "시계 위 한 줄" = "Sopra l’orologio";
+"홈 카드는 꾹 눌러 원하는 순서로 옮길 수 있어요." = "Tieni premuta una scheda della home per spostarla dove vuoi.";
+"시계 위 한 줄: 옷 입은 캐릭터와 기온 · 위치 · 비 · 자외선 · 일출·일몰 · 바람" = "Sopra l’orologio: il personaggio vestito e la temperatura · luogo · pioggia · UV · alba·tramonto · vento";
+"날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요." = "Ogni volta che guardi il meteo, il tempo e l’outfit del giorno finiscono nel calendario.";
+"달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷을 정리해 1일에 알려 드려요." = "Giorni di pioggia, giorno più caldo e cosa hai indossato di più, ogni 1° del mese.";
+"날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷 · 1일에 알림" = "Meteo e outfit del giorno finiscono nel calendario\nOgni mese: pioggia · giorno più caldo · più indossato · avviso il 1°";
+"아비시니안 · 브리티시숏헤어 · 이름 짓기\n추후 업데이트로 캐릭터 추가 예정" = "Abissino · British Shorthair · Dai un nome\nAltri personaggi nei prossimi aggiornamenti";
+"아비시니안 · 브리티시숏헤어 · 이름 · 말투\n추후 업데이트로 캐릭터 추가 예정" = "Abissino · British Shorthair · Dai un nome\nAltri personaggi nei prossimi aggiornamenti";
+"매일의 날씨와 옷차림이" = "Meteo e outfit di ogni giorno";
+"달력에 쌓여요" = "nel tuo calendario";
+"홈 화면도 잠금화면도" = "Home e schermata di blocco";
+"한눈에 확인해요" = "a colpo d’occhio";

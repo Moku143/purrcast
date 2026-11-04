@@ -9,7 +9,8 @@ final class ScreenshotTests: XCTestCase {
 
     private func shot(_ name: String, _ args: [String], wait: UInt32 = 1, lang: String = "ko", then: ((XCUIApplication) -> Void)? = nil) {
         let app = XCUIApplication()
-        let locale = ["ko": "ko_KR", "en": "en_US", "ja": "ja_JP"][lang] ?? "en_US"
+        let locale = ["ko": "ko_KR", "en": "en_US", "ja": "ja_JP", "es": "es_ES", "fr": "fr_FR", "de": "de_DE", "pt-BR": "pt_BR", "it": "it_IT",
+                      "id": "id_ID", "ru": "ru_RU", "zh-Hans": "zh_CN", "zh-Hant": "zh_TW"][lang] ?? "en_US"
         app.launchArguments = args + ["-AppleLanguages", "(\(lang))", "-AppleLocale", locale]   // Korean phone by default: 그르릉날씨
         app.launch()
         sleep(wait)
@@ -195,11 +196,14 @@ final class ScreenshotTests: XCTestCase {
             (5, ["-scene", "seoul_soon", "-plus", "-char", "cat"]),
             (6, ["-scene", "maybe", "-char", "cat"]),
             (7, ["-scene", "spring_dust", "-plus", "-char", "cat"]),
-            (8, ["-scene", "maybe", "-plus", "-char", "cat"]),
-            (9, ["-scene", "maybe", "-char", "cat"]),
+            (8, ["-scene", "maybe", "-plus", "-char", "cat"]),          // 날씨 달력 · 월간 리포트 (Plus)
+            (9, ["-scene", "maybe", "-plus", "-char", "cat"]),          // the lock screen and the home screen
             (10, ["-scene", "spring_rain", "-plus", "-char", "cat"]),
         ]
-        for lang in ["ko", "en", "ja"] {
+        // every language the app speaks (STORE_LANGS="ko en" takes a few)
+        let all = ["ko", "en", "ja", "es", "fr", "de", "pt-BR", "it", "id", "ru", "zh-Hans", "zh-Hant"]
+        let langs = ProcessInfo.processInfo.environment["STORE_LANGS"].map { $0.split(separator: " ").map(String.init) } ?? all
+        for lang in langs {
             for (n, args) in pages { shot("frame-\(lang)-\(n)", args + ["-storeShot", String(n)], wait: 3, lang: lang) }
         }
     }
@@ -306,7 +310,7 @@ final class ScreenshotTests: XCTestCase {
     /// First run with the 이전 button, the fuller widget and watch pages; the merged rain slide of the Plus page
     func test18Onboard() {
         for lang in ["ko", "en", "ja"] {
-            for st in 0...6 { shot("onb-\(lang)-\(st)", ["-scene", "spring_rain", "-onboarding", "-onbStep", String(st)], wait: 3, lang: lang) }
+            for st in 0...7 { shot("onb-\(lang)-\(st)", ["-scene", "spring_rain", "-onboarding", "-onbStep", String(st)], wait: 3, lang: lang) }
             shot("plus-\(lang)-rain", ["-scene", "maybe", "-open", "paywall"], wait: 3, lang: lang) { app in app.swipeLeft(); sleep(2) }
         }
         shot("onb-back", ["-scene", "spring_rain", "-onboarding", "-onbStep", "2"], wait: 3) { app in app.buttons["back"].firstMatch.tap(); sleep(1) }

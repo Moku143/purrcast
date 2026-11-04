@@ -477,7 +477,7 @@ struct LockInlineView: View {
         case .place:
             return (snap.place?.id == "here" ? "location.fill" : "mappin", snap.placeShort)
         case .rain:
-            return ("umbrella.fill", rainLine(s))
+            return ("umbrella.fill", rainLine(s, now: now))
         case .uv:
             let uv = s.tiles.first { $0.kind == "uv" }?.uv ?? 0
             return ("sun.max.fill", "\(L("자외선")) \(uv) \(L(UVScale.band(uv).word))")
@@ -503,7 +503,7 @@ struct LockInlineView: View {
     }
 
     /// Rain today when it is coming ("16시쯤 비 예보"), else today's chance, else the next wet day in ten, else none
-    static func rainLine(_ s: WeatherScene) -> String {
+    static func rainLine(_ s: WeatherScene, now: Date = Date()) -> String {
         let wetIcons: Set<String> = ["raincloud", "lightning", "snowflake", "sleet"]
         if let i = s.hours.indices.first(where: { s.hours[$0].mm > 0 || (wetIcons.contains(s.hours[$0].icon) && s.hours[$0].chance >= 50) }) {
             let h = s.hours[i]
@@ -512,9 +512,13 @@ struct LockInlineView: View {
             return L("%@쯤 %@ 예보", h.label, snow ? L("눈") : L("비"))
         }
         if let d = s.days.first, d.chance >= 30 { return L("강수확률 %d%%", d.chance) }
-        if let d = s.days.dropFirst().first(where: { $0.chance >= 50 }) {
+        if let i = s.days.indices.dropFirst().first(where: { s.days[$0].chance >= 50 }) {
+            let d = s.days[i]
             let snow = d.icon == "snowflake" || d.icon == "sleet"
-            return L(snow ? "%@ 눈 %d%%" : "%@ 비 %d%%", d.name, d.chance)
+            // the day by its whole name (일요일 · Sunday), tomorrow as 내일
+            let f = DateFormatter(); f.locale = Lang.current.locale; f.setLocalizedDateFormatFromTemplate("EEEE")
+            let name = i == 1 ? L("내일") : f.string(from: now.addingTimeInterval(Double(i) * 86400))
+            return L(snow ? "%@ 눈 %d%%" : "%@ 비 %d%%", name, d.chance)
         }
         return L("10일 동안 비 소식 없어요")
     }

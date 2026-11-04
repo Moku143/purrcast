@@ -301,7 +301,6 @@
 "지역 여러 곳" = "Lokasi lainnya";
 "무료는 1곳 더, Plus는 제한 없이." = "Gratis tambah satu lokasi; Plus tanpa batas.";
 "캐릭터 바꾸기" = "Ganti karakter";
-"아비시니안 · 브리티시숏헤어 · 추후 업데이트로 추가 예정" = "Abyssinian · British Shorthair · Lainnya di pembaruan mendatang";
 "닫기" = "Tutup";
 "구독 복원" = "Pulihkan pembelian";
 "옆으로 넘겨 보세요" = "Geser untuk melihat lebih banyak";
@@ -592,8 +591,6 @@
 "비가 오는지" = "banyak hujannya";
 "미세먼지도" = "Debu halus juga,";
 "한눈에" = "sekali lihat";
-"홈 화면에서" = "Langsung di";
-"바로 확인해요" = "Layar Utama";
 "애플워치에서도" = "Di Apple Watch,";
 "캐릭터와 함께" = "temanmu ikut serta";
 "세 마리 중에" = "Pilih kucing";
@@ -603,8 +600,6 @@
 "비와 눈이 내려요" = "hujan dan salju turun";
 "열흘 뒤 날씨까지" = "Sepuluh hari ke depan,";
 "미리 볼 수 있어요" = "dalam satu daftar";
-"잠금화면에서도" = "Di Layar Kunci,";
-"바로 보여요" = "tanpa perlu buka kunci";
 "폭염!" = "Gelombang panas!";
 "일교차 커요!" = "Beda suhu besar!";
 "미세먼지 나쁨 · 마스크 챙기세요" = "Udara buruk · Bawa masker";
@@ -756,7 +751,6 @@
 "하루" = "1 hari";
 "%d일" = "%d hari";
 "날씨 달력 · 월간 리포트" = "Kalender cuaca · Laporan bulanan";
-"날씨를 볼 때마다 그날 날씨가 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷" = "Setiap hari yang Anda lihat masuk ke kalender\nTiap bulan: hari hujan · hari terpanas · pakaian tersering";
 "관측으로 채운 날" = "Diisi dari data pengamatan";
 "날씨 기록: 지상관측(ASOS) 일자료 (Plus)" = "Catatan cuaca: pengamatan harian ASOS (Plus)";
 "날씨 기록: 지난 날씨 (한국 밖 · Plus)" = "Catatan cuaca: hari-hari lalu (di luar Korea · Plus)";
@@ -786,3 +780,14 @@
 "10일 동안 비 소식 없어요" = "Tak ada hujan 10 hari ke depan";
 "날씨를 보고 있는 곳의 이름" = "Tempat prakiraan cuaca";
 "시계 위 한 줄" = "Di atas jam";
+"홈 카드는 꾹 눌러 원하는 순서로 옮길 수 있어요." = "Tekan lama kartu di beranda untuk memindahkannya.";
+"시계 위 한 줄: 옷 입은 캐릭터와 기온 · 위치 · 비 · 자외선 · 일출·일몰 · 바람" = "Di atas jam: karakter berpakaian dan suhu · lokasi · hujan · UV · matahari terbit·terbenam · angin";
+"날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요." = "Setiap kali Anda melihat cuaca, cuaca dan pakaian hari itu tercatat di kalender.";
+"달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷을 정리해 1일에 알려 드려요." = "Hari hujan, hari terpanas, dan pakaian tersering tiap bulan, dikirim tiap tanggal 1.";
+"날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷 · 1일에 알림" = "Cuaca dan pakaian hari itu tercatat di kalender\nTiap bulan: hari hujan · terpanas · paling sering · kabar tanggal 1";
+"아비시니안 · 브리티시숏헤어 · 이름 짓기\n추후 업데이트로 캐릭터 추가 예정" = "Abyssinian · British Shorthair · Beri nama\nKarakter lain di pembaruan mendatang";
+"아비시니안 · 브리티시숏헤어 · 이름 · 말투\n추후 업데이트로 캐릭터 추가 예정" = "Abyssinian · British Shorthair · Beri nama\nKarakter lain di pembaruan mendatang";
+"매일의 날씨와 옷차림이" = "Cuaca dan pakaian setiap hari";
+"달력에 쌓여요" = "tersimpan di kalender";
+"홈 화면도 잠금화면도" = "Layar Utama & Layar Kunci";
+"한눈에 확인해요" = "sekilas pandang";

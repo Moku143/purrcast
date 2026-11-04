@@ -301,7 +301,6 @@
 "지역 여러 곳" = "More places";
 "무료는 1곳 더, Plus는 제한 없이." = "Free adds one place; Plus has no limit.";
 "캐릭터 바꾸기" = "Change character";
-"아비시니안 · 브리티시숏헤어 · 추후 업데이트로 추가 예정" = "Abyssinian · British Shorthair · More in future updates";
 "닫기" = "Close";
 "구독 복원" = "Restore purchases";
 "옆으로 넘겨 보세요" = "Swipe to see more";
@@ -592,8 +591,6 @@
 "비가 오는지" = "rain is coming";
 "미세먼지도" = "Fine dust, too,";
 "한눈에" = "at a glance";
-"홈 화면에서" = "Right on your";
-"바로 확인해요" = "Home Screen";
 "애플워치에서도" = "On your Apple Watch,";
 "캐릭터와 함께" = "your buddy comes along";
 "세 마리 중에" = "Pick your";
@@ -603,8 +600,6 @@
 "비와 눈이 내려요" = "rain and snow fall";
 "열흘 뒤 날씨까지" = "Ten days ahead,";
 "미리 볼 수 있어요" = "all in one list";
-"잠금화면에서도" = "On your Lock Screen,";
-"바로 보여요" = "no unlock needed";
 "폭염!" = "Heat wave!";
 "일교차 커요!" = "Big temp swing!";
 "미세먼지 나쁨 · 마스크 챙기세요" = "Poor air · Bring a mask";
@@ -756,7 +751,6 @@
 "하루" = "1 day";
 "%d일" = "%d days";
 "날씨 달력 · 월간 리포트" = "Weather calendar · Monthly report";
-"날씨를 볼 때마다 그날 날씨가 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷" = "Every day you check lands on a calendar\nEach month: rainy days · warmest day · outfit worn most";
 "관측으로 채운 날" = "Filled in from observations";
 "날씨 기록: 지상관측(ASOS) 일자료 (Plus)" = "Weather log: ASOS daily observations (Plus)";
 "날씨 기록: 지난 날씨 (한국 밖 · Plus)" = "Weather log: past days (outside Korea · Plus)";
@@ -786,3 +780,14 @@
 "10일 동안 비 소식 없어요" = "No rain in the next 10 days";
 "날씨를 보고 있는 곳의 이름" = "Where the forecast is for";
 "시계 위 한 줄" = "Above the clock";
+"홈 카드는 꾹 눌러 원하는 순서로 옮길 수 있어요." = "Press and hold a card on Home to move it where you like.";
+"시계 위 한 줄: 옷 입은 캐릭터와 기온 · 위치 · 비 · 자외선 · 일출·일몰 · 바람" = "Above the clock: the dressed character and temperature · place · rain · UV · sunrise·sunset · wind";
+"날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요." = "Each time you check, the day's weather and outfit go on the calendar.";
+"달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷을 정리해 1일에 알려 드려요." = "Each month's rainy days, warmest day and most-worn outfit, sent to you on the 1st.";
+"날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷 · 1일에 알림" = "The day's weather and outfit go on the calendar each time you check\nEach month: rainy days · warmest day · most worn · a note on the 1st";
+"아비시니안 · 브리티시숏헤어 · 이름 짓기\n추후 업데이트로 캐릭터 추가 예정" = "Abyssinian · British Shorthair · Name them\nMore characters in future updates";
+"아비시니안 · 브리티시숏헤어 · 이름 · 말투\n추후 업데이트로 캐릭터 추가 예정" = "Abyssinian · British Shorthair · Name them\nMore characters in future updates";
+"매일의 날씨와 옷차림이" = "Every day's weather and outfit";
+"달력에 쌓여요" = "saved to your calendar";
+"홈 화면도 잠금화면도" = "Home & Lock Screen";
+"한눈에 확인해요" = "at a glance";

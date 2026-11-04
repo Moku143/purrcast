@@ -2,7 +2,7 @@ import SwiftUI
 import CoreLocation
 import UserNotifications
 
-/// First run: what it is · widgets · watch · location · notifications · Plus.
+/// First run: what it is · home widgets · the lock screen · watch · 날씨 달력 · location · notifications · Plus.
 struct OnboardingView: View {
     @EnvironmentObject var model: AppModel
     @EnvironmentObject var purchases: Purchases
@@ -11,7 +11,7 @@ struct OnboardingView: View {
     private static var firstStep: Int {
         #if DEBUG
         let a = ProcessInfo.processInfo.arguments
-        if let i = a.firstIndex(of: "-onbStep"), i + 1 < a.count, let n = Int(a[i + 1]) { return max(0, min(6, n)) }
+        if let i = a.firstIndex(of: "-onbStep"), i + 1 < a.count, let n = Int(a[i + 1]) { return max(0, min(7, n)) }
         #endif
         return 0
     }
@@ -22,7 +22,9 @@ struct OnboardingView: View {
     @State private var demo = 0
     private static let demoKeys = ["spring_rain", "clear", "winter_snow", "spring_chill"]
 
-    private let count = 7
+    private let count = 8
+    /// The pages with their own two buttons (location, notifications, Plus)
+    private static let placeStep = 5, alertsStep = 6, plusStep = 7
 
     var body: some View {
         VStack(spacing: 0) {
@@ -32,8 +34,9 @@ struct OnboardingView: View {
                 case 1: widgets
                 case 2: lockWidgets
                 case 3: watch
-                case 4: place
-                case 5: alerts
+                case 4: calendar
+                case Self.placeStep: place
+                case Self.alertsStep: alerts
                 default: plus
                 }
             }
@@ -48,14 +51,14 @@ struct OnboardingView: View {
                 }
             }.padding(.bottom, 16)
             VStack(spacing: 2) {
-                if step >= 4 { backLink.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 4) }
+                if step >= Self.placeStep { backLink.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 4) }
                 buttons
             }
             .padding(.horizontal, 20).padding(.bottom, 12)
         }
         .background(
             ZStack {
-                LinearGradient(colors: [Color(hex: step == 6 ? "#FFF3D6" : "#E4F3D9"), Color(hex: "#F4F6FA")], startPoint: .top, endPoint: .bottom)
+                LinearGradient(colors: [Color(hex: step == Self.plusStep ? "#FFF3D6" : "#E4F3D9"), Color(hex: "#F4F6FA")], startPoint: .top, endPoint: .bottom)
             }
             .ignoresSafeArea()
         )
@@ -72,12 +75,12 @@ struct OnboardingView: View {
 
     @ViewBuilder private var buttons: some View {
         switch step {
-        case 4:
+        case Self.placeStep:
             VStack(spacing: 10) {
                 PrimaryButton(title: L("지금 위치 쓰기")) { model.location.ask(); model.useLocation = true; next() }
                 secondary(L("나중에 · 서울로 볼게요")) { model.useLocation = false; next() }
             }
-        case 5:
+        case Self.alertsStep:
             VStack(spacing: 10) {
                 // both switched off: nothing to ask permission for
                 PrimaryButton(title: model.notifyRain || model.notifyMorning ? L("알림 켜기") : L("다음")) {
@@ -90,7 +93,7 @@ struct OnboardingView: View {
                 }
                 secondary(L("나중에")) { model.notifyRain = false; model.notifyMorning = false; next() }
             }
-        case 6:
+        case Self.plusStep:
             VStack(spacing: 10) {
                 PrimaryButton(title: L("Plus 자세히 보기")) { showPlus = true }
                 secondary(L("무료로 시작하기")) { model.onboarded = true }.accessibilityIdentifier("start-free")
@@ -161,6 +164,7 @@ struct OnboardingView: View {
             Text(L("옷차림으로 보는 날씨")).font(.px(22)).padding(.top, 20)
             Text(L("체감온도에 맞춰 옷을 입고, 비가 오면 우산을 펴요.")).font(.system(size: 14)).foregroundStyle(UI.sub).padding(.top, 8)
             Text(L("한국은 기상청, 해외는 Apple 날씨 예보예요.")).font(.system(size: 14)).foregroundStyle(UI.sub).padding(.top, 4)
+            Text(L("홈 카드는 꾹 눌러 원하는 순서로 옮길 수 있어요.")).font(.system(size: 14)).foregroundStyle(UI.sub).padding(.top, 4)
         }
         .foregroundStyle(UI.ink).padding(.horizontal, 22)
     }
@@ -205,7 +209,10 @@ struct OnboardingView: View {
                 ZStack {
                     LinearGradient(colors: [Color(hex: "#5B5FA8"), Color(hex: "#2E2F66")], startPoint: .top, endPoint: .bottom)
                     VStack(spacing: 8) {
-                        Text(LockText.inline(snap)).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                        // the line above the clock, one of its kinds at a time (the character dressed for now and the
+                        // temperature first)
+                        let kinds: [LockInlineView.Kind] = [.temp, .rain, .uv, .sun, .wind, .place]
+                        LockInlineView(kind: kinds[demo % kinds.count], snap: snap).font(.system(size: 14, weight: .semibold)).lineLimit(1)
                         Text("9:41").font(.system(size: 80, weight: .bold)).padding(.top, -10)
                         HStack(alignment: .top, spacing: 12) {
                             LockRectangularView(snap: snap).frame(width: 158, height: 72)
@@ -230,8 +237,44 @@ struct OnboardingView: View {
             .clipShape(RoundedRectangle(cornerRadius: 28)).padding(.top, 18)
             Text(L("잠금 화면 위젯")).font(.px(22))
             Text(L("잠금 화면: 기온 · 비 올 확률 · 자외선 · 일출·일몰 · 바람 · 미세먼지")).font(.system(size: 14)).foregroundStyle(UI.sub)
+            Text(L("시계 위 한 줄: 옷 입은 캐릭터와 기온 · 위치 · 비 · 자외선 · 일출·일몰 · 바람")).font(.system(size: 14)).foregroundStyle(UI.sub)
         }
         .foregroundStyle(UI.ink).padding(.horizontal, 20)
+    }
+
+    /// 날씨 달력 (Plus): two weeks as the calendar draws them, the month's report under it
+    private var calendar: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(spacing: 14) {
+                CalendarPreview(cell: 42, deg: { model.deg($0) })
+                HStack(alignment: .center, spacing: 14) {
+                    DayFigure(character: .cat, level: 7, width: 70)
+                    VStack(alignment: .leading, spacing: 8) {
+                        reportLine("raincloud", L("비·눈 온 날"), DayLogText.days(4))
+                        reportLine("thermo_hot", L("가장 더운 날"), model.deg(21))
+                        reportLine("thermo_cold", L("가장 추운 날"), model.deg(4))
+                    }
+                }
+                .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.white, in: RoundedRectangle(cornerRadius: 18))
+            }
+            .padding(14).frame(maxWidth: .infinity)
+            .background(Color.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 28))
+            .padding(.top, 18)
+            HStack { Text(L("날씨 달력 · 월간 리포트")).font(.px(22)); Spacer(); PlusTag() }
+            Text(L("날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요.")).font(.system(size: 14)).foregroundStyle(UI.sub)
+            Text(L("달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷을 정리해 1일에 알려 드려요.")).font(.system(size: 14)).foregroundStyle(UI.sub)
+        }
+        .foregroundStyle(UI.ink).padding(.horizontal, 20)
+    }
+
+    private func reportLine(_ icon: String, _ title: String, _ value: String) -> some View {
+        HStack(spacing: 8) {
+            PixelIcon(name: icon, size: 18)
+            Text(title).font(.ui(13)).foregroundStyle(UI.sub)
+            Spacer(minLength: 4)
+            Text(value).font(.px(13)).foregroundStyle(UI.ink)
+        }
     }
 
     private func circle<C: View>(_ label: String, @ViewBuilder _ c: () -> C) -> some View {

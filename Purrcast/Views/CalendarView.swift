@@ -69,6 +69,61 @@ struct DayFigure: View {
     }
 }
 
+// MARK: the calendar in small
+
+/// The 날씨 달력 on made-up days, as the calendar draws them (the Plus page, the first-run pages, the store pictures):
+/// two weeks — the date (today circled), the sky with the high and low, or the outfit worn
+struct CalendarPreview: View {
+    var character: PurrCharacter = .cat
+    var outfits = false
+    var cell: CGFloat = 40
+    var deg: (Int) -> String = { "\($0)°" }
+    /// The second week's Thursday is "today"
+    static let today = 11
+    static let days: [(icon: String, hi: Int, lo: Int)] = [
+        ("sun", 21, 13), ("partly_cloudy", 20, 12), ("cloud", 18, 12), ("raincloud", 16, 11), ("raincloud", 15, 10), ("partly_cloudy", 17, 9), ("sun", 19, 9),
+        ("sun", 18, 8), ("cloud", 16, 8), ("partly_cloudy", 15, 7), ("raincloud", 13, 6), ("cloud", 12, 5), ("sun", 13, 4), ("sun", 14, 5),
+    ]
+
+    var body: some View {
+        let cal = DayLogText.calendar
+        let symbols = cal.shortStandaloneWeekdaySymbols
+        let heads = (0..<7).map { symbols[(cal.firstWeekday - 1 + $0) % 7] }
+        VStack(spacing: 6) {
+            HStack(spacing: 0) {
+                ForEach(Array(heads.enumerated()), id: \.offset) { _, h in
+                    Text(h).font(.ui(cell * 0.26)).foregroundStyle(UI.faint).lineLimit(1).minimumScaleFactor(0.6).frame(width: cell)
+                }
+            }
+            LazyVGrid(columns: Array(repeating: GridItem(.fixed(cell), spacing: 0), count: 7), spacing: cell * 0.12) {
+                ForEach(Array(Self.days.enumerated()), id: \.offset) { i, d in
+                    let isToday = i == Self.today, future = i > Self.today
+                    VStack(spacing: cell * 0.06) {
+                        Text("\(i + 3)").font(.ui(cell * 0.3, isToday ? .bold : .regular))
+                            .foregroundStyle(isToday ? Color.white : (future ? UI.faint : UI.ink))
+                            .frame(width: cell * 0.62, height: cell * 0.62)
+                            .background(Circle().fill(isToday ? UI.ink : Color.clear))
+                        if !future {
+                            if outfits {
+                                DayFigure(character: character, level: Rules.level(feels: Double(d.hi + d.lo) / 2 - 1), width: cell * 0.9)
+                            } else {
+                                PixelIcon(name: d.icon, size: cell * 0.5)
+                                HStack(spacing: 1) {
+                                    Text(deg(d.hi)).font(.px(cell * 0.24)).foregroundStyle(UI.ink)
+                                    Text(deg(d.lo)).font(.px(cell * 0.24)).foregroundStyle(UI.faint)
+                                }
+                                .lineLimit(1).minimumScaleFactor(0.6)
+                            }
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .frame(width: cell, height: cell * (outfits ? 2.0 : 1.75))
+                }
+            }
+        }
+    }
+}
+
 // MARK: home — 이번 주 기록
 
 struct WeekLogCard: View {

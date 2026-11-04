@@ -811,7 +811,7 @@ final class PurrcastTests: XCTestCase {
         s.hours = try JSONDecoder().decode([WeatherScene.HourRow].self, from: Data(hours.utf8))
         XCTAssertEqual(LockInlineView.rainLine(s), "15시쯤 비 예보")
         s.hours = []
-        XCTAssertEqual(LockInlineView.rainLine(s), "목 비 60%")
+        XCTAssertEqual(LockInlineView.rainLine(s), "내일 비 60%")
         s.days[1].chance = 10
         XCTAssertEqual(LockInlineView.rainLine(s), "10일 동안 비 소식 없어요")
         let snap = WeatherSnapshot(scene: s, character: .cat, plus: true, characterName: "", placeShort: "마포구", saved: Date())

@@ -69,6 +69,7 @@ final class CatalogTests: XCTestCase {
         case "d": partD()
         case "e": partE()
         case "f": partF()
+        case "g": partG()
         default: partB()
         }
     }
@@ -118,6 +119,16 @@ final class CatalogTests: XCTestCase {
             take()
             if card.exists { card.tap(); sleep(2); take() }          // free: the Plus page
         }
+    }
+
+    /// Part g: the first run's pages and the Plus page, page by page (what a new install sees)
+    private func partG() {
+        for st in 0...7 { seq("onboarding.\(st)", ["-scene", "maybe", "-onboarding", "-onbStep", String(st)], wait: st == 0 ? 7 : 4) }
+        steps("paywall.free", ["-scene", "maybe", "-open", "paywall"], wait: 3) { app, take in
+            take()
+            for _ in 0..<7 { app.swipeLeft(); sleep(1); take() }
+        }
+        seq("paywall.scroll", ["-scene", "maybe", "-open", "paywall"], swipes: 2, wait: 3)
     }
 
     /// Part f: a 날씨 기록 day opened from the calendar — the same day sheet as a forecast day, every tab
@@ -174,7 +185,7 @@ final class CatalogTests: XCTestCase {
 
     private func partD() {
         let p = ["-plainFont"]
-        for st in [0, 6] { seq("plain-onboarding.\(st)", ["-scene", "maybe", "-onboarding", "-onbStep", String(st)] + p, wait: st == 0 ? 7 : 3) }
+        for st in [0, 7] { seq("plain-onboarding.\(st)", ["-scene", "maybe", "-onboarding", "-onbStep", String(st)] + p, wait: st == 0 ? 7 : 3) }
         seq("plain-home.maybe", ["-scene", "maybe", "-plus", "-char", "cat"] + p, swipes: 4)
         seq("plain-home.winter_smog", ["-scene", "winter_smog", "-plus", "-char", "cat"] + p, swipes: 1)
         seq("plain-home.summer_typhoon", ["-scene", "summer_typhoon", "-plus", "-char", "cat"] + p)
@@ -187,7 +198,7 @@ final class CatalogTests: XCTestCase {
     // MARK: a new language at a glance — first run, home, a day, Plus, settings, language search, widgets
 
     private func partC() {
-        for st in 0...6 { seq("onboarding.\(st)", ["-scene", "maybe", "-onboarding", "-onbStep", String(st)], wait: st == 0 ? 7 : 3) }   // the first launch of a run is slow to draw
+        for st in 0...7 { seq("onboarding.\(st)", ["-scene", "maybe", "-onboarding", "-onbStep", String(st)], wait: st == 0 ? 7 : 3) }   // the first launch of a run is slow to draw
         seq("home-plus.maybe", ["-scene", "maybe", "-plus", "-char", "cat"], swipes: 7)
         seq("home-plus.winter_smog", ["-scene", "winter_smog", "-plus", "-char", "cat"], swipes: 3)
         seq("home-plus.summer_typhoon", ["-scene", "summer_typhoon", "-plus", "-char", "cat"], swipes: 1)
@@ -252,7 +263,7 @@ final class CatalogTests: XCTestCase {
     // MARK: everything else — first run, Plus, settings and its pages, places, 대기질, notices, labs, widgets
 
     private func partB() {
-        for st in 0...6 { seq("onboarding.\(st)", ["-scene", "maybe", "-onboarding", "-onbStep", String(st)], wait: st == 0 ? 7 : 3) }   // the first launch of a run is slow to draw
+        for st in 0...7 { seq("onboarding.\(st)", ["-scene", "maybe", "-onboarding", "-onbStep", String(st)], wait: st == 0 ? 7 : 3) }   // the first launch of a run is slow to draw
 
         // Plus: every slide, then down to the prices; and the page when Plus is on
         steps("paywall.free", ["-scene", "maybe", "-open", "paywall"], wait: 3) { app, take in
