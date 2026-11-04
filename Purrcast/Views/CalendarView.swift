@@ -254,9 +254,11 @@ struct CalendarSheet: View {
                 }
                 .padding(.horizontal, 16).padding(.bottom, 30)
                 .contentShape(Rectangle())
-                .simultaneousGesture(swipe(m, first: first, last: last))
             }
             .clipped()
+            // on the ScrollView itself, not its content: since iOS 18, a simultaneous drag on the content keeps
+            // the ScrollView from scrolling at all (test20CalendarScroll measured 0 pt of vertical movement)
+            .simultaneousGesture(swipe(m, first: first, last: last))
         }
         .background(UI.bg)
         .sheet(item: $openDay) { d in
