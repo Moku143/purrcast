@@ -15,6 +15,20 @@ crons = ["*/30 * * * *"]
 [vars]
 CONTACT = "oo0785@daum.net github.com/Moku143/purrcast"
 WEATHERKIT_SERVICE_ID = "app.purrcast.ios"   # the WeatherKit service id = the app's bundle id (JWT `sub`)
+# /health?deep=1 calls every upstream source: off unless set to "on" for a first deploy
+DEEP_CHECK = "off"
+
+# Rate limits (Workers Rate Limiting binding, wrangler 4.36+; per Cloudflare location, approximate).
+# One device: its own id, so phones sharing a mobile carrier's IP do not limit each other.
+[[ratelimits]]
+name = "DEVICE_LIMIT"
+namespace_id = "1001"
+simple = { limit = 6, period = 60 }
+# One address, generous (a carrier NAT puts many phones behind one IP): only against bulk calls.
+[[ratelimits]]
+name = "IP_LIMIT"
+namespace_id = "1002"
+simple = { limit = 300, period = 60 }
 
 # FREE_DAY (the free plan's one Apple forecast a day) is a KV namespace the Server workflow finds or creates and binds
 # at deploy time, so no id is kept here.

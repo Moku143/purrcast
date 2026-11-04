@@ -30,9 +30,15 @@ const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'acces
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // bulk callers only: a generous limit per address (a carrier NAT puts many phones behind one), when bound
+    if (env.IP_LIMIT && url.pathname !== '/health') {
+      const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+      if (!(await env.IP_LIMIT.limit({ key: `ip:${ip}` })).success) return json({ error: 'slow down' }, 429, { 'retry-after': '60' });
+    }
     if (url.pathname === '/health') {
       const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, airkorea: !!env.AIRKOREA_SERVICE_KEY, openweather: !!env.OPENWEATHER_KEY, weatherkit: hasWeatherKit(env), freeDay: !!env.FREE_DAY, apns: hasAPNs(env), devices: !!env.DEVICES, holidays: !!env.HOLIDAYS, time: new Date().toISOString() };
-      if (url.searchParams.get('deep') === '1') out.check = await deepCheck(env);   // first-deploy check: can we reach both sources?
+      // first-deploy check (can we reach every source?): only while DEEP_CHECK is "on" — each call spends upstream quota
+      if (url.searchParams.get('deep') === '1' && env.DEEP_CHECK === 'on') out.check = await deepCheck(env);
       return json(out);
     }
     if (url.pathname === '/v1/devices') return devices(request, env);
@@ -190,6 +196,10 @@ async function devices(request, env) {
   try { body = await request.json(); } catch { /* bad json */ }
   const dev = readDevice(body);
   if (!dev) return json({ error: 'bad device' }, 400);
+  // one device: a few registrations a minute at most (the app sends one when something changed, or hourly)
+  if (env.DEVICE_LIMIT && !(await env.DEVICE_LIMIT.limit({ key: `dev:${dev.id}` })).success) return json({ error: 'slow down' }, 429, { 'retry-after': '60' });
+  // only Plus is pushed to: a free registration (an older app) is not kept, and an earlier one goes
+  if (dev.plan !== 'plus') { await env.DEVICES.delete(`dev:${dev.id}`); return json({ ok: true, push: false, plan: 'free', start: false, act: false }); }
   const saved = await saveDevice(env.DEVICES, dev);
   return json({ ok: true, push: hasAPNs(env), plan: saved.plan, start: !!saved.start, act: !!saved.act });
 }

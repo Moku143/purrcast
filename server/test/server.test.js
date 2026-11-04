@@ -726,6 +726,33 @@ test('HTTP: /health, bad input 400, unknown path 404', async () => {
   assert.equal((await worker.fetch(new Request('https://x/health'), {}, null)).status, 200);
   assert.equal((await worker.fetch(new Request('https://x/v1/forecast?lat=999&lon=1'), {}, null)).status, 400);
   assert.equal((await worker.fetch(new Request('https://x/nope'), {}, null)).status, 404);
+  // the deep health check spends upstream quota: only while DEEP_CHECK is "on"
+  const shallow = await (await worker.fetch(new Request('https://x/health?deep=1'), {}, null)).json();
+  assert.equal(shallow.check, undefined, 'deep check off by default');
+});
+
+test('HTTP /v1/devices: only Plus is kept — a free registration answers ok and removes any earlier entry', async () => {
+  const kv = new Map();
+  const store = {
+    get: async (k) => (kv.has(k) ? JSON.parse(kv.get(k)) : null), put: async (k, v) => { kv.set(k, v); },
+    delete: async (k) => { kv.delete(k); }, list: async () => ({ keys: [...kv.keys()].map((name) => ({ name })), list_complete: true }),
+  };
+  const post = (body) => worker.fetch(new Request('https://x/v1/devices', { method: 'POST', body: JSON.stringify(body) }), { DEVICES: store }, null);
+  const dev = { id: 'HTTP1', lat: 37.49, lon: 126.84, tz: 'Asia/Seoul', region: 'kr', lang: 'ko', name: '오류동', char: 'cat' };
+  let r = await (await post({ ...dev, plan: 'plus' })).json();
+  assert.equal(r.ok, true); assert.equal(r.plan, 'plus'); assert.ok(kv.has('dev:HTTP1'), 'plus is kept');
+  r = await (await post({ ...dev, plan: 'free' })).json();
+  assert.equal(r.ok, true); assert.equal(r.plan, 'free'); assert.equal(r.push, false);
+  assert.ok(!kv.has('dev:HTTP1'), 'the free registration removed the earlier entry and kept nothing');
+  // a rate-limit binding that says no answers 429 without touching the store
+  const no = { limit: async () => ({ success: false }) };
+  const limited = await worker.fetch(new Request('https://x/v1/devices', { method: 'POST', body: JSON.stringify({ ...dev, plan: 'plus' }) }),
+                                     { DEVICES: store, DEVICE_LIMIT: no }, null);
+  assert.equal(limited.status, 429);
+  // and the per-address limit covers every path but /health
+  const limitedIP = await worker.fetch(new Request('https://x/v1/forecast?lat=1&lon=1'), { IP_LIMIT: no }, null);
+  assert.equal(limitedIP.status, 429);
+  assert.equal((await worker.fetch(new Request('https://x/health'), { IP_LIMIT: no }, null)).status, 200, '/health is never limited');
 });
 
 test('official names stay as they are above their thresholds: warnings, 폭염 · 열대야 · 한파 · 폭우 · 폭설 · 천둥번개', () => {
