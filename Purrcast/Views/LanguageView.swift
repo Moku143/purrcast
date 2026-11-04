@@ -16,7 +16,7 @@ struct BackToSettings: View {
             .font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent).buttonStyle(.press(0.94))
             .accessibilityIdentifier("back-settings")
             Spacer()
-            Button(L("완료")) { Haptic.soft(); dismiss() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent)
+            Button { Haptic.soft(); dismiss() } label: { Text(L("완료")).tapArea() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent)
                 .buttonStyle(.press(0.94)).accessibilityIdentifier("sheet-close")
         }
         .padding(.horizontal, 20).padding(.top, 22).padding(.bottom, 14)

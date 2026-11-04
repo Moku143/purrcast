@@ -34,7 +34,7 @@ struct PaywallView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Button { dismiss() } label: { Image(systemName: "xmark").font(.system(size: 17, weight: .semibold)) }
+                    Button { dismiss() } label: { Image(systemName: "xmark").font(.system(size: 17, weight: .semibold)).tapArea() }
                         .foregroundStyle(UI.sub).accessibilityIdentifier("sheet-close").accessibilityLabel(L("닫기"))
                     Spacer()
                     Button(L("구독 복원")) { Task { await purchases.restore() } }.font(.system(size: 14)).foregroundStyle(UI.sub)

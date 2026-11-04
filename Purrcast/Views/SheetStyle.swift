@@ -13,6 +13,14 @@ enum UI {
     static let plus = Color(hex: "#EE7A3B")
 }
 
+extension View {
+    /// A small button label's tap area grown to at least 44 × 44 pt around it, nothing moved: an invisible square laid
+    /// over the label takes the taps (the label keeps its own size in the layout). For the inside of a Button's label.
+    func tapArea() -> some View {
+        overlay { Color.clear.frame(minWidth: 44, minHeight: 44).contentShape(Rectangle()) }
+    }
+}
+
 /// Big pixel title on the left, one text button on the right ("완료" / "닫기").
 struct SheetHeader: View {
     let title: String
@@ -22,7 +30,7 @@ struct SheetHeader: View {
         HStack(alignment: .firstTextBaseline) {
             Text(title).font(.px(24)).foregroundStyle(UI.ink)
             Spacer()
-            Button(trailing) { Haptic.soft(); action() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent)
+            Button { Haptic.soft(); action() } label: { Text(trailing).tapArea() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent)
                 .buttonStyle(.press(0.94)).accessibilityIdentifier("sheet-close")
         }
         .padding(.horizontal, 20).padding(.top, 22).padding(.bottom, 10)

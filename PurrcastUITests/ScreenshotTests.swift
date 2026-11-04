@@ -345,6 +345,24 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    /// Small sheet buttons take a tap next to their letters too (a 44-pt area): 설정's 완료 tapped above its text and
+    /// the Plus page's ✕ tapped to its right each close their sheet. (Before the 44-pt area, both taps missed.)
+    func test19TapAreas() {
+        for (open, dx, dy) in [("settings", 0.0, -18.0), ("paywall", 18.0, 0.0)] {
+            let app = XCUIApplication()
+            app.launchArguments = ["-scene", "maybe", "-open", open, "-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+            app.launch()
+            let close = app.buttons["sheet-close"]
+            XCTAssertTrue(close.waitForExistence(timeout: 15), open)
+            sleep(2)
+            let f = close.frame
+            close.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).withOffset(CGVector(dx: dx, dy: dy)).tap()
+            let gone = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: close)
+            wait(for: [gone], timeout: 6)
+            XCTAssertFalse(close.exists, "\(open): a tap \(dx), \(dy) pt from the centre of the \(f.width) × \(f.height) pt close button did not close the sheet")
+        }
+    }
+
     /// First run with the 이전 button, the fuller widget and watch pages; the merged rain slide of the Plus page
     func test18Onboard() {
         for lang in ["ko", "en", "ja"] {
