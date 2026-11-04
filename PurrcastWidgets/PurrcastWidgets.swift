@@ -51,7 +51,7 @@ struct Provider: TimelineProvider {
         last.scene = s; last.saved = Date()
         DayLog().record(s, place: place, character: last.shownCharacter, plus: last.plusActive)   // the 날씨 기록 fills on the widget's refreshes too
         if !last.plusActive { last.plus = false }
-        SharedStore.save(last)
+        SharedStore.save(last, reload: false)       // no reload from here: that would start every widget's refresh again
         return last
     }
 }

@@ -88,11 +88,13 @@ enum SharedStore {
     static var defaults: UserDefaults { UserDefaults(suiteName: groupID) ?? .standard }
     private static let key = "snapshot.v1"
 
-    static func save(_ snap: WeatherSnapshot) {
+    /// `reload`: the app's saves have the widgets redraw; a widget saving its own refresh passes false (a reload from
+    /// there asks every widget for a new timeline, each of which fetches and saves again — round and round)
+    static func save(_ snap: WeatherSnapshot, reload: Bool = true) {
         guard let data = try? JSONEncoder().encode(snap) else { return }
         defaults.set(data, forKey: key)
         #if canImport(WidgetKit) && !os(watchOS)
-        WidgetCenter.shared.reloadAllTimelines()
+        if reload { WidgetCenter.shared.reloadAllTimelines() }
         #endif
     }
 
