@@ -287,7 +287,9 @@ struct CalendarSheet: View {
             if await Holidays.refresh(Set(zones.compactMap(Holidays.country(timeZone:))), base: base) { holidaysCame += 1 }
         }
         .task(id: "\(m)|\(all.count)|\(model.shownCharacter.rawValue)") {
-            shareImage = ShareCard.render(report: report, month: m, place: "", records: all.filter { $0.date.hasPrefix(m + "-") },
+            // a trip's places stay off the shared picture: only a one-place month names where it was
+            let sharePlace = manyPlaces ? "" : monthStays.first.map { KoreanNames.word($0.city, .current) } ?? ""
+            shareImage = ShareCard.render(report: report, month: m, place: sharePlace, records: all.filter { $0.date.hasPrefix(m + "-") },
                                           character: report.character ?? model.shownCharacter, deg: model.deg)
         }
         .onAppear {
@@ -684,7 +686,7 @@ struct ShareCard: View {
                 Spacer()
                 Text(Brand.name).font(.px(13)).foregroundStyle(UI.accent)
             }
-            Text("\(place) · \(DayLogText.monthTitle(month))").font(.system(size: 13)).foregroundStyle(UI.sub)
+            Text(place.isEmpty ? DayLogText.monthTitle(month) : "\(place) · \(DayLogText.monthTitle(month))").font(.system(size: 13)).foregroundStyle(UI.sub)
             HStack(alignment: .center, spacing: 14) {
                 if let lv = report.level { DayFigure(character: character, level: lv, width: 84) }
                 VStack(alignment: .leading, spacing: 8) {

@@ -354,7 +354,15 @@ struct MonthReport: Equatable {
         let withDust = m.filter { $0.dust != nil }
         var vs: Int?
         let prev = all.filter { $0.date.hasPrefix(previous(month) + "-") }
-        if m.count >= 7, prev.count >= 7, let a = mean(m), let b = mean(prev) { vs = Int((a - b).rounded()) }
+        // "지난달보다" compares like with like: when the two months were mostly spent in different countries, the
+        // line says nothing (Seoul against a Tokyo month is not a change in the weather)
+        func mainCC(_ days: [DayRecord]) -> String? {
+            var c: [String: Int] = [:]
+            for r in days { if let x = r.cc { c[x, default: 0] += 1 } }
+            return c.max { a, b in a.value == b.value ? a.key > b.key : a.value < b.value }?.key
+        }
+        let sameCountry = mainCC(m) == nil || mainCC(prev) == nil || mainCC(m) == mainCC(prev)
+        if m.count >= 7, prev.count >= 7, sameCountry, let a = mean(m), let b = mean(prev) { vs = Int((a - b).rounded()) }
         return MonthReport(days: m.count, wetDays: m.filter { $0.isWet }.count, snowDays: m.filter { $0.isSnow }.count,
                            hottest: m.max { $0.hi == $1.hi ? $0.date > $1.date : $0.hi < $1.hi },
                            coldest: m.min { $0.lo == $1.lo ? $0.date < $1.date : $0.lo < $1.lo },

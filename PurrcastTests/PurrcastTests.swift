@@ -1057,6 +1057,20 @@ final class PurrcastTests: XCTestCase {
         Place(id: "here", name: short, short: short, lat: lat, lon: lon, region: region, timeZone: tz, sample: "maybe", ko: nil)
     }
 
+    /// 월간 리포트 on the timeline: "지난달보다" says nothing when the two months' main country differs
+    func testReportVsLastAcrossCountries() {
+        func day(_ d: String, cc: String, hi: Int = 12, lo: Int = 4) -> DayRecord {
+            var r = DayRecord(date: d, hi: hi, lo: lo, icon: "sun"); r.cc = cc; return r
+        }
+        let oct = (1...12).map { day(String(format: "2026-10-%02d", $0), cc: "KR") }
+        let novKR = (1...10).map { day(String(format: "2026-11-%02d", $0), cc: "KR", hi: 8, lo: 0) }
+        XCTAssertNotNil(MonthReport.make(oct + novKR, month: "2026-11").vsLast, "same country: the line shows")
+        let novJP = (1...10).map { day(String(format: "2026-11-%02d", $0), cc: "JP", hi: 8, lo: 0) }
+        XCTAssertNil(MonthReport.make(oct + novJP, month: "2026-11").vsLast, "a Tokyo month against a Seoul month says nothing")
+        let novOld = (1...10).map { d -> DayRecord in var r = day(String(format: "2026-11-%02d", d), cc: "KR", hi: 8, lo: 0); r.cc = nil; return r }
+        XCTAssertNotNil(MonthReport.make(oct + novOld, month: "2026-11").vsLast, "old records without a country keep the line")
+    }
+
     /// Holiday names in the 달력: the cell's short table (ko and ja), substitutes, temporaries and elections by
     /// pattern, 크리스마스 everywhere, and no short form for other languages (the fit rule decides there)
     func testHolidayCellNames() {
