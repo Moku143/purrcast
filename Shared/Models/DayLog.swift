@@ -450,8 +450,9 @@ extension DayLog {
                 r.aqiKind = "cai"; r.aqiHour = 9
             }
             r.lat = place.lat; r.lon = place.lon
-            // the stamp, as real records carry it: country, city, and when the place was last confirmed —
-            // most days closed near midnight, some only saw an evening look
+            // the stamp, as real records carry it: time zone, country, city, and when the place was last
+            // confirmed — most days closed near midnight, some only saw an evening look
+            r.tz = place.timeZone
             r.cc = place.region == "kr" ? "KR" : place.region == "jp" ? "JP" : nil
             r.city = (place.region == "kr" ? place.ko : nil).flatMap { $0.split(separator: " ").first.map(String.init) }
                 ?? place.name.split(separator: " ").first.map(String.init)
