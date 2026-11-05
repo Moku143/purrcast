@@ -377,7 +377,7 @@ final class ScreenshotTests: XCTestCase {
         shot("cr-en", cal, wait: 3, lang: "en")
         shot("cr-outfits", cal + ["-calOutfits"], wait: 3)
         shot("cr-day-sheet-seoul", cal + ["-calDay", "1"], wait: 3)
-        shot("cr-day-sheet-tokyo", cal + ["-calDay", "6"], wait: 3)
+        shot("cr-day-sheet-tokyo", cal + ["-calDay", "3"], wait: 3)
         shot("cr-report", cal, wait: 3) { app in app.swipeUp(); app.swipeUp(); sleep(1) }
         shot("cr-narrow", ["-scene", "maybe", "-plus", "-calTrip", "-narrowCal"], wait: 3)
         shot("cr-narrow-feb2027", ["-scene", "maybe", "-plus", "-calTrip", "-narrowCal", "-calMonth", String(toFeb2027)], wait: 3)

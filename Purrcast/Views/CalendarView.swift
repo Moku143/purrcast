@@ -285,6 +285,9 @@ struct CalendarSheet: View {
         }
         .task(id: "holidays|\(m)") {
             // this month's countries: where the place is now and where its recorded days were (a week-old table is asked again)
+            #if DEBUG
+            if model.isSample { Holidays.installSample(); holidaysCame += 1; return }
+            #endif
             guard !model.isSample, let base = WeatherSource.serverURL else { return }
             let zones = [tz.identifier] + all.filter { $0.date.hasPrefix(m + "-") }.compactMap(\.tz)
             if await Holidays.refresh(Set(zones.compactMap(Holidays.country(timeZone:))), base: base) { holidaysCame += 1 }

@@ -84,6 +84,24 @@ enum Holidays {
     }
 }
 
+#if DEBUG
+extension Holidays {
+    /// Screenshot and sample runs never reach the server, so the 달력 shows these made-up-but-plausible Korean
+    /// tables there (installed once by CalendarSheet in sample mode). Debug only; never used on a live install.
+    static func installSample() {
+        let days = [
+            "2026-09-24": "추석 연휴", "2026-09-25": "추석", "2026-09-26": "추석 연휴",
+            "2026-10-03": "개천절", "2026-10-05": "개천절 대체공휴일", "2026-10-09": "한글날",
+            "2026-12-25": "기독탄신일", "2027-01-01": "신정",
+            "2027-02-06": "설날 연휴", "2027-02-07": "설날", "2027-02-08": "설날 연휴", "2027-02-09": "설날 대체공휴일",
+            "2027-03-01": "삼일절",
+        ]
+        let table: [String: Any] = ["cc": "KR", "lang": "ko", "days": days.mapValues { ["": $0] }]
+        if let d = try? JSONSerialization.data(withJSONObject: table) { install(d) }
+    }
+}
+#endif
+
 /// How holiday names read in the app — display only, the server tables stay untouched. The 달력 cell wants a very
 /// short name at a fixed size; the list and the day sheet want a readable full one.
 enum HolidayNames {

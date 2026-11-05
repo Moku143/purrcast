@@ -466,9 +466,10 @@ extension DayLog {
         }
         // a few days the phone never opened
         for i in [9, 23, 24, 51] where i < out.count { out.remove(at: out.count - 1 - i) }
-        // -calTrip: last week had three days in 도쿄 (서울 → 도쿄 → 서울), for the stays card and the day sheet
+        // -calTrip: three of the last few days were in 도쿄 (서울 → 도쿄 → 서울), inside the current month so the
+        // stays card and the day sheet have something to show
         if ProcessInfo.processInfo.arguments.contains("-calTrip") {
-            let tokyoDays = Set((5...7).map { Self.dayKey(today.addingTimeInterval(Double(-$0) * 86400), tz: TimeZone(identifier: place.timeZone) ?? .current) })
+            let tokyoDays = Set((2...4).map { Self.dayKey(today.addingTimeInterval(Double(-$0) * 86400), tz: TimeZone(identifier: place.timeZone) ?? .current) })
             out = out.map { r in
                 guard tokyoDays.contains(r.date) else { return r }
                 var t = r
