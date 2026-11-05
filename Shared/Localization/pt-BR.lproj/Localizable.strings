@@ -819,6 +819,6 @@
 "실제 기온과 비슷했어요." = "Parecido com a temperatura real.";
 
 // 날씨 기록: when the day's place was last confirmed (DayDetailView.confirmedLine)
-"밤 %@ 위치" = "Localização às %@ da noite";
+"밤 %@" = "%@ da noite";
 "마지막 확인 %@" = "Última confirmação: %@";
 "이 달 머문 곳" = "Lugares do mês";

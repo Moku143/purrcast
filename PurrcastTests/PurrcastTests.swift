@@ -1155,7 +1155,7 @@ final class PurrcastTests: XCTestCase {
         XCTAssertNil(DayDetailView.confirmedLine(nil, tz: .current, clock12: false))
         // the honest wording: near midnight it is the day's place; earlier it is only the last confirmation
         let night = kst.date(from: DateComponents(year: 2026, month: 11, day: 5, hour: 23, minute: 55))!
-        XCTAssertEqual(DayDetailView.confirmedLine(night, tz: TimeZone(identifier: "Asia/Seoul")!, clock12: false), L("밤 %@ 위치", "11:55"))
+        XCTAssertEqual(DayDetailView.confirmedLine(night, tz: TimeZone(identifier: "Asia/Seoul")!, clock12: false), L("밤 %@", "11:55"))
         let evening = kst.date(from: DateComponents(year: 2026, month: 11, day: 5, hour: 18, minute: 12))!
         XCTAssertEqual(DayDetailView.confirmedLine(evening, tz: TimeZone(identifier: "Asia/Seoul")!, clock12: true),
                        L("마지막 확인 %@", HourLabel.clock(18 * 60 + 12, clock12: true)))

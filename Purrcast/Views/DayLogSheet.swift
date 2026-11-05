@@ -13,8 +13,21 @@ struct DayLogSheet: View {
         VStack(spacing: 0) {
             SheetHeader(title: DayLogText.dayLong(key), trailing: L("닫기")) { dismiss() }
             if let h = holiday {
-                Text(h).font(.ui(13, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? UI.sub)
+                Text(HolidayNames.display(h)).font(.ui(13, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? UI.sub)
                     .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20).padding(.bottom, 6)
+            }
+            // where the day was and when that was last confirmed, like the day sheet's title line
+            if let r = record, !r.fullPlaceName().isEmpty {
+                HStack(spacing: 3) {
+                    if let f = Stay.flag(r.cc) { Text(f).font(.system(size: 11)) } else { Image(systemName: "location.fill").font(.system(size: 10, weight: .bold)) }
+                    Text(r.fullPlaceName()).font(.ui(12, .semibold)).lineLimit(1)
+                    if let when = DayDetailView.confirmedLine(r.confirmed, tz: TimeZone(identifier: r.tz ?? "") ?? .current, clock12: model.clock12) {
+                        Text("· " + when).font(.ui(11)).lineLimit(1)
+                    }
+                }
+                .foregroundStyle(UI.sub)
+                .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20).padding(.bottom, 6)
+                .accessibilityIdentifier("log-place")
             }
             ScrollView(showsIndicators: false) {
                 if let r = record {

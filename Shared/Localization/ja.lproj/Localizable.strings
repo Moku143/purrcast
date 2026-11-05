@@ -819,6 +819,6 @@
 "실제 기온과 비슷했어요." = "実際の気温とほぼ同じでした。";
 
 // 날씨 기록: when the day's place was last confirmed (DayDetailView.confirmedLine)
-"밤 %@ 위치" = "夜%@の位置";
+"밤 %@" = "夜%@";
 "마지막 확인 %@" = "最終確認 %@";
 "이 달 머문 곳" = "今月いた場所";
