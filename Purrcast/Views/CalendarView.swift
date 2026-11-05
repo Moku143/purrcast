@@ -212,6 +212,9 @@ struct CalendarSheet: View {
     @State private var pull: CGFloat = 0
     /// A sideways drag is turning the month: a day under the finger is not opened when it lifts
     @State private var dragging = false
+    /// Which way this drag goes, decided once 18 pt in and held until the finger lifts: a sideways drag turns
+    /// the month with the scroll held still; an up-and-down one scrolls with the month held still
+    @State private var dragAxis: Axis?
     /// Opens this many months away from now (the store picture: last month, every day filled)
     var startMonths = 0
     /// Bumped when a country's holidays arrive from the server (the month draws again)
@@ -267,8 +270,12 @@ struct CalendarSheet: View {
             // on the ScrollView itself, not its content: since iOS 18, a simultaneous drag on the content keeps
             // the ScrollView from scrolling at all (test20CalendarScroll measured 0 pt of vertical movement)
             .simultaneousGesture(swipe(m, first: first, last: last))
+            // a drag decided sideways turns the month alone: the scroll stands still until the finger lifts
+            .scrollDisabled(dragAxis == .horizontal)
         }
         .background(UI.bg)
+        // the sheet closes by 닫기 alone: pulling it down was what a sideways-then-down finger kept hitting
+        .interactiveDismissDisabled()
         .sheet(item: $openDay) { d in
             // a day with hours opens the same day sheet as a forecast day; one without, its numbers in rows
             if let r = byDate[d.id], let sc = r.scene(tz: TimeZone(identifier: r.tz ?? "") ?? tz), let date = DayLog.date(d.id) {
@@ -400,20 +407,26 @@ struct CalendarSheet: View {
     private func swipe(_ m: String, first: String, last: String) -> some Gesture {
         DragGesture(minimumDistance: 18)
             .onChanged { v in
-                let w = v.translation.width
-                guard abs(w) > abs(v.translation.height) * 1.2 else { return }
+                let w = v.translation.width, h = v.translation.height
+                // the drag's way is decided once, at its first 18 pt, and held until the finger lifts: a
+                // diagonal finger no longer scrolls and turns at once, and a sideways drag at the top of the
+                // scroll no longer pulls the sheet down with it (the scroll is held still meanwhile)
+                if dragAxis == nil { dragAxis = abs(w) > abs(h) * 1.2 ? .horizontal : .vertical }
+                guard dragAxis == .horizontal else { return }
                 dragging = true
                 let can = w < 0 ? m < last : m > first
                 pull = can ? w * 0.6 : w * 0.18
             }
             .onEnded { v in
+                let axis = dragAxis
+                dragAxis = nil
                 // the day's button hears the same lift: it stays shut a moment longer
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { dragging = false }
+                guard axis == .horizontal else { return }
                 let w = v.translation.width, far = v.predictedEndTranslation.width
-                let sideways = abs(w) > abs(v.translation.height) * 1.2
                 let n = w < 0 ? 1 : -1
                 let next = DayLogText.shift(m, by: n)
-                if sideways, abs(w) > 60 || abs(far) > 160, next >= first, next <= last {
+                if abs(w) > 60 || abs(far) > 160, next >= first, next <= last {
                     Haptic.soft()
                     turnTo(next, from: m)
                 } else {

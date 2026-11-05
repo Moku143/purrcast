@@ -399,6 +399,30 @@ final class ScreenshotTests: XCTestCase {
         let keep = { (name: String) in
             let a = XCTAttachment(screenshot: app.screenshot()); a.name = name; a.lifetime = .keepAlways; self.add(a)
         }
+        // a diagonal drag from the top of the scroll, decided sideways: the month turns, the page does not
+        // scroll with it, and the sheet is not pulled down (pull-down is off — only 닫기 closes the calendar)
+        let t0 = bar.label
+        let yTop = bar.frame.minY
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.30))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.42)))
+        sleep(2)
+        keep("cal-diagonal")
+        XCTAssertTrue(bar.exists, "the diagonal drag pulled the sheet down")
+        XCTAssertNotEqual(bar.label, t0, "the diagonal drag did not turn the month")
+        XCTAssertLessThan(abs(bar.frame.minY - yTop), 10, "the sideways drag also scrolled the page")
+        // a day still opens on a tap, and its sheet still closes
+        app.swipeRight()
+        sleep(2)
+        XCTAssertEqual(bar.label, t0, "the swipe back did not return to this month")
+        let df = DateFormatter(); df.dateFormat = "yyyy-MM-dd"
+        let day = app.buttons["cal-\(df.string(from: Date()))"].firstMatch
+        XCTAssertTrue(day.waitForExistence(timeout: 5), "today's cell is missing")
+        day.tap()
+        sleep(2)
+        XCTAssertFalse(bar.isHittable, "the day sheet did not open on a tap")
+        app.swipeDown()
+        sleep(2)
+        XCTAssertTrue(bar.isHittable, "the day sheet did not close")
         let y0 = bar.frame.minY
         app.swipeUp()
         sleep(1)
