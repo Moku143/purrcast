@@ -1046,6 +1046,80 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(WeatherSnapshot.sample.timelineEntries(now: now, until: until).count, 1, "a sample has nothing to age")
     }
 
+    private func stampScene(temp: Int = 12, rain: Bool = false, mm: Double = 1.0) throws -> WeatherScene {
+        var s = WeatherScene(); s.temp = temp; s.feels = temp; s.precip = rain ? "rain" : "none"
+        let icon = rain ? "raincloud" : "sun", chance = rain ? 70 : 0
+        s.days = [WeatherScene.DayRow(name: "오늘", icon: icon, chance: chance, lo: temp - 3, hi: temp + 3)]
+        s.hours = try JSONDecoder().decode([WeatherScene.HourRow].self, from: Data("[[\"지금\",\"\(icon)\",\(temp),\(chance),\(rain ? mm : 0)]]".utf8))
+        return s
+    }
+    private func herePlace(lat: Double, lon: Double, tz: String, region: String, short: String) -> Place {
+        Place(id: "here", name: short, short: short, lat: lat, lon: lon, region: region, timeZone: tz, sample: "maybe", ko: nil)
+    }
+
+    /// The midnight stamp: the last look before midnight decides the day and its country; a Seoul → LA flight
+    /// lives one date twice and keeps LA's record; the date line can skip a day with nothing invented; the app
+    /// and a widget write the same day as one; old records carry no stamp and show none
+    func testMidnightLocationStamp() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let log = DayLog(dir: dir)
+        let seoul = herePlace(lat: 37.57, lon: 126.98, tz: "Asia/Seoul", region: "kr", short: "마포구")
+        let la = herePlace(lat: 34.05, lon: -118.24, tz: "America/Los_Angeles", region: "us", short: "LA")
+        var kst = Calendar(identifier: .gregorian); kst.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        var pt = Calendar(identifier: .gregorian); pt.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        // Seoul, Nov 5 22:00 KST — then LA, where Nov 5 comes round again (Nov 6 10:00 KST = Nov 5 17:00 PT)
+        let inSeoul = kst.date(from: DateComponents(year: 2026, month: 11, day: 5, hour: 22))!
+        let inLA = kst.date(from: DateComponents(year: 2026, month: 11, day: 6, hour: 10))!
+        log.record(try stampScene(rain: true), place: seoul, plus: true, at: inSeoul)
+        log.record(try stampScene(temp: 20), place: la, plus: true, at: inLA)
+        var days = log.records("here")
+        XCTAssertEqual(days.map(\.date), ["2026-11-05"], "the repeated date is one day, the last look's")
+        XCTAssertEqual(days[0].cc, "US"); XCTAssertEqual(days[0].tz, "America/Los_Angeles")
+        XCTAssertEqual(days[0].confirmed, inLA)
+        XCTAssertNil(days[0].wet, "the restart at the new city drops the other city's rain")
+        // the other way the date line skips a day: LA Nov 6 18:00 PT, then Seoul when it is already Nov 8
+        let backHome = kst.date(from: DateComponents(year: 2026, month: 11, day: 8, hour: 9))!
+        log.record(try stampScene(temp: 20), place: la, plus: true, at: pt.date(from: DateComponents(year: 2026, month: 11, day: 6, hour: 18))!)
+        log.record(try stampScene(temp: 5, rain: true), place: seoul, plus: true, at: backHome)
+        days = log.records("here")
+        XCTAssertEqual(days.map(\.date), ["2026-11-05", "2026-11-06", "2026-11-08"], "the skipped date simply has no day")
+        // an ordinary commute (> 5 km, same city scale) keeps the morning's seen rain and temperatures
+        let gangnam = herePlace(lat: 37.50, lon: 127.03, tz: "Asia/Seoul", region: "kr", short: "강남구")
+        let morning = kst.date(from: DateComponents(year: 2026, month: 11, day: 8, hour: 9, minute: 30))!
+        log.record(try stampScene(temp: 12), place: gangnam, plus: true, at: morning.addingTimeInterval(3600))
+        let today = log.records("here").last!
+        XCTAssertEqual(today.date, "2026-11-08")
+        XCTAssertEqual(today.wet, "rain", "the 9-km commute kept the morning's rain")
+        XCTAssertEqual(today.seenLo, 5, "and the morning's temperature")
+        XCTAssertEqual(today.place, "강남구", "while the name follows the newest look")
+        // a real city change (> 30 km) still starts the day over
+        let incheonFar = herePlace(lat: 37.46, lon: 126.44, tz: "Asia/Seoul", region: "kr", short: "인천")
+        log.record(try stampScene(temp: 12), place: incheonFar, plus: true, at: morning.addingTimeInterval(7200))
+        XCTAssertEqual(log.records("here").last!.seenLo, 12, "a 50-km move starts the day over there")
+        XCTAssertNil(log.records("here").last!.wet, "with none of the other city's rain")
+        // the widget writes through its own DayLog instance into the same day
+        let widgetLog = DayLog(dir: dir)
+        widgetLog.record(try stampScene(temp: 9), place: incheonFar, plus: true, at: morning.addingTimeInterval(10800))
+        let merged = log.records("here").last!
+        XCTAssertEqual(merged.seenLo, 9, "the app's and the widget's writes fold into one record")
+        // an old record without the stamp: decodes with nothing, and the day sheet shows nothing
+        let legacy = try JSONDecoder().decode(DayRecord.self, from: Data(#"{"date":"2025-01-01","hi":5,"lo":-2,"icon":"sun"}"#.utf8))
+        XCTAssertNil(legacy.cc); XCTAssertNil(legacy.confirmed)
+        XCTAssertNil(DayDetailView.confirmedLine(nil, tz: .current, clock12: false))
+        // the honest wording: near midnight it is the day's place; earlier it is only the last confirmation
+        let night = kst.date(from: DateComponents(year: 2026, month: 11, day: 5, hour: 23, minute: 55))!
+        XCTAssertEqual(DayDetailView.confirmedLine(night, tz: TimeZone(identifier: "Asia/Seoul")!, clock12: false), L("밤 %@ 위치", "11:55"))
+        let evening = kst.date(from: DateComponents(year: 2026, month: 11, day: 5, hour: 18, minute: 12))!
+        XCTAssertEqual(DayDetailView.confirmedLine(evening, tz: TimeZone(identifier: "Asia/Seoul")!, clock12: true),
+                       L("마지막 확인 %@", HourLabel.clock(18 * 60 + 12, clock12: true)))
+        // the widget's closing refresh stays at 23:55 local across the DST fall-back night
+        let next = pt.date(from: DateComponents(year: 2026, month: 10, day: 31, hour: 20))!.addingTimeInterval(12 * 3600)
+        let close = DayLog.closingRefresh(after: pt.date(from: DateComponents(year: 2026, month: 10, day: 31, hour: 20))!, regular: next, tz: pt.timeZone)
+        XCTAssertNotNil(close)
+        if let c = close { XCTAssertEqual(pt.component(.hour, from: c), 23); XCTAssertEqual(pt.component(.minute, from: c), 55) }
+    }
+
     /// One calendar: the timeline is the "here" log; a user with location off gets their first saved place; and
     /// removing places (or turning location off) never erases the timeline file
     func testOneCalendarTimeline() throws {

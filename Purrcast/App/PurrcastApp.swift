@@ -1,5 +1,6 @@
 import SwiftUI
 import UserNotifications
+import BackgroundTasks
 
 @main
 struct PurrcastApp: App {
@@ -10,6 +11,7 @@ struct PurrcastApp: App {
     init() {
         // before launch ends, so the tap that opened the app reaches it too
         UNUserNotificationCenter.current().delegate = NotificationRouter.shared
+        NightRefresh.register()
     }
 
     /// -narrow (debug): the page in a 320 × 693-pt box — the width of a 6.1-inch phone with Display Zoom on — so the
@@ -53,6 +55,8 @@ struct PurrcastApp: App {
                     await model.refresh(force: true)
                 }
                 .onChange(of: phase) { _, p in
+                    // going away: ask for a best-effort wake near midnight, so the day closes with where the phone is
+                    if p == .background { NightRefresh.schedule() }
                     // back from the background: new day / old data → fetch; a lapsed subscription → back to Free
                     guard p == .active else { return }
                     Task {

@@ -25,6 +25,10 @@ struct DayDetailView: View {
         var character: PurrCharacter? = nil
         /// Where the day was saved (지금 위치: where the phone was as the day ended)
         var place: String = ""
+        /// When that place was last confirmed, in the day's own time zone — honest about the midnight stamp:
+        /// a look near midnight really closed the day there; an earlier one is only the last confirmation
+        var confirmed: Date? = nil
+        var tz: TimeZone = TimeZone(identifier: "UTC") ?? .current
         var here = false
         /// The public holiday that day where the place is ("개천절")
         var holiday: String? = nil
@@ -110,6 +114,9 @@ struct DayDetailView: View {
                     HStack(spacing: 3) {
                         Image(systemName: p.here ? "location.fill" : "mappin").font(.system(size: 10, weight: .bold))
                         Text(p.place).font(.ui(12, .semibold)).lineLimit(1)
+                        if let when = Self.confirmedLine(p.confirmed, tz: p.tz, clock12: model.clock12) {
+                            Text("· " + when).font(.ui(11)).lineLimit(1)
+                        }
                     }
                     .foregroundStyle(c.ink.sub)
                     .accessibilityElement(children: .combine)
@@ -128,6 +135,16 @@ struct DayDetailView: View {
             }
         }
         .frame(height: past.map { $0.place.isEmpty } == false ? 50 : 36)
+    }
+
+    /// "밤 11:55 위치" when the place was confirmed near midnight (the day really closed there);
+    /// "마지막 확인 오후 6:12" when the last look came earlier. An old record without the stamp shows nothing.
+    nonisolated static func confirmedLine(_ confirmed: Date?, tz: TimeZone, clock12: Bool) -> String? {
+        guard let at = confirmed else { return nil }
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
+        let h = cal.component(.hour, from: at), m = cal.component(.minute, from: at)
+        let clock = HourLabel.clock(h * 60 + m, clock12: clock12)
+        return h == 23 && m >= 45 ? L("밤 %@ 위치", String(format: "%d:%02d", 11, m)) : L("마지막 확인 %@", clock)
     }
 
     private func title(_ c: DayCtx) -> String {

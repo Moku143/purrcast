@@ -33,6 +33,8 @@ struct DayRecord: Codable, Equatable, Identifiable {
     var lat: Double? = nil              // where the day was (sunrise · sunset)
     var lon: Double? = nil
     var tz: String? = nil               // that place's time zone (its country: the day's holidays, on a trip too)
+    var cc: String? = nil               // the country that day ("KR"), from the place's region
+    var confirmed: Date? = nil          // when the day's place was last confirmed (the last look that wrote it)
     /// The day sheet's own rows for the day (the last forecast of it seen, past hours as they were) and that day's
     /// 미세먼지 readings by the hour: the past day opens in the same day sheet as a forecast day. Kept a little over a
     /// year; older days keep their summary only.
@@ -84,7 +86,10 @@ struct DayLog {
     static let keepDays = 3 * 366
     /// Days that keep their hours (the day sheet); older ones keep the summary
     static let detailDays = 400
-    /// "지금 위치" farther than this from where the day began starts the day over there
+    /// "지금 위치" farther than this from where the day began starts the day over there — city scale, so an
+    /// ordinary commute (which crosses 5 km and a district name) keeps the morning's seen rain and temperatures
+    static let restartKm = 30.0
+    /// A small move: the unnamed fix keeps the previous name, and the 대기질 reading still counts as this place's
     static let moveKm = 5.0
 
     static func km(_ a: Double, _ b: Double, _ c: Double, _ d: Double) -> Double {
@@ -146,7 +151,7 @@ struct DayLog {
 
     /// Folds one forecast into the place's day: the latest high and low (widened by what was seen), the sky,
     /// rain or snow seen falling, the worst 미세먼지, the character shown.
-    /// The day is where the phone was as it ended: "지금 위치" moved more than `moveKm` starts the day over at the new
+    /// The day is where the phone was as it ended: "지금 위치" moved more than `restartKm` starts the day over at the new
     /// place (its forecast has the whole day, the past hours as they were), so the last look before midnight decides it.
     func record(_ s: WeatherScene, place: Place, character: PurrCharacter? = nil, plus: Bool? = nil, at now: Date = Date()) {
         guard let today = s.days.first else { return }
@@ -159,7 +164,7 @@ struct DayLog {
         let fresh = DayRecord(date: key, hi: today.hi, lo: today.lo, icon: today.icon)
         var r = all.last(where: { $0.date == key }) ?? fresh
         if r.obs == true { return }                       // an observed day stays as observed
-        if let la = r.lat, let lo = r.lon, Self.km(la, lo, place.lat, place.lon) > Self.moveKm { r = fresh }
+        if let la = r.lat, let lo = r.lon, Self.km(la, lo, place.lat, place.lon) > Self.restartKm { r = fresh }
         if let c = character { r.char = c.rawValue }
         if let p = plus, r.plus != true { r.plus = p }     // a day seen with Plus at any time stays a Plus day
         r.seenHi = max(r.seenHi ?? s.temp, s.temp)
@@ -170,6 +175,8 @@ struct DayLog {
         r.chance = today.chance
         r.place = place.short
         r.tz = place.timeZone
+        if place.region.count == 2 { r.cc = place.region.uppercased() }   // the day's country, for the stays and flags
+        r.confirmed = now                                                 // when this place was last confirmed
         r.placeKo = place.region == "kr" ? place.ko.flatMap { $0.split(separator: " ").last.map(String.init) } : nil
         // rain or snow: falling now (this hour's amount counted once), or the day forecast wet at 60 %+
         let falling = s.precip != "none"

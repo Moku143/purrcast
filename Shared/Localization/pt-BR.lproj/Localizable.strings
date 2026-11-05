@@ -817,3 +817,7 @@
 "비 때문에 실제 기온보다 %d° 낮게 느껴졌어요." = "A chuva fez parecer %d° mais frio que a temperatura real.";
 "실제 기온보다 %d° 낮게 느껴졌어요." = "Pareceu %d° mais frio que a temperatura real.";
 "실제 기온과 비슷했어요." = "Parecido com a temperatura real.";
+
+// 날씨 기록: when the day's place was last confirmed (DayDetailView.confirmedLine)
+"밤 %@ 위치" = "Localização às %@ da noite";
+"마지막 확인 %@" = "Última confirmação: %@";

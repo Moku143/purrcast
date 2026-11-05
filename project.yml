@@ -33,6 +33,9 @@ targets:
         UIAppFonts: [PurrcastPixel-Medium.ttf]
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIUserInterfaceStyle: Light
+        # best-effort refresh near midnight, so the day closes with where the phone is (no user prompt involved)
+        UIBackgroundModes: [fetch]
+        BGTaskSchedulerPermittedIdentifiers: [app.purrcast.ios.refresh]
         ITSAppUsesNonExemptEncryption: false
         NSLocationWhenInUseUsageDescription: 지금 위치의 날씨를 보여 드리기 위해 필요해요.
         NSSupportsLiveActivities: true

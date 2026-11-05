@@ -71,6 +71,8 @@ final class AppModel: ObservableObject {
     /// 날씨 기록 (the weekly card, the calendar): written on every real forecast; screenshots show made-up days
     let dayLog = DayLog()
     @Published private(set) var dayLogVersion = 0
+    /// The app's one live model (the night refresh task reaches it here; tests make their own and leave it alone)
+    static weak var shared: AppModel?
 
     static let freeExtraPlaces = 1
     private var generation = 0
@@ -82,6 +84,7 @@ final class AppModel: ObservableObject {
 
     /// `provider`: a stand-in weather source (unit tests); nil → the server, or the example weather without one
     init(provider injected: WeatherProvider? = nil) {
+        if injected == nil { Self.shared = self }
         #if DEBUG
         let args = ProcessInfo.processInfo.arguments
         #else
