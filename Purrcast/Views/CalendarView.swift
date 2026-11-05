@@ -511,8 +511,12 @@ struct CalendarSheet: View {
             // the gap between week rows is clearly larger than any gap inside a cell, so nothing reads as the
             // next week's date (the old layout hung the holiday name at the cell's bottom, right above the date below)
             LazyVGrid(columns: cols, spacing: 12) {
-                ForEach(Array(cells.enumerated()), id: \.offset) { _, k in
-                    if let k { cell(k, byDate[k], today: today, holiday: off[k]) } else { Color.clear.frame(height: cellHeight) }
+                // a week with a holiday reserves the label line in its every cell, so the week's icons,
+                // temperatures and outfits share one baseline instead of only the holiday's sliding down
+                let labelWeeks = Set(cells.enumerated().compactMap { i, k in k.flatMap { off[$0] != nil ? i / 7 : nil } })
+                ForEach(Array(cells.enumerated()), id: \.offset) { i, k in
+                    if let k { cell(k, byDate[k], today: today, holiday: off[k], labelLine: labelWeeks.contains(i / 7)) }
+                    else { Color.clear.frame(height: cellHeight) }
                 }
             }
         }
@@ -562,8 +566,9 @@ struct CalendarSheet: View {
         .accessibilityIdentifier("cal-holidays")
     }
 
-    /// One day: its number (today in a dark circle), then its sky and range — or the outfit worn that day
-    private func cell(_ k: String, _ r: DayRecord?, today: String, holiday: String?) -> some View {
+    /// One day: its number (today in a dark circle), then its sky and range — or the outfit worn that day.
+    /// `labelLine` reserves the holiday label's line even on an ordinary day (its week has a holiday).
+    private func cell(_ k: String, _ r: DayRecord?, today: String, holiday: String?, labelLine: Bool = false) -> some View {
         let isToday = k == today, future = k > today
         let weekend = holiday != nil ? DayLogText.weekendInk(1) : DayLogText.weekendInk(DayLogText.weekdayNumber(k))   // a holiday in Sunday's red
         return Button { guard !dragging else { return }; Haptic.soft(); selected = k; openDay = DayKey(id: k) } label: {
@@ -585,6 +590,9 @@ struct CalendarSheet: View {
                         Text(L("공휴일")).font(.ui(10, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? UI.sub)
                             .lineLimit(1).minimumScaleFactor(0.6).padding(.horizontal, 1)
                     }
+                } else if labelLine {
+                    // the reserved, empty label line: same font, same single line, drawn by nothing
+                    Text(verbatim: " ").font(.ui(10, .semibold)).lineLimit(1).padding(.horizontal, 1).hidden()
                 }
                 if let r {
                     if outfits {
@@ -599,7 +607,9 @@ struct CalendarSheet: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: cellHeight, maxHeight: cellHeight, alignment: .top)
+            // minHeight only: a week whose cells carry the label line on top of an outfit grows as one row,
+            // keeping the 12pt week gap (a fixed height would push the outfit out of the cell into that gap)
+            .frame(maxWidth: .infinity, minHeight: cellHeight, alignment: .top)
             .contentShape(Rectangle())
         }
         .buttonStyle(.press(0.95)).disabled(future)
