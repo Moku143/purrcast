@@ -58,4 +58,4 @@ Política de privacidad: https://moku143.github.io/purrcast/privacy.html
 | 구독 그룹 표시 이름 | Purrcast Plus |
 | 연간 표시 이름 | Purrcast Plus anual |
 | 월간 표시 이름 | Purrcast Plus mensual |
-| 설명 (두 구독 같음, 49자) | Lluvia, aire, calendario, Apple Watch, personajes |
+| 설명 (두 구독 같음, 43자) | Lluvia, aire, calendario, Watch, personajes |
