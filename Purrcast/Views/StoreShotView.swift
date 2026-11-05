@@ -60,9 +60,10 @@ struct StoreShotView: View {
             ("speech", "white", "mask", HomeView.bubbleLines(L("미세먼지 나쁨 · 마스크 챙기세요"))),   // two lines: whole words on the canvas
             ("speech", "sky", "umbrella_closed", L("%@ %@ 예보", HourLabel.window(16, 19, clock12: model.clock12), L("비"))),
         ]
-        // bursting out over the head: where each one lands, its tilt and size — no bubble covers another's words
+        // bursting out over the head: each on its own line of the canvas, so no language's width can put one
+        // bubble over another's words (English and German run far wider than the Korean originals)
         let spots: [(x: CGFloat, y: CGFloat, r: Double, k: CGFloat)] = [
-            (-96, 6, -7, 1.25), (98, 22, 6, 1.25), (-8, 124, -3, 1.3), (34, 232, 4, 1.3),
+            (-90, 0, -7, 1.2), (92, 78, 6, 1.2), (-8, 156, -3, 1.25), (30, 262, 4, 1.25),
         ]
         return shot(L("오늘 뭐 입지?"), L("캐릭터를 보면 알아요"), bg: Tone.hero) {
             VStack(spacing: -34) {
