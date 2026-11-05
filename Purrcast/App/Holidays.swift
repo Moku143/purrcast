@@ -89,14 +89,25 @@ extension Holidays {
     /// Screenshot and sample runs never reach the server, so the 달력 shows these made-up-but-plausible Korean
     /// tables there (installed once by CalendarSheet in sample mode). Debug only; never used on a live install.
     static func installSample() {
-        let days = [
-            "2026-09-24": "추석 연휴", "2026-09-25": "추석", "2026-09-26": "추석 연휴",
-            "2026-10-03": "개천절", "2026-10-05": "개천절 대체공휴일", "2026-10-09": "한글날",
-            "2026-12-25": "기독탄신일", "2027-01-01": "신정",
-            "2027-02-06": "설날 연휴", "2027-02-07": "설날", "2027-02-08": "설날 연휴", "2027-02-09": "설날 대체공휴일",
-            "2027-03-01": "삼일절",
+        // like the real server table: the Korean name and the English one (the `holidays` package's wording) —
+        // an English phone shows the English name in the list and the day sheet, and the cell falls to the
+        // localized generic word where it cannot fit, exactly as with real data
+        let days: [String: [String: String]] = [
+            "2026-09-24": ["": "추석 연휴", "en": "The day preceding Chuseok"],
+            "2026-09-25": ["": "추석", "en": "Chuseok"],
+            "2026-09-26": ["": "추석 연휴", "en": "The second day of Chuseok"],
+            "2026-10-03": ["": "개천절", "en": "National Foundation Day"],
+            "2026-10-05": ["": "개천절 대체공휴일", "en": "Alternative holiday for National Foundation Day"],
+            "2026-10-09": ["": "한글날", "en": "Hangul Day"],
+            "2026-12-25": ["": "기독탄신일", "en": "Christmas Day"],
+            "2027-01-01": ["": "신정", "en": "New Year's Day"],
+            "2027-02-06": ["": "설날 연휴", "en": "The day preceding Korean New Year"],
+            "2027-02-07": ["": "설날", "en": "Korean New Year"],
+            "2027-02-08": ["": "설날 연휴", "en": "The second day of Korean New Year"],
+            "2027-02-09": ["": "설날 대체공휴일", "en": "Alternative holiday for Korean New Year"],
+            "2027-03-01": ["": "삼일절", "en": "Independence Movement Day"],
         ]
-        let table: [String: Any] = ["cc": "KR", "lang": "ko", "days": days.mapValues { ["": $0] }]
+        let table: [String: Any] = ["cc": "KR", "lang": "ko", "days": days]
         if let d = try? JSONSerialization.data(withJSONObject: table) { install(d) }
         // Japan too, for the sample trip (서울 → 도쿄 → 서울): a Tokyo day takes Japan's holidays — and only a
         // Tokyo day (勤労感謝の日 must not mark a day spent in Seoul)
