@@ -57,7 +57,7 @@ struct StoreShotView: View {
         let others: [(String, String, String, String)] = [
             ("shout", "coral", "lightning", L("천둥번개!")),
             ("speech", "sky", "snowflake", L("폭설!")),
-            ("speech", "white", "mask", L("미세먼지 나쁨 · 마스크 챙기세요")),
+            ("speech", "white", "mask", HomeView.bubbleLines(L("미세먼지 나쁨 · 마스크 챙기세요"))),   // two lines: whole words on the canvas
             ("speech", "sky", "umbrella_closed", L("%@ %@ 예보", HourLabel.window(16, 19, clock12: model.clock12), L("비"))),
         ]
         // bursting out over the head: where each one lands, its tilt and size — no bubble covers another's words
