@@ -497,10 +497,11 @@ extension DayLog {
                 return t
             }
         }
-        // -calWorld: last month toured five countries (서울 → 도쿄 → 파리 → 베를린 → 방콕 → 런던 → 서울),
+        // -calWorld: last month toured five countries (서울 → 도쿄 → 파리 → 뉴욕 → 방콕 → 런던 → 서울),
         // so the 이 달 머문 곳 card has many country rows to fold (the cr-stays captures)
         if ProcessInfo.processInfo.arguments.contains("-calWorld") {
-            let lastMonth = DayLogText.shift(String(Self.dayKey(today, tz: .current).prefix(7)), by: -1)
+            var cal = Calendar(identifier: .gregorian); cal.timeZone = .current
+            let lastMonth = String(Self.dayKey(cal.date(byAdding: .month, value: -1, to: today) ?? today, tz: .current).prefix(7))
             let legs: [(ClosedRange<Int>, String, String, String, String, Double, Double)] = [
                 (3...5, "JP", "도쿄", "Tokyo", "Asia/Tokyo", 35.66, 139.70),
                 (6...8, "FR", "파리", "Paris", "Europe/Paris", 48.85, 2.35),
