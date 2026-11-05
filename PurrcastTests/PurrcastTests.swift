@@ -1183,6 +1183,31 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(day("2025-01-01").fullPlaceName(), "", "no invented place on an old record")
     }
 
+    /// A place abroad is never romanized as if it were Korean: a record made while the app ran in Korean stores
+    /// "도쿄" and the English name beside it, so English and Japanese read "Tokyo" — never "Dokyo" or "トキョ".
+    /// An old foreign record without an English name keeps its stored name untouched.
+    func testForeignPlaceNames() {
+        var r = DayRecord(date: "2026-11-03", hi: 15, lo: 8, icon: "sun")
+        r.cc = "JP"; r.city = "도쿄"; r.place = "시부야"; r.en = "Tokyo Shibuya"
+        let stay = Stays.make([r])[0]
+        XCTAssertEqual(stay.name(.ko), "도쿄")
+        XCTAssertEqual(stay.name(.en), "Tokyo", "never the Korean romanization Dokyo")
+        XCTAssertEqual(stay.name(.ja), "Tokyo", "Japanese reads Latin — never トキョ")
+        XCTAssertEqual(r.fullPlaceName(.ko), "도쿄 시부야")
+        XCTAssertEqual(r.fullPlaceName(.en), "Tokyo Shibuya")
+        XCTAssertEqual(r.fullPlaceName(.ja), "Tokyo Shibuya")
+        // an old foreign record without an English name: the stored name as written, honest and untouched
+        var old = r; old.en = nil
+        XCTAssertEqual(Stays.make([old])[0].name(.en), "도쿄")
+        XCTAssertEqual(old.fullPlaceName(.en), "도쿄 시부야")
+        // Korean stays still show each language its way
+        var k = DayRecord(date: "2026-11-01", hi: 10, lo: 2, icon: "sun")
+        k.cc = "KR"; k.city = "서울"; k.place = "마포구"; k.placeKo = "마포구"
+        XCTAssertEqual(Stays.make([k])[0].name(.en), "Seoul")
+        XCTAssertEqual(Stays.make([k])[0].name(.ja), "ソウル")
+        XCTAssertEqual(k.fullPlaceName(.en), "Seoul Mapo-gu")
+    }
+
     /// The midnight stamp: the last look before midnight decides the day and its country; a Seoul → LA flight
     /// lives one date twice and keeps LA's record; the date line can skip a day with nothing invented; the app
     /// and a widget write the same day as one; old records carry no stamp and show none

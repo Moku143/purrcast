@@ -294,7 +294,7 @@ struct CalendarSheet: View {
         }
         .task(id: "\(m)|\(all.count)|\(model.shownCharacter.rawValue)") {
             // a trip's places stay off the shared picture: only a one-place month names where it was
-            let sharePlace = manyPlaces ? "" : monthStays.first.map { KoreanNames.word($0.city, .current) } ?? ""
+            let sharePlace = manyPlaces ? "" : monthStays.first.map { $0.name() } ?? ""
             shareImage = ShareCard.render(report: report, month: m, place: sharePlace, records: all.filter { $0.date.hasPrefix(m + "-") },
                                           character: report.character ?? model.shownCharacter, deg: model.deg)
         }
@@ -529,7 +529,7 @@ struct CalendarSheet: View {
             ForEach(stays, id: \.from) { st in
                 HStack(spacing: 8) {
                     Text(Stay.flag(st.cc) ?? st.cc ?? "·").font(.ui(13))
-                    Text(KoreanNames.word(st.city, .current)).font(.ui(13, .semibold)).foregroundStyle(UI.ink).lineLimit(1)
+                    Text(st.name()).font(.ui(13, .semibold)).foregroundStyle(UI.ink).lineLimit(1)
                     Spacer(minLength: 6)
                     Text(stayRange(st, month: m)).font(.ui(12)).foregroundStyle(UI.sub).lineLimit(1).minimumScaleFactor(0.8)
                 }

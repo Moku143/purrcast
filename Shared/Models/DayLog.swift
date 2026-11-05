@@ -35,6 +35,7 @@ struct DayRecord: Codable, Equatable, Identifiable {
     var tz: String? = nil               // that place's time zone (its country: the day's holidays, on a trip too)
     var cc: String? = nil               // the country that day ("KR")
     var city: String? = nil             // the city that day ("서울" — Korean for a Korean city), for the stays
+    var en: String? = nil               // a place abroad in English ("Tokyo Shibuya") when its name isn't Latin
     var confirmed: Date? = nil          // when the day's place was last confirmed (the last look that wrote it)
     /// The day sheet's own rows for the day (the last forecast of it seen, past hours as they were) and that day's
     /// 미세먼지 readings by the hour: the past day opens in the same day sheet as a forecast day. Kept a little over a
@@ -58,15 +59,29 @@ struct DayRecord: Codable, Equatable, Identifiable {
     /// The day's outfit: its average feels-like; the middle of its range for a day without hours
     var level: Int { Rules.level(feels: feels ?? Double(hi + lo) / 2) }
     var character: PurrCharacter? { char.flatMap(PurrCharacter.init(rawValue:)) }
-    /// Where the day was, in the language shown now (a Korean place from its Korean name)
-    func placeName(_ lang: Lang = .current) -> String { placeKo.map { KoreanNames.word($0, lang) } ?? place }
-    /// The day sheet's full place ("서울 마포구"): the city with the district
-    func fullPlaceName(_ lang: Lang = .current) -> String {
-        let d = placeName(lang)
-        guard let raw = city, !raw.isEmpty else { return d }
-        let c = KoreanNames.word(raw, lang)
-        return c == d || d.isEmpty ? (d.isEmpty ? c : d) : KoreanNames.join([c, d])
+    /// Where the day was, in the language shown now: a Korean place from its Korean name; a place abroad by its
+    /// stored name when the language reads it, else by the English name kept beside it — a foreign name is never
+    /// put through the Korean romanizer (hangul "도쿄" must not come out "Dokyo")
+    func placeName(_ lang: Lang = .current) -> String {
+        if let k = placeKo { return KoreanNames.word(k, lang) }
+        if let cc, cc != "KR", !lang.reads(place), let s = enShort { return s }
+        return place
     }
+    /// The day sheet's full place ("서울 마포구" · "Tokyo Shibuya"): the city with the district
+    func fullPlaceName(_ lang: Lang = .current) -> String {
+        guard let raw = city, !raw.isEmpty else { return placeName(lang) }
+        if cc == nil || cc == "KR" {                        // Korean (and legacy) days: both names from the Korean forms
+            let d = placeName(lang)
+            let c = KoreanNames.word(raw, lang)
+            return c == d || d.isEmpty ? (d.isEmpty ? c : d) : KoreanNames.join([c, d])
+        }
+        let d = place
+        if lang.reads(raw + d) { return raw == d || d.isEmpty ? raw : KoreanNames.join([raw, d]) }
+        return en ?? (raw == d || d.isEmpty ? raw : KoreanNames.join([raw, d]))
+    }
+    /// The English name's city ("Tokyo") and district ("Shibuya")
+    var enCity: String? { en?.split(separator: " ").first.map(String.init) }
+    var enShort: String? { en?.split(separator: " ").last.map(String.init) }
     var isWet: Bool { wet != nil }
     var isSnow: Bool { wet == "snow" }
     /// Rain (mm) recorded for one hour, 0 when none
@@ -187,6 +202,7 @@ struct DayLog {
         r.cc = place.cc ?? (place.region == "kr" ? "KR" : place.region == "jp" ? "JP" : nil)
         r.city = (place.region == "kr" ? place.ko : nil).flatMap { $0.split(separator: " ").first.map(String.init) }
             ?? place.name.split(separator: " ").first.map(String.init)
+        r.en = place.en                                                   // a place abroad in English, when kept
         r.confirmed = now                                                 // when this place was last confirmed
         r.placeKo = place.region == "kr" ? place.ko.flatMap { $0.split(separator: " ").last.map(String.init) } : nil
         // rain or snow: falling now (this hour's amount counted once), or the day forecast wet at 60 %+
@@ -475,6 +491,7 @@ extension DayLog {
                 guard tokyoDays.contains(r.date) else { return r }
                 var t = r
                 t.cc = "JP"; t.city = "도쿄"; t.place = "시부야"; t.placeKo = nil
+                t.en = "Tokyo Shibuya"                      // as a real record abroad now keeps it
                 t.tz = "Asia/Tokyo"; t.lat = 35.66; t.lon = 139.70
                 return t
             }
@@ -494,6 +511,15 @@ struct Stay: Equatable {
     var days: Int
     var lat: Double? = nil              // the newest day's spot (the 30-km rule for city-less old records)
     var lon: Double? = nil
+    var en: String? = nil               // the city abroad in English ("Tokyo") when its name isn't Latin
+
+    /// The city as shown now: a Korean (or legacy) stay by its Korean name; abroad the stored name when the
+    /// language reads it, else the English one — never romanized as if it were Korean
+    func name(_ lang: Lang = .current) -> String {
+        if cc == nil || cc == "KR" { return KoreanNames.word(city, lang) }
+        if lang.reads(city) { return city }
+        return en ?? city
+    }
 
     /// "🇯🇵" for a two-letter country, else nil (the view shows the letters instead)
     static func flag(_ cc: String?) -> String? {
@@ -513,11 +539,12 @@ enum Stays {
                     last.to = r.date; last.days += 1
                     last.lat = r.lat ?? last.lat; last.lon = r.lon ?? last.lon
                     if last.city.isEmpty { last.city = city }
+                    if last.en == nil { last.en = r.enCity }
                     out.append(last); continue
                 }
                 out.append(last)
             }
-            out.append(Stay(cc: r.cc, city: city, from: r.date, to: r.date, days: 1, lat: r.lat, lon: r.lon))
+            out.append(Stay(cc: r.cc, city: city, from: r.date, to: r.date, days: 1, lat: r.lat, lon: r.lon, en: r.enCity))
         }
         return out
     }
@@ -534,9 +561,12 @@ enum Stays {
         return (from: cityName(prev), to: cityName(next))
     }
 
-    /// The city as shown now ("서울" in Korean places' own name)
+    /// The city as shown now ("서울" in Korean places' own name; abroad, never romanized as if it were Korean)
     static func cityName(_ r: DayRecord) -> String {
-        r.city.map { KoreanNames.word($0, .current) } ?? r.placeName()
+        guard let c = r.city, !c.isEmpty else { return r.placeName() }
+        if r.cc == nil || r.cc == "KR" { return KoreanNames.word(c, .current) }
+        if Lang.current.reads(c) { return c }
+        return r.enCity ?? c
     }
 
     private static func changed(from a: Stay, to b: DayRecord) -> Bool {

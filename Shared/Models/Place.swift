@@ -18,6 +18,9 @@ struct Place: Codable, Hashable, Identifiable {
     /// The country ("KR"), from the geocoder for 지금 위치; nil on places saved before it existed (the 날씨 달력
     /// falls back to the time zone's country for their flags)
     var cc: String? = nil
+    /// A place abroad in English ("Tokyo Shibuya"), kept when its shown name isn't in Latin letters, so the
+    /// 날씨 달력 can show the day to every language without romanizing a foreign name as if it were Korean
+    var en: String? = nil
 
     /// The name the forecast server is given: Korean for Korean places.
     var serverName: String { ko ?? name }

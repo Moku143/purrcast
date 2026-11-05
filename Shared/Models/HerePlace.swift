@@ -49,13 +49,25 @@ enum HerePlace {
             if lang.reads(e.0 + e.1) { (city, district) = e }
             if !lang.reads(city + district) { city = latin(city); district = latin(district) }
         }
+        // a place abroad whose shown name isn't Latin (the app in Korean in Tokyo stores "도쿄") also keeps its
+        // English name: the 날씨 달력 shows that to languages that cannot read the stored one — a foreign name must
+        // never go through the Korean romanizer ("도쿄" must not come out "Dokyo")
+        var en: String? = nil
+        if country != "KR", !country.isEmpty, !Lang.en.reads(city + district) {
+            let e = parts(await mark(loc, english))
+            if Lang.en.reads(e.0 + e.1), !(e.0 + e.1).isEmpty {
+                let c = shortCity(e.0)
+                en = KoreanNames.join(e.1 == c || e.1.isEmpty ? [c] : [c, e.1])
+            }
+        }
         var name = KoreanNames.join([shortCity(city), district])
         if name.isEmpty { name = L("지금 위치") }
-        let place = Place(id: "here", name: name, short: district.isEmpty ? (shortCity(city).isEmpty ? L("지금 위치") : shortCity(city)) : district,
+        var place = Place(id: "here", name: name, short: district.isEmpty ? (shortCity(city).isEmpty ? L("지금 위치") : shortCity(city)) : district,
                           lat: loc.coordinate.latitude, lon: loc.coordinate.longitude,
                           region: country == "KR" ? "kr" : (country == "JP" ? "jp" : "other"),
                           timeZone: (m?.timeZone ?? TimeZone.current).identifier, sample: Place.here.sample, ko: ko,
                           cc: country.count == 2 ? country : nil)
+        place.en = en
         return [.ko, .ja, .ru].contains(lang) ? koreanNamed(place, lang) : place
     }
 
