@@ -35,7 +35,7 @@ struct DayRecord: Codable, Equatable, Identifiable {
     var tz: String? = nil               // that place's time zone (its country: the day's holidays, on a trip too)
     var cc: String? = nil               // the country that day ("KR")
     var city: String? = nil             // the city that day ("서울" — Korean for a Korean city), for the stays
-    var en: String? = nil               // a place abroad in English ("Tokyo Shibuya") when its name isn't Latin
+    var en: String? = nil               // a place abroad in English, city·district ("Tokyo·Shibuya"), when its name isn't Latin
     var confirmed: Date? = nil          // when the day's place was last confirmed (the last look that wrote it)
     /// The day sheet's own rows for the day (the last forecast of it seen, past hours as they were) and that day's
     /// 미세먼지 readings by the hour: the past day opens in the same day sheet as a forecast day. Kept a little over a
@@ -77,11 +77,12 @@ struct DayRecord: Codable, Equatable, Identifiable {
         }
         let d = place
         if lang.reads(raw + d) { return raw == d || d.isEmpty ? raw : KoreanNames.join([raw, d]) }
-        return en ?? (raw == d || d.isEmpty ? raw : KoreanNames.join([raw, d]))
+        return en.map { $0.replacingOccurrences(of: "·", with: " ") } ?? (raw == d || d.isEmpty ? raw : KoreanNames.join([raw, d]))
     }
-    /// The English name's city ("Tokyo") and district ("Shibuya")
-    var enCity: String? { en?.split(separator: " ").first.map(String.init) }
-    var enShort: String? { en?.split(separator: " ").last.map(String.init) }
+    /// The English name's city and district: stored "Tokyo·Shibuya" — the "·" keeps a two-word city whole
+    /// ("New York" must not shrink to "New"). A legacy name without one is all city.
+    var enCity: String? { en.map { String($0.split(separator: "·").first ?? Substring($0)) } }
+    var enShort: String? { en.map { String($0.split(separator: "·").last ?? Substring($0)) } }
     var isWet: Bool { wet != nil }
     var isSnow: Bool { wet == "snow" }
     /// Rain (mm) recorded for one hour, 0 when none
@@ -491,7 +492,7 @@ extension DayLog {
                 guard tokyoDays.contains(r.date) else { return r }
                 var t = r
                 t.cc = "JP"; t.city = "도쿄"; t.place = "시부야"; t.placeKo = nil
-                t.en = "Tokyo Shibuya"                      // as a real record abroad now keeps it
+                t.en = "Tokyo·Shibuya"                      // as a real record abroad now keeps it (city·district)
                 t.tz = "Asia/Tokyo"; t.lat = 35.66; t.lon = 139.70
                 return t
             }
@@ -503,7 +504,7 @@ extension DayLog {
             let legs: [(ClosedRange<Int>, String, String, String, String, Double, Double)] = [
                 (3...5, "JP", "도쿄", "Tokyo", "Asia/Tokyo", 35.66, 139.70),
                 (6...8, "FR", "파리", "Paris", "Europe/Paris", 48.85, 2.35),
-                (9...11, "DE", "베를린", "Berlin", "Europe/Berlin", 52.52, 13.40),
+                (9...11, "US", "뉴욕", "New York", "America/New_York", 40.71, -74.00),   // a two-word city stays whole
                 (12...14, "TH", "방콕", "Bangkok", "Asia/Bangkok", 13.75, 100.50),
                 (15...17, "GB", "런던", "London", "Europe/London", 51.50, -0.12),
             ]

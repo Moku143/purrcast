@@ -1231,7 +1231,7 @@ final class PurrcastTests: XCTestCase {
     /// An old foreign record without an English name keeps its stored name untouched.
     func testForeignPlaceNames() {
         var r = DayRecord(date: "2026-11-03", hi: 15, lo: 8, icon: "sun")
-        r.cc = "JP"; r.city = "도쿄"; r.place = "시부야"; r.en = "Tokyo Shibuya"
+        r.cc = "JP"; r.city = "도쿄"; r.place = "시부야"; r.en = "Tokyo·Shibuya"
         let stay = Stays.make([r])[0]
         XCTAssertEqual(stay.name(.ko), "도쿄")
         XCTAssertEqual(stay.name(.en), "Tokyo", "never the Korean romanization Dokyo")
@@ -1249,6 +1249,25 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Stays.make([k])[0].name(.en), "Seoul")
         XCTAssertEqual(Stays.make([k])[0].name(.ja), "ソウル")
         XCTAssertEqual(k.fullPlaceName(.en), "Seoul Mapo-gu")
+    }
+
+    /// A two-word city stays whole: "New York" must not shrink to "New" on the stays card, nor to "York"
+    /// in a cell — the stored English name marks where the city ends ("City·District").
+    func testTwoWordEnglishCities() {
+        var ny = DayRecord(date: "2026-11-10", hi: 10, lo: 2, icon: "sun")
+        ny.cc = "US"; ny.city = "뉴욕"; ny.place = "뉴욕"; ny.en = "New York"
+        XCTAssertEqual(ny.enCity, "New York"); XCTAssertEqual(ny.enShort, "New York")
+        XCTAssertEqual(Stays.make([ny])[0].name(.en), "New York")
+        XCTAssertEqual(ny.fullPlaceName(.en), "New York")
+        var sp = DayRecord(date: "2026-11-12", hi: 24, lo: 18, icon: "cloud")
+        sp.cc = "BR"; sp.city = "상파울루"; sp.place = "빌라마리아나"; sp.en = "Sao Paulo·Vila Mariana"
+        XCTAssertEqual(sp.enCity, "Sao Paulo"); XCTAssertEqual(sp.enShort, "Vila Mariana")
+        XCTAssertEqual(Stays.make([sp])[0].name(.en), "Sao Paulo")
+        XCTAssertEqual(sp.fullPlaceName(.en), "Sao Paulo Vila Mariana", "the stored · reads as a space")
+        // a legacy record stored with a space is all city — never cut at the first word
+        var legacy = ny; legacy.en = "Tokyo Shibuya"
+        XCTAssertEqual(legacy.enCity, "Tokyo Shibuya")
+        XCTAssertEqual(legacy.fullPlaceName(.en), "Tokyo Shibuya")
     }
 
     /// Holidays follow the day's own country: a Tokyo day in a Seoul user's month shows 文化の日, and Japan's

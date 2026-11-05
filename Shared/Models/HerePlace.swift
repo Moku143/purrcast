@@ -57,7 +57,8 @@ enum HerePlace {
             let e = parts(await mark(loc, english))
             if Lang.en.reads(e.0 + e.1), !(e.0 + e.1).isEmpty {
                 let c = shortCity(e.0)
-                en = KoreanNames.join(e.1 == c || e.1.isEmpty ? [c] : [c, e.1])
+                // city·district: the "·" marks where the city ends, so "New York" stays whole when split
+                en = e.1 == c || e.1.isEmpty ? c : c + "·" + e.1
             }
         }
         var name = KoreanNames.join([shortCity(city), district])
