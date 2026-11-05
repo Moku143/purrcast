@@ -84,7 +84,6 @@ final class AppModel: ObservableObject {
 
     /// `provider`: a stand-in weather source (unit tests); nil → the server, or the example weather without one
     init(provider injected: WeatherProvider? = nil) {
-        if injected == nil { Self.shared = self }
         #if DEBUG
         let args = ProcessInfo.processInfo.arguments
         #else
@@ -152,6 +151,7 @@ final class AppModel: ObservableObject {
             guard s == .authorizedWhenInUse || s == .authorizedAlways else { return }
             Task { await self?.refresh(force: true) }
         }
+        if injected == nil { Self.shared = self }   // the app's one live model (after full initialization)
     }
 
     // MARK: weather
