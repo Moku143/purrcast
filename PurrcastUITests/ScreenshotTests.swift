@@ -363,6 +363,27 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    /// The calendar rework's captures, under stable names (ci-output then holds them in calendar-rework/):
+    /// the trip month in three languages, a future December, 설날 2027, the outfit tab, both day sheets, the
+    /// report, the narrowest width and the largest text size
+    func test21CalendarRework() {
+        let cal = ["-scene", "maybe", "-plus", "-open", "calendar", "-calTrip"]
+        shot("cr-ko-nov2026-trip", cal, wait: 3)
+        shot("cr-ko-dec2026", cal + ["-calMonth", "1"], wait: 3)
+        // February 2027: 설날 and its 연휴 (the short names under red numbers)
+        let toFeb2027 = (2027 - Calendar.current.component(.year, from: Date())) * 12 + (2 - Calendar.current.component(.month, from: Date()))
+        shot("cr-ko-feb2027", cal + ["-calMonth", String(toFeb2027)], wait: 3)
+        shot("cr-ja", cal, wait: 3, lang: "ja")
+        shot("cr-en", cal, wait: 3, lang: "en")
+        shot("cr-outfits", cal + ["-calOutfits"], wait: 3)
+        shot("cr-day-sheet-seoul", cal + ["-calDay", "1"], wait: 3)
+        shot("cr-day-sheet-tokyo", cal + ["-calDay", "6"], wait: 3)
+        shot("cr-report", cal, wait: 3) { app in app.swipeUp(); app.swipeUp(); sleep(1) }
+        shot("cr-narrow", ["-scene", "maybe", "-plus", "-calTrip", "-narrowCal"], wait: 3)
+        shot("cr-narrow-feb2027", ["-scene", "maybe", "-plus", "-calTrip", "-narrowCal", "-calMonth", String(toFeb2027)], wait: 3)
+        shot("cr-large-text", cal + ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryXXXL"], wait: 3)
+    }
+
     /// The 날씨 달력 page scrolls up (the report below the month stays reachable), the sideways month swipe still
     /// turns the month, and a past month's page scrolls too. Outfit cells make the page taller than any iPhone.
     func test20CalendarScroll() {

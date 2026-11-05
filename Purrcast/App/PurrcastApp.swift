@@ -27,6 +27,10 @@ struct PurrcastApp: App {
         } else if args.contains("-narrow") {
             RootView().frame(width: 320, height: 693).clipped()
                 .frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.black)
+        } else if args.contains("-narrowCal") {
+            // the 날씨 달력 alone in the 320-pt box: a sheet would escape the -narrow frame, so it opens bare
+            CalendarSheet().frame(width: 320, height: 693).clipped()
+                .frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.black)
         } else { RootView() }
         #else
         RootView()

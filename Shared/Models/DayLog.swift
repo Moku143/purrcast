@@ -450,10 +450,33 @@ extension DayLog {
                 r.aqiKind = "cai"; r.aqiHour = 9
             }
             r.lat = place.lat; r.lon = place.lon
+            // the stamp, as real records carry it: country, city, and when the place was last confirmed —
+            // most days closed near midnight, some only saw an evening look
+            r.cc = place.region == "kr" ? "KR" : place.region == "jp" ? "JP" : nil
+            r.city = (place.region == "kr" ? place.ko : nil).flatMap { $0.split(separator: " ").first.map(String.init) }
+                ?? place.name.split(separator: " ").first.map(String.init)
+            let ymd = r.date.split(separator: "-").compactMap { Int($0) }
+            if ymd.count == 3 {
+                var pc = Calendar(identifier: .gregorian); pc.timeZone = tz
+                let night = rnd() < 0.7
+                r.confirmed = pc.date(from: DateComponents(year: ymd[0], month: ymd[1], day: ymd[2],
+                                                           hour: night ? 23 : 18, minute: night ? 55 : 12))
+            }
             out.append(r)
         }
         // a few days the phone never opened
         for i in [9, 23, 24, 51] where i < out.count { out.remove(at: out.count - 1 - i) }
+        // -calTrip: last week had three days in 도쿄 (서울 → 도쿄 → 서울), for the stays card and the day sheet
+        if ProcessInfo.processInfo.arguments.contains("-calTrip") {
+            let tokyoDays = Set((5...7).map { Self.dayKey(today.addingTimeInterval(Double(-$0) * 86400), tz: TimeZone(identifier: place.timeZone) ?? .current) })
+            out = out.map { r in
+                guard tokyoDays.contains(r.date) else { return r }
+                var t = r
+                t.cc = "JP"; t.city = "도쿄"; t.place = "시부야"; t.placeKo = nil
+                t.tz = "Asia/Tokyo"; t.lat = 35.66; t.lon = 139.70
+                return t
+            }
+        }
         return out
     }
 }

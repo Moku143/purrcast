@@ -176,6 +176,8 @@ jobs:
         if: always()
         run: |
           mkdir -p out && cp -r shots out/ 2>/dev/null || true
+          # the calendar rework's captures keep stable paths of their own
+          if ls out/shots/cr-*.png >/dev/null 2>&1; then mkdir -p out/calendar-rework && mv out/shots/cr-*.png out/calendar-rework/; fi
           cp build.log test.log watch.log sim.log out/ 2>/dev/null || true
           grep -E "error:|warning: unre" build.log > out/errors.txt 2>/dev/null || true
           grep -E "error:" watch.log | sed 's/^/[watch] /' >> out/errors.txt 2>/dev/null || true
