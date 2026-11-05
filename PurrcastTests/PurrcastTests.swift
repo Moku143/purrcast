@@ -1057,6 +1057,26 @@ final class PurrcastTests: XCTestCase {
         Place(id: "here", name: short, short: short, lat: lat, lon: lon, region: region, timeZone: tz, sample: "maybe", ko: nil)
     }
 
+    /// Holiday names in the 달력: the cell's short table (ko and ja), substitutes, temporaries and elections by
+    /// pattern, 크리스마스 everywhere, and no short form for other languages (the fit rule decides there)
+    func testHolidayCellNames() {
+        XCTAssertEqual(HolidayNames.short("기독탄신일"), "크리스마스")
+        XCTAssertEqual(HolidayNames.short("신정"), "새해")
+        XCTAssertEqual(HolidayNames.short("설날 연휴"), "설 연휴")
+        XCTAssertEqual(HolidayNames.short("설날"), "설날")
+        XCTAssertEqual(HolidayNames.short("부처님오신날"), "석가탄신일")
+        XCTAssertEqual(HolidayNames.short("개천절 대체공휴일"), "대체휴일")
+        XCTAssertEqual(HolidayNames.short("임시공휴일"), "임시휴일")
+        XCTAssertEqual(HolidayNames.short("대통령 선거일"), "선거일")
+        XCTAssertEqual(HolidayNames.short("建国記念の日"), "建国記念")
+        XCTAssertEqual(HolidayNames.short("スポーツの日"), "スポーツ")
+        XCTAssertEqual(HolidayNames.short("振替休日"), "振替休日")
+        XCTAssertNil(HolidayNames.short("Thanksgiving"), "other languages go by the fit rule")
+        XCTAssertEqual(HolidayNames.display("기독탄신일"), "크리스마스")
+        XCTAssertEqual(HolidayNames.display("설날 대체공휴일"), "설날 대체휴일")
+        XCTAssertEqual(HolidayNames.display("부처님오신날"), "부처님오신날", "the full name stays in the list")
+    }
+
     /// The stays: consecutive days in one city are one run; the country or city changing ends it, and records too
     /// old to carry a city fall back to the 30-km rule; the flag comes from the country code or stays letters
     func testStaysOnTheTimeline() {

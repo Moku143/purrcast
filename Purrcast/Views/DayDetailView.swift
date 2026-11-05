@@ -106,7 +106,7 @@ struct DayDetailView: View {
             VStack(spacing: 3) {
                 Text(title(c)).font(.px(17)).lineLimit(1).minimumScaleFactor(0.8)
                 if let h = past?.holiday {
-                    Text(h).font(.ui(12, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? c.ink.sub).lineLimit(1).minimumScaleFactor(0.8)
+                    Text(HolidayNames.display(h)).font(.ui(12, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? c.ink.sub).lineLimit(1).minimumScaleFactor(0.8)
                         .accessibilityIdentifier("past-holiday")
                 }
                 // a 날씨 기록 day: where it was saved

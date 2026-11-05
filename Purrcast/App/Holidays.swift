@@ -83,3 +83,37 @@ enum Holidays {
         }
     }
 }
+
+/// How holiday names read in the app — display only, the server tables stay untouched. The 달력 cell wants a very
+/// short name at a fixed size; the list and the day sheet want a readable full one.
+enum HolidayNames {
+    /// The full name as shown in the list and the day sheet: 기독탄신일 reads 크리스마스, and a substitute day reads
+    /// "설날 대체휴일" instead of the drier 대체공휴일. Other languages pass through.
+    static func display(_ n: String) -> String {
+        n.replacingOccurrences(of: "기독탄신일", with: "크리스마스")
+         .replacingOccurrences(of: "대체공휴일", with: "대체휴일")
+    }
+
+    /// The day cell's short name (Korean and Japanese tables); nil when none is known — the cell then tries the
+    /// display name under the fit rule, and a name that cannot fit shows nothing (the red number alone).
+    static func short(_ n: String) -> String? {
+        if n.contains("대체") { return "대체휴일" }
+        if n.contains("임시") { return "임시휴일" }
+        if n.contains("선거") { return "선거일" }
+        if n.contains("振替") || n.contains("休日") && n.contains("国民") { return "振替休日" }
+        let ko: [String: String] = [
+            "신정": "새해", "새해 첫날": "새해", "설날 연휴": "설 연휴", "설날": "설날", "삼일절": "삼일절",
+            "어린이날": "어린이날", "부처님오신날": "석가탄신일", "석가탄신일": "석가탄신일", "현충일": "현충일",
+            "광복절": "광복절", "추석 연휴": "추석 연휴", "추석": "추석", "개천절": "개천절", "한글날": "한글날",
+            "기독탄신일": "크리스마스", "크리스마스": "크리스마스", "성탄절": "크리스마스",
+        ]
+        if let s = ko[n] { return s }
+        let ja: [String: String] = [
+            "元日": "元日", "成人の日": "成人の日", "建国記念の日": "建国記念", "天皇誕生日": "天皇誕生",
+            "春分の日": "春分", "昭和の日": "昭和の日", "憲法記念日": "憲法記念", "みどりの日": "みどりの日",
+            "こどもの日": "こどもの日", "海の日": "海の日", "山の日": "山の日", "敬老の日": "敬老の日",
+            "秋分の日": "秋分", "スポーツの日": "スポーツ", "文化の日": "文化の日", "勤労感謝の日": "勤労感謝",
+        ]
+        return ja[n]
+    }
+}

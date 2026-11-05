@@ -545,7 +545,7 @@ struct CalendarSheet: View {
             ForEach(days, id: \.key) { d in
                 HStack(spacing: 10) {
                     Text(DayLogText.day(d.key)).font(.ui(13, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? UI.ink).frame(minWidth: 64, alignment: .leading)
-                    Text(d.name).font(.ui(13)).foregroundStyle(UI.ink).lineLimit(2)
+                    Text(HolidayNames.display(d.name)).font(.ui(13)).foregroundStyle(UI.ink).lineLimit(2)
                 }
             }
         }
@@ -568,8 +568,14 @@ struct CalendarSheet: View {
                     .frame(width: 28, height: 28)
                     .background(Circle().fill(isToday ? UI.ink : Color.clear))
                 if let h = holiday {
-                    Text(h).font(.ui(10, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? UI.sub)
-                        .lineLimit(1).fixedSize().padding(.horizontal, 1)
+                    // the short name right under the number, at a fixed size; a name that cannot fit shows
+                    // nothing here (the red number alone) — the list below and the day sheet keep the full name
+                    ViewThatFits(in: .horizontal) {
+                        Text(HolidayNames.short(h) ?? HolidayNames.display(h))
+                            .font(.ui(10, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? UI.sub)
+                            .lineLimit(1).fixedSize().padding(.horizontal, 1)
+                        Color.clear.frame(width: 0, height: 0)
+                    }
                 }
                 if let r {
                     if outfits {
