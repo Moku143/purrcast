@@ -98,7 +98,7 @@ final class Purchases: ObservableObject {
         SharedStore.defaults.set(true, forKey: "testPlusOff")
     }
 
-    /// Store price ("₩19,000"), or nil until the products are loaded.
+    /// Store price ("₩18,000"), or nil until the products are loaded.
     func price(_ id: String) -> String? { product(id)?.displayPrice }
 
     /// "연" / "월"
