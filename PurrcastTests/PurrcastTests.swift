@@ -1231,7 +1231,8 @@ final class PurrcastTests: XCTestCase {
         let merged = log.records("here").last!
         XCTAssertEqual(merged.seenLo, 9, "the app's and the widget's writes fold into one record")
         // an old record without the stamp: decodes with nothing, and the day sheet shows nothing
-        let legacy = try JSONDecoder().decode(DayRecord.self, from: Data(#"{"date":"2025-01-01","hi":5,"lo":-2,"icon":"sun"}"#.utf8))
+        // the fields every old record really carried (the non-optional ones were always encoded)
+        let legacy = try JSONDecoder().decode(DayRecord.self, from: Data(#"{"date":"2025-01-01","hi":5,"lo":-2,"icon":"sun","chance":0,"mm":0,"place":"오류동"}"#.utf8))
         XCTAssertNil(legacy.cc); XCTAssertNil(legacy.confirmed)
         XCTAssertNil(DayDetailView.confirmedLine(nil, tz: .current, clock12: false))
         // the honest wording: near midnight it is the day's place; earlier it is only the last confirmation
