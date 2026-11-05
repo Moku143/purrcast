@@ -1183,6 +1183,31 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(day("2025-01-01").fullPlaceName(), "", "no invented place on an old record")
     }
 
+    /// The phone's case: an old record (no country, no city — "오류동" with its spot) next to a new one
+    /// (KR · 서울, 13 km away) is one stay, flagged from the time zone, named by the newer record — so a
+    /// one-place month shows no 이 달 머문 곳 card at all.
+    func testStaysMergeOldNeighbour() {
+        var old = DayRecord(date: "2026-11-04", hi: 18, lo: 9, icon: "cloud")
+        old.place = "오류동"; old.tz = "Asia/Seoul"; old.lat = 37.4925; old.lon = 126.8420   // 구로, cc/city nil
+        var new = DayRecord(date: "2026-11-05", hi: 17, lo: 8, icon: "sun")
+        new.cc = "KR"; new.city = "서울"; new.place = "서울 오류동"; new.tz = "Asia/Seoul"
+        new.lat = 37.5665; new.lon = 126.9780                                               // 시청, ~13 km
+        let stays = Stays.make([old, new], country: Holidays.country(timeZone:))
+        XCTAssertEqual(stays.count, 1, "one place split into two stays")
+        XCTAssertEqual(stays[0].cc, "KR"); XCTAssertEqual(stays[0].city, "서울")
+        XCTAssertEqual(stays[0].from, "2026-11-04"); XCTAssertEqual(stays[0].to, "2026-11-05")
+        XCTAssertEqual(stays[0].days, 2)
+        XCTAssertEqual(Stay.flag(stays[0].cc), "🇰🇷", "an old record's flag comes from its time zone")
+        // the month has one place: the calendar's many-places rule stays false, so no card
+        XCTAssertEqual(Set(stays.map { "\($0.cc ?? "")|\($0.city)" }).count, 1)
+        // the old record alone still gets its country from the time zone
+        let alone = Stays.make([old], country: Holidays.country(timeZone:))
+        XCTAssertEqual(alone[0].cc, "KR"); XCTAssertEqual(alone[0].city, "오류동")
+        // and over 30 km, or in another country, the stay still ends
+        var busan = new; busan.date = "2026-11-06"; busan.city = "부산"; busan.lat = 35.18; busan.lon = 129.07
+        XCTAssertEqual(Stays.make([old, new, busan], country: Holidays.country(timeZone:)).count, 2)
+    }
+
     /// A place abroad is never romanized as if it were Korean: a record made while the app ran in Korean stores
     /// "도쿄" and the English name beside it, so English and Japanese read "Tokyo" — never "Dokyo" or "トキョ".
     /// An old foreign record without an English name keeps its stored name untouched.

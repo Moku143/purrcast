@@ -238,7 +238,8 @@ struct CalendarSheet: View {
         let report = MonthReport.make(all, month: m)
         // the stays feed the 이 달 머문 곳 card — shown only when the month really had more than one place
         // (a one-place month says nothing; the cells never carry a place, which read as clutter)
-        let monthStays = Stays.make(all).filter { $0.from <= m + "-31" && $0.to >= m + "-01" }
+        // old records kept no country: their time zone names it, so they get their flag and join their city
+        let monthStays = Stays.make(all, country: Holidays.country(timeZone:)).filter { $0.from <= m + "-31" && $0.to >= m + "-01" }
         let manyPlaces = Set(monthStays.map { "\($0.cc ?? "")|\($0.city)" }).count > 1
         // each day's holidays where it was spent (a recorded day keeps its place's time zone); other days: the device
         let dayZone: (String) -> String = { byDate[$0]?.tz ?? tz.identifier }

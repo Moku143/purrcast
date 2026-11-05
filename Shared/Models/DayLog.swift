@@ -530,21 +530,28 @@ struct Stay: Equatable {
 
 enum Stays {
     /// The stays in `records` (oldest first). A day without any place information joins the stay it follows.
-    static func make(_ records: [DayRecord]) -> [Stay] {
+    /// `country` names a time zone's country ("Asia/Seoul" → "KR"), so an old record that kept no country still
+    /// gets its flag — the calendar passes Holidays' zone table.
+    static func make(_ records: [DayRecord], country: (String) -> String? = { _ in nil }) -> [Stay] {
         var out: [Stay] = []
         for r in records.sorted(by: { $0.date < $1.date }) {
+            let cc = r.cc ?? r.tz.flatMap(country)
             let city = r.city ?? r.placeName(.ko)
             if var last = out.popLast() {
-                if !changed(from: last, to: r) {
+                if !changed(from: last, to: r, cc: cc) {
                     last.to = r.date; last.days += 1
                     last.lat = r.lat ?? last.lat; last.lon = r.lon ?? last.lon
-                    if last.city.isEmpty { last.city = city }
+                    if last.cc == nil { last.cc = cc }
+                    // merged neighbours read as one place, named by the newer record (an old nameless day
+                    // next to a named one must not split the stay in two)
+                    if let c = r.city, !c.isEmpty, last.city != c { last.city = c; last.en = r.enCity }
+                    else if last.city.isEmpty { last.city = city }
                     if last.en == nil { last.en = r.enCity }
                     out.append(last); continue
                 }
                 out.append(last)
             }
-            out.append(Stay(cc: r.cc, city: city, from: r.date, to: r.date, days: 1, lat: r.lat, lon: r.lon, en: r.enCity))
+            out.append(Stay(cc: cc, city: city, from: r.date, to: r.date, days: 1, lat: r.lat, lon: r.lon, en: r.enCity))
         }
         return out
     }
@@ -569,11 +576,14 @@ enum Stays {
         return r.enCity ?? c
     }
 
-    private static func changed(from a: Stay, to b: DayRecord) -> Bool {
-        if let ac = a.cc, let bc = b.cc, ac != bc { return true }
-        if let bCity = b.city, !a.city.isEmpty { return a.city != bCity }
-        // old records without a city: a move over 30 km ends the stay
+    private static func changed(from a: Stay, to b: DayRecord, cc: String?) -> Bool {
+        if let ac = a.cc, let cc, ac != cc { return true }
+        // the same named city is one stay however wide it runs
+        if let bCity = b.city, !bCity.isEmpty, a.city == bCity { return false }
+        // names differing or missing: neighbours within 30 km in one country are still one place (an old
+        // record's 동 next to a new record's city must not read as two stays)
         if let la = a.lat, let lo = a.lon, let lb = b.lat, let ob = b.lon { return DayLog.km(la, lo, lb, ob) > 30 }
+        if let bCity = b.city, !a.city.isEmpty { return a.city != bCity }
         return false
     }
 }
