@@ -1046,6 +1046,29 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(WeatherSnapshot.sample.timelineEntries(now: now, until: until).count, 1, "a sample has nothing to age")
     }
 
+    /// One calendar: the timeline is the "here" log; a user with location off gets their first saved place; and
+    /// removing places (or turning location off) never erases the timeline file
+    func testOneCalendarTimeline() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let log = DayLog(dir: dir)
+        var seoul = DayRecord(date: "2026-11-01", hi: 18, lo: 9, icon: "sun"); seoul.seenHi = 17; seoul.plus = true
+        var tokyo = DayRecord(date: "2026-11-02", hi: 20, lo: 12, icon: "cloud"); tokyo.seenHi = 19; tokyo.plus = true
+        log.save([seoul], for: "here")
+        log.save([tokyo], for: "tokyo")
+        let places = [Place.here, Place(id: "tokyo", name: "도쿄", short: "도쿄", lat: 35.68, lon: 139.69, region: "jp", timeZone: "Asia/Tokyo", sample: "maybe", ko: nil)]
+        // the "here" log wins: looking at 도쿄 (its own file) never marks the timeline
+        XCTAssertEqual(AppModel.timeline(from: log, places: places).map(\.date), ["2026-11-01"])
+        // no "here" days (location off): the first saved place stands in
+        log.save([], for: "here")
+        XCTAssertEqual(AppModel.timeline(from: log, places: places).map(\.date), ["2026-11-02"])
+        // keepOnly: removed places lose their file, the timeline never does
+        log.save([seoul], for: "here")
+        log.keepOnly([])
+        XCTAssertEqual(log.records("here").count, 1, "the timeline survives an empty place list")
+        XCTAssertEqual(log.records("tokyo").count, 0, "a removed place loses its days")
+    }
+
     /// A 날씨 기록 day speaks in the past tense: every present-tense sentence the day sheet can show for a past
     /// day has a past form, none of the past forms gives advice, and all 12 languages translate each one (a
     /// missing entry would fall back to the Korean key, which the test catches)

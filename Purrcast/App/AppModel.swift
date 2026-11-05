@@ -322,6 +322,25 @@ final class AppModel: ObservableObject {
     func calendarDays(for place: Place) -> [DayRecord] {
         days(for: place).filter { $0.plus != false && ($0.obs != true || $0.seenHi != nil) }
     }
+    /// The 날씨 달력's one timeline: where the user actually was. The "here" log holds only real locations (the
+    /// app's refresh writes the place on screen into that place's own file, and a saved place's preview goes into
+    /// its file too — looking at 도쿄 never marks a day as spent there). Someone who keeps location off has no
+    /// "here" days, so their first saved place stands in.
+    func timelineDays() -> [DayRecord] {
+        #if DEBUG
+        if isSample { return days(for: Place.here) }
+        #endif
+        _ = dayLogVersion
+        return Self.timeline(from: dayLog, places: places)
+    }
+    /// The timeline from what the log holds: the "here" days, else the first saved place's (location kept off)
+    nonisolated static func timeline(from log: DayLog, places: [Place]) -> [DayRecord] {
+        let keep: (DayRecord) -> Bool = { $0.plus != false && ($0.obs != true || $0.seenHi != nil) }
+        let here = log.records("here").filter(keep)
+        if !here.isEmpty { return here }
+        guard let p = places.first(where: { $0.id != "here" }) else { return [] }
+        return log.records(p.id).filter(keep)
+    }
 
     /// Fetch the 대기질 지도 for the place on screen, again when the forecast was refreshed (the readings are hourly)
     func loadAirMap() async {
@@ -430,7 +449,7 @@ final class AppModel: ObservableObject {
         // the 월간 리포트: Plus, for a month that has days recorded
         var monthly: Notifications.MonthlyFire?
         if notifyMonthly && plus && !isSample, let f = Notifications.monthlyFire(after: Date(), morning: morningTime),
-           calendarDays(for: currentPlace).contains(where: { $0.date.hasPrefix(f.month + "-") }) { monthly = f }
+           timelineDays().contains(where: { $0.date.hasPrefix(f.month + "-") }) { monthly = f }
         Notifications.plan(scene: scene, place: currentPlace, rain: rainHere, morning: notifyMorning && !isSample,
                            change: notifyChange && plus && !isSample, morningTime: morningTime, unitF: unitF, voice: voice, clock12: clock12,
                            character: shownCharacter, plus: plus, monthly: monthly)

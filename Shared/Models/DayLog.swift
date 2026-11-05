@@ -130,10 +130,11 @@ struct DayLog {
         if kept.count != all.count { save(kept, for: placeID) }
     }
 
-    /// Places no longer in the list lose their days (the app passes the ids it still has)
+    /// Places no longer in the list lose their days (the app passes the ids it still has). The "here" file is the
+    /// 날씨 달력's whole timeline, so it stays whatever the list says (location turned off must not erase the past).
     func keepOnly(_ ids: Set<String>) {
         guard let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) else { return }
-        let keep = Set(ids.map { file($0).lastPathComponent })
+        let keep = Set(ids.union(["here"]).map { file($0).lastPathComponent })
         for f in files where f.pathExtension == "json" && !keep.contains(f.lastPathComponent) { try? FileManager.default.removeItem(at: f) }
     }
 

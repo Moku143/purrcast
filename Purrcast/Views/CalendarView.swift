@@ -146,10 +146,9 @@ struct WeekLogCard: View {
     var open: () -> Void
 
     var body: some View {
-        let place = model.currentPlace
-        let all = model.days(for: place)
+        let all = model.timelineDays()
         let byDate = Dictionary(all.map { ($0.date, $0) }, uniquingKeysWith: { a, _ in a })
-        let tz = TimeZone(identifier: place.timeZone) ?? .current
+        let tz = TimeZone.current
         let keys = (0..<7).reversed().map { DayLog.dayKey(Date().addingTimeInterval(Double(-$0) * 86400), tz: tz) }
         Button(action: { Haptic.soft(); open() }) {
             Card(ink: ink) {
@@ -217,10 +216,10 @@ struct CalendarSheet: View {
     @State private var calTab: DayMetric = .temp
 
     var body: some View {
-        let place = model.currentPlace
-        let all = model.calendarDays(for: place)
+        // one calendar: the timeline of where the user was; today and the future run on the device's own clock
+        let all = model.timelineDays()
         let byDate = Dictionary(all.map { ($0.date, $0) }, uniquingKeysWith: { a, _ in a })
-        let tz = TimeZone(identifier: place.timeZone) ?? .current
+        let tz = TimeZone.current
         let today = DayLog.dayKey(Date(), tz: tz)
         let thisMonth = String(today.prefix(7))
         // back to the first month with a day recorded (only the days used with Plus are kept; nothing is filled in)
@@ -230,14 +229,14 @@ struct CalendarSheet: View {
         let last = DayLogText.lastMonth(from: thisMonth)
         let m = month.isEmpty ? thisMonth : month
         let report = MonthReport.make(all, month: m)
-        // each day's holidays where it was spent (a recorded day keeps its place's time zone); other days: the place now
-        let dayZone: (String) -> String = { byDate[$0]?.tz ?? place.timeZone }
+        // each day's holidays where it was spent (a recorded day keeps its place's time zone); other days: the device
+        let dayZone: (String) -> String = { byDate[$0]?.tz ?? tz.identifier }
         let holidays = holidaysCame >= 0 ? Holidays.month(m, timeZone: dayZone) : []
         VStack(spacing: 0) {
             SheetHeader(title: L("날씨 달력"), trailing: L("닫기")) { dismiss() }
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 14) {
-                    monthBar(m, first: first, last: last, thisMonth: thisMonth, place: place)
+                    monthBar(m, first: first, last: last, thisMonth: thisMonth)
                     // the month and its report slide together; a sideways drag anywhere turns the month
                     ZStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 14) {
@@ -263,23 +262,23 @@ struct CalendarSheet: View {
         .background(UI.bg)
         .sheet(item: $openDay) { d in
             // a day with hours opens the same day sheet as a forecast day; one without, its numbers in rows
-            if let r = byDate[d.id], let sc = r.scene(tz: tz), let date = DayLog.date(d.id) {
+            if let r = byDate[d.id], let sc = r.scene(tz: TimeZone(identifier: r.tz ?? "") ?? tz), let date = DayLog.date(d.id) {
                 DayDetailView(start: 0, startMetric: calTab, past: .init(scene: sc, date: date, air: r.aqiGrade.map { .init(value: r.aqi, grade: $0, main: r.aqiMain, kind: r.aqiKind ?? "cai", hour: r.aqiHour) },
-                                                    character: r.character, place: r.placeName(), here: place.id == "here",
-                                                    holiday: Holidays.name(d.id, timeZone: r.tz ?? place.timeZone)))
+                                                    character: r.character, place: r.placeName(), here: true,
+                                                    holiday: Holidays.name(d.id, timeZone: r.tz ?? tz.identifier)))
                     .presentationDetents([.large]).presentationCornerRadius(28)
             } else {
-                DayLogSheet(key: d.id, record: byDate[d.id], holiday: Holidays.name(d.id, timeZone: byDate[d.id]?.tz ?? place.timeZone)).presentationDetents([.large]).presentationCornerRadius(28)
+                DayLogSheet(key: d.id, record: byDate[d.id], holiday: Holidays.name(d.id, timeZone: byDate[d.id]?.tz ?? tz.identifier)).presentationDetents([.large]).presentationCornerRadius(28)
             }
         }
-        .task(id: "holidays|\(m)|\(place.timeZone)") {
+        .task(id: "holidays|\(m)") {
             // this month's countries: where the place is now and where its recorded days were (a week-old table is asked again)
             guard !model.isSample, let base = WeatherSource.serverURL else { return }
-            let zones = [place.timeZone] + all.filter { $0.date.hasPrefix(m + "-") }.compactMap(\.tz)
+            let zones = [tz.identifier] + all.filter { $0.date.hasPrefix(m + "-") }.compactMap(\.tz)
             if await Holidays.refresh(Set(zones.compactMap(Holidays.country(timeZone:))), base: base) { holidaysCame += 1 }
         }
         .task(id: "\(m)|\(all.count)|\(model.shownCharacter.rawValue)") {
-            shareImage = ShareCard.render(report: report, month: m, place: place.short, records: all.filter { $0.date.hasPrefix(m + "-") },
+            shareImage = ShareCard.render(report: report, month: m, place: "", records: all.filter { $0.date.hasPrefix(m + "-") },
                                           character: report.character ?? model.shownCharacter, deg: model.deg)
         }
         .onAppear {
@@ -303,7 +302,7 @@ struct CalendarSheet: View {
     }
 
     /// 오늘 (back to this month) · the month between its arrows (tapped: any month) · 날씨 | 옷차림
-    private func monthBar(_ m: String, first: String, last: String, thisMonth: String, place: Place) -> some View {
+    private func monthBar(_ m: String, first: String, last: String, thisMonth: String) -> some View {
         HStack(spacing: 6) {
             Button { Haptic.soft(); turnTo(thisMonth, from: m) } label: {
                 Text(L("오늘")).font(.ui(13, .semibold)).foregroundStyle(m == thisMonth ? UI.faint : UI.ink)
@@ -320,7 +319,6 @@ struct CalendarSheet: View {
                             Text(DayLogText.monthTitle(m)).font(.px(15)).foregroundStyle(UI.ink).lineLimit(1).fixedSize()
                             Image(systemName: "chevron.down").font(.system(size: 8, weight: .heavy)).foregroundStyle(UI.sub)
                         }
-                        Text(place.short).font(.ui(11)).foregroundStyle(UI.sub).lineLimit(1)
                     }
                     .padding(.horizontal, 2).frame(height: 48).contentShape(Rectangle())
                 }
