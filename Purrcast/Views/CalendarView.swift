@@ -41,9 +41,12 @@ enum DayLogText {
         return date(key).map { c.component(.weekday, from: $0) } ?? 0
     }
     /// The weekend in color, as Korean and Japanese calendars have it: Sunday red, Saturday blue (nil on weekdays)
+    /// Sunday/holiday red and Saturday blue, dark enough for 4.5:1 on the white month card (measured: 5.0 and 4.6)
     static func weekendInk(_ weekday: Int) -> Color? {
-        weekday == 1 ? Color(hex: "#E5484D") : weekday == 7 ? Color(hex: "#3B6FE0") : nil
+        weekday == 1 ? Color(hex: "#C73E43") : weekday == 7 ? Color(hex: "#3B6FE0") : nil
     }
+    /// The 달력's quiet grey — readable at 4.5:1+ on white (5.5), unlike UI.faint (2.3)
+    static let calSub = Color(hex: "#5F6983")
     static func days(_ n: Int) -> String { n == 1 ? L("하루") : L("%d일", n) }
     static func mm(_ v: Double, snow: Bool) -> String {
         let n = v >= 10 ? String(Int(v.rounded())) : (v == v.rounded() ? String(Int(v)) : String(format: "%.1f", v))
@@ -104,7 +107,7 @@ struct CalendarPreview: View {
         VStack(spacing: 6) {
             HStack(spacing: 0) {
                 ForEach(Array(heads.enumerated()), id: \.offset) { i, h in
-                    Text(h).font(.ui(cell * 0.26)).foregroundStyle(DayLogText.weekendInk((cal.firstWeekday - 1 + i) % 7 + 1) ?? UI.faint)
+                    Text(h).font(.ui(cell * 0.26)).foregroundStyle(DayLogText.weekendInk((cal.firstWeekday - 1 + i) % 7 + 1) ?? DayLogText.calSub)
                         .lineLimit(1).minimumScaleFactor(0.6).frame(width: cell)
                 }
             }
@@ -114,7 +117,7 @@ struct CalendarPreview: View {
                     let weekend = DayLogText.weekendInk((cal.firstWeekday - 1 + i % 7) % 7 + 1)
                     VStack(spacing: cell * 0.06) {
                         Text("\(i + 3)").font(.ui(cell * 0.3, isToday ? .bold : .regular))
-                            .foregroundStyle(isToday ? Color.white : (weekend.map { future ? $0.opacity(0.45) : $0 } ?? (future ? UI.faint : UI.ink)))
+                            .foregroundStyle(isToday ? Color.white : (weekend ?? UI.ink))
                             .frame(width: cell * 0.62, height: cell * 0.62)
                             .background(Circle().fill(isToday ? UI.ink : Color.clear))
                         if !future {
@@ -124,7 +127,7 @@ struct CalendarPreview: View {
                                 PixelIcon(name: d.icon, size: cell * 0.5)
                                 HStack(spacing: 1) {
                                     Text(deg(d.hi)).font(.px(cell * 0.24)).foregroundStyle(UI.ink)
-                                    Text(deg(d.lo)).font(.px(cell * 0.24)).foregroundStyle(UI.faint)
+                                    Text(deg(d.lo)).font(.px(cell * 0.24)).foregroundStyle(DayLogText.calSub)
                                 }
                                 .lineLimit(1).minimumScaleFactor(0.6)
                             }
@@ -493,7 +496,7 @@ struct CalendarSheet: View {
         return VStack(spacing: 8) {
             HStack(spacing: 0) {
                 ForEach(Array(heads.enumerated()), id: \.offset) { i, h in
-                    Text(h).font(.ui(12)).foregroundStyle(DayLogText.weekendInk((cal.firstWeekday - 1 + i) % 7 + 1) ?? UI.faint)
+                    Text(h).font(.ui(12)).foregroundStyle(DayLogText.weekendInk((cal.firstWeekday - 1 + i) % 7 + 1) ?? DayLogText.calSub)
                         .lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: .infinity)
                 }
             }
@@ -580,7 +583,7 @@ struct CalendarSheet: View {
                         PixelIcon(name: r.icon, size: 22)
                         HStack(spacing: 2) {
                             Text(model.deg(r.hi)).font(.px(11)).foregroundStyle(UI.ink)
-                            Text(model.deg(r.lo)).font(.px(11)).foregroundStyle(UI.sub)
+                            Text(model.deg(r.lo)).font(.px(11)).foregroundStyle(DayLogText.calSub)
                         }
                         .lineLimit(1).minimumScaleFactor(0.6)
                     }
