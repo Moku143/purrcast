@@ -241,7 +241,10 @@ final class ScreenshotTests: XCTestCase {
         let all = ["ko", "en", "ja", "es", "fr", "de", "pt-BR", "it", "id", "ru", "zh-Hans", "zh-Hant"]
         let langs = ProcessInfo.processInfo.environment["STORE_LANGS"].map { $0.split(separator: " ").map(String.init) } ?? all
         for lang in langs {
-            for (n, args) in pages { shot("frame-\(lang)-\(n)", args + ["-storeShot", String(n)], wait: 3, lang: lang) }
+            // the language's real default clock (AppModel gives a fresh English install 12h): the harness
+            // otherwise launches everyone on 24h, and the English pictures mixed 16:00 with 4PM
+            let clock = lang == "en" ? ["-clock12"] : []
+            for (n, args) in pages { shot("frame-\(lang)-\(n)", args + clock + ["-storeShot", String(n)], wait: 3, lang: lang) }
         }
     }
 

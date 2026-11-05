@@ -37,7 +37,10 @@ struct RainBar: View {
             HStack {
                 Text(L("지금")).font(.ui(10)).foregroundStyle(Color(hex: "#9AA3C7"))
                 Spacer()
-                Text(HourLabel.word(s.endHour, clock12: Lang.current == .en)).font(.ui(10)).foregroundStyle(Color(hex: "#9AA3C7"))
+                // the user's own clock setting, like every other hour in the app — hard-wiring English to 12h
+                // mixed formats on one screen whenever the setting differed from the language's default
+                Text(HourLabel.word(s.endHour, clock12: SharedStore.load()?.clock12 ?? (Lang.current == .en)))
+                    .font(.ui(10)).foregroundStyle(Color(hex: "#9AA3C7"))
             }
         }
     }
