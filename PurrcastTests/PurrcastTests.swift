@@ -1089,6 +1089,16 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(HolidayNames.display("기독탄신일"), "크리스마스")
         XCTAssertEqual(HolidayNames.display("설날 대체공휴일"), "설날 대체휴일")
         XCTAssertEqual(HolidayNames.display("부처님오신날"), "부처님오신날", "the full name stays in the list")
+        // every holiday cell carries a label: the generic word exists in every language and fits the narrowest
+        // iPhone's cell (320-pt box → about 37 pt per cell) at the fallback's floor scale
+        let cellWidth = (320.0 - 32 - 12) / 7 - 2
+        for l in Lang.allCases {
+            let word = l.string("공휴일")
+            XCTAssertFalse(word.isEmpty, l.rawValue)
+            if l != .ko { XCTAssertNotEqual(word, "공휴일", "\(l.rawValue): no translation for 공휴일") }
+            let w = (word as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 11, weight: .semibold)]).width
+            XCTAssertLessThanOrEqual(w * 0.6, cellWidth, "\(l.rawValue): \(word) cannot fit a narrow cell even scaled")
+        }
     }
 
     /// The stays: consecutive days in one city are one run; the country or city changing ends it, and records too

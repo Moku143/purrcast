@@ -41,12 +41,13 @@ enum DayLogText {
         return date(key).map { c.component(.weekday, from: $0) } ?? 0
     }
     /// The weekend in color, as Korean and Japanese calendars have it: Sunday red, Saturday blue (nil on weekdays)
-    /// Sunday/holiday red and Saturday blue, dark enough for 4.5:1 on the white month card (measured: 5.0 and 4.6)
+    /// The 달력's palette, as the user picked it — deliberately darker than the 4.5:1 floor:
+    /// Sunday/holiday red #C81E1E (5.7:1 on white), Saturday blue #1D4ED8 (6.7:1)
     static func weekendInk(_ weekday: Int) -> Color? {
-        weekday == 1 ? Color(hex: "#C73E43") : weekday == 7 ? Color(hex: "#3B6FE0") : nil
+        weekday == 1 ? Color(hex: "#C81E1E") : weekday == 7 ? Color(hex: "#1D4ED8") : nil
     }
-    /// The 달력's quiet grey — readable at 4.5:1+ on white (5.5), unlike UI.faint (2.3)
-    static let calSub = Color(hex: "#5F6983")
+    /// Future weekday numbers, the weekday headers and the low temperatures (9.2:1); past numbers keep UI.ink
+    static let calSub = Color(hex: "#3D4763")
     static func days(_ n: Int) -> String { n == 1 ? L("하루") : L("%d일", n) }
     static func mm(_ v: Double, snow: Bool) -> String {
         let n = v >= 10 ? String(Int(v.rounded())) : (v == v.rounded() ? String(Int(v)) : String(format: "%.1f", v))
@@ -117,7 +118,7 @@ struct CalendarPreview: View {
                     let weekend = DayLogText.weekendInk((cal.firstWeekday - 1 + i % 7) % 7 + 1)
                     VStack(spacing: cell * 0.06) {
                         Text("\(i + 3)").font(.ui(cell * 0.3, isToday ? .bold : .regular))
-                            .foregroundStyle(isToday ? Color.white : (weekend ?? UI.ink))
+                            .foregroundStyle(isToday ? Color.white : (weekend ?? (future ? DayLogText.calSub : UI.ink)))
                             .frame(width: cell * 0.62, height: cell * 0.62)
                             .background(Circle().fill(isToday ? UI.ink : Color.clear))
                         if !future {
@@ -565,17 +566,19 @@ struct CalendarSheet: View {
             // would read as the next week's date. A future day is told by having no weather, not by fading.
             VStack(spacing: 3) {
                 Text(String(Int(k.suffix(2)) ?? 0)).font(.ui(14, isToday ? .bold : .regular))
-                    .foregroundStyle(isToday ? Color.white : (weekend ?? UI.ink))
+                    .foregroundStyle(isToday ? Color.white : (weekend ?? (future ? DayLogText.calSub : UI.ink)))
                     .frame(width: 28, height: 28)
                     .background(Circle().fill(isToday ? UI.ink : Color.clear))
                 if let h = holiday {
-                    // the short name right under the number, at a fixed size; a name that cannot fit shows
-                    // nothing here (the red number alone) — the list below and the day sheet keep the full name
+                    // the short name right under the number at a fixed size; when even that cannot fit, every
+                    // holiday still carries a label — the localized generic word ("공휴일" · "祝日" · "Holiday"),
+                    // scaled only as a last resort. The list below and the day sheet keep the full name.
                     ViewThatFits(in: .horizontal) {
                         Text(HolidayNames.short(h) ?? HolidayNames.display(h))
                             .font(.ui(10, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? UI.sub)
                             .lineLimit(1).fixedSize().padding(.horizontal, 1)
-                        Color.clear.frame(width: 0, height: 0)
+                        Text(L("공휴일")).font(.ui(10, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? UI.sub)
+                            .lineLimit(1).minimumScaleFactor(0.6).padding(.horizontal, 1)
                     }
                 }
                 if let r {
