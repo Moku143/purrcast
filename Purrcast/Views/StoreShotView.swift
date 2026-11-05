@@ -60,23 +60,28 @@ struct StoreShotView: View {
             ("speech", "white", "mask", HomeView.bubbleLines(L("미세먼지 나쁨 · 마스크 챙기세요"))),   // two lines: whole words on the canvas
             ("speech", "sky", "umbrella_closed", L("%@ %@ 예보", HourLabel.window(16, 19, clock12: model.clock12), L("비"))),
         ]
-        // bursting out over the head: each on its own line of the canvas, so no language's width can put one
-        // bubble over another's words (English and German run far wider than the Korean originals)
-        let spots: [(x: CGFloat, y: CGFloat, r: Double, k: CGFloat)] = [
-            (-90, 0, -7, 1.2), (92, 78, 6, 1.2), (-8, 156, -3, 1.25), (30, 262, 4, 1.25),
+        // bursting out over the head: each on its own band of the canvas, pinned to a side inside a margin.
+        // No offsets or scale transforms: the bubble's layout width is its real width (the font carries the old
+        // scale), and a language too wide for its band wraps inside it instead of growing past the canvas edge —
+        // German and Japanese ran off the right on the fixed-offset layout.
+        let spots: [(y: CGFloat, r: Double, size: CGFloat, align: Alignment, inset: CGFloat)] = [
+            (0, -7, 31, .leading, 36), (78, 6, 31, .trailing, 24), (156, -3, 33, .leading, 10), (262, 4, 33, .trailing, 42),
         ]
         return shot(L("오늘 뭐 입지?"), L("캐릭터를 보면 알아요"), bg: Tone.hero) {
             VStack(spacing: -34) {
                 ZStack(alignment: .top) {
                     ForEach(Array(others.enumerated()), id: \.offset) { i, b in
-                        BubbleView(kind: b.0, tone: b.1, icon: b.2, text: b.3, fontSize: 26)
-                            .fixedSize()
-                            .scaleEffect(spots[i].k)
+                        BubbleView(kind: b.0, tone: b.1, icon: b.2, text: b.3, fontSize: spots[i].size)
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityIdentifier("hero-bubble-\(i + 1)")
                             .rotationEffect(.degrees(spots[i].r))
-                            .offset(x: spots[i].x, y: spots[i].y)
+                            .frame(maxWidth: .infinity, alignment: spots[i].align)
+                            .padding(spots[i].align == .leading ? .leading : .trailing, spots[i].inset)
+                            .offset(y: spots[i].y)
                             .zIndex(Double(i))
                     }
                 }
+                .padding(.horizontal, 20)
                 .frame(width: Self.canvas.width, height: 330, alignment: .top)
                 .zIndex(1)
                 cat(s, width: 290, bubbleSize: 28).zIndex(2)

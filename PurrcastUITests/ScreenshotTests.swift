@@ -244,7 +244,21 @@ final class ScreenshotTests: XCTestCase {
             // the language's real default clock (AppModel gives a fresh English install 12h): the harness
             // otherwise launches everyone on 24h, and the English pictures mixed 16:00 with 4PM
             let clock = lang == "en" ? ["-clock12"] : []
-            for (n, args) in pages { shot("frame-\(lang)-\(n)", args + clock + ["-storeShot", String(n)], wait: 3, lang: lang) }
+            for (n, args) in pages {
+                shot("frame-\(lang)-\(n)", args + clock + ["-storeShot", String(n)], wait: 3, lang: lang) { app in
+                    // the hero page's four bubbles must sit whole on the canvas in every language: the
+                    // picture fails here rather than shipping with a word cut at the edge
+                    guard n == 1 else { return }
+                    let w = app.windows.firstMatch.frame
+                    for i in 1...4 {
+                        let bubble = app.descendants(matching: .any)["hero-bubble-\(i)"].firstMatch
+                        XCTAssertTrue(bubble.waitForExistence(timeout: 5), "hero bubble \(i) missing (\(lang))")
+                        let f = bubble.frame
+                        XCTAssertTrue(f.minX >= w.minX + 8 && f.maxX <= w.maxX - 8,
+                                      "hero bubble \(i) leaves the canvas (\(lang)): \(f) in \(w)")
+                    }
+                }
+            }
         }
     }
 
