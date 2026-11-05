@@ -385,6 +385,12 @@ final class ScreenshotTests: XCTestCase {
         shot("cr-narrow", ["-scene", "maybe", "-plus", "-calTrip", "-narrowCal"], wait: 3, env: kst)
         shot("cr-narrow-feb2027", ["-scene", "maybe", "-plus", "-calTrip", "-narrowCal", "-calMonth", String(toFeb2027)], wait: 3, env: kst)
         shot("cr-large-text", cal + ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryXXXL"], wait: 3, env: kst)
+        // 이 달 머문 곳, option B: last month toured five countries + 서울 twice — the folded country rows,
+        // then every row opened to its cities (-calStaysOpen)
+        let world = ["-scene", "maybe", "-plus", "-open", "calendar", "-calWorld", "-calMonth", "-1"]
+        shot("cr-stays", world, wait: 3, env: kst) { app in app.swipeUp(); sleep(1) }
+        shot("cr-stays-open", world + ["-calStaysOpen"], wait: 3, env: kst) { app in app.swipeUp(); sleep(1) }
+        shot("cr-stays-en", world, wait: 3, lang: "en", env: kst) { app in app.swipeUp(); sleep(1) }
     }
 
     /// The 날씨 달력 page scrolls up (the report below the month stays reachable), the sideways month swipe still

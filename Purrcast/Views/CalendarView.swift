@@ -215,6 +215,8 @@ struct CalendarSheet: View {
     /// Which way this drag goes, decided once 18 pt in and held until the finger lifts: a sideways drag turns
     /// the month with the scroll held still; an up-and-down one scrolls with the month held still
     @State private var dragAxis: Axis?
+    /// 이 달 머문 곳: the country rows opened to their cities (folded again when the month turns)
+    @State private var openStays: Set<Int> = []
     /// Opens this many months away from now (the store picture: last month, every day filled)
     var startMonths = 0
     /// Bumped when a country's holidays arrive from the server (the month draws again)
@@ -443,7 +445,7 @@ struct CalendarSheet: View {
     private func turnTo(_ k: String, from m: String) {
         turn = k > m ? 1 : -1
         DispatchQueue.main.async {
-            withAnimation(Motion.gentle) { month = k; selected = nil; pull = 0 }
+            withAnimation(Motion.gentle) { month = k; selected = nil; pull = 0; openStays = [] }
         }
     }
 
@@ -540,16 +542,42 @@ struct CalendarSheet: View {
 
     private var cellHeight: CGFloat { outfits ? 96 : 88 }
 
-    /// 이 달 머문 곳: each stay of the month — flag, city, and the dates (clipped to this month)
+    /// 이 달 머문 곳: one row per country, in date order (a country visited twice keeps two rows) — flag,
+    /// the country's name in the app's language, and the dates. A tapped country opens its cities with their
+    /// dates; tapped again it folds. A month with one place still shows no card at all.
     private func staysCard(_ stays: [Stay], month m: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let runs = Stays.countryRuns(stays)
+        return VStack(alignment: .leading, spacing: 8) {
             Text(L("이 달 머문 곳")).font(.px(13)).foregroundStyle(UI.ink)
-            ForEach(stays, id: \.from) { st in
-                HStack(spacing: 8) {
-                    Text(Stay.flag(st.cc) ?? st.cc ?? "·").font(.ui(13))
-                    Text(st.name()).font(.ui(13, .semibold)).foregroundStyle(UI.ink).lineLimit(1)
-                    Spacer(minLength: 6)
-                    Text(stayRange(st, month: m)).font(.ui(12)).foregroundStyle(UI.sub).lineLimit(1).minimumScaleFactor(0.8)
+            ForEach(Array(runs.enumerated()), id: \.offset) { i, run in
+                let open = openStays.contains(i)
+                Button {
+                    Haptic.soft()
+                    withAnimation(Motion.snappy) { if open { openStays.remove(i) } else { openStays.insert(i) } }
+                } label: {
+                    HStack(spacing: 8) {
+                        Text(Stay.flag(run.cc) ?? run.cc ?? "·").font(.ui(13))
+                        Text(countryName(run) ?? run.stays.first?.name() ?? "")
+                            .font(.ui(13, .semibold)).foregroundStyle(UI.ink).lineLimit(1).minimumScaleFactor(0.7)
+                        Spacer(minLength: 6)
+                        Text(stayRange(run.stays.first?.from ?? m, run.stays.last?.to ?? m, month: m))
+                            .font(.ui(12)).foregroundStyle(UI.sub).lineLimit(1).minimumScaleFactor(0.8)
+                        Image(systemName: "chevron.down").font(.system(size: 10, weight: .semibold)).foregroundStyle(UI.sub)
+                            .rotationEffect(.degrees(open ? 180 : 0))
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityValue(Text(open ? L("펼쳐짐") : L("접힘")))
+                if open {
+                    ForEach(run.stays, id: \.from) { st in
+                        HStack(spacing: 8) {
+                            Text(st.name()).font(.ui(13)).foregroundStyle(UI.ink).lineLimit(1).minimumScaleFactor(0.7)
+                            Spacer(minLength: 6)
+                            Text(stayRange(st.from, st.to, month: m)).font(.ui(12)).foregroundStyle(UI.sub).lineLimit(1).minimumScaleFactor(0.8)
+                        }
+                        .padding(.leading, 28)
+                    }
                 }
             }
         }
@@ -557,10 +585,22 @@ struct CalendarSheet: View {
         .padding(.horizontal, 16).padding(.vertical, 12)
         .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
         .accessibilityIdentifier("cal-stays")
+        .onAppear {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-calStaysOpen") { openStays = Set(runs.indices) }
+            #endif
+        }
     }
 
-    private func stayRange(_ st: Stay, month m: String) -> String {
-        let from = max(st.from, m + "-01"), to = min(st.to, m + "-31")
+    /// The country's name as the app speaks ("일본" · "Japan" · "日本"); nil without a country code
+    private func countryName(_ run: (cc: String?, stays: [Stay])) -> String? {
+        run.cc.flatMap { Lang.current.locale.localizedString(forRegionCode: $0) }
+    }
+
+    private func stayRange(_ st: Stay, month m: String) -> String { stayRange(st.from, st.to, month: m) }
+
+    private func stayRange(_ f: String, _ t: String, month m: String) -> String {
+        let from = max(f, m + "-01"), to = min(t, m + "-31")
         return from == to ? DayLogText.day(from) : "\(DayLogText.day(from)) ~ \(DayLogText.day(to))"
     }
 

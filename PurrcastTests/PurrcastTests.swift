@@ -1208,6 +1208,24 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Stays.make([old, new, busan], country: Holidays.country(timeZone:)).count, 2)
     }
 
+    /// 이 달 머문 곳, option B: consecutive stays fold into one row per country, in date order — a country
+    /// visited twice keeps two rows, and one country's cities fold into its row.
+    func testStaysCountryRuns() {
+        func stay(_ cc: String?, _ city: String, _ f: String, _ t: String) -> Stay {
+            Stay(cc: cc, city: city, from: f, to: t, days: 1)
+        }
+        let runs = Stays.countryRuns([
+            stay("KR", "서울", "2026-10-01", "2026-10-02"),
+            stay("JP", "도쿄", "2026-10-03", "2026-10-05"),
+            stay("JP", "오사카", "2026-10-06", "2026-10-07"),
+            stay("FR", "파리", "2026-10-08", "2026-10-10"),
+            stay("KR", "서울", "2026-10-11", "2026-10-31"),
+        ])
+        XCTAssertEqual(runs.map(\.cc), ["KR", "JP", "FR", "KR"], "서울 twice keeps two rows")
+        XCTAssertEqual(runs[1].stays.map(\.city), ["도쿄", "오사카"], "one country's cities fold into its row")
+        XCTAssertEqual(runs[1].stays.first?.from, "2026-10-03"); XCTAssertEqual(runs[1].stays.last?.to, "2026-10-07")
+    }
+
     /// A place abroad is never romanized as if it were Korean: a record made while the app ran in Korean stores
     /// "도쿄" and the English name beside it, so English and Japanese read "Tokyo" — never "Dokyo" or "トキョ".
     /// An old foreign record without an English name keeps its stored name untouched.

@@ -825,3 +825,7 @@
 "공휴일" = "Feriado";
 "기록 없음 · %@ → %@ 이동 중" = "Sem registro · em viagem %1$@ → %2$@";
 "양쪽 날의 기록으로 짐작했어요" = "Deduzido dos dias vizinhos";
+
+/* 이 달 머문 곳: VoiceOver — a country row open or folded */
+"펼쳐짐" = "Expandido";
+"접힘" = "Recolhido";

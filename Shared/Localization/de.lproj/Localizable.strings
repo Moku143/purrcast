@@ -825,3 +825,7 @@
 "공휴일" = "Feiertag";
 "기록 없음 · %@ → %@ 이동 중" = "Kein Eintrag · unterwegs %1$@ → %2$@";
 "양쪽 날의 기록으로 짐작했어요" = "Aus den Nachbartagen geschlossen";
+
+/* 이 달 머문 곳: VoiceOver — a country row open or folded */
+"펼쳐짐" = "Ausgeklappt";
+"접힘" = "Eingeklappt";

@@ -496,6 +496,26 @@ extension DayLog {
                 return t
             }
         }
+        // -calWorld: last month toured five countries (서울 → 도쿄 → 파리 → 베를린 → 방콕 → 런던 → 서울),
+        // so the 이 달 머문 곳 card has many country rows to fold (the cr-stays captures)
+        if ProcessInfo.processInfo.arguments.contains("-calWorld") {
+            let lastMonth = DayLogText.shift(String(Self.dayKey(today, tz: .current).prefix(7)), by: -1)
+            let legs: [(ClosedRange<Int>, String, String, String, String, Double, Double)] = [
+                (3...5, "JP", "도쿄", "Tokyo", "Asia/Tokyo", 35.66, 139.70),
+                (6...8, "FR", "파리", "Paris", "Europe/Paris", 48.85, 2.35),
+                (9...11, "DE", "베를린", "Berlin", "Europe/Berlin", 52.52, 13.40),
+                (12...14, "TH", "방콕", "Bangkok", "Asia/Bangkok", 13.75, 100.50),
+                (15...17, "GB", "런던", "London", "Europe/London", 51.50, -0.12),
+            ]
+            out = out.map { r in
+                guard r.date.hasPrefix(lastMonth + "-"), let d = Int(r.date.suffix(2)),
+                      let leg = legs.first(where: { $0.0.contains(d) }) else { return r }
+                var t = r
+                t.cc = leg.1; t.city = leg.2; t.place = leg.2; t.placeKo = nil
+                t.en = leg.3; t.tz = leg.4; t.lat = leg.5; t.lon = leg.6
+                return t
+            }
+        }
         return out
     }
 }
@@ -552,6 +572,20 @@ enum Stays {
                 out.append(last)
             }
             out.append(Stay(cc: cc, city: city, from: r.date, to: r.date, days: 1, lat: r.lat, lon: r.lon, en: r.enCity))
+        }
+        return out
+    }
+
+    /// The stays folded by country for the 이 달 머문 곳 card: consecutive stays in one country make a run
+    /// (a country visited twice gets two runs), in date order.
+    static func countryRuns(_ stays: [Stay]) -> [(cc: String?, stays: [Stay])] {
+        var out: [(cc: String?, stays: [Stay])] = []
+        for s in stays {
+            if var last = out.popLast() {
+                if last.cc == s.cc { last.stays.append(s); out.append(last); continue }
+                out.append(last)
+            }
+            out.append((s.cc, [s]))
         }
         return out
     }

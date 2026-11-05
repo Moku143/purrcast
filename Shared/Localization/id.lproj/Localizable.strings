@@ -825,3 +825,7 @@
 "공휴일" = "Libur";
 "기록 없음 · %@ → %@ 이동 중" = "Tanpa catatan · perjalanan %@ → %@";
 "양쪽 날의 기록으로 짐작했어요" = "Perkiraan dari hari di sekitarnya";
+
+/* 이 달 머문 곳: VoiceOver — a country row open or folded */
+"펼쳐짐" = "Diperluas";
+"접힘" = "Diciutkan";
