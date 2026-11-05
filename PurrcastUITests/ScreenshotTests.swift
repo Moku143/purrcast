@@ -225,17 +225,17 @@ final class ScreenshotTests: XCTestCase {
 
     /// The App Store pictures (6.9-inch simulator: 1320 × 2868), the caption and the app's own views, in each language
     func test11StoreFrames() {
-        let pages: [(Int, [String])] = [
-            (1, ["-scene", "clear", "-char", "cat"]),
-            (2, ["-scene", "clear", "-char", "cat"]),
-            (3, ["-scene", "clear", "-char", "cat"]),
-            (4, ["-scene", "maybe", "-plus", "-char", "cat"]),
-            (5, ["-scene", "seoul_soon", "-plus", "-char", "cat"]),
-            (6, ["-scene", "maybe", "-char", "cat"]),
-            (7, ["-scene", "spring_dust", "-plus", "-char", "cat"]),
-            (8, ["-scene", "maybe", "-plus", "-char", "cat"]),          // 날씨 달력 · 월간 리포트 (Plus)
+        let pages: [(Int, [String])] = [                                // strongest first (StoreShotView's order)
+            (1, ["-scene", "clear", "-char", "cat"]),                   // hero
+            (2, ["-scene", "clear", "-char", "cat"]),                   // outfits
+            (3, ["-scene", "maybe", "-plus", "-char", "cat"]),          // rain alert (Plus)
+            (4, ["-scene", "maybe", "-plus", "-char", "cat"]),          // 날씨 달력 · 월간 리포트 (Plus)
+            (5, ["-scene", "clear", "-char", "cat"]),                   // skies
+            (6, ["-scene", "seoul_soon", "-plus", "-char", "cat"]),     // next 6 hours (Plus)
+            (7, ["-scene", "maybe", "-char", "cat"]),                   // ten days
+            (8, ["-scene", "spring_dust", "-plus", "-char", "cat"]),    // dust (Plus)
             (9, ["-scene", "maybe", "-plus", "-char", "cat"]),          // the lock screen and the home screen
-            (10, ["-scene", "spring_rain", "-plus", "-char", "cat"]),
+            (10, ["-scene", "spring_rain", "-plus", "-char", "cat"]),   // watch (Plus)
         ]
         // every language the app speaks (STORE_LANGS="ko en" takes a few)
         let all = ["ko", "en", "ja", "es", "fr", "de", "pt-BR", "it", "id", "ru", "zh-Hans", "zh-Hant"]

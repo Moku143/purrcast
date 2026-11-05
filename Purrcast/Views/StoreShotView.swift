@@ -24,14 +24,14 @@ struct StoreShotView: View {
     }
 
     @ViewBuilder private var content: some View {
-        switch page {
+        switch page {                       // strongest first: hero, outfits, rain alert, calendar, then the rest
         case 2: outfits
-        case 3: skies
-        case 4: rainAlert
-        case 5: nextHours
-        case 6: tenDays
-        case 7: dust
-        case 8: calendar
+        case 3: rainAlert
+        case 4: calendar
+        case 5: skies
+        case 6: nextHours
+        case 7: tenDays
+        case 8: dust
         case 9: screens
         case 10: watch
         default: hero
@@ -39,11 +39,12 @@ struct StoreShotView: View {
     }
 
     /// One family of colours for every page: the app's sky, lighter or deeper (the outfit page keeps its own warm-to-
-    /// cool wash, the night pages go deep)
+    /// cool wash, the night pages go deep). A light page carries three stops: a dusk-deepened top that holds behind
+    /// the caption (yellow reads ≥ 3.6:1, white ≥ 5:1 there), easing into the page's own sky.
     private enum Tone {
-        static let hero = ["#8DB6EC", "#5C8ED6"], skies = ["#86A2E2", "#5873C6"], rain = ["#3A4890", "#1A2050"]
-        static let hours = ["#7FAEE6", "#4C7CC6"], days = ["#8FB2E8", "#6185CF"], dust = ["#94A6DD", "#6878BE"], widgets = ["#86B9DF", "#5A8CC4"]
-        static let lock = ["#5B66A8", "#2E3470"], watch = ["#363B5E", "#121428"], calendar = ["#9CC3E8", "#6C93D4"]
+        static let hero = ["#546D9D", "#8DB6EC", "#5C8ED6"], skies = ["#596DA4", "#86A2E2", "#5873C6"], rain = ["#3A4890", "#1A2050"]
+        static let hours = ["#516FA0", "#7FAEE6", "#4C7CC6"], days = ["#576E9E", "#8FB2E8", "#6185CF"], dust = ["#5E6D9E", "#94A6DD", "#6878BE"], widgets = ["#52719A", "#86B9DF", "#5A8CC4"]
+        static let lock = ["#5B66A8", "#2E3470"], watch = ["#363B5E", "#121428"], calendar = ["#587099", "#9CC3E8", "#6C93D4"]
     }
 
     // MARK: 1 · 오늘 뭐 입지? 고양이를 보면 알아요
@@ -52,20 +53,16 @@ struct StoreShotView: View {
     /// (each half under the next: the icons show, the words may not); today's bubble in front, on its head
     private var hero: some View {
         let s = model.scene
-        // what it says on other days, top (back) to bottom (front)
+        // what it says on other days, four of them, spread so every word stays readable
         let others: [(String, String, String, String)] = [
-            ("speech", "white", "cloud", L("안개가 짙어요!")),
             ("shout", "coral", "lightning", L("천둥번개!")),
             ("speech", "sky", "snowflake", L("폭설!")),
             ("speech", "white", "mask", L("미세먼지 나쁨 · 마스크 챙기세요")),
-            ("speech", "night", "daynight", L("일교차 커요!")),
-            ("shout", "coral", "thermo_hot", L("폭염!")),
             ("speech", "sky", "umbrella_closed", L("%@ %@ 예보", HourLabel.window(16, 19, clock12: model.clock12), L("비"))),
         ]
-        // bursting out over the head: where each one lands, its tilt and size (the words may run under the next)
+        // bursting out over the head: where each one lands, its tilt and size — no bubble covers another's words
         let spots: [(x: CGFloat, y: CGFloat, r: Double, k: CGFloat)] = [
-            (-100, 0, -9, 1.15), (100, 20, 8, 1.25), (-6, 70, -4, 1.2), (-90, 134, 6, 1.3),
-            (104, 150, -7, 1.2), (40, 214, 5, 1.35), (-96, 248, -6, 1.25),
+            (-96, 6, -7, 1.25), (98, 22, 6, 1.25), (-8, 124, -3, 1.3), (34, 232, 4, 1.3),
         ]
         return shot(L("오늘 뭐 입지?"), L("캐릭터를 보면 알아요"), bg: Tone.hero) {
             VStack(spacing: -34) {
@@ -110,7 +107,7 @@ struct StoreShotView: View {
         }
     }
 
-    // MARK: 3 · 하늘이 바뀌면 고양이도 바뀌어요
+    // MARK: 5 · 하늘이 바뀌면 고양이도 바뀌어요
 
     /// Four weathers, each tile its own sky with the character dressed for it
     private var skies: some View {
@@ -144,7 +141,7 @@ struct StoreShotView: View {
         .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).strokeBorder(Color.white.opacity(0.9), lineWidth: 4))
     }
 
-    // MARK: 4 · 비 오기 1시간 전 미리 알려줘요
+    // MARK: 3 · 비 오기 1시간 전 미리 알려줘요
 
     /// The island the alert opens and the lock-screen card, big, the character under its umbrella beside them
     private var rainAlert: some View {
@@ -180,7 +177,7 @@ struct StoreShotView: View {
         }
     }
 
-    // MARK: 5 · 언제, 얼마나 비가 오는지
+    // MARK: 6 · 언제, 얼마나 비가 오는지
 
     /// The next six hours, big: when it starts, a bar per hour with its amount, the hour and its chance
     private var nextHours: some View {
@@ -227,7 +224,7 @@ struct StoreShotView: View {
         }
     }
 
-    // MARK: 6 · 열흘 뒤 날씨까지 미리 볼 수 있어요
+    // MARK: 7 · 열흘 뒤 날씨까지 미리 볼 수 있어요
 
     /// The ten days, big: the day, its weather, the chance of rain, the low, the range and the high
     private var tenDays: some View {
@@ -265,7 +262,7 @@ struct StoreShotView: View {
         }
     }
 
-    // MARK: 7 · 미세먼지도 한눈에
+    // MARK: 8 · 미세먼지도 한눈에
 
     private var dust: some View {
         shot(L("미세먼지도"), L("한눈에"), bg: Tone.dust) {
@@ -274,16 +271,16 @@ struct StoreShotView: View {
         }
     }
 
-    // MARK: 8 · 매일 날씨가 쌓여요 — 날씨 달력 · 월간 리포트 (Plus)
+    // MARK: 4 · 매일 날씨가 쌓여요 — 날씨 달력 · 월간 리포트 (Plus)
 
     /// The 날씨 달력 itself — last month, every day of it filled with the made-up days of the example weather — in a
     /// phone, cut short in the report
     private var calendar: some View {
         shot(L("매일의 날씨와 옷차림이"), L("달력에 쌓여요"), bg: Tone.calendar, plus: true) {
-            phone(dark: false, scale: 0.86, topInset: 36) {
+            phone(dark: false, scale: 0.95, topInset: 36) {
                 CalendarSheet(startMonths: -1).environmentObject(model)
             }
-            .frame(height: 690, alignment: .top).clipped()
+            .frame(height: 724, alignment: .top).clipped()
         }
     }
 
@@ -294,7 +291,7 @@ struct StoreShotView: View {
     private var screens: some View {
         let snap = model.snapshot
         return shot(L("홈 화면도 잠금화면도"), L("한눈에 확인해요"), bg: Tone.widgets) {
-            VStack(spacing: 18) {
+            VStack(spacing: 24) {
                 VStack(spacing: 4) {
                     HStack(spacing: 8) {
                         Text(DayLogText.dayLong(DayLog.dayKey(Date(), tz: .current)))
@@ -318,10 +315,10 @@ struct StoreShotView: View {
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
                 }
-                widget(364, 170, snap) { MediumWidgetView(snap: snap) }
-                widget(364, 170, snap) { HoursWidgetView(snap: snap) }
+                // one home-screen widget, large — two made neither readable
+                widget(384, 180, snap) { MediumWidgetView(snap: snap) }
             }
-            .padding(.top, 4)
+            .padding(.top, 10)
         }
     }
 
@@ -330,7 +327,7 @@ struct StoreShotView: View {
         c().foregroundStyle(.white).frame(width: w, height: h).padding(circle ? 0 : 8)
     }
 
-    // MARK: 9 · 애플워치에서도 캐릭터와 함께
+    // MARK: 10 · 애플워치에서도 캐릭터와 함께
 
     /// Two faces with the complications, the watch app, and the complications themselves large
     private var watch: some View {
@@ -365,15 +362,18 @@ struct StoreShotView: View {
     /// page's picture under it, and — App Review 2.3.2 — the subscription named in small type at the bottom
     private func shot<C: View>(_ l1: String, _ l2: String, bg: [String], light: Bool = true, plus: Bool = false, highlight: Color? = nil, @ViewBuilder _ c: () -> C) -> some View {
         let ink = light ? Color.white : Color(hex: "#1E2A44")
-        let hi = highlight ?? (light ? yellow : Color(hex: "#E2603A"))
+        let hi = highlight ?? (light ? yellow : Color(hex: "#B83A1A"))   // the warm pages' orange at 4.3:1 on the wash
         return VStack(spacing: 0) {
             VStack(spacing: 10) {
-                Text(l1).font(.px(38)).foregroundStyle(ink)
-                Text(l2).font(.px(38)).foregroundStyle(hi)
+                Text(l1).font(.px(44)).foregroundStyle(ink)
+                Text(l2).font(.px(44)).foregroundStyle(hi)
             }
-            .shadow(color: .black.opacity(light ? 0.18 : 0), radius: 0, x: 0, y: 3)
+            // a solid pixel shadow in the deep navy, not a translucent blur — it holds at thumbnail size
+            .shadow(color: light ? Color(hex: "#1A2240") : .clear, radius: 0, x: 0, y: 3)
             .multilineTextAlignment(.center)
-            .lineLimit(1).minimumScaleFactor(0.6)
+            // 44 where a line fits; a long line (German, Russian) shrinks to its width as before — the 0.5 floor
+            // carries slightly more text than the old 38 × 0.6 did, so nothing that fit before is cut now
+            .lineLimit(1).minimumScaleFactor(0.5)
             .padding(.horizontal, 22)
             .padding(.top, 60)
             .frame(height: 200, alignment: .top)
@@ -381,10 +381,23 @@ struct StoreShotView: View {
         }
         .overlay(alignment: .bottom) {
             if plus {
-                Text(L("Plus 구독 기능")).font(.ui(13, .medium)).foregroundStyle(ink.opacity(0.75)).padding(.bottom, 22)
+                // App Review 2.3.2: the subscription named — a solid pill, readable even in a thumbnail
+                Text(L("Plus 구독 기능")).font(.ui(14, .semibold)).foregroundStyle(.white)
+                    .padding(.horizontal, 14).padding(.vertical, 7)
+                    .background(Color(hex: "#1A2240").opacity(0.92), in: Capsule())
+                    .padding(.bottom, 18)
             }
         }
-        .background { if !bg.isEmpty { LinearGradient(colors: bg.map { Color(hex: $0) }, startPoint: .top, endPoint: .bottom) } }
+        .background {
+            // three stops: the dusk top stays solid behind the caption (to ~1/5 of the page), then the page's sky
+            if bg.count == 3 {
+                LinearGradient(stops: [.init(color: Color(hex: bg[0]), location: 0), .init(color: Color(hex: bg[0]), location: 0.19),
+                                       .init(color: Color(hex: bg[1]), location: 0.42), .init(color: Color(hex: bg[2]), location: 1)],
+                               startPoint: .top, endPoint: .bottom)
+            } else if !bg.isEmpty {
+                LinearGradient(colors: bg.map { Color(hex: $0) }, startPoint: .top, endPoint: .bottom)
+            }
+        }
     }
 
     /// The character dressed for `s`, with the bubble over its head (or umbrella) when `bubbleSize` > 0
