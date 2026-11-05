@@ -426,7 +426,10 @@ final class ScreenshotTests: XCTestCase {
         day.tap()
         sleep(2)
         XCTAssertFalse(bar.isHittable, "the day sheet did not open on a tap")
-        app.swipeDown()
+        // closed by its own 닫기: a mid-screen swipe scrolls the day sheet's charts, it does not pull the sheet
+        let dayClose = app.buttons.matching(identifier: "sheet-close").allElementsBoundByIndex.first { $0.isHittable }
+        XCTAssertNotNil(dayClose, "the day sheet has no reachable 닫기")
+        dayClose?.tap()
         sleep(2)
         XCTAssertTrue(bar.isHittable, "the day sheet did not close")
         let y0 = bar.frame.minY
