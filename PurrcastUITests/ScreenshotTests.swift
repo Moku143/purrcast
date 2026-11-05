@@ -7,8 +7,9 @@ final class ScreenshotTests: XCTestCase {
 
     override func setUp() { continueAfterFailure = true }   // a simulator hiccup on one picture must not stop the rest
 
-    private func shot(_ name: String, _ args: [String], wait: UInt32 = 1, lang: String = "ko", then: ((XCUIApplication) -> Void)? = nil) {
+    private func shot(_ name: String, _ args: [String], wait: UInt32 = 1, lang: String = "ko", env: [String: String] = [:], then: ((XCUIApplication) -> Void)? = nil) {
         let app = XCUIApplication()
+        for (k, v) in env { app.launchEnvironment[k] = v }
         let locale = ["ko": "ko_KR", "en": "en_US", "ja": "ja_JP", "es": "es_ES", "fr": "fr_FR", "de": "de_DE", "pt-BR": "pt_BR", "it": "it_IT",
                       "id": "id_ID", "ru": "ru_RU", "zh-Hans": "zh_CN", "zh-Hant": "zh_TW"][lang] ?? "en_US"
         app.launchArguments = args + ["-AppleLanguages", "(\(lang))", "-AppleLocale", locale]   // Korean phone by default: 그르릉날씨
@@ -367,21 +368,23 @@ final class ScreenshotTests: XCTestCase {
     /// the trip month in three languages, a future December, 설날 2027, the outfit tab, both day sheets, the
     /// report, the narrowest width and the largest text size
     func test21CalendarRework() {
+        // a Korean user's device clock: today, future days and their holidays follow the device's own time zone
+        let kst = ["TZ": "Asia/Seoul"]
         let cal = ["-scene", "maybe", "-plus", "-open", "calendar", "-calTrip"]
-        shot("cr-ko-nov2026-trip", cal, wait: 3)
-        shot("cr-ko-dec2026", cal + ["-calMonth", "1"], wait: 3)
+        shot("cr-ko-nov2026-trip", cal, wait: 3, env: kst)
+        shot("cr-ko-dec2026", cal + ["-calMonth", "1"], wait: 3, env: kst)
         // February 2027: 설날 and its 연휴 (the short names under red numbers)
         let toFeb2027 = (2027 - Calendar.current.component(.year, from: Date())) * 12 + (2 - Calendar.current.component(.month, from: Date()))
-        shot("cr-ko-feb2027", cal + ["-calMonth", String(toFeb2027)], wait: 3)
-        shot("cr-ja", cal, wait: 3, lang: "ja")
-        shot("cr-en", cal, wait: 3, lang: "en")
-        shot("cr-outfits", cal + ["-calOutfits"], wait: 3)
-        shot("cr-day-sheet-seoul", cal + ["-calDay", "1"], wait: 3)
-        shot("cr-day-sheet-tokyo", cal + ["-calDay", "3"], wait: 3)
-        shot("cr-report", cal, wait: 3) { app in app.swipeUp(); app.swipeUp(); sleep(1) }
-        shot("cr-narrow", ["-scene", "maybe", "-plus", "-calTrip", "-narrowCal"], wait: 3)
-        shot("cr-narrow-feb2027", ["-scene", "maybe", "-plus", "-calTrip", "-narrowCal", "-calMonth", String(toFeb2027)], wait: 3)
-        shot("cr-large-text", cal + ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryXXXL"], wait: 3)
+        shot("cr-ko-feb2027", cal + ["-calMonth", String(toFeb2027)], wait: 3, env: kst)
+        shot("cr-ja", cal, wait: 3, lang: "ja", env: kst)
+        shot("cr-en", cal, wait: 3, lang: "en", env: kst)
+        shot("cr-outfits", cal + ["-calOutfits"], wait: 3, env: kst)
+        shot("cr-day-sheet-seoul", cal + ["-calDay", "1"], wait: 3, env: kst)
+        shot("cr-day-sheet-tokyo", cal + ["-calDay", "3"], wait: 3, env: kst)
+        shot("cr-report", cal, wait: 3, env: kst) { app in app.swipeUp(); app.swipeUp(); sleep(1) }
+        shot("cr-narrow", ["-scene", "maybe", "-plus", "-calTrip", "-narrowCal"], wait: 3, env: kst)
+        shot("cr-narrow-feb2027", ["-scene", "maybe", "-plus", "-calTrip", "-narrowCal", "-calMonth", String(toFeb2027)], wait: 3, env: kst)
+        shot("cr-large-text", cal + ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryXXXL"], wait: 3, env: kst)
     }
 
     /// The 날씨 달력 page scrolls up (the report below the month stays reachable), the sideways month swipe still
