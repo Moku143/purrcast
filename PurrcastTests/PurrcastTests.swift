@@ -1208,6 +1208,19 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(k.fullPlaceName(.en), "Seoul Mapo-gu")
     }
 
+    /// Holidays follow the day's own country: a Tokyo day in a Seoul user's month shows 文化の日, and Japan's
+    /// 勤労感謝の日 never marks a day spent in Seoul (the lookup goes by each day's time zone)
+    func testHolidaysFollowTheDaysCountry() {
+        Holidays.installSample()
+        XCTAssertEqual(Holidays.name("2026-11-03", timeZone: "Asia/Tokyo", lang: .ja), "文化の日")
+        XCTAssertEqual(Holidays.name("2026-11-03", timeZone: "Asia/Tokyo", lang: .ko), "문화의 날")
+        XCTAssertNil(Holidays.name("2026-11-03", timeZone: "Asia/Seoul", lang: .ko), "not a Korean holiday")
+        XCTAssertNil(Holidays.name("2026-11-23", timeZone: "Asia/Seoul", lang: .ko), "a Seoul day doesn't take Japan's 勤労感謝の日")
+        XCTAssertEqual(Holidays.name("2026-11-23", timeZone: "Asia/Tokyo", lang: .ja), "勤労感謝の日")
+        let tz: (String) -> String = { ["2026-11-01", "2026-11-02", "2026-11-03"].contains($0) ? "Asia/Tokyo" : "Asia/Seoul" }
+        XCTAssertEqual(Holidays.month("2026-11", timeZone: tz, lang: .ko).map(\.key), ["2026-11-03"])
+    }
+
     /// The midnight stamp: the last look before midnight decides the day and its country; a Seoul → LA flight
     /// lives one date twice and keeps LA's record; the date line can skip a day with nothing invented; the app
     /// and a widget write the same day as one; old records carry no stamp and show none

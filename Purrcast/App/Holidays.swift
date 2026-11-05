@@ -98,6 +98,14 @@ extension Holidays {
         ]
         let table: [String: Any] = ["cc": "KR", "lang": "ko", "days": days.mapValues { ["": $0] }]
         if let d = try? JSONSerialization.data(withJSONObject: table) { install(d) }
+        // Japan too, for the sample trip (서울 → 도쿄 → 서울): a Tokyo day takes Japan's holidays — and only a
+        // Tokyo day (勤労感謝の日 must not mark a day spent in Seoul)
+        let jp: [String: [String: String]] = [
+            "2026-11-03": ["": "文化の日", "ko": "문화의 날", "en": "Culture Day"],
+            "2026-11-23": ["": "勤労感謝の日", "ko": "근로 감사의 날", "en": "Labor Thanksgiving Day"],
+        ]
+        let jTable: [String: Any] = ["cc": "JP", "lang": "ja", "days": jp]
+        if let d = try? JSONSerialization.data(withJSONObject: jTable) { install(d) }
     }
 }
 #endif
