@@ -683,9 +683,11 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(r2.count, 2)
         XCTAssertNil(r2[0].hours)
         XCTAssertNil(r2[1].wet)
-        // places no longer listed lose their days
+        // places no longer listed lose their days — except "here", the calendar's whole timeline, which always stays
+        log.save(log.records(place.id), for: "mk:gone")
         log.keepOnly(["somewhere-else"])
-        XCTAssertTrue(log.records(place.id).isEmpty)
+        XCTAssertTrue(log.records("mk:gone").isEmpty)
+        XCTAssertFalse(log.records(place.id).isEmpty, "the here file is the timeline and survives the list")
     }
 
     /// The calendar keeps the days used with Plus: a day seen with Plus stays a Plus day; days only the server filled
@@ -1189,7 +1191,8 @@ final class PurrcastTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: dir) }
         let log = DayLog(dir: dir)
         let seoul = herePlace(lat: 37.57, lon: 126.98, tz: "Asia/Seoul", region: "kr", short: "마포구")
-        let la = herePlace(lat: 34.05, lon: -118.24, tz: "America/Los_Angeles", region: "us", short: "LA")
+        var la = herePlace(lat: 34.05, lon: -118.24, tz: "America/Los_Angeles", region: "other", short: "LA")
+        la.cc = "US"       // as the geocoder fills it for 지금 위치
         var kst = Calendar(identifier: .gregorian); kst.timeZone = TimeZone(identifier: "Asia/Seoul")!
         var pt = Calendar(identifier: .gregorian); pt.timeZone = TimeZone(identifier: "America/Los_Angeles")!
         // Seoul, Nov 5 22:00 KST — then LA, where Nov 5 comes round again (Nov 6 10:00 KST = Nov 5 17:00 PT)
