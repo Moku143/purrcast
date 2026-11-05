@@ -65,13 +65,15 @@ struct StoreShotView: View {
         // scale), and a language too wide for its band wraps inside it instead of growing past the canvas edge —
         // German and Japanese ran off the right on the fixed-offset layout.
         let spots: [(y: CGFloat, r: Double, size: CGFloat, align: Alignment, inset: CGFloat)] = [
-            (0, -7, 31, .leading, 36), (78, 6, 31, .trailing, 24), (156, -3, 33, .leading, 10), (262, 4, 33, .trailing, 42),
+            (0, -7, 31, .leading, 36), (78, 6, 31, .trailing, 24), (156, -3, 33, .leading, 10), (262, 4, 31, .center, 0),
         ]
         return shot(L("오늘 뭐 입지?"), L("캐릭터를 보면 알아요"), bg: Tone.hero) {
             VStack(spacing: -34) {
                 ZStack(alignment: .top) {
                     ForEach(Array(others.enumerated()), id: \.offset) { i, b in
-                        BubbleView(kind: b.0, tone: b.1, icon: b.2, text: b.3, fontSize: spots[i].size)
+                        // every band but the mask's (pre-wrapped to two whole-word lines) keeps to one line,
+                        // shrinking a wide language a little instead of folding under the bubble below
+                        BubbleView(kind: b.0, tone: b.1, icon: b.2, text: b.3, fontSize: spots[i].size, oneLine: i != 2)
                             .accessibilityElement(children: .ignore)
                             .accessibilityIdentifier("hero-bubble-\(i + 1)")
                             .rotationEffect(.degrees(spots[i].r))

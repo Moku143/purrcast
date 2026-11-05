@@ -12,6 +12,9 @@ struct BubbleView: View {
     /// Where the tail points, measured from the bubble's left edge (nil: the middle). The home page passes the
     /// character's head: a long line then keeps its box on the screen and only the tail moves over to the head.
     var tailX: CGFloat? = nil
+    /// The store pictures set this: the line shrinks to the width it is given instead of wrapping, so a wide
+    /// language can never fold into a second line that the next bubble would cover.
+    var oneLine = false
     @State private var shown = false
     @State private var bob = false
     @Environment(\.accessibilityReduceMotion) private var reduce
@@ -38,7 +41,8 @@ struct BubbleView: View {
                 if !text.isEmpty {
                     // one line when the width allows (widgets and the watch fix the size); a long line from the
                     // server wraps to two inside the width it is given instead of growing past it
-                    Text(text).font(.px(fontSize)).foregroundStyle(inkColor).lineLimit(3).multilineTextAlignment(.center)
+                    Text(text).font(.px(fontSize)).foregroundStyle(inkColor).lineLimit(oneLine ? 1 : 3)
+                        .minimumScaleFactor(oneLine ? 0.6 : 1).multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
