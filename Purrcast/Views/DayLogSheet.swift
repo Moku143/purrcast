@@ -8,6 +8,8 @@ struct DayLogSheet: View {
     let key: String
     let record: DayRecord?
     var holiday: String? = nil
+    /// A dayless date between two countries ("LA → 서울"): shown as travel, inferred, never written
+    var travel: (from: String, to: String)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -37,10 +39,17 @@ struct DayLogSheet: View {
                     }
                 } else {
                     VStack(spacing: 12) {
-                        PixelIcon(name: "question", size: 36)
-                        Text(L("기록이 없는 날이에요")).font(.ui(15)).foregroundStyle(UI.sub)
+                        PixelIcon(name: travel == nil ? "question" : "wind", size: 36)
+                        if let t = travel {
+                            Text(L("기록 없음 · %@ → %@ 이동 중", t.from, t.to)).font(.ui(15, .semibold)).foregroundStyle(UI.ink)
+                                .multilineTextAlignment(.center).padding(.horizontal, 24)
+                            Text(L("양쪽 날의 기록으로 짐작했어요")).font(.ui(12)).foregroundStyle(UI.sub)
+                        } else {
+                            Text(L("기록이 없는 날이에요")).font(.ui(15)).foregroundStyle(UI.sub)
+                        }
                     }
                     .frame(maxWidth: .infinity).padding(.top, 80)
+                    .accessibilityIdentifier(travel == nil ? "log-empty" : "log-travel")
                 }
             }
         }

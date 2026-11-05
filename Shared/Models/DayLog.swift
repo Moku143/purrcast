@@ -520,6 +520,23 @@ enum Stays {
         return out
     }
 
+    /// A dayless date whose neighbours were recorded in different countries, at most two days apart in all:
+    /// the day was spent travelling ("LA → 서울") — inferred from the two neighbours for display only, and never
+    /// written into the log.
+    static func travelHint(_ records: [DayRecord], day: String) -> (from: String, to: String)? {
+        let sorted = records.sorted { $0.date < $1.date }
+        guard let prev = sorted.last(where: { $0.date < day }), let next = sorted.first(where: { $0.date > day }),
+              let a = prev.cc, let b = next.cc, a != b,
+              let d0 = DayLog.date(prev.date), let d1 = DayLog.date(next.date),
+              d1.timeIntervalSince(d0) <= 3 * 86400 else { return nil }
+        return (from: cityName(prev), to: cityName(next))
+    }
+
+    /// The city as shown now ("서울" in Korean places' own name)
+    static func cityName(_ r: DayRecord) -> String {
+        r.city.map { KoreanNames.word($0, .current) } ?? r.placeName()
+    }
+
     private static func changed(from a: Stay, to b: DayRecord) -> Bool {
         if let ac = a.cc, let bc = b.cc, ac != bc { return true }
         if let bCity = b.city, !a.city.isEmpty { return a.city != bCity }

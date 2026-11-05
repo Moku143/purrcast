@@ -278,7 +278,9 @@ struct CalendarSheet: View {
                                                     holiday: Holidays.name(d.id, timeZone: r.tz ?? tz.identifier)))
                     .presentationDetents([.large]).presentationCornerRadius(28)
             } else {
-                DayLogSheet(key: d.id, record: byDate[d.id], holiday: Holidays.name(d.id, timeZone: byDate[d.id]?.tz ?? tz.identifier)).presentationDetents([.large]).presentationCornerRadius(28)
+                DayLogSheet(key: d.id, record: byDate[d.id], holiday: Holidays.name(d.id, timeZone: byDate[d.id]?.tz ?? tz.identifier),
+                            travel: byDate[d.id] == nil ? Stays.travelHint(all, day: d.id) : nil)
+                    .presentationDetents([.large]).presentationCornerRadius(28)
             }
         }
         .task(id: "holidays|\(m)") {

@@ -823,3 +823,5 @@
 "마지막 확인 %@" = "Terakhir dipastikan %@";
 "이 달 머문 곳" = "Tempat bulan ini";
 "공휴일" = "Libur";
+"기록 없음 · %@ → %@ 이동 중" = "Tanpa catatan · perjalanan %@ → %@";
+"양쪽 날의 기록으로 짐작했어요" = "Perkiraan dari hari di sekitarnya";

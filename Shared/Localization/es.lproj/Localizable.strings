@@ -823,3 +823,5 @@
 "마지막 확인 %@" = "Última confirmación: %@";
 "이 달 머문 곳" = "Lugares de este mes";
 "공휴일" = "Festivo";
+"기록 없음 · %@ → %@ 이동 중" = "Sin registro · en viaje %1$@ → %2$@";
+"양쪽 날의 기록으로 짐작했어요" = "Deducido de los días vecinos";

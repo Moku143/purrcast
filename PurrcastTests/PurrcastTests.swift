@@ -1053,8 +1053,8 @@ final class PurrcastTests: XCTestCase {
         s.hours = try JSONDecoder().decode([WeatherScene.HourRow].self, from: Data("[[\"지금\",\"\(icon)\",\(temp),\(chance),\(rain ? mm : 0)]]".utf8))
         return s
     }
-    private func herePlace(lat: Double, lon: Double, tz: String, region: String, short: String) -> Place {
-        Place(id: "here", name: short, short: short, lat: lat, lon: lon, region: region, timeZone: tz, sample: "maybe", ko: nil)
+    private func herePlace(lat: Double, lon: Double, tz: String, region: String, short: String, ko: String? = nil) -> Place {
+        Place(id: "here", name: ko ?? short, short: short, lat: lat, lon: lon, region: region, timeZone: tz, sample: "maybe", ko: ko)
     }
 
     /// 월간 리포트 on the timeline: "지난달보다" says nothing when the two months' main country differs
@@ -1099,6 +1099,60 @@ final class PurrcastTests: XCTestCase {
             let w = (word as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 11, weight: .semibold)]).width
             XCTAssertLessThanOrEqual(w * 0.6, cellWidth, "\(l.rawValue): \(word) cannot fit a narrow cell even scaled")
         }
+    }
+
+    /// The user's flight, with their exact times. Seoul 15:00 KST Nov 5, airplane mode, first refresh in LA at
+    /// 12:30 PST still on Nov 5: the day becomes LA's, Nov 6 stays free for LA. No refresh before LA midnight:
+    /// Nov 5 stays 서울 and the next refresh starts Nov 6 in LA with no gap. Coming home, a date passed with no
+    /// check shows as travel between the neighbours — inferred only, never written.
+    func testSeoulToLAFlightDays() throws {
+        var kst = Calendar(identifier: .gregorian); kst.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        var pt = Calendar(identifier: .gregorian); pt.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        let seoul = herePlace(lat: 37.57, lon: 126.98, tz: "Asia/Seoul", region: "kr", short: "마포구", ko: "서울 마포구")
+        let la = herePlace(lat: 34.05, lon: -118.24, tz: "America/Los_Angeles", region: "other", short: "LA")
+        let laCC = { () -> Place in var p = la; p.cc = "US"; return p }()
+        let seoulAt1500 = kst.date(from: DateComponents(year: 2026, month: 11, day: 5, hour: 15))!
+        let laAt1230 = pt.date(from: DateComponents(year: 2026, month: 11, day: 5, hour: 12, minute: 30))!
+        XCTAssertEqual(kst.component(.day, from: laAt1230), 6, "12:30 PST is already Nov 6 in Seoul — the date repeats")
+        // the refresh landed before LA midnight: Nov 5 becomes LA, Nov 6 stays free for LA
+        let dir1 = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir1) }
+        let log1 = DayLog(dir: dir1)
+        log1.record(try stampScene(temp: 12), place: seoul, plus: true, at: seoulAt1500)
+        log1.record(try stampScene(temp: 20), place: laCC, plus: true, at: laAt1230)
+        XCTAssertEqual(log1.records("here").map(\.date), ["2026-11-05"])
+        XCTAssertEqual(log1.records("here")[0].cc, "US")
+        XCTAssertEqual(log1.records("here")[0].confirmed, laAt1230)
+        log1.record(try stampScene(temp: 21), place: laCC, plus: true, at: pt.date(from: DateComponents(year: 2026, month: 11, day: 6, hour: 9))!)
+        XCTAssertEqual(log1.records("here").map(\.date), ["2026-11-05", "2026-11-06"], "Nov 6 was free for LA")
+        XCTAssertEqual(log1.records("here").map(\.cc), ["US", "US"])
+        // no refresh before LA midnight: Nov 5 stays 서울, the next refresh starts Nov 6 in LA with no gap
+        let dir2 = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir2) }
+        let log2 = DayLog(dir: dir2)
+        log2.record(try stampScene(temp: 12), place: seoul, plus: true, at: seoulAt1500)
+        log2.record(try stampScene(temp: 21), place: laCC, plus: true, at: pt.date(from: DateComponents(year: 2026, month: 11, day: 6, hour: 8))!)
+        XCTAssertEqual(log2.records("here").map(\.date), ["2026-11-05", "2026-11-06"], "no gap and no overwrite")
+        XCTAssertEqual(log2.records("here").map(\.cc), ["KR", "US"], "Nov 5 stayed 서울")
+        // home the other way: Nov 11 passed with no check — travel between the neighbours, inferred, never written
+        let dir3 = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir3) }
+        let log3 = DayLog(dir: dir3)
+        log3.record(try stampScene(temp: 18), place: laCC, plus: true, at: pt.date(from: DateComponents(year: 2026, month: 11, day: 10, hour: 18))!)
+        log3.record(try stampScene(temp: 9), place: seoul, plus: true, at: kst.date(from: DateComponents(year: 2026, month: 11, day: 12, hour: 9))!)
+        let recs = log3.records("here")
+        XCTAssertEqual(recs.map(\.date), ["2026-11-10", "2026-11-12"])
+        Lang.current = .ko
+        let hint = Stays.travelHint(recs, day: "2026-11-11")
+        XCTAssertEqual(hint?.from, "LA"); XCTAssertEqual(hint?.to, "서울")
+        XCTAssertEqual(log3.records("here").count, 2, "the hint wrote nothing")
+        XCTAssertNil(Stays.travelHint(recs, day: "2026-11-09"), "before the first record: no hint")
+        // a longer absence is not called travel
+        var far = recs; far[1].date = "2026-11-15"
+        XCTAssertNil(Stays.travelHint(far, day: "2026-11-11"), "a 4-day gap is not a flight")
+        // same country either side: no hint
+        var same = recs; same[0].cc = "KR"
+        XCTAssertNil(Stays.travelHint(same, day: "2026-11-11"))
     }
 
     /// The stays: consecutive days in one city are one run; the country or city changing ends it, and records too
