@@ -282,6 +282,8 @@ struct StoreShotView: View {
                 CalendarSheet(startMonths: -1).environmentObject(model)
             }
             .frame(height: 724, alignment: .top).clipped()
+            // fading out above the Plus pill, so no row sits under it
+            .mask(LinearGradient(stops: [.init(color: .black, location: 0.8), .init(color: .clear, location: 0.95)], startPoint: .top, endPoint: .bottom))
         }
     }
 
