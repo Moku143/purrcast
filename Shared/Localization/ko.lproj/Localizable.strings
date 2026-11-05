@@ -821,3 +821,4 @@
 // 날씨 기록: when the day's place was last confirmed (DayDetailView.confirmedLine)
 "밤 %@ 위치" = "밤 %@ 위치";
 "마지막 확인 %@" = "마지막 확인 %@";
+"이 달 머문 곳" = "이 달 머문 곳";

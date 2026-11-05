@@ -15,6 +15,9 @@ struct Place: Codable, Hashable, Identifiable {
     /// A Korean place's name in Korean ("서울 구로구 오류동"), whatever language the app shows: the server reads the
     /// 기상청 warnings by it, and Japanese names are made from it. nil elsewhere (and in places saved before it existed).
     var ko: String? = nil
+    /// The country ("KR"), from the geocoder for 지금 위치; nil on places saved before it existed (the 날씨 달력
+    /// falls back to the time zone's country for their flags)
+    var cc: String? = nil
 
     /// The name the forecast server is given: Korean for Korean places.
     var serverName: String { ko ?? name }

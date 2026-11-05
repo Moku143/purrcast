@@ -1057,6 +1057,32 @@ final class PurrcastTests: XCTestCase {
         Place(id: "here", name: short, short: short, lat: lat, lon: lon, region: region, timeZone: tz, sample: "maybe", ko: nil)
     }
 
+    /// The stays: consecutive days in one city are one run; the country or city changing ends it, and records too
+    /// old to carry a city fall back to the 30-km rule; the flag comes from the country code or stays letters
+    func testStaysOnTheTimeline() {
+        func day(_ d: String, cc: String? = nil, city: String? = nil, lat: Double? = nil, lon: Double? = nil) -> DayRecord {
+            var r = DayRecord(date: d, hi: 10, lo: 3, icon: "sun"); r.cc = cc; r.city = city; r.lat = lat; r.lon = lon; return r
+        }
+        let trip = [day("2026-11-01", cc: "KR", city: "서울"), day("2026-11-02", cc: "KR", city: "서울"),
+                    day("2026-11-03", cc: "JP", city: "도쿄"), day("2026-11-05", cc: "JP", city: "도쿄"),
+                    day("2026-11-06", cc: "KR", city: "서울")]
+        let stays = Stays.make(trip)
+        XCTAssertEqual(stays.map(\.city), ["서울", "도쿄", "서울"])
+        XCTAssertEqual(stays.map(\.days), [2, 2, 1])
+        XCTAssertEqual(stays[1].from, "2026-11-03"); XCTAssertEqual(stays[1].to, "2026-11-05")
+        // old records without a city: over 30 km ends the stay, under it does not
+        let old = [day("2026-10-01", lat: 37.57, lon: 126.98), day("2026-10-02", lat: 37.50, lon: 127.03),
+                   day("2026-10-03", lat: 35.18, lon: 129.07)]
+        XCTAssertEqual(Stays.make(old).count, 2, "9 km stays, 320 km does not")
+        XCTAssertEqual(Stay.flag("KR"), "🇰🇷"); XCTAssertEqual(Stay.flag("JP"), "🇯🇵")
+        XCTAssertNil(Stay.flag(nil)); XCTAssertNil(Stay.flag("ZZZ"))
+        // the day sheet's full place: the city with the district
+        var r = day("2026-11-01", cc: "KR", city: "서울"); r.place = "마포구"; r.placeKo = "마포구"
+        Lang.current = .ko
+        XCTAssertEqual(r.fullPlaceName(), "서울 마포구")
+        XCTAssertEqual(day("2025-01-01").fullPlaceName(), "", "no invented place on an old record")
+    }
+
     /// The midnight stamp: the last look before midnight decides the day and its country; a Seoul → LA flight
     /// lives one date twice and keeps LA's record; the date line can skip a day with nothing invented; the app
     /// and a widget write the same day as one; old records carry no stamp and show none

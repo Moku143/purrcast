@@ -54,7 +54,8 @@ enum HerePlace {
         let place = Place(id: "here", name: name, short: district.isEmpty ? (shortCity(city).isEmpty ? L("지금 위치") : shortCity(city)) : district,
                           lat: loc.coordinate.latitude, lon: loc.coordinate.longitude,
                           region: country == "KR" ? "kr" : (country == "JP" ? "jp" : "other"),
-                          timeZone: (m?.timeZone ?? TimeZone.current).identifier, sample: Place.here.sample, ko: ko)
+                          timeZone: (m?.timeZone ?? TimeZone.current).identifier, sample: Place.here.sample, ko: ko,
+                          cc: country.count == 2 ? country : nil)
         return [.ko, .ja, .ru].contains(lang) ? koreanNamed(place, lang) : place
     }
 

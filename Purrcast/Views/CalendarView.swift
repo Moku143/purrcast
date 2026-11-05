@@ -229,6 +229,14 @@ struct CalendarSheet: View {
         let last = DayLogText.lastMonth(from: thisMonth)
         let m = month.isEmpty ? thisMonth : month
         let report = MonthReport.make(all, month: m)
+        // the stays: the first day of each run of days in one city gets the flag-and-city stamp, and so does the
+        // month's first recorded day (so a month opened mid-stay still says where it began)
+        let stays = Stays.make(all)
+        var stamp: [String: Stay] = [:]
+        for st in stays where st.from.hasPrefix(m + "-") { stamp[st.from] = st }
+        if let firstRec = all.first(where: { $0.date.hasPrefix(m + "-") })?.date,
+           let st = stays.first(where: { $0.from <= firstRec && firstRec <= $0.to }) { stamp[firstRec] = st }
+        let monthStays = stays.filter { $0.from <= m + "-31" && $0.to >= m + "-01" }
         // each day's holidays where it was spent (a recorded day keeps its place's time zone); other days: the device
         let dayZone: (String) -> String = { byDate[$0]?.tz ?? tz.identifier }
         let holidays = holidaysCame >= 0 ? Holidays.month(m, timeZone: dayZone) : []
@@ -240,7 +248,8 @@ struct CalendarSheet: View {
                     // the month and its report slide together; a sideways drag anywhere turns the month
                     ZStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 14) {
-                            grid(m, byDate: byDate, today: today, holidays: holidays)
+                            grid(m, byDate: byDate, today: today, holidays: holidays, stamp: stamp)
+                            if !monthStays.isEmpty { staysCard(monthStays, month: m) }
                             if !holidays.isEmpty { holidayList(holidays) }
                             reportCard(report, month: m)
                         }
@@ -264,7 +273,7 @@ struct CalendarSheet: View {
             // a day with hours opens the same day sheet as a forecast day; one without, its numbers in rows
             if let r = byDate[d.id], let sc = r.scene(tz: TimeZone(identifier: r.tz ?? "") ?? tz), let date = DayLog.date(d.id) {
                 DayDetailView(start: 0, startMetric: calTab, past: .init(scene: sc, date: date, air: r.aqiGrade.map { .init(value: r.aqi, grade: $0, main: r.aqiMain, kind: r.aqiKind ?? "cai", hour: r.aqiHour) },
-                                                    character: r.character, place: r.placeName(),
+                                                    character: r.character, place: r.fullPlaceName(),
                                                     confirmed: r.confirmed, tz: TimeZone(identifier: r.tz ?? "") ?? tz, here: true,
                                                     holiday: Holidays.name(d.id, timeZone: r.tz ?? tz.identifier)))
                     .presentationDetents([.large]).presentationCornerRadius(28)
@@ -473,7 +482,7 @@ struct CalendarSheet: View {
 
     // MARK: the month
 
-    private func grid(_ m: String, byDate: [String: DayRecord], today: String, holidays: [(key: String, name: String)]) -> some View {
+    private func grid(_ m: String, byDate: [String: DayRecord], today: String, holidays: [(key: String, name: String)], stamp: [String: Stay]) -> some View {
         let off = Dictionary(holidays.map { ($0.key, $0.name) }, uniquingKeysWith: { a, _ in a })
         let cal = DayLogText.calendar
         let firstDay = DayLogText.date(m) ?? Date()
@@ -492,9 +501,11 @@ struct CalendarSheet: View {
                         .lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: .infinity)
                 }
             }
-            LazyVGrid(columns: cols, spacing: 2) {
+            // the gap between week rows is clearly larger than any gap inside a cell, so nothing reads as the
+            // next week's date (the old layout hung the holiday name at the cell's bottom, right above the date below)
+            LazyVGrid(columns: cols, spacing: 12) {
                 ForEach(Array(cells.enumerated()), id: \.offset) { _, k in
-                    if let k { cell(k, byDate[k], today: today, holiday: off[k]) } else { Color.clear.frame(height: cellHeight) }
+                    if let k { cell(k, byDate[k], today: today, holiday: off[k], stamp: stamp[k]) } else { Color.clear.frame(height: cellHeight) }
                 }
             }
         }
@@ -502,7 +513,31 @@ struct CalendarSheet: View {
         .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
     }
 
-    private var cellHeight: CGFloat { outfits ? 92 : 86 }
+    private var cellHeight: CGFloat { outfits ? 104 : 96 }
+
+    /// 이 달 머문 곳: each stay of the month — flag, city, and the dates (clipped to this month)
+    private func staysCard(_ stays: [Stay], month m: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(L("이 달 머문 곳")).font(.px(13)).foregroundStyle(UI.ink)
+            ForEach(stays, id: \.from) { st in
+                HStack(spacing: 8) {
+                    Text(Stay.flag(st.cc) ?? st.cc ?? "·").font(.ui(13))
+                    Text(KoreanNames.word(st.city, .current)).font(.ui(13, .semibold)).foregroundStyle(UI.ink).lineLimit(1)
+                    Spacer(minLength: 6)
+                    Text(stayRange(st, month: m)).font(.ui(12)).foregroundStyle(UI.sub).lineLimit(1).minimumScaleFactor(0.8)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16).padding(.vertical, 12)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
+        .accessibilityIdentifier("cal-stays")
+    }
+
+    private func stayRange(_ st: Stay, month m: String) -> String {
+        let from = max(st.from, m + "-01"), to = min(st.to, m + "-31")
+        return from == to ? DayLogText.day(from) : "\(DayLogText.day(from)) ~ \(DayLogText.day(to))"
+    }
 
     /// The month's holidays where the place is, under the month: "10월 3일  개천절"
     private func holidayList(_ days: [(key: String, name: String)]) -> some View {
@@ -521,15 +556,21 @@ struct CalendarSheet: View {
     }
 
     /// One day: its number (today in a dark circle), then its sky and range — or the outfit worn that day
-    private func cell(_ k: String, _ r: DayRecord?, today: String, holiday: String?) -> some View {
+    private func cell(_ k: String, _ r: DayRecord?, today: String, holiday: String?, stamp: Stay?) -> some View {
         let isToday = k == today, future = k > today
         let weekend = holiday != nil ? DayLogText.weekendInk(1) : DayLogText.weekendInk(DayLogText.weekdayNumber(k))   // a holiday in Sunday's red
         return Button { guard !dragging else { return }; Haptic.soft(); selected = k; openDay = DayKey(id: k) } label: {
-            VStack(spacing: 4) {
+            // everything a day says sits together under its number — nothing hangs at the cell's bottom, where it
+            // would read as the next week's date. A future day is told by having no weather, not by fading.
+            VStack(spacing: 3) {
                 Text(String(Int(k.suffix(2)) ?? 0)).font(.ui(14, isToday ? .bold : .regular))
-                    .foregroundStyle(isToday ? Color.white : (weekend.map { future ? $0.opacity(0.45) : $0 } ?? (future ? UI.faint : UI.ink)))
+                    .foregroundStyle(isToday ? Color.white : (weekend ?? UI.ink))
                     .frame(width: 28, height: 28)
                     .background(Circle().fill(isToday ? UI.ink : Color.clear))
+                if let h = holiday {
+                    Text(h).font(.ui(10, .semibold)).foregroundStyle(DayLogText.weekendInk(1) ?? UI.sub)
+                        .lineLimit(1).fixedSize().padding(.horizontal, 1)
+                }
                 if let r {
                     if outfits {
                         DayFigure(character: r.character ?? model.shownCharacter, level: r.level, width: 40)
@@ -537,18 +578,22 @@ struct CalendarSheet: View {
                         PixelIcon(name: r.icon, size: 22)
                         HStack(spacing: 2) {
                             Text(model.deg(r.hi)).font(.px(11)).foregroundStyle(UI.ink)
-                            Text(model.deg(r.lo)).font(.px(11)).foregroundStyle(UI.faint)
+                            Text(model.deg(r.lo)).font(.px(11)).foregroundStyle(UI.sub)
                         }
                         .lineLimit(1).minimumScaleFactor(0.6)
                     }
                 }
-                Spacer(minLength: 0)
-                if let h = holiday {
-                    Text(h).font(.ui(9, .semibold)).foregroundStyle((DayLogText.weekendInk(1) ?? UI.sub).opacity(future ? 0.6 : 1))
-                        .lineLimit(1).minimumScaleFactor(0.6).padding(.horizontal, 1)
+                if let st = stamp {
+                    HStack(spacing: 2) {
+                        Text(Stay.flag(st.cc) ?? st.cc ?? "")
+                        Text(KoreanNames.word(st.city, .current)).fontWeight(.semibold)
+                    }
+                    .font(.ui(9)).foregroundStyle(UI.sub)
+                    .lineLimit(1).minimumScaleFactor(0.8)
+                    .accessibilityIdentifier("cal-stay-\(k)")
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: cellHeight, maxHeight: cellHeight)
+            .frame(maxWidth: .infinity, minHeight: cellHeight, maxHeight: cellHeight, alignment: .top)
             .contentShape(Rectangle())
         }
         .buttonStyle(.press(0.95)).disabled(future)

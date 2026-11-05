@@ -33,7 +33,8 @@ struct DayRecord: Codable, Equatable, Identifiable {
     var lat: Double? = nil              // where the day was (sunrise · sunset)
     var lon: Double? = nil
     var tz: String? = nil               // that place's time zone (its country: the day's holidays, on a trip too)
-    var cc: String? = nil               // the country that day ("KR"), from the place's region
+    var cc: String? = nil               // the country that day ("KR")
+    var city: String? = nil             // the city that day ("서울" — Korean for a Korean city), for the stays
     var confirmed: Date? = nil          // when the day's place was last confirmed (the last look that wrote it)
     /// The day sheet's own rows for the day (the last forecast of it seen, past hours as they were) and that day's
     /// 미세먼지 readings by the hour: the past day opens in the same day sheet as a forecast day. Kept a little over a
@@ -59,6 +60,13 @@ struct DayRecord: Codable, Equatable, Identifiable {
     var character: PurrCharacter? { char.flatMap(PurrCharacter.init(rawValue:)) }
     /// Where the day was, in the language shown now (a Korean place from its Korean name)
     func placeName(_ lang: Lang = .current) -> String { placeKo.map { KoreanNames.word($0, lang) } ?? place }
+    /// The day sheet's full place ("서울 마포구"): the city with the district
+    func fullPlaceName(_ lang: Lang = .current) -> String {
+        let d = placeName(lang)
+        guard let raw = city, !raw.isEmpty else { return d }
+        let c = KoreanNames.word(raw, lang)
+        return c == d || d.isEmpty ? (d.isEmpty ? c : d) : KoreanNames.join([c, d])
+    }
     var isWet: Bool { wet != nil }
     var isSnow: Bool { wet == "snow" }
     /// Rain (mm) recorded for one hour, 0 when none
@@ -175,7 +183,10 @@ struct DayLog {
         r.chance = today.chance
         r.place = place.short
         r.tz = place.timeZone
-        if place.region.count == 2 { r.cc = place.region.uppercased() }   // the day's country, for the stays and flags
+        // the day's country and city, for the stays and flags (the city in Korean for a Korean place)
+        r.cc = place.cc ?? (place.region == "kr" ? "KR" : place.region == "jp" ? "JP" : nil)
+        r.city = (place.region == "kr" ? place.ko : nil).flatMap { $0.split(separator: " ").first.map(String.init) }
+            ?? place.name.split(separator: " ").first.map(String.init)
         r.confirmed = now                                                 // when this place was last confirmed
         r.placeKo = place.region == "kr" ? place.ko.flatMap { $0.split(separator: " ").last.map(String.init) } : nil
         // rain or snow: falling now (this hour's amount counted once), or the day forecast wet at 60 %+
@@ -439,6 +450,53 @@ extension DayLog {
     }
 }
 #endif
+
+/// One run of days spent in one city, for the 날씨 달력: consecutive recorded days make a stay, and a stay ends
+/// when the country or the city changes. Records too old to carry a city fall back to a move over 30 km.
+struct Stay: Equatable {
+    var cc: String?
+    var city: String
+    var from: String
+    var to: String
+    var days: Int
+    var lat: Double? = nil              // the newest day's spot (the 30-km rule for city-less old records)
+    var lon: Double? = nil
+
+    /// "🇯🇵" for a two-letter country, else nil (the view shows the letters instead)
+    static func flag(_ cc: String?) -> String? {
+        guard let cc, cc.count == 2, cc.uppercased().allSatisfy({ $0.isASCII && $0.isLetter }) else { return nil }
+        return String(cc.uppercased().unicodeScalars.compactMap { UnicodeScalar(0x1F1E6 + $0.value - 65).map(Character.init) })
+    }
+}
+
+enum Stays {
+    /// The stays in `records` (oldest first). A day without any place information joins the stay it follows.
+    static func make(_ records: [DayRecord]) -> [Stay] {
+        var out: [Stay] = []
+        for r in records.sorted(by: { $0.date < $1.date }) {
+            let city = r.city ?? r.placeName(.ko)
+            if var last = out.popLast() {
+                if !changed(from: last, to: r) {
+                    last.to = r.date; last.days += 1
+                    last.lat = r.lat ?? last.lat; last.lon = r.lon ?? last.lon
+                    if last.city.isEmpty { last.city = city }
+                    out.append(last); continue
+                }
+                out.append(last)
+            }
+            out.append(Stay(cc: r.cc, city: city, from: r.date, to: r.date, days: 1, lat: r.lat, lon: r.lon))
+        }
+        return out
+    }
+
+    private static func changed(from a: Stay, to b: DayRecord) -> Bool {
+        if let ac = a.cc, let bc = b.cc, ac != bc { return true }
+        if let bCity = b.city, !a.city.isEmpty { return a.city != bCity }
+        // old records without a city: a move over 30 km ends the stay
+        if let la = a.lat, let lo = a.lon, let lb = b.lat, let ob = b.lon { return DayLog.km(la, lo, lb, ob) > 30 }
+        return false
+    }
+}
 
 extension WeatherScene.DayHour: Equatable {
     static func == (a: Self, b: Self) -> Bool {
