@@ -24,7 +24,7 @@ Purrcast mostra il meteo con un amico in pixel: cambia vestiti secondo la temper
 • Pioggia in arrivo: «Pioggia dalle 15 alle 17», e l’ombrello va nello zaino
 • Cielo vivo: nuvole che passano, pioggia e neve, stelle e lampi
 • Previsioni orarie e a 10 giorni, con i grafici di ogni giorno: temperatura, percepita, pioggia, vento, UV, umidità, aria
-• Qualità dell’aria e tre previsioni a confronto (Meteo di Apple, KMA, MET Norway)
+• Qualità dell’aria e previsioni a confronto (Meteo di Apple e MET Norway; in Corea anche KMA)
 • Widget per la schermata Home e la schermata di blocco
 • Sopra l’orologio della schermata di blocco: il personaggio vestito e la temperatura, il luogo, la pioggia, l’UV, alba e tramonto, il vento
 • Questa settimana: meteo e outfit degli ultimi sette giorni

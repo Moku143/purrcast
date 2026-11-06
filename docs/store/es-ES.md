@@ -24,7 +24,7 @@ Purrcast muestra el tiempo a través de una mascota pixel: se cambia de ropa seg
 • Lluvia a la vista: «Lluvia de 15 a 17 h», y el paraguas va a la mochila
 • Cielo vivo: las nubes se mueven, cae lluvia y nieve, brillan las estrellas, caen rayos
 • Pronóstico por horas y a 10 días, con gráficos de cada día: temperatura, sensación, lluvia, viento, UV, humedad, aire
-• Calidad del aire y tres pronósticos comparados (El Tiempo de Apple, KMA, MET Norway)
+• Calidad del aire y pronósticos comparados (El Tiempo de Apple y MET Norway; en Corea, también KMA)
 • Widgets de inicio y de pantalla bloqueada
 • Encima del reloj de la pantalla bloqueada: el personaje vestido y la temperatura, el lugar, la lluvia, UV, amanecer y atardecer, viento
 • Esta semana: el tiempo y la ropa de los últimos siete días

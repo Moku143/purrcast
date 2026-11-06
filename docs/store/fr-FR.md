@@ -24,7 +24,7 @@ Purrcast montre la météo grâce à un compagnon en pixel : il change de tenue 
 • Pluie à venir : « Pluie de 15 h à 17 h », et le parapluie va dans le sac
 • Un ciel vivant : nuages, pluie, neige, étoiles et éclairs
 • Prévisions heure par heure et sur 10 jours, avec les graphiques de chaque jour : température, ressenti, pluie, vent, UV, humidité, air
-• Qualité de l’air et trois prévisions comparées (Météo d’Apple, KMA, MET Norway)
+• Qualité de l’air et prévisions comparées (Météo d’Apple et MET Norway ; en Corée, KMA aussi)
 • Widgets pour l’écran d’accueil et l’écran verrouillé
 • Au-dessus de l’heure sur l’écran verrouillé : le personnage habillé et la température, le lieu, la pluie, l’UV, le lever et le coucher du soleil, le vent
 • Cette semaine : la météo et les tenues des sept derniers jours

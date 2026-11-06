@@ -24,7 +24,7 @@ O Purrcast mostra o tempo com um bichinho em pixel: ele troca de roupa conforme 
 • Chuva à frente: “Chuva das 15h às 17h”, e o guarda-chuva vai na bolsa
 • Céu vivo: nuvens passam, cai chuva e neve, estrelas brilham, relâmpagos piscam
 • Previsão por hora e de 10 dias, com gráficos de cada dia: temperatura, sensação, chuva, vento, UV, umidade, ar
-• Qualidade do ar e três previsões lado a lado (Tempo da Apple, KMA, MET Norway)
+• Qualidade do ar e previsões lado a lado (Tempo da Apple e MET Norway; na Coreia, também KMA)
 • Widgets para a Tela de Início e a Tela Bloqueada
 • Acima do relógio da Tela Bloqueada: o personagem vestido e a temperatura, o local, chuva, UV, nascer e pôr do sol, vento
 • Esta semana: o tempo e as roupas dos últimos sete dias
