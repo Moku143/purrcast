@@ -274,8 +274,8 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
-    /// iOS's note when the icon changes: set plainly ("loud") it shows; when the icon follows a character ("quiet") it
-    /// should not. The attachment names say whether an alert was found in the app (app1) or on SpringBoard (sb1).
+    /// iOS's note when the icon changes shows as iOS wants — the app no longer hides it in any mode (the old
+    /// "quiet" suppressor is gone). The attachment names say where the note was found: the app (app1) or SpringBoard (sb1).
     func test9IconNote() {
         for mode in ["loud", "quiet", "loud", "quiet"].enumerated() {
             let app = XCUIApplication()
