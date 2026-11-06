@@ -17,7 +17,6 @@ struct SettingsView: View {
                     placesSection
                     unitsSection
                     notificationsSection
-                    nearRainSection
                     displaySection
                     widgetsSection
                     infoSection
@@ -160,25 +159,6 @@ struct SettingsView: View {
     // MARK: 가까운 비
 
     /// Title and sub line by the current place's region: Korea gets the KMA six hours, elsewhere Apple's minute rain.
-    private var nearRain: (String, String) {
-        switch model.currentPlace.region {
-        case "kr": return (L("다음 6시간 비"), L("기상청 · 1시간 단위"))
-        case "jp": return (L("다음 1시간 비"), L("분 단위"))
-        default: return (L("다음 1시간 비"), L("분 단위 · 지원하는 지역에서만"))
-        }
-    }
-
-    private var nearRainSection: some View {
-        Group {
-            SectionLabel(text: L("가까운 비"))
-            RowGroup {
-                SettingRow(icon: "raindrop", title: nearRain.0, subtitle: nearRain.1) {
-                    if model.plus { toggle($model.notifyNearRain, nearRain.0) } else { PlusTag() }
-                }
-            }
-        }
-    }
-
     // MARK: 화면
 
     private var displaySection: some View {

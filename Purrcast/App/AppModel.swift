@@ -55,9 +55,6 @@ final class AppModel: ObservableObject {
     var calendarMonth: String?
     /// The home cards' order as the person moved them (empty: the default, HomeLayout)
     @Published var homeOrder: [String] { didSet { persist() } }
-    /// 가까운 비 알림 (Plus): 다음 6시간 (한국) · 다음 1시간 (분 단위). Stored only until Notifications.swift plans it.
-    // TODO: plan a near-rain notification from `minutes` / `next6` in Notifications.plan.
-    @Published var notifyNearRain: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyNearRain && !oldValue) } }
     /// 말투: "" follows the character (고양이 존댓말 · 브리티시숏헤어 격식 · 아비시니안 반말), or a Voice rawValue chosen in 설정 (Plus)
     @Published var voiceChoice: String { didSet { persist(); notificationsChanged(turnedOn: false) } }
     @Published var morningTime: Date { didSet { persist(); planNotifications() } }
@@ -140,7 +137,6 @@ final class AppModel: ObservableObject {
         notifyAlert = d.object(forKey: "notifyAlert") as? Bool ?? true
         notifyMonthly = d.object(forKey: "notifyMonthly") as? Bool ?? true
         homeOrder = testing ? (arg("-homeOrder").map { $0.split(separator: ",").map(String.init) } ?? []) : (d.stringArray(forKey: "homeOrder") ?? [])
-        notifyNearRain = d.object(forKey: "notifyNearRain") as? Bool ?? true
         voiceChoice = d.string(forKey: "voiceChoice") ?? ""
         language = Lang.picked?.rawValue ?? ""
         morningTime = d.object(forKey: "morningTime") as? Date ?? Calendar.current.date(from: DateComponents(hour: 7, minute: 0)) ?? Date()
@@ -386,7 +382,7 @@ final class AppModel: ObservableObject {
         d.set(unitF, forKey: "unitF"); d.set(clock12, forKey: "clock12"); d.set(wind.rawValue, forKey: "wind")
         d.set(pixelFont, forKey: "pixelFont"); d.set(useLocation, forKey: "useLocation")
         d.set(notifyRain, forKey: "notifyRain"); d.set(notifyMorning, forKey: "notifyMorning"); d.set(notifyChange, forKey: "notifyChange")
-        d.set(notifyAlert, forKey: "notifyAlert"); d.set(notifyMonthly, forKey: "notifyMonthly"); d.set(homeOrder, forKey: "homeOrder"); d.set(notifyNearRain, forKey: "notifyNearRain"); d.set(morningTime, forKey: "morningTime"); d.set(voiceChoice, forKey: "voiceChoice")
+        d.set(notifyAlert, forKey: "notifyAlert"); d.set(notifyMonthly, forKey: "notifyMonthly"); d.set(homeOrder, forKey: "homeOrder"); d.set(morningTime, forKey: "morningTime"); d.set(voiceChoice, forKey: "voiceChoice")
         d.set(onboarded, forKey: "onboarded")
     }
 
