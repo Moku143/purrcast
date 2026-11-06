@@ -178,7 +178,16 @@ final class ScreenshotTests: XCTestCase {
         }
         shot("f-after-test-trial", ["-scene", "maybe", "-open", "paywall"], wait: 3) { app in
             app.swipeUp(); sleep(1)
-            app.buttons["subscribe"].firstMatch.tap(); sleep(2)
+            // with nothing to sell, the button is the instant test trial and tapping it closes the sheet; since
+            // the real subscriptions went onto App Store Connect, plain simulators load them too, and that tap
+            // would start a real purchase instead — then the ✕ closes the sheet, and the same settings follow
+            let buy = app.buttons["subscribe"].firstMatch
+            if buy.label.lowercased().contains("test") || buy.label.contains("테스트") {
+                buy.tap(); sleep(2)
+            } else {
+                app.buttons.matching(identifier: "sheet-close").allElementsBoundByIndex.first { $0.isHittable }?.tap()
+                sleep(2)
+            }
             app.buttons["settings"].firstMatch.tap(); sleep(2)
         }
         shot("f-onb-watch", ["-scene", "maybe", "-onboarding"]) { app in
