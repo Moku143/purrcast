@@ -296,6 +296,8 @@ struct PaywallView: View {
     private var watchArt: some View {
         var snap = model.hasData ? model.snapshot : WeatherSnapshot.sample
         snap.plus = true; snap.character = model.shownCharacter; snap.unitF = model.unitF; snap.clock12 = model.clock12
+        // a sample name on the preview watch, not the person's own place: the weather stays theirs
+        snap.placeShort = L("서울")
         return WatchPairPreview(snap: snap)
     }
 

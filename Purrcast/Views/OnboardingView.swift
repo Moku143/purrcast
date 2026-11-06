@@ -119,6 +119,13 @@ struct OnboardingView: View {
     private func next() { Haptic.soft(); step = min(count - 1, step + 1) }
     private func back() { Haptic.soft(); step = max(0, step - 1) }
 
+    /// How a demo picture gives way to the next: the old one fades fully out before the new one fades in. A plain
+    /// cross-fade overlaid both for 0.6 s, and two scenes' digits over each other read as a broken gauge (16 over
+    /// 18 on the lock circle) — a preview-only artifact, but one a screenshot catches a fifth of the time.
+    private static let demoFade = AnyTransition.asymmetric(
+        insertion: .opacity.animation(.easeIn(duration: 0.25).delay(0.3)),
+        removal: .opacity.animation(.easeOut(duration: 0.25)))
+
     private var demoScene: WeatherScene { SceneLibrary.scene(Self.demoKeys[demo % Self.demoKeys.count]) }
     /// The demo weather under the person's own place name (지금 위치 until the location step has found it).
     private var demoSnap: WeatherSnapshot {
@@ -148,7 +155,7 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 0) {
             let s = demoScene
             ZStack(alignment: .top) {
-                sky(s, 349, 470).id("sky\(demo)").transition(.opacity)
+                sky(s, 349, 470).id("sky\(demo)").transition(Self.demoFade)
                 VStack(spacing: 0) {
                     HStack(spacing: 6) { PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 28); Text("\(s.temp)°").font(.px(30)) }
                         .foregroundStyle(s.time == "night" ? .white : UI.ink)
@@ -157,7 +164,7 @@ struct OnboardingView: View {
                     CharacterSprite(character: .cat, level: s.level, rain: rainState(s), mood: Mood(rawValue: s.mood ?? "normal") ?? .normal, width: 240)
                         .padding(.bottom, 18)
                 }
-                .id("cat\(demo)").transition(.opacity)
+                .id("cat\(demo)").transition(Self.demoFade)
             }
             .frame(width: 349, height: 470).clipShape(RoundedRectangle(cornerRadius: 28))
             .frame(maxWidth: .infinity).padding(.top, 24)
@@ -191,7 +198,7 @@ struct OnboardingView: View {
                     }.frame(maxWidth: .infinity, alignment: .leading).padding(.top, 6)
                 }
             }
-            .id("w\(demo)").transition(.opacity)
+            .id("w\(demo)").transition(Self.demoFade)
             .padding(12).frame(maxWidth: .infinity)
             .background(LinearGradient(colors: [Color(hex: "#A7B6E8"), Color(hex: "#F2B8A0")], startPoint: .top, endPoint: .bottom))
             .clipShape(RoundedRectangle(cornerRadius: 28)).padding(.top, 18)
@@ -231,7 +238,7 @@ struct OnboardingView: View {
                 }
                 .frame(width: 331, height: 400).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             }
-            .id("l\(demo)").transition(.opacity)
+            .id("l\(demo)").transition(Self.demoFade)
             .padding(12).frame(maxWidth: .infinity)
             .background(LinearGradient(colors: [Color(hex: "#4B5090"), Color(hex: "#F2B8A0")], startPoint: .top, endPoint: .bottom))
             .clipShape(RoundedRectangle(cornerRadius: 28)).padding(.top, 18)
@@ -296,7 +303,7 @@ struct OnboardingView: View {
                     WatchCase(scale: 0.7) { WatchListPreview(snap: snap) }
                 }
             }
-            .id("wp\(demo)").transition(.opacity)
+            .id("wp\(demo)").transition(Self.demoFade)
             .frame(maxWidth: .infinity).padding(.top, 2)
             // every complication, as it sits in a watch face
             HStack(spacing: 10) {

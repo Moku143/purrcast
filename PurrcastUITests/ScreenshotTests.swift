@@ -570,6 +570,21 @@ final class ScreenshotTests: XCTestCase {
         XCTAssertLessThan(abs(bar.frame.minY - y1), 10, "the diagonal drag also scrolled the page")
     }
 
+    /// The round temperature gauge at one, two and three characters, negatives included: the real lock-screen
+    /// circle and the real watch gauge each draw one clean number (the onboarding's doubled digits were the demo
+    /// cross-fade, fixed by fading through), and the onboarding's lock page for the preview side
+    func test23LockGauge() {
+        shot("gauge-widgets", ["-scene", "maybe", "-open", "widgetLab", "-labGauge"], wait: 3) { app in
+            for t in ["5", "16", "m5", "m12"] {
+                XCTAssertTrue(app.descendants(matching: .any)["lab-gauge-\(t)"].firstMatch.waitForExistence(timeout: 5),
+                              "lock gauge \(t) missing")
+                XCTAssertTrue(app.descendants(matching: .any)["lab-watch-gauge-\(t)"].firstMatch.exists,
+                              "watch gauge \(t) missing")
+            }
+        }
+        shot("gauge-preview-onboarding", ["-scene", "maybe", "-onboarding", "-onbStep", "2"], wait: 4)
+    }
+
     /// First run with the 이전 button, the fuller widget and watch pages; the merged rain slide of the Plus page
     func test18Onboard() {
         for lang in ["ko", "en", "ja"] {

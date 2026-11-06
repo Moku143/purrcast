@@ -21,10 +21,13 @@ struct WidgetLabView: View {
     private var waiting: Bool { ProcessInfo.processInfo.arguments.contains("-labWaiting") }
     /// -labAged: the same widgets three hours after the app last ran (the saved forecast aged by the clock)
     private var agedLab: Bool { ProcessInfo.processInfo.arguments.contains("-labAged") }
+    /// -labGauge: the round temperature gauges — the lock circle and the watch complication — at one, two and
+    /// three characters, negatives included, to show each count draws as one clean number
+    private var gaugeLab: Bool { ProcessInfo.processInfo.arguments.contains("-labGauge") }
 
     var body: some View {
         let snap = waiting ? WeatherSnapshot.waiting : agedLab ? Self.agedLabSnap(model.snapshot) : (stress ? Self.stressed(model.snapshot) : model.snapshot)
-        if third { watchPage(snap) } else if fourth { lockPage(snap) } else if fifth { inlinePage(snap) } else if second {
+        if gaugeLab { gaugePage(snap) } else if third { watchPage(snap) } else if fourth { lockPage(snap) } else if fifth { inlinePage(snap) } else if second {
             VStack(spacing: 16) {
                 home("lab-hours", 364, 170, snap) { HoursWidgetView(snap: snap) }
             }
@@ -258,6 +261,34 @@ struct WidgetLabView: View {
 
     private func circle54<C: View>(@ViewBuilder _ c: () -> C) -> some View {
         c().frame(width: 54, height: 54).background(Color(hex: "#1C1C20")).clipShape(Circle())
+    }
+
+    /// The snapshot at an exact temperature (the gauge page's rows), today's range set around it
+    static func at(_ base: WeatherSnapshot, temp: Int) -> WeatherSnapshot {
+        var n = base
+        n.scene.temp = temp; n.scene.lo = temp - 3; n.scene.hi = temp + 3
+        return n
+    }
+
+    /// One row per character count: the real lock-screen circle and the real watch gauge, side by side
+    private func gaugePage(_ snap: WeatherSnapshot) -> some View {
+        VStack(spacing: 14) {
+            ForEach([5, 16, -5, -12], id: \.self) { t in
+                let s = Self.at(snap, temp: t), name = t < 0 ? "m\(-t)" : "\(t)"
+                HStack(spacing: 12) {
+                    lock("lab-gauge-\(name)", 76, 76, circle: true) { LockCircularView(snap: s) }
+                    ZStack {
+                        Color.black
+                        WatchTempGauge(snap: s).foregroundStyle(.white).frame(width: 52, height: 52)
+                    }
+                    .frame(width: 76, height: 76).clipShape(Circle())
+                    .accessibilityElement(children: .contain).accessibilityIdentifier("lab-watch-gauge-\(name)")
+                }
+            }
+        }
+        .padding(.top, 24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color(hex: "#ECEAF4"))
     }
 
     private func home<C: View>(_ id: String, _ w: CGFloat, _ h: CGFloat, _ snap: WeatherSnapshot, @ViewBuilder _ c: () -> C) -> some View {
