@@ -585,6 +585,21 @@ final class ScreenshotTests: XCTestCase {
         shot("gauge-preview-onboarding", ["-scene", "maybe", "-onboarding", "-onbStep", "2"], wait: 4)
     }
 
+    /// The Plus page as App Review will see it, in English: the StoreKit configuration's prices on the plan
+    /// cards and the real purchase button. The test-mode button appears only when no products load, so this
+    /// test only means anything under review-shot.yml, whose test plan loads the StoreKit configuration.
+    func test24ReviewPaywall() {
+        shot("review-plus-en", ["-scene", "maybe", "-open", "paywall"], wait: 3, lang: "en") { app in
+            let price = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "₩")).firstMatch
+            XCTAssertTrue(price.waitForExistence(timeout: 25), "no price loaded from the StoreKit configuration")
+            let buy = app.buttons["subscribe"].firstMatch
+            XCTAssertTrue(buy.waitForExistence(timeout: 5), "no purchase button")
+            XCTAssertFalse(buy.label.lowercased().contains("test"), "the paywall still offers the test Plus: \(buy.label)")
+            XCTAssertTrue(buy.isEnabled, "the purchase button is disabled")
+            sleep(2)
+        }
+    }
+
     /// First run with the 이전 button, the fuller widget and watch pages; the merged rain slide of the Plus page
     func test18Onboard() {
         for lang in ["ko", "en", "ja"] {

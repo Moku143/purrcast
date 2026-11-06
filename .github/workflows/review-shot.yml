@@ -1,0 +1,98 @@
+name: Review shot
+
+# The Plus page for App Review: one English capture with the StoreKit configuration's real prices and purchase
+# button. The ordinary test runs load no StoreKit configuration (their paywall shows the test Plus), so this
+# workflow generates a test plan that does, hooks it into the generated scheme, runs the one paywall test, and
+# publishes the picture to the review-shots branch.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  shot:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode 26
+        run: |
+          latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$latest" ]; then sudo xcode-select -s "$latest"; else echo "::warning::No Xcode 26 on this runner, using the default"; fi
+          xcodebuild -version
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Test plan that loads the StoreKit configuration
+        run: |
+          python3 - <<'PY'
+          import json, re
+          s = open('Purrcast.xcodeproj/project.pbxproj').read()
+          def gid(name):
+              m = re.search(r'([A-F0-9]{24}) /\* ' + name + r' \*/ = \{\s*isa = PBXNativeTarget;', s)
+              assert m, 'no PBXNativeTarget named ' + name
+              return m.group(1)
+          plan = {
+            "configurations": [{"id": "AD0F1E60-0000-4000-8000-000000000001", "name": "Review", "options": {}}],
+            "defaultOptions": {
+              "storeKitConfiguration": {"identifier": "Purrcast.storekit"},
+              "targetForVariableExpansion": {"containerPath": "container:Purrcast.xcodeproj", "identifier": gid("Purrcast"), "name": "Purrcast"}
+            },
+            "testTargets": [{
+              "selectedTests": ["ScreenshotTests/test24ReviewPaywall()"],
+              "target": {"containerPath": "container:Purrcast.xcodeproj", "identifier": gid("PurrcastUITests"), "name": "PurrcastUITests"}
+            }],
+            "version": 1
+          }
+          open('Config/Review.xctestplan', 'w').write(json.dumps(plan, indent=2))
+          print(open('Config/Review.xctestplan').read())
+          p = 'Purrcast.xcodeproj/xcshareddata/xcschemes/Purrcast.xcscheme'
+          x = open(p).read()
+          assert '<Testables>' in x
+          ref = '      <TestPlans>\n         <TestPlanReference\n            reference = "container:Config/Review.xctestplan"\n            default = "YES">\n         </TestPlanReference>\n      </TestPlans>\n'
+          x = x.replace('      <Testables>', ref + '      <Testables>', 1)
+          open(p, 'w').write(x)
+          print('test plan hooked into the Purrcast scheme')
+          PY
+      - name: Paywall capture
+        run: |
+          set -o pipefail
+          xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast -testPlan Review \
+            -destination "platform=iOS Simulator,name=iPhone 16,OS=latest" \
+            -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST |Executed" || true
+          grep -q "\*\* TEST SUCCEEDED \*\*" test.log || { echo "::error::The paywall capture failed (test.log on the review-shots branch)"; exit 1; }
+      - name: Publish to the review-shots branch
+        if: always()
+        run: |
+          mkdir -p raw shots
+          if [ -d TestResults.xcresult ]; then
+            xcrun xcresulttool export attachments --path TestResults.xcresult --output-path raw 2>/dev/null || true
+            python3 - <<'PY'
+          import json, os, shutil
+          try:
+              m = json.load(open('raw/manifest.json'))
+          except Exception:
+              m = []
+          for t in m:
+              for a in t.get('attachments', []):
+                  src = os.path.join('raw', a['exportedFileName'])
+                  ext = os.path.splitext(a['exportedFileName'])[1].lower()
+                  if ext not in ('.png', '.jpg', '.jpeg', '') or os.path.getsize(src) > 20_000_000:
+                      continue
+                  name = a.get('suggestedHumanReadableName') or a['exportedFileName']
+                  name = name.split('_0_')[0].replace(' ', '-')
+                  if not name.endswith('.png'): name += '.png'
+                  shutil.copy(src, os.path.join('shots', name))
+          print(len(os.listdir('shots')), 'screenshots')
+          PY
+          fi
+          mkdir -p out && cp -r shots out/ 2>/dev/null || true
+          cp test.log out/ 2>/dev/null || true
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt
+          cd out && git init -q && git checkout -q -b review-shots
+          git -c user.name=ci -c user.email=ci@purrcast config core.autocrlf false
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "review shot ${{ github.run_id }}"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} review-shots
