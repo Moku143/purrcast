@@ -590,7 +590,8 @@ final class ScreenshotTests: XCTestCase {
     /// test only means anything under review-shot.yml, whose test plan loads the StoreKit configuration.
     func test24ReviewPaywall() {
         shot("review-plus-en", ["-scene", "maybe", "-open", "paywall"], wait: 3, lang: "en") { app in
-            let price = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "₩")).firstMatch
+            // the configuration carries a price per storefront, so the runner's storefront picks the currency
+            let price = app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", ".*[₩$€£¥].*")).firstMatch
             XCTAssertTrue(price.waitForExistence(timeout: 25), "no price loaded from the StoreKit configuration")
             let buy = app.buttons["subscribe"].firstMatch
             XCTAssertTrue(buy.waitForExistence(timeout: 5), "no purchase button")
