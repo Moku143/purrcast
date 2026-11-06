@@ -419,8 +419,10 @@ struct CalendarSheet: View {
                 // 10 pt, not more: the scroll view's own pan — which is what drags the sheet down at the top —
                 // starts at about a finger's touch slop, so the lock has to be decided by then to beat it
                 if dragAxis == nil { dragAxis = abs(w) > abs(h) * 1.2 ? .horizontal : .vertical }
-                guard dragAxis == .horizontal else { return }
+                // a finger that has dragged this far is not tapping: the day cells stay shut either way,
+                // so a slow pull that starts on a cell can no longer open that day when it lets go
                 dragging = true
+                guard dragAxis == .horizontal else { return }
                 let can = w < 0 ? m < last : m > first
                 pull = can ? w * 0.6 : w * 0.18
             }

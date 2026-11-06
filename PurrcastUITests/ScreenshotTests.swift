@@ -503,7 +503,7 @@ final class ScreenshotTests: XCTestCase {
         // (2a) a short, slow pull at the top, let go early: the sheet springs back instead of closing
         keep("g2-pull-early-before")
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
-            .press(forDuration: 0.3, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)), withVelocity: 120, thenHoldForDuration: 0.3)
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)), withVelocity: 120, thenHoldForDuration: 0.4)
         sleep(2)
         keep("g2-pull-early-after")
         XCTAssertTrue(bar.exists && bar.isHittable, "an early-released pull closed the sheet")
