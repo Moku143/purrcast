@@ -41,6 +41,8 @@
       <li><b>지역별 날씨 기록</b> — "어제보다 따뜻해요" 같은 비교를 위해 약 1km 칸별 기온과 날씨 응답을 서버에 잠시(최대 이틀) 보관합니다. 기기 ID와 연결하지 않아요.</li>
       <li><b>저장한 지역 · 설정 · 캐릭터 이름</b> — 기기 안에만 저장됩니다.</li>
       <li><b>구독</b> — 결제는 Apple이 처리합니다. Purrcast는 카드 정보를 받지 않고, 구독 중인지 여부만 Apple에게서 확인합니다.</li>
+      <li><b>IP 주소</b> — 서버가 과도한 요청을 막기 위해(레이트 리밋) 요청 순간의 IP 주소로 잠깐 요청 횟수를 셉니다. 날씨 응답이나 기기 등록과 연결하지 않아요.</li>
+      <li><b>공휴일</b> — 날씨 달력의 공휴일은 나라 코드(예: KR)만 보내 받아 옵니다. 좌표나 기기 ID는 보내지 않아요.</li>
     </ul>
   </section>
 
@@ -94,6 +96,8 @@
       <li><b>Weather by area</b> — to say things like "warmer than yesterday", the server briefly keeps (up to two days) temperatures and weather answers for each ~1 km area. These are not linked to any device ID.</li>
       <li><b>Saved places, settings and character names</b> — stored only on your device.</li>
       <li><b>Subscriptions</b> — payments are handled by Apple. Purrcast never receives card details; it only checks with Apple whether you are subscribed.</li>
+      <li><b>IP address</b> — the server briefly counts requests by their IP address to stop excessive use (rate limiting). It is not linked to weather answers or device registrations.</li>
+      <li><b>Public holidays</b> — the weather calendar fetches holidays with a country code alone (e.g. KR); no coordinates or device ID are sent.</li>
     </ul>
   </section>
 
@@ -147,6 +151,8 @@
       <li><b>地域ごとの天気の記録</b> — 「昨日より暖かい」などの比較のため、約1kmの区画ごとの気温と天気の応答をサーバーに短期間（最大2日）保管します。端末IDとは結びつけません。</li>
       <li><b>保存した地域・設定・キャラクター名</b> — 端末の中だけに保存されます。</li>
       <li><b>サブスクリプション</b> — 決済はAppleが行います。Purrcastはカード情報を受け取らず、購読中かどうかだけをAppleに確認します。</li>
+      <li><b>IPアドレス</b> — サーバーは過剰なリクエストを防ぐため（レート制限）、リクエスト時のIPアドレスで回数を一時的に数えます。天気の応答や端末登録とは結びつけません。</li>
+      <li><b>祝日</b> — 天気カレンダーの祝日は国コード（例：KR）だけを送って取得します。座標や端末IDは送りません。</li>
     </ul>
   </section>
 
