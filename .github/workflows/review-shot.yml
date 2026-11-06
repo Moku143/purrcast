@@ -5,8 +5,12 @@ name: Review shot
 # workflow generates a test plan that does, hooks it into the generated scheme, runs the one paywall test, and
 # publishes the picture to the review-shots branch.
 
+# workflow_dispatch only registers once the file reaches the default branch, so until then a push to the
+# review-shot-run branch starts it (the push carries this file, and push-triggered workflows run from their own ref)
 on:
   workflow_dispatch:
+  push:
+    branches: [review-shot-run]
 
 permissions:
   contents: write
