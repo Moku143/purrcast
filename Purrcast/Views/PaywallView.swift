@@ -80,9 +80,11 @@ struct PaywallView: View {
                 FlowChecks(items: features.map { $0.check }).padding(.top, 16).reveal(2)
 
                 HStack(spacing: 10) {
+                    // no "가장 많이 골라요" badge before launch: there is no data behind the claim — the saving line
+                    // on the card already makes the yearly's case
                     planCard(Purchases.yearly, key: "연간", title: L("연간"),
                              note: [purchases.yearlyPerMonth().map { L("월 %@ 꼴", $0) }, purchases.yearlySaving().map { L("%d%% 할인", $0) }].compactMap { $0 }.joined(separator: " · "),
-                             badge: L("가장 많이 골라요"))
+                             badge: nil)
                     planCard(Purchases.monthly, key: "월간", title: L("월간"), note: L("매달 결제"), badge: nil)
                 }
                 .padding(.top, 22)
@@ -430,6 +432,11 @@ struct WrapLayout: Layout {
 enum Legal {
     static let terms = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
     static let privacy = URL(string: "https://moku143.github.io/purrcast/privacy.html")!
-    /// 문의하기 · FAQ (docs/support.html on GitHub Pages)
-    static let support: URL? = URL(string: "mailto:oo0785@daum.net?subject=%EA%B7%B8%EB%A5%B4%EB%A6%89%EB%82%A0%EC%94%A8%20%EB%AC%B8%EC%9D%98")
+    /// 문의하기 (설정): the mail's subject in the person's own language — the app's localized name plus 문의하기's word,
+    /// not the Korean subject every language used to get
+    static var support: URL? {
+        let subject = "\(Brand.name) · \(L("문의하기"))"
+        let q = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Purrcast"
+        return URL(string: "mailto:oo0785@daum.net?subject=\(q)")
+    }
 }
