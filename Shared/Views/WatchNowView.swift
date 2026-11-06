@@ -51,7 +51,7 @@ struct WatchNow: View {
                 // sunset · feels · rain at the bottom right
                 // close together, down by the rain chance; the sunset row a little higher
                 VStack(alignment: .trailing, spacing: 1.2 * k) {
-                    if let t = sunsetTile(s) { HStack(spacing: 3) { PixelIcon(name: "sunset", size: 14 * k).probe("sunsetIcon"); Text(t).font(.px(12 * k)).probe("sunsetText") }.padding(.bottom, 2.5 * k) }
+                    if let t = sunsetTile(s, clock12: snap.clock12) { HStack(spacing: 3) { PixelIcon(name: "sunset", size: 14 * k).probe("sunsetIcon"); Text(t).font(.px(12 * k)).probe("sunsetText") }.padding(.bottom, 2.5 * k) }
                     Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels")
                     if !snap.showsDashes { Text(L("강수 %d%%", s.hours.prefix(6).map { $0.chance }.max() ?? 0)).font(.px(12 * k)).probe("chance") }
                 }

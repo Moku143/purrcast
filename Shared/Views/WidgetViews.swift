@@ -59,8 +59,13 @@ struct WidgetBackground: View {
     }
 }
 
-func sunsetTile(_ s: WeatherScene) -> String? {
-    s.tiles.first { $0.icon == "sunset" || $0.icon == "sunrise" }?.value
+/// The sun tile's time for the small rows: "17:52" as the forecast writes it — or "5:52PM" where the person
+/// uses the 12-hour clock, the way the lock-screen sun widget already shows it (ko·ja·zh keep 24 h, like
+/// their hour labels do).
+func sunsetTile(_ s: WeatherScene, clock12: Bool) -> String? {
+    guard let t = s.tiles.first(where: { $0.icon == "sunset" || $0.icon == "sunrise" })?.value else { return nil }
+    guard clock12, Lang.current.isLatinLike, let m = WeatherScene.clockMinutes(t) else { return t }
+    return HourLabel.clock(m, clock12: true)
 }
 /// Where a bubble's tail should sit: `gap` points above the character's head (ears included), or above the open
 /// umbrella — measured per outfit from the sprites (anchors.json), so a hood or a hat never touches the bubble.
@@ -220,7 +225,7 @@ private struct SmallFace: View {
             .padding(.leading, 13).padding(.bottom, 8)
             // close together, down by the rain chance; the sunset row a little higher
             VStack(alignment: .trailing, spacing: 0.9) {
-                if let t = sunsetTile(s) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }.padding(.bottom, 2) }
+                if let t = sunsetTile(s, clock12: snap.clock12) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }.padding(.bottom, 2) }
                 Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
                 if !snap.showsDashes { Text(L("강수 %d%%", chanceNow(s))).font(.px(9)).probe("chance") }
             }
@@ -243,7 +248,7 @@ private struct WidgetDayList: View {
         VStack(spacing: 0) {
             ForEach(Array(days.enumerated()), id: \.offset) { i, d in
                 HStack(spacing: 4) {
-                    Text(d.name).font(.px(10)).lineLimit(1).minimumScaleFactor(0.6).frame(width: Lang.current.isLatinLike ? 34 : 22, alignment: .leading).probe("d\(i)name")
+                    Text(snap.dayName(i)).font(.px(10)).lineLimit(1).minimumScaleFactor(0.6).frame(width: Lang.current.isLatinLike ? 34 : 22, alignment: .leading).probe("d\(i)name")
                     PixelIcon(name: d.icon, size: 16).probe("d\(i)icon")
                     Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(8)).foregroundStyle(ink.blue).frame(width: 20, alignment: .leading).probe("d\(i)chance")
                     Text(snap.deg(d.lo)).font(.px(10)).foregroundStyle(ink.sub).frame(width: 22, alignment: .trailing).probe("d\(i)lo")

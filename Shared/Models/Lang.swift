@@ -108,6 +108,36 @@ func L(_ key: String, _ args: CVarArg...) -> String { String(format: Lang.curren
 
 /// Hour labels the app builds itself, in the current language. The server's own labels ("14시", "2PM", "14時",
 /// "지금") are parsed back to an hour so the 12/24-hour setting and the language apply to them too.
+/// Short weekday names, exactly as the server writes day rows (server/src/i18n.js and server/src/i18n/*.js),
+/// so a name recomputed on the device matches what a fresh forecast would have carried.
+enum DayName {
+    private static let names: [Lang: [String]] = [       // Sunday first, like Calendar's weekday component
+        .ko: ["일", "월", "화", "수", "목", "금", "토"],
+        .en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+        .ja: ["日", "月", "火", "水", "木", "金", "土"],
+        .de: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+        .fr: ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"],
+        .es: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+        .it: ["dom", "lun", "mar", "mer", "gio", "ven", "sab"],
+        .pt: ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"],
+        .ru: ["вс", "пн", "вт", "ср", "чт", "пт", "сб"],
+        .id: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
+        .zhHans: ["日", "一", "二", "三", "四", "五", "六"],
+        .zhHant: ["日", "一", "二", "三", "四", "五", "六"],
+    ]
+    /// The name a day row carries when it is drawn: "오늘" for the first row, then the weekday of the date the
+    /// row stands for — `i` days after today at the place — so the list always matches the date on the clock
+    /// around it, even when the forecast text was written on another day (a pinned demo scene, say).
+    static func row(_ i: Int, at date: Date = Date(), tz: TimeZone = .current) -> String {
+        if i == 0 { return L("오늘") }
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
+        let d = cal.date(byAdding: .day, value: i, to: date) ?? date
+        let wd = cal.component(.weekday, from: d) - 1          // 1=Sun…7=Sat → 0…6
+        let t = names[Lang.current] ?? names[.en]!
+        return t[((wd % 7) + 7) % 7]
+    }
+}
+
 enum HourLabel {
     /// "14시" / "오후 2시" / "2PM" / "14:00" / "14時" / "午後2時" → 14; nil for "지금", "Now", "30분" …
     static func hour(_ label: String) -> Int? {

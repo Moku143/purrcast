@@ -446,6 +446,48 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Place.here.name, "Seoul Mapo-gu")
     }
 
+    /// The sun row on the watch's Now page and the medium widget follows the clock setting: "5:52PM" next to
+    /// "2PM, 3PM" in 12-hour English, the forecast's own "17:52" otherwise (ko·ja keep 24 h like their hour labels).
+    func testSunsetTileFollowsTheClockSetting() throws {
+        var s = WeatherScene()
+        s.tiles = try JSONDecoder().decode([WeatherScene.Tile].self, from: Data(
+            #"[{"icon":"sunset","label":"일몰","value":"17:52","note":""}]"#.utf8))
+        Lang.current = .en
+        defer { Lang.current = .ko }
+        XCTAssertEqual(sunsetTile(s, clock12: false), "17:52")
+        XCTAssertEqual(sunsetTile(s, clock12: true), "5:52PM")
+        Lang.current = .ko
+        XCTAssertEqual(sunsetTile(s, clock12: true), "17:52")
+        Lang.current = .en
+        s.tiles = try JSONDecoder().decode([WeatherScene.Tile].self, from: Data(
+            #"[{"icon":"sunrise","label":"일출","value":"07:03","note":""}]"#.utf8))
+        XCTAssertEqual(sunsetTile(s, clock12: true), "7:03AM")
+        s.tiles = []
+        XCTAssertNil(sunsetTile(s, clock12: true))
+    }
+
+    /// Day rows are named for the dates they stand for at drawing time: "오늘" first, then the weekdays counted
+    /// from today — in the server's own short names — so the list matches the date shown around it.
+    func testDayNamesFollowTheShownDate() {
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        let fri = cal.date(from: DateComponents(year: 2026, month: 11, day: 6, hour: 9, minute: 41))!   // a Friday
+        Lang.current = .en
+        defer { Lang.current = .ko }
+        XCTAssertEqual(DayName.row(0, at: fri, tz: cal.timeZone), "Today")
+        XCTAssertEqual(DayName.row(1, at: fri, tz: cal.timeZone), "Sat")
+        XCTAssertEqual(DayName.row(2, at: fri, tz: cal.timeZone), "Sun")
+        XCTAssertEqual(DayName.row(9, at: fri, tz: cal.timeZone), "Sun")     // a 10-day list wraps the week
+        Lang.current = .ko
+        XCTAssertEqual(DayName.row(1, at: fri, tz: cal.timeZone), "토")
+        Lang.current = .de
+        XCTAssertEqual(DayName.row(0, at: fri, tz: cal.timeZone), "Heute")
+        XCTAssertEqual(DayName.row(3, at: fri, tz: cal.timeZone), "Mo")
+        // late evening in Seoul is already the next day in a place far west: the place's clock decides
+        Lang.current = .en
+        let tz = TimeZone(identifier: "America/Los_Angeles")!                 // Thu 16:41 there
+        XCTAssertEqual(DayName.row(1, at: fri, tz: tz), "Fri")
+    }
+
     func testJapaneseWords() {
         Lang.current = .ja
         defer { Lang.current = .ko }

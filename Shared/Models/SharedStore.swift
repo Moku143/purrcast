@@ -70,6 +70,13 @@ struct WeatherSnapshot: Codable {
     }
     /// "15시" → "오후 3시" when the 12-hour setting is on (and in the app's language)
     func hourLabel(_ l: String) -> String { HourLabel.display(l, clock12: clock12) }
+    /// The day rows' names at drawing time: row `i` stands for today + `i` at the place, so its weekday follows
+    /// the date actually shown (widgets age the list to now, the phone pushes the watch a fresh one on every
+    /// forecast — a demo scene pinned on another weekday is the one case where the stored names would drift).
+    func dayName(_ i: Int, at date: Date = Date()) -> String {
+        let tz = place.flatMap { TimeZone(identifier: $0.timeZone) } ?? .current
+        return DayName.row(i, at: date, tz: tz)
+    }
 
     /// Shown before the app has handed over anything (a widget added before the first launch).
     static var waiting: WeatherSnapshot {
