@@ -124,7 +124,8 @@ final class AppModel: ObservableObject {
         plusUntil = nil
         character = arg("-char").flatMap(PurrCharacter.init(rawValue:)) ?? (testing ? .cat : PurrCharacter(rawValue: d.string(forKey: "character") ?? "") ?? .cat)
         names = testing ? [:] : (d.dictionary(forKey: "names") as? [String: String] ?? [:])
-        unitF = args.contains("-unitF") || (!testing && d.bool(forKey: "unitF"))
+        // °F where the device's region measures that way (the US); everyone can change it in 설정 → 온도
+        unitF = args.contains("-unitF") || (!testing && (d.object(forKey: "unitF") as? Bool ?? (Locale.current.measurementSystem == .us)))
         // English reads hours as "3PM" unless the person chose otherwise; Korean and Japanese as "15시" / "15時"
         clock12 = testing ? args.contains("-clock12") : (d.object(forKey: "clock12") as? Bool ?? (Lang.current == .en))
         wind = arg("-wind").flatMap(WindUnit.init(rawValue:)) ?? (testing ? .ms : WindUnit(rawValue: d.string(forKey: "wind") ?? "") ?? .ms)
