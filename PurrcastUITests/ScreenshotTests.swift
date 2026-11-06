@@ -185,8 +185,11 @@ final class ScreenshotTests: XCTestCase {
             if buy.label.lowercased().contains("test") || buy.label.contains("테스트") {
                 buy.tap(); sleep(2)
             } else {
-                app.buttons.matching(identifier: "sheet-close").allElementsBoundByIndex.first { $0.isHittable }?.tap()
-                sleep(2)
+                // the swipe-up above scrolled the ✕ off the top, so first scroll back to it
+                app.swipeDown(); sleep(1)
+                let close = app.buttons.matching(identifier: "sheet-close").allElementsBoundByIndex.first { $0.isHittable }
+                XCTAssertNotNil(close, "the paywall's ✕ is not reachable")
+                close?.tap(); sleep(2)
             }
             app.buttons["settings"].firstMatch.tap(); sleep(2)
         }
