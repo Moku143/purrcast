@@ -120,8 +120,8 @@ struct OnboardingView: View {
     private func back() { Haptic.soft(); step = max(0, step - 1) }
 
     /// How a demo picture gives way to the next: the old one fades fully out before the new one fades in. A plain
-    /// cross-fade overlaid both for 0.6 s, and two scenes' digits over each other read as a broken gauge (16 over
-    /// 18 on the lock circle) — a preview-only artifact, but one a screenshot catches a fifth of the time.
+    /// cross-fade overlaid both pictures for 0.6 s, so two scenes' numbers sat on each other for a fifth of the
+    /// time — not the gauge's own '16 over 18' (that was HangingDegree's stray '°'), but the same doubled look.
     private static let demoFade = AnyTransition.asymmetric(
         insertion: .opacity.animation(.easeIn(duration: 0.25).delay(0.3)),
         removal: .opacity.animation(.easeOut(duration: 0.25)))

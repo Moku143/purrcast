@@ -123,8 +123,13 @@ struct HangingDegree: View {
     let text: String
     let font: Font
     var body: some View {
-        Text(text).font(font)
-            .overlay(alignment: .trailing) { if text != "–" { Text("°").font(font).alignmentGuide(.trailing) { $0[.leading] } } }   // no "°" on a dash
+        // the "°" hangs past the digits in a zero-width box, so the number stays centred on its digits alone.
+        // The old alignmentGuide overlay landed the "°" on the last digit instead of past it, and a 6 with a
+        // "°" over its shoulder read as an 8 drawn on top (the owner's '16 over 18' gauge)
+        HStack(spacing: 0) {
+            Text(text).font(font)
+            if text != "–" { Text("°").font(font).fixedSize().frame(width: 0, alignment: .leading) }   // no "°" on a dash
+        }
     }
 }
 
