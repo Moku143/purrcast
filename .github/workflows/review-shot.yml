@@ -26,6 +26,12 @@ jobs:
           latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
           if [ -n "$latest" ]; then sudo xcode-select -s "$latest"; else echo "::warning::No Xcode 26 on this runner, using the default"; fi
           xcodebuild -version
+      - name: Simulator device (created when the runner has no iPhone 16)
+        run: |
+          if ! xcrun simctl list devices available | grep -q "^ *iPhone 16 ("; then
+            rt=$(xcrun simctl list runtimes | grep -E "^iOS" | tail -1 | grep -o "com.apple.CoreSimulator.SimRuntime[^ )]*")
+            xcrun simctl create "iPhone 16" "iPhone 16" "$rt" && echo "created iPhone 16 on $rt"
+          fi
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
