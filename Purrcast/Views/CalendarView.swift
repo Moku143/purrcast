@@ -277,8 +277,10 @@ struct CalendarSheet: View {
             .scrollDisabled(dragAxis == .horizontal)
         }
         .background(UI.bg)
-        // the sheet closes by 닫기 alone: pulling it down was what a sideways-then-down finger kept hitting
-        .interactiveDismissDisabled()
+        // pull-down closes the calendar as any sheet: past the usual threshold or with a flick, springing back
+        // when let go early. Only while a drag has been decided sideways is dismissal held off, so turning the
+        // month can never drop the sheet — the lock lifts the moment the finger does
+        .interactiveDismissDisabled(dragAxis == .horizontal)
         .sheet(item: $openDay) { d in
             // a day with hours opens the same day sheet as a forecast day; one without, its numbers in rows
             if let r = byDate[d.id], let sc = r.scene(tz: TimeZone(identifier: r.tz ?? "") ?? tz), let date = DayLog.date(d.id) {
@@ -408,12 +410,14 @@ struct CalendarSheet: View {
     /// A sideways drag anywhere on the page: the page follows the finger (held back where there is no month to go
     /// to), and past a third of a thumb's width the month turns
     private func swipe(_ m: String, first: String, last: String) -> some Gesture {
-        DragGesture(minimumDistance: 18)
+        DragGesture(minimumDistance: 10)
             .onChanged { v in
                 let w = v.translation.width, h = v.translation.height
-                // the drag's way is decided once, at its first 18 pt, and held until the finger lifts: a
+                // the drag's way is decided once, at its first 10 pt, and held until the finger lifts: a
                 // diagonal finger no longer scrolls and turns at once, and a sideways drag at the top of the
-                // scroll no longer pulls the sheet down with it (the scroll is held still meanwhile)
+                // scroll no longer pulls the sheet down with it (the scroll is held still meanwhile).
+                // 10 pt, not more: the scroll view's own pan — which is what drags the sheet down at the top —
+                // starts at about a finger's touch slop, so the lock has to be decided by then to beat it
                 if dragAxis == nil { dragAxis = abs(w) > abs(h) * 1.2 ? .horizontal : .vertical }
                 guard dragAxis == .horizontal else { return }
                 dragging = true

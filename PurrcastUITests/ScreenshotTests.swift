@@ -422,8 +422,8 @@ final class ScreenshotTests: XCTestCase {
         let keep = { (name: String) in
             let a = XCTAttachment(screenshot: app.screenshot()); a.name = name; a.lifetime = .keepAlways; self.add(a)
         }
-        // a diagonal drag from the top of the scroll, decided sideways: the month turns, the page does not
-        // scroll with it, and the sheet is not pulled down (pull-down is off — only 닫기 closes the calendar)
+        // a diagonal drag from the top of the scroll, decided sideways once, early, and held until release:
+        // the month turns, the page does not scroll with it, and the sheet is not pulled down
         let t0 = bar.label
         let yTop = bar.frame.minY
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.30))
@@ -469,6 +469,105 @@ final class ScreenshotTests: XCTestCase {
         let movedPast = y1 - bar.frame.minY
         keep("cal-scroll-last")
         XCTAssertGreaterThan(movedPast, 60, "the past month's page did not scroll up (moved \(movedPast) pt)")
+    }
+
+    /// The calendar sheet's pull-to-close, back since build 66's feedback: a downward pull at the top closes it
+    /// (or springs back when let go early), a pull while scrolled only moves the list, and a sideways drag turns
+    /// the month without the sheet moving at all
+    func test22CalendarDismiss() {
+        let args = ["-scene", "maybe", "-plus", "-open", "calendar", "-calOutfits", "-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+        var app = XCUIApplication()
+        app.launchArguments = args
+        app.launch()
+        let keep = { (name: String) in
+            let a = XCTAttachment(screenshot: app.screenshot()); a.name = name; a.lifetime = .keepAlways; self.add(a)
+        }
+        var bar = app.buttons["cal-month"].firstMatch
+        XCTAssertTrue(bar.waitForExistence(timeout: 20), "the calendar did not open")
+        sleep(2)
+
+        // (1) a sideways drag at the top: the month turns alone — no scroll, and the sheet stays put
+        let t0 = bar.label, x0 = bar.frame.minY
+        keep("g1-sideways-before")
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.35))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.35)))
+        sleep(2)
+        keep("g1-sideways-after")
+        XCTAssertTrue(bar.exists, "the sideways drag pulled the sheet down")
+        XCTAssertNotEqual(bar.label, t0, "the sideways drag did not turn the month")
+        XCTAssertLessThan(abs(bar.frame.minY - x0), 10, "the sideways drag moved the page (\(abs(bar.frame.minY - x0)) pt)")
+        app.swipeRight()
+        sleep(2)
+        XCTAssertEqual(bar.label, t0, "the swipe back did not return to this month")
+
+        // (2a) a short, slow pull at the top, let go early: the sheet springs back instead of closing
+        keep("g2-pull-early-before")
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
+            .press(forDuration: 0.3, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)), withVelocity: 120, thenHoldForDuration: 0.3)
+        sleep(2)
+        keep("g2-pull-early-after")
+        XCTAssertTrue(bar.exists && bar.isHittable, "an early-released pull closed the sheet")
+        XCTAssertLessThan(abs(bar.frame.minY - x0), 10, "the sheet did not spring back after an early release")
+
+        // (5) an upward drag at the top: the page scrolls (or rubber-bands), the sheet stays
+        app.swipeUp()
+        sleep(1)
+        keep("g5-up-at-top-after")
+        XCTAssertTrue(bar.exists, "an upward drag at the top closed the sheet")
+        app.swipeDown()
+        sleep(1)
+
+        // (6) a tap on today's date still opens the day sheet, and its 닫기 still closes it
+        let df = DateFormatter(); df.dateFormat = "yyyy-MM-dd"
+        let day = app.buttons["cal-\(df.string(from: Date()))"].firstMatch
+        XCTAssertTrue(day.waitForExistence(timeout: 5), "today's cell is missing")
+        day.tap()
+        sleep(2)
+        keep("g6-day-tap-after")
+        XCTAssertFalse(bar.isHittable, "the day sheet did not open on a tap")
+        let dayClose = app.buttons.matching(identifier: "sheet-close").allElementsBoundByIndex.first { $0.isHittable }
+        XCTAssertNotNil(dayClose, "the day sheet has no reachable 닫기")
+        dayClose?.tap()
+        sleep(2)
+        XCTAssertTrue(bar.isHittable, "the day sheet did not close")
+
+        // (3) with the list scrolled down, a downward drag only moves the list — the sheet stays up
+        app.swipeUp()
+        sleep(1)
+        let yScrolled = bar.frame.minY
+        XCTAssertGreaterThan(x0 - yScrolled, 60, "the page did not scroll for the scrolled-pull case")
+        keep("g3-scrolled-pull-before")
+        app.swipeDown()
+        sleep(2)
+        keep("g3-scrolled-pull-after")
+        XCTAssertTrue(bar.exists && bar.isHittable, "a pull on the scrolled list closed the sheet")
+        XCTAssertGreaterThan(bar.frame.minY - yScrolled, 60, "the pull did not scroll the list back")
+
+        // (2b) back at the top, a long pull closes the calendar
+        keep("g2-pull-close-before")
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
+            .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95)))
+        sleep(2)
+        keep("g2-pull-close-after")
+        XCTAssertFalse(bar.exists, "a full pull down did not close the calendar")
+
+        // (4) a diagonal drag, decided sideways once, early: the month turns and the sheet survives
+        app.terminate()
+        app = XCUIApplication()
+        app.launchArguments = args
+        app.launch()
+        bar = app.buttons["cal-month"].firstMatch
+        XCTAssertTrue(bar.waitForExistence(timeout: 20), "the calendar did not reopen")
+        sleep(2)
+        let t1 = bar.label, y1 = bar.frame.minY
+        keep("g4-diagonal-before")
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.30))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.42)))
+        sleep(2)
+        keep("g4-diagonal-after")
+        XCTAssertTrue(bar.exists, "the diagonal drag pulled the sheet down")
+        XCTAssertNotEqual(bar.label, t1, "the diagonal drag did not turn the month")
+        XCTAssertLessThan(abs(bar.frame.minY - y1), 10, "the diagonal drag also scrolled the page")
     }
 
     /// First run with the 이전 button, the fuller widget and watch pages; the merged rain slide of the Plus page
