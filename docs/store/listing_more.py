@@ -22,7 +22,7 @@ L["ja"] = dict(
 • 雨の時間を前もって: 「15〜17時に雨の予報です」のように伝えます
 • 動く空: 雲が流れ、雨や雪が降り、星がまたたき、雷が光ります
 • 時間ごと・10日間の予報と、日ごとの詳しいグラフ（気温・体感・雨・風・紫外線・湿度・大気）
-• 大気の状態と、3つの予報の比較（Apple 天気・韓国気象庁・MET Norway）
+• 大気の状態と、予報の比較（Apple 天気・MET Norway、韓国では韓国気象庁も）
 • ホーム画面・ロック画面ウィジェット
 • ロック画面の時計の上の1行: 服を着たキャラクターと気温・場所・雨・紫外線・日の出・日の入り・風
 • 今週の記録: 最近7日間の天気と服装
@@ -32,7 +32,7 @@ L["ja"] = dict(
 
 ゴロゴロ天気 Plus
 • 新しい予報が出るたびに更新
-• 近づく雨: これから6時間、いつどれくらい降るか
+• 近づく雨: これから6時間、いつどれくらい降るか（Apple 天気が分単位を提供する地域では分単位で）
 • 雨や雪の1時間前と降り始めの通知、ロック画面のライブアクティビティ
 • 気象警報・大気汚染・気温の変化の通知
 • 大気質マップ: 6種類の汚染物質と毎時の微小粒子状物質、ロック画面の大気ウィジェット
@@ -67,7 +67,7 @@ Purrcast muestra el tiempo a través de una mascota pixel: se cambia de ropa seg
 • Lluvia a la vista: «Lluvia de 15 a 17 h», y el paraguas va a la mochila
 • Cielo vivo: las nubes se mueven, cae lluvia y nieve, brillan las estrellas, caen rayos
 • Pronóstico por horas y a 10 días, con gráficos de cada día: temperatura, sensación, lluvia, viento, UV, humedad, aire
-• Calidad del aire y tres pronósticos comparados (El Tiempo de Apple, KMA, MET Norway)
+• Calidad del aire y pronósticos comparados (El Tiempo de Apple y MET Norway; en Corea, también KMA)
 • Widgets de inicio y de pantalla bloqueada
 • Encima del reloj de la pantalla bloqueada: el personaje vestido y la temperatura, el lugar, la lluvia, UV, amanecer y atardecer, viento
 • Esta semana: el tiempo y la ropa de los últimos siete días
@@ -77,7 +77,7 @@ Purrcast muestra el tiempo a través de una mascota pixel: se cambia de ropa seg
 
 Purrcast Plus
 • Se actualiza con cada nuevo pronóstico
-• Lluvia en las próximas 6 horas: cuándo y cuánto
+• Lluvia en las próximas 6 horas: cuándo y cuánto — minuto a minuto donde El Tiempo de Apple lo ofrece
 • Avisos una hora antes de la lluvia o la nieve y al empezar, con Actividad en Vivo en la pantalla bloqueada
 • Avisos oficiales, aire contaminado y cambios de temperatura
 • Mapa de calidad del aire con seis contaminantes y partículas cada hora, más un widget de aire para la pantalla bloqueada
@@ -95,7 +95,7 @@ Política de privacidad: {PRIVACY}""",
     group="Purrcast Plus",
     yearly="Purrcast Plus anual",
     monthly="Purrcast Plus mensual",
-    iap="Lluvia, aire, calendario, Apple Watch, personajes",
+    iap="Lluvia, aire, calendario, Watch, personajes",
 )
 
 L["fr-FR"] = dict(
@@ -112,7 +112,7 @@ Purrcast montre la météo grâce à un compagnon en pixel : il change de tenue 
 • Pluie à venir : « Pluie de 15 h à 17 h », et le parapluie va dans le sac
 • Un ciel vivant : nuages, pluie, neige, étoiles et éclairs
 • Prévisions heure par heure et sur 10 jours, avec les graphiques de chaque jour : température, ressenti, pluie, vent, UV, humidité, air
-• Qualité de l’air et trois prévisions comparées (Météo d’Apple, KMA, MET Norway)
+• Qualité de l’air et prévisions comparées (Météo d’Apple et MET Norway ; en Corée, KMA aussi)
 • Widgets pour l’écran d’accueil et l’écran verrouillé
 • Au-dessus de l’heure sur l’écran verrouillé : le personnage habillé et la température, le lieu, la pluie, l’UV, le lever et le coucher du soleil, le vent
 • Cette semaine : la météo et les tenues des sept derniers jours
@@ -122,7 +122,7 @@ Purrcast montre la météo grâce à un compagnon en pixel : il change de tenue 
 
 Purrcast Plus
 • Mise à jour à chaque nouvelle prévision
-• Pluie dans les 6 prochaines heures : quand et combien
+• Pluie dans les 6 prochaines heures : quand et combien — minute par minute là où Météo d’Apple le propose
 • Alertes une heure avant la pluie ou la neige et quand elle commence, avec une Activité en direct sur l’écran verrouillé
 • Vigilances officielles, air pollué et changements de température
 • Carte de la qualité de l’air avec six polluants et les particules heure par heure, plus un widget air pour l’écran verrouillé
@@ -140,7 +140,7 @@ Politique de confidentialité : {PRIVACY}""",
     group="Purrcast Plus",
     yearly="Purrcast Plus annuel",
     monthly="Purrcast Plus mensuel",
-    iap="Pluie, air, calendrier météo, Apple Watch, personnages",
+    iap="Pluie, air, calendrier, Watch, personnages",
 )
 
 L["de-DE"] = dict(
@@ -157,7 +157,7 @@ Purrcast zeigt das Wetter mit einem Pixel-Haustier: Es zieht sich nach der gefü
 • Regen im Voraus: „Regen 15–17 Uhr“ – und der Schirm kommt in die Tasche
 • Lebendiger Himmel: Wolken ziehen, Regen und Schnee fallen, Sterne funkeln, Blitze zucken
 • Stündliche und 10-Tage-Vorhersage, mit Diagrammen für jeden Tag: Temperatur, gefühlt, Regen, Wind, UV, Luftfeuchtigkeit, Luft
-• Luftqualität und drei Vorhersagen im Vergleich (Apple Wetter, KMA, MET Norway)
+• Luftqualität und Vorhersagen im Vergleich (Apple Wetter und MET Norway; in Korea auch KMA)
 • Widgets für Home- und Sperrbildschirm
 • Über der Uhr auf dem Sperrbildschirm: die angezogene Figur und die Temperatur, der Ort, Regen, UV, Sonnenauf- und -untergang, Wind
 • Diese Woche: Wetter und Outfits der letzten sieben Tage
@@ -167,7 +167,7 @@ Purrcast zeigt das Wetter mit einem Pixel-Haustier: Es zieht sich nach der gefü
 
 Purrcast Plus
 • Aktualisiert mit jeder neuen Vorhersage
-• Regen in den nächsten 6 Stunden: wann und wie viel
+• Regen in den nächsten 6 Stunden: wann und wie viel — minutengenau, wo Apple Wetter es anbietet
 • Hinweise eine Stunde vor Regen oder Schnee und wenn es losgeht, mit Live-Aktivität auf dem Sperrbildschirm
 • Amtliche Warnungen, schlechte Luft und Temperaturwechsel
 • Luftqualitätskarte mit sechs Schadstoffen und stündlichem Feinstaub, dazu ein Luft-Widget für den Sperrbildschirm
@@ -185,7 +185,7 @@ Datenschutzerklärung: {PRIVACY}""",
     group="Purrcast Plus",
     yearly="Purrcast Plus jährlich",
     monthly="Purrcast Plus monatlich",
-    iap="Regen, Luft, Wetterkalender, Apple Watch, Figuren",
+    iap="Regen, Luft, Kalender, Watch, Figuren",
 )
 
 L["pt-BR"] = dict(
@@ -202,7 +202,7 @@ O Purrcast mostra o tempo com um bichinho em pixel: ele troca de roupa conforme 
 • Chuva à frente: “Chuva das 15h às 17h”, e o guarda-chuva vai na bolsa
 • Céu vivo: nuvens passam, cai chuva e neve, estrelas brilham, relâmpagos piscam
 • Previsão por hora e de 10 dias, com gráficos de cada dia: temperatura, sensação, chuva, vento, UV, umidade, ar
-• Qualidade do ar e três previsões lado a lado (Tempo da Apple, KMA, MET Norway)
+• Qualidade do ar e previsões lado a lado (Tempo da Apple e MET Norway; na Coreia, também KMA)
 • Widgets para a Tela de Início e a Tela Bloqueada
 • Acima do relógio da Tela Bloqueada: o personagem vestido e a temperatura, o local, chuva, UV, nascer e pôr do sol, vento
 • Esta semana: o tempo e as roupas dos últimos sete dias
@@ -212,7 +212,7 @@ O Purrcast mostra o tempo com um bichinho em pixel: ele troca de roupa conforme 
 
 Purrcast Plus
 • Atualiza a cada nova previsão
-• Chuva nas próximas 6 horas: quando e quanto
+• Chuva nas próximas 6 horas: quando e quanto — minuto a minuto onde o Tempo da Apple oferece
 • Alertas uma hora antes da chuva ou da neve e quando começa, com Atividade ao Vivo na Tela Bloqueada
 • Alertas oficiais, ar poluído e mudanças de temperatura
 • Mapa da qualidade do ar com seis poluentes e material particulado a cada hora, mais um widget de ar para a Tela Bloqueada
@@ -230,7 +230,7 @@ Política de Privacidade: {PRIVACY}""",
     group="Purrcast Plus",
     yearly="Purrcast Plus anual",
     monthly="Purrcast Plus mensal",
-    iap="Chuva, ar, calendário, Apple Watch, personagens",
+    iap="Chuva, ar, calendário, Watch, personagens",
 )
 
 L["it"] = dict(
@@ -247,7 +247,7 @@ Purrcast mostra il meteo con un amico in pixel: cambia vestiti secondo la temper
 • Pioggia in arrivo: «Pioggia dalle 15 alle 17», e l’ombrello va nello zaino
 • Cielo vivo: nuvole che passano, pioggia e neve, stelle e lampi
 • Previsioni orarie e a 10 giorni, con i grafici di ogni giorno: temperatura, percepita, pioggia, vento, UV, umidità, aria
-• Qualità dell’aria e tre previsioni a confronto (Meteo di Apple, KMA, MET Norway)
+• Qualità dell’aria e previsioni a confronto (Meteo di Apple e MET Norway; in Corea anche KMA)
 • Widget per la schermata Home e la schermata di blocco
 • Sopra l’orologio della schermata di blocco: il personaggio vestito e la temperatura, il luogo, la pioggia, l’UV, alba e tramonto, il vento
 • Questa settimana: meteo e outfit degli ultimi sette giorni
@@ -257,7 +257,7 @@ Purrcast mostra il meteo con un amico in pixel: cambia vestiti secondo la temper
 
 Purrcast Plus
 • Aggiornamento a ogni nuova previsione
-• Pioggia nelle prossime 6 ore: quando e quanta
+• Pioggia nelle prossime 6 ore: quando e quanta — minuto per minuto dove Meteo di Apple lo offre
 • Avvisi un’ora prima di pioggia o neve e quando inizia, con Attività in tempo reale nella schermata di blocco
 • Allerte ufficiali, aria inquinata e cambi di temperatura
 • Mappa della qualità dell’aria con sei inquinanti e polveri sottili ogni ora, più un widget aria per la schermata di blocco
@@ -275,7 +275,7 @@ Informativa sulla privacy: {PRIVACY}""",
     group="Purrcast Plus",
     yearly="Purrcast Plus annuale",
     monthly="Purrcast Plus mensile",
-    iap="Pioggia, aria, calendario, Apple Watch, personaggi",
+    iap="Pioggia, aria, calendario, Watch, personaggi",
 )
 
 L["id"] = dict(
@@ -292,7 +292,7 @@ Purrcast menampilkan cuaca lewat hewan piksel: ia berganti pakaian sesuai suhu t
 • Hujan di depan: "Hujan pukul 15–17", dan payung masuk tas
 • Langit hidup: awan bergerak, hujan dan salju turun, bintang berkelip, petir menyambar
 • Prakiraan per jam dan 10 hari, dengan grafik tiap hari: suhu, terasa, hujan, angin, UV, kelembapan, udara
-• Kualitas udara dan tiga prakiraan berdampingan (Cuaca Apple, KMA, MET Norway)
+• Kualitas udara dan prakiraan berdampingan (Cuaca Apple dan MET Norway; di Korea juga KMA)
 • Widget Layar Utama dan Layar Kunci
 • Di atas jam Layar Kunci: karakter berpakaian dan suhu, lokasi, hujan, UV, matahari terbit dan terbenam, angin
 • Minggu ini: cuaca dan pakaian tujuh hari terakhir
@@ -302,7 +302,7 @@ Purrcast menampilkan cuaca lewat hewan piksel: ia berganti pakaian sesuai suhu t
 
 Purrcast Plus
 • Diperbarui setiap ada prakiraan baru
-• Hujan 6 jam ke depan: kapan dan seberapa banyak
+• Hujan 6 jam ke depan: kapan dan seberapa banyak — menit demi menit di wilayah yang didukung Cuaca Apple
 • Pemberitahuan sejam sebelum hujan atau salju dan saat mulai, dengan Aktivitas Langsung di Layar Kunci
 • Peringatan resmi, udara buruk, dan perubahan suhu
 • Peta kualitas udara dengan enam polutan dan partikel debu tiap jam, plus widget udara di Layar Kunci
@@ -320,7 +320,7 @@ Kebijakan Privasi: {PRIVACY}""",
     group="Purrcast Plus",
     yearly="Purrcast Plus Tahunan",
     monthly="Purrcast Plus Bulanan",
-    iap="Hujan, udara, kalender cuaca, Apple Watch, karakter",
+    iap="Hujan, udara, kalender, Watch, karakter",
 )
 
 L["ru"] = dict(
@@ -337,7 +337,7 @@ Purrcast показывает погоду с помощью пиксельно�
 • Дождь заранее: «Дождь с 15 до 17» — и зонт отправляется в сумку
 • Живое небо: плывут облака, идут дождь и снег, мерцают звёзды, сверкает молния
 • Прогноз по часам и на 10 дней, с графиками для каждого дня: температура, ощущается, дождь, ветер, УФ, влажность, воздух
-• Качество воздуха и три прогноза рядом (Apple Погода, KMA, MET Norway)
+• Качество воздуха и прогнозы рядом (Apple Погода и MET Norway; в Корее ещё и KMA)
 • Виджеты для экрана «Домой» и экрана блокировки
 • Над часами на экране блокировки: одетый персонаж и температура, место, дождь, УФ, восход и закат, ветер
 • Эта неделя: погода и одежда за последние семь дней
@@ -347,7 +347,7 @@ Purrcast показывает погоду с помощью пиксельно�
 
 Purrcast Plus
 • Обновление с каждым новым прогнозом
-• Дождь на ближайшие 6 часов: когда и сколько
+• Дождь на ближайшие 6 часов: когда и сколько — поминутно там, где это даёт Apple Погода
 • Уведомления за час до дождя или снега и когда они начинаются, с Live Activity на экране блокировки
 • Официальные предупреждения, загрязнённый воздух и перепады температуры
 • Карта качества воздуха с шестью загрязнителями и взвешенными частицами каждый час, а также виджет воздуха на экране блокировки
@@ -365,7 +365,7 @@ Plus — годовая или месячная подписка с автома
     group="Purrcast Plus",
     yearly="Purrcast Plus на год",
     monthly="Purrcast Plus на месяц",
-    iap="Дождь, воздух, календарь погоды, Apple Watch, персонажи",
+    iap="Дождь, воздух, календарь, Watch, персонажи",
 )
 
 L["zh-Hans"] = dict(
@@ -382,7 +382,7 @@ Purrcast 用一只像素宠物告诉你天气：它会按照体感温度换衣�
 • 提前知道雨：比如"15～17时有雨预报"，记得带伞
 • 会动的天空：云在飘，雨雪落下，星星闪烁，闪电划过
 • 逐小时和 10 天预报，每天都有详细图表：气温、体感、降雨、风、紫外线、湿度、空气
-• 空气质量，以及三家预报对比（Apple 天气、韩国气象厅、MET Norway）
+• 空气质量，以及预报对比（Apple 天气、MET Norway，在韩国还有韩国气象厅）
 • 主屏幕和锁定屏幕小组件
 • 锁定屏幕时钟上方一行：穿好衣服的角色和气温、位置、雨、紫外线、日出日落、风
 • 本周记录：最近 7 天的天气和穿搭
@@ -392,7 +392,7 @@ Purrcast 用一只像素宠物告诉你天气：它会按照体感温度换衣�
 
 Purrcast Plus
 • 每次有新预报就更新
-• 未来 6 小时的雨：什么时候下、下多少
+• 未来 6 小时的雨：什么时候下、下多少——在 Apple 天气提供分钟级预报的地区精确到分钟
 • 下雨或下雪前 1 小时和开始时提醒，锁定屏幕实时活动
 • 气象预警、空气污染和气温变化提醒
 • 空气质量地图：6 种污染物和每小时颗粒物，以及锁定屏幕空气小组件
@@ -427,7 +427,7 @@ Purrcast 用一隻像素寵物告訴你天氣：牠會依照體感溫度換衣�
 • 提前知道雨：例如「15～17時有雨預報」，記得帶傘
 • 會動的天空：雲在飄，雨雪落下，星星閃爍，閃電劃過
 • 逐小時和 10 天預報，每天都有詳細圖表：氣溫、體感、降雨、風、紫外線、濕度、空氣
-• 空氣品質，以及三家預報比較（Apple 天氣、韓國氣象廳、MET Norway）
+• 空氣品質，以及預報比較（Apple 天氣、MET Norway，在韓國還有韓國氣象廳）
 • 主畫面和鎖定畫面小工具
 • 鎖定畫面時鐘上方一行：穿好衣服的角色和氣溫、位置、雨、紫外線、日出日落、風
 • 本週記錄：最近 7 天的天氣和穿搭
@@ -437,7 +437,7 @@ Purrcast 用一隻像素寵物告訴你天氣：牠會依照體感溫度換衣�
 
 Purrcast Plus
 • 每次有新預報就更新
-• 未來 6 小時的雨：什麼時候下、下多少
+• 未來 6 小時的雨：什麼時候下、下多少——在 Apple 天氣提供分鐘級預報的地區精確到分鐘
 • 下雨或下雪前 1 小時和開始時提醒，鎖定畫面即時動態
 • 氣象特報、空氣污染和氣溫變化提醒
 • 空氣品質地圖：6 種污染物和每小時懸浮微粒，以及鎖定畫面空氣小工具

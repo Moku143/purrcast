@@ -12,7 +12,7 @@
 Un amico pixel si veste secondo la temperatura percepita e apre l’ombrello se piove. Meteo e outfit di ogni giorno riempiono un calendario, e compare sopra l’orologio.
 ```
 
-## 설명 (2562자)
+## 설명 (2623자)
 
 ```
 Cosa mi metto oggi? Chiedilo al tuo amico pixel.
@@ -34,7 +34,7 @@ Purrcast mostra il meteo con un amico in pixel: cambia vestiti secondo la temper
 
 Purrcast Plus
 • Aggiornamento a ogni nuova previsione
-• Pioggia nelle prossime 6 ore: quando e quanta
+• Pioggia nelle prossime 6 ore: quando e quanta — minuto per minuto dove Meteo di Apple lo offre
 • Avvisi un’ora prima di pioggia o neve e quando inizia, con Attività in tempo reale nella schermata di blocco
 • Allerte ufficiali, aria inquinata e cambi di temperatura
 • Mappa della qualità dell’aria con sei inquinanti e polveri sottili ogni ora, più un widget aria per la schermata di blocco

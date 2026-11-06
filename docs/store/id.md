@@ -12,7 +12,7 @@
 Teman piksel berganti pakaian sesuai suhu terasa dan membuka payung saat hujan. Cuaca dan pakaian tiap hari tersimpan di kalender, dan ia muncul di atas jam.
 ```
 
-## 설명 (2399자)
+## 설명 (2467자)
 
 ```
 Pakai apa hari ini? Tanya teman pikselmu.
@@ -34,7 +34,7 @@ Purrcast menampilkan cuaca lewat hewan piksel: ia berganti pakaian sesuai suhu t
 
 Purrcast Plus
 • Diperbarui setiap ada prakiraan baru
-• Hujan 6 jam ke depan: kapan dan seberapa banyak
+• Hujan 6 jam ke depan: kapan dan seberapa banyak — menit demi menit di wilayah yang didukung Cuaca Apple
 • Pemberitahuan sejam sebelum hujan atau salju dan saat mulai, dengan Aktivitas Langsung di Layar Kunci
 • Peringatan resmi, udara buruk, dan perubahan suhu
 • Peta kualitas udara dengan enam polutan dan partikel debu tiap jam, plus widget udara di Layar Kunci

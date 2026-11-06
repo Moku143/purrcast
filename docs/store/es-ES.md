@@ -12,7 +12,7 @@
 Una mascota pixel se viste según la sensación térmica y abre el paraguas si llueve. El tiempo y la ropa de cada día llenan un calendario, y aparece sobre el reloj.
 ```
 
-## 설명 (2645자)
+## 설명 (2712자)
 
 ```
 ¿Qué me pongo hoy? Pregúntale a tu mascota pixel.
@@ -34,7 +34,7 @@ Purrcast muestra el tiempo a través de una mascota pixel: se cambia de ropa seg
 
 Purrcast Plus
 • Se actualiza con cada nuevo pronóstico
-• Lluvia en las próximas 6 horas: cuándo y cuánto
+• Lluvia en las próximas 6 horas: cuándo y cuánto — minuto a minuto donde El Tiempo de Apple lo ofrece
 • Avisos una hora antes de la lluvia o la nieve y al empezar, con Actividad en Vivo en la pantalla bloqueada
 • Avisos oficiales, aire contaminado y cambios de temperatura
 • Mapa de calidad del aire con seis contaminantes y partículas cada hora, más un widget de aire para la pantalla bloqueada

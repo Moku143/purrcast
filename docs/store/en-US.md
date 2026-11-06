@@ -12,7 +12,7 @@
 A pixel pet dresses for the feels-like temperature and holds an umbrella in the rain. Every day's weather and outfit fill a calendar, and it waits above your clock.
 ```
 
-## 설명 (2399자)
+## 설명 (2459자)
 
 ```
 What should I wear today? Ask your pixel pet.
@@ -34,7 +34,7 @@ Purrcast shows the weather through a pixel pet: it changes clothes with the feel
 
 Purrcast Plus
 • Updates with every new forecast run
-• Next 6 hours of rain: when and how much
+• Next 6 hours of rain: when and how much — minute by minute where Apple Weather offers it
 • Alerts an hour before rain or snow and as it starts, with a Lock Screen Live Activity
 • Official warnings, poor air and temperature-change alerts
 • Air quality map with six pollutants and hourly fine dust, plus a Lock Screen air widget

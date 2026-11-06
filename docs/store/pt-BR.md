@@ -12,7 +12,7 @@
 Um amigo pixel se veste conforme a sensação térmica e abre o guarda-chuva se chove. O tempo e a roupa de cada dia vão para um calendário, e ele aparece sobre o relógio.
 ```
 
-## 설명 (2489자)
+## 설명 (2551자)
 
 ```
 O que vestir hoje? Pergunte ao seu amigo pixel.
@@ -34,7 +34,7 @@ O Purrcast mostra o tempo com um bichinho em pixel: ele troca de roupa conforme 
 
 Purrcast Plus
 • Atualiza a cada nova previsão
-• Chuva nas próximas 6 horas: quando e quanto
+• Chuva nas próximas 6 horas: quando e quanto — minuto a minuto onde o Tempo da Apple oferece
 • Alertas uma hora antes da chuva ou da neve e quando começa, com Atividade ao Vivo na Tela Bloqueada
 • Alertas oficiais, ar poluído e mudanças de temperatura
 • Mapa da qualidade do ar com seis poluentes e material particulado a cada hora, mais um widget de ar para a Tela Bloqueada

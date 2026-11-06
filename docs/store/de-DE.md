@@ -12,7 +12,7 @@
 Ein Pixel-Freund zieht sich nach der gefühlten Temperatur an und öffnet bei Regen den Schirm. Wetter und Outfit jedes Tages füllen einen Kalender – auch über der Uhr.
 ```
 
-## 설명 (2583자)
+## 설명 (2639자)
 
 ```
 Was ziehe ich heute an? Frag deinen Pixel-Freund.
@@ -34,7 +34,7 @@ Purrcast zeigt das Wetter mit einem Pixel-Haustier: Es zieht sich nach der gefü
 
 Purrcast Plus
 • Aktualisiert mit jeder neuen Vorhersage
-• Regen in den nächsten 6 Stunden: wann und wie viel
+• Regen in den nächsten 6 Stunden: wann und wie viel — minutengenau, wo Apple Wetter es anbietet
 • Hinweise eine Stunde vor Regen oder Schnee und wenn es losgeht, mit Live-Aktivität auf dem Sperrbildschirm
 • Amtliche Warnungen, schlechte Luft und Temperaturwechsel
 • Luftqualitätskarte mit sechs Schadstoffen und stündlichem Feinstaub, dazu ein Luft-Widget für den Sperrbildschirm

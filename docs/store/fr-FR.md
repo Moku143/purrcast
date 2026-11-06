@@ -12,7 +12,7 @@
 Un ami pixel s’habille selon le ressenti et ouvre son parapluie s’il pleut. La météo et la tenue de chaque jour remplissent un calendrier, jusqu’au-dessus de l’heure.
 ```
 
-## 설명 (2697자)
+## 설명 (2761자)
 
 ```
 Que porter aujourd’hui ? Demandez à votre ami pixel.
@@ -34,7 +34,7 @@ Purrcast montre la météo grâce à un compagnon en pixel : il change de tenue 
 
 Purrcast Plus
 • Mise à jour à chaque nouvelle prévision
-• Pluie dans les 6 prochaines heures : quand et combien
+• Pluie dans les 6 prochaines heures : quand et combien — minute par minute là où Météo d’Apple le propose
 • Alertes une heure avant la pluie ou la neige et quand elle commence, avec une Activité en direct sur l’écran verrouillé
 • Vigilances officielles, air pollué et changements de température
 • Carte de la qualité de l’air avec six polluants et les particules heure par heure, plus un widget air pour l’écran verrouillé

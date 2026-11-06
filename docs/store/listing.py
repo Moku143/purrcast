@@ -1,7 +1,7 @@
 """App Store listing texts for every language the app speaks — the source of docs/store/<locale>.md.
 
 Run `python3 docs/store/listing.py` to check Apple's limits (name / subtitle 30, promotional text 170, keywords 100,
-description 4000, subscription display name 30 / description 55) and write the per-language pages.
+description 4000, subscription display name 30 / description 45) and write the per-language pages.
 """
 import os, sys
 
@@ -22,7 +22,7 @@ L["ko"] = dict(
 • 비 오는 시간을 미리: "15~17시 비 예보"처럼 알려 줘요
 • 날씨 그림: 구름이 흐르고, 비와 눈이 내리고, 별이 반짝이고, 번개가 쳐요
 • 시간별 · 10일 예보, 날짜별 상세 그래프(기온 · 체감 · 비 · 바람 · 자외선 · 습도 · 미세먼지)
-• 미세먼지 · 초미세먼지, 세 곳 예보 비교(Apple 날씨 · 기상청 · MET Norway)
+• 미세먼지 · 초미세먼지, 예보 비교(Apple 날씨 · MET Norway, 한국에서는 기상청까지)
 • 홈 화면 위젯과 잠금 화면 위젯
 • 잠금 화면 시계 위 한 줄: 옷 입은 캐릭터와 기온 · 위치 · 비 · 자외선 · 일출·일몰 · 바람
 • 이번 주 기록: 최근 7일의 날씨와 옷차림
@@ -32,7 +32,7 @@ L["ko"] = dict(
 
 그르릉날씨 Plus
 • 새 예보가 나올 때마다 업데이트
-• 가까운 비: 앞으로 6시간, 언제 얼마나 오는지
+• 가까운 비: 앞으로 6시간, 언제 얼마나 오는지 (Apple 날씨가 분 단위를 주는 곳은 분 단위로)
 • 비·눈 1시간 전과 올 때 알림, 잠금 화면 라이브 액티비티
 • 기상특보 · 황사 · 미세먼지 · 기온 변화 알림
 • 대기질 지도: 통합대기환경지수 · 오염 물질 6종 · 매시간 미세먼지, 잠금 화면 미세먼지 위젯
@@ -67,7 +67,7 @@ Purrcast shows the weather through a pixel pet: it changes clothes with the feel
 • Rain ahead: "Rain 3–5 PM" — and the umbrella goes in the bag
 • Living sky: clouds drift, rain and snow fall, stars twinkle, lightning flashes
 • Hourly and 10-day forecast, with detailed charts for each day: temperature, feels-like, rain, wind, UV, humidity, air
-• Air quality and three forecasts side by side (Apple Weather, KMA, MET Norway)
+• Air quality and forecasts side by side (Apple Weather and MET Norway; in Korea, KMA too)
 • Home Screen and Lock Screen widgets
 • Above the Lock Screen clock: the dressed character and the temperature, the place, rain, UV, sunrise and sunset, wind
 • This week: the last seven days' weather and outfits
@@ -77,7 +77,7 @@ Purrcast shows the weather through a pixel pet: it changes clothes with the feel
 
 Purrcast Plus
 • Updates with every new forecast run
-• Next 6 hours of rain: when and how much
+• Next 6 hours of rain: when and how much — minute by minute where Apple Weather offers it
 • Alerts an hour before rain or snow and as it starts, with a Lock Screen Live Activity
 • Official warnings, poor air and temperature-change alerts
 • Air quality map with six pollutants and hourly fine dust, plus a Lock Screen air widget
@@ -95,14 +95,14 @@ Privacy Policy: https://moku143.github.io/purrcast/privacy.html""",
     group="Purrcast Plus",
     yearly="Purrcast Plus Yearly",
     monthly="Purrcast Plus Monthly",
-    iap="Rain soon, air, weather calendar, Watch, characters",
+    iap="Rain soon, air, calendar, Watch, characters",
 )
 
 if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import listing, listing_more  # noqa: F401  (the other languages add themselves to listing.L)
     L = listing.L
-    limits = dict(name=30, subtitle=30, promo=170, keywords=100, description=4000, group=30, yearly=30, monthly=30, iap=55)
+    limits = dict(name=30, subtitle=30, promo=170, keywords=100, description=4000, group=30, yearly=30, monthly=30, iap=45)
     bad = 0
     for loc, t in L.items():
         for k, n in limits.items():
