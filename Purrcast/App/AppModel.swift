@@ -108,10 +108,11 @@ final class AppModel: ObservableObject {
 
         // what to show before the first answer: the last forecast for this place (server mode), or the example
         if prov.isSample {
-            raw = SceneLibrary.scene(pinned ?? loadedPlaces[0].sample)
             // a store picture abroad (id "store", -storeCity only) follows its market from the first frame:
             // the screenshot may be taken before any async refresh lands
-            if loadedPlaces[0].id == "store" { raw = SampleWeatherProvider.storeAbroad(raw, place: loadedPlaces[0]) }
+            var s0 = SceneLibrary.scene(pinned ?? loadedPlaces[0].sample)
+            if loadedPlaces[0].id == "store" { s0 = SampleWeatherProvider.storeAbroad(s0, place: loadedPlaces[0]) }
+            raw = s0
             hasData = true
         } else if let last = SharedStore.load(), !last.isSample, last.place?.id == loadedPlaces[0].id {
             var s = last.scene
