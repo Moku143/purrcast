@@ -2,7 +2,7 @@
 
 | 칸 | 값 | 글자 |
 |---|---|---|
-| 이름 | Purrcast: Meteo e Outfit | 24 |
+| 이름 | Fusa Meteo: Outfit del Giorno | 29 |
 | 부제 | Un amico pixel che si veste | 27 |
 | 키워드 | pioggia,ombrello,widget,cosa indossare,previsioni,gatto,pixel,schermata blocco,orologio,calendario | 98 |
 
@@ -17,7 +17,7 @@ Un amico pixel si veste secondo la temperatura percepita e apre l’ombrello se 
 ```
 Cosa mi metto oggi? Chiedilo al tuo amico pixel.
 
-Purrcast mostra il meteo con un amico in pixel: cambia vestiti secondo la temperatura percepita e apre l’ombrello quando arriva la pioggia. Niente numeri da leggere: basta uno sguardo. Le previsioni arrivano da Meteo di Apple in tutto il mondo e dal servizio meteorologico coreano in Corea.
+Fusa Meteo mostra il meteo con un amico in pixel: cambia vestiti secondo la temperatura percepita e apre l’ombrello quando arriva la pioggia. Niente numeri da leggere: basta uno sguardo. Le previsioni arrivano da Meteo di Apple in tutto il mondo e dal servizio meteorologico coreano in Corea.
 
 • 15 outfit, dalla canotta al piumino con cappuccio di pelliccia
 • Ombrello: piove ora, pioverà (nello zaino), forse
@@ -32,7 +32,7 @@ Purrcast mostra il meteo con un amico in pixel: cambia vestiti secondo la temper
 • Riepilogo del mattino
 • 12 lingue, °C / °F, 24 h / 12 h, carattere pixel o normale
 
-Purrcast Plus
+Fusa Meteo Plus
 • Aggiornamento a ogni nuova previsione
 • Pioggia nelle prossime 6 ore: quando e quanta — minuto per minuto dove Meteo di Apple lo offre
 • Avvisi un’ora prima di pioggia o neve e quando inizia, con Attività in tempo reale nella schermata di blocco
@@ -55,7 +55,7 @@ Informativa sulla privacy: https://moku143.github.io/purrcast/privacy.html
 
 | 칸 | 값 |
 |---|---|
-| 구독 그룹 표시 이름 | Purrcast Plus |
-| 연간 표시 이름 | Purrcast Plus annuale |
-| 월간 표시 이름 | Purrcast Plus mensile |
+| 구독 그룹 표시 이름 | Fusa Meteo Plus |
+| 연간 표시 이름 | Fusa Meteo Plus annuale |
+| 월간 표시 이름 | Fusa Meteo Plus mensile |
 | 설명 (두 구독 같음, 44자) | Pioggia, aria, calendario, Watch, personaggi |

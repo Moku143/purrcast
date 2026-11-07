@@ -2,7 +2,7 @@
 
 | 칸 | 값 | 글자 |
 |---|---|---|
-| 이름 | Purrcast: Clima e Roupas | 24 |
+| 이름 | Ronrom Clima: Tempo e Roupas | 28 |
 | 부제 | Um amigo pixel que se veste | 27 |
 | 키워드 | chuva,guarda-chuva,widget,o que vestir,previsão,gato,pixel,tela bloqueio,relógio,roupa,calendário | 97 |
 
@@ -17,7 +17,7 @@ Um amigo pixel se veste conforme a sensação térmica e abre o guarda-chuva se 
 ```
 O que vestir hoje? Pergunte ao seu amigo pixel.
 
-O Purrcast mostra o tempo com um bichinho em pixel: ele troca de roupa conforme a sensação térmica e abre o guarda-chuva quando a chuva chega. Nada de números: basta olhar. As previsões vêm do Tempo da Apple no mundo todo e do serviço meteorológico da Coreia na Coreia.
+O Ronrom Clima mostra o tempo com um bichinho em pixel: ele troca de roupa conforme a sensação térmica e abre o guarda-chuva quando a chuva chega. Nada de números: basta olhar. As previsões vêm do Tempo da Apple no mundo todo e do serviço meteorológico da Coreia na Coreia.
 
 • 15 roupas, da regata ao casaco puffer com capuz de pelo
 • Guarda-chuva: chovendo agora, chuva mais tarde (na bolsa), talvez
@@ -32,7 +32,7 @@ O Purrcast mostra o tempo com um bichinho em pixel: ele troca de roupa conforme 
 • Resumo da manhã
 • 12 idiomas, °C / °F, 24 h / 12 h, fonte pixel ou comum
 
-Purrcast Plus
+Ronrom Clima Plus
 • Atualiza a cada nova previsão
 • Chuva nas próximas 6 horas: quando e quanto — minuto a minuto onde o Tempo da Apple oferece
 • Alertas uma hora antes da chuva ou da neve e quando começa, com Atividade ao Vivo na Tela Bloqueada
@@ -55,7 +55,7 @@ Política de Privacidade: https://moku143.github.io/purrcast/privacy.html
 
 | 칸 | 값 |
 |---|---|
-| 구독 그룹 표시 이름 | Purrcast Plus |
-| 연간 표시 이름 | Purrcast Plus anual |
-| 월간 표시 이름 | Purrcast Plus mensal |
+| 구독 그룹 표시 이름 | Ronrom Clima Plus |
+| 연간 표시 이름 | Ronrom Clima Plus anual |
+| 월간 표시 이름 | Ronrom Clima Plus mensal |
 | 설명 (두 구독 같음, 41자) | Chuva, ar, calendário, Watch, personagens |

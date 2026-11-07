@@ -2,7 +2,7 @@
 
 | 칸 | 값 | 글자 |
 |---|---|---|
-| 이름 | Purrcast: Wetter & Outfits | 26 |
+| 이름 | Schnurrwetter: Wetter & Outfit | 30 |
 | 부제 | Pixel-Freunde im Wetter-Outfit | 30 |
 | 키워드 | regen,schirm,widget,was anziehen,vorhersage,katze,pixel,sperrbildschirm,uhr,kleidung,kalender | 93 |
 
@@ -17,7 +17,7 @@ Ein Pixel-Freund zieht sich nach der gefühlten Temperatur an und öffnet bei Re
 ```
 Was ziehe ich heute an? Frag deinen Pixel-Freund.
 
-Purrcast zeigt das Wetter mit einem Pixel-Haustier: Es zieht sich nach der gefühlten Temperatur an und öffnet den Schirm, wenn Regen kommt. Keine Zahlen lesen – ein Blick genügt. Die Vorhersagen kommen weltweit von Apple Wetter und in Korea vom koreanischen Wetterdienst.
+Schnurrwetter zeigt das Wetter mit einem Pixel-Haustier: Es zieht sich nach der gefühlten Temperatur an und öffnet den Schirm, wenn Regen kommt. Keine Zahlen lesen – ein Blick genügt. Die Vorhersagen kommen weltweit von Apple Wetter und in Korea vom koreanischen Wetterdienst.
 
 • 15 Outfits, vom Tanktop bis zur Daunenjacke mit Fellkapuze
 • Schirm: Es regnet, es wird regnen (in der Tasche), vielleicht
@@ -32,7 +32,7 @@ Purrcast zeigt das Wetter mit einem Pixel-Haustier: Es zieht sich nach der gefü
 • Morgenübersicht
 • 12 Sprachen, °C / °F, 24 / 12 Stunden, Pixel- oder normale Schrift
 
-Purrcast Plus
+Schnurrwetter Plus
 • Aktualisiert mit jeder neuen Vorhersage
 • Regen in den nächsten 6 Stunden: wann und wie viel — minutengenau, wo Apple Wetter es anbietet
 • Hinweise eine Stunde vor Regen oder Schnee und wenn es losgeht, mit Live-Aktivität auf dem Sperrbildschirm
@@ -55,7 +55,7 @@ Datenschutzerklärung: https://moku143.github.io/purrcast/privacy.html
 
 | 칸 | 값 |
 |---|---|
-| 구독 그룹 표시 이름 | Purrcast Plus |
-| 연간 표시 이름 | Purrcast Plus jährlich |
-| 월간 표시 이름 | Purrcast Plus monatlich |
+| 구독 그룹 표시 이름 | Schnurrwetter Plus |
+| 연간 표시 이름 | Schnurrwetter Plus jährlich |
+| 월간 표시 이름 | Schnurrwetter Plus monatlich |
 | 설명 (두 구독 같음, 37자) | Regen, Luft, Kalender, Watch, Figuren |

@@ -2,7 +2,7 @@
 
 | 칸 | 값 | 글자 |
 |---|---|---|
-| 이름 | Purrcast: Tiempo y Ropa | 23 |
+| 이름 | Ronroneo: Tiempo y Ropa | 23 |
 | 부제 | Una mascota pixel que se viste | 30 |
 | 키워드 | lluvia,paraguas,widget,qué ponerme,pronóstico,gato,pixel,pantalla bloqueo,reloj,ropa,calendario | 95 |
 
@@ -17,7 +17,7 @@ Una mascota pixel se viste según la sensación térmica y abre el paraguas si l
 ```
 ¿Qué me pongo hoy? Pregúntale a tu mascota pixel.
 
-Purrcast muestra el tiempo a través de una mascota pixel: se cambia de ropa según la sensación térmica y abre el paraguas cuando llega la lluvia. Sin números que leer: un vistazo y lo sabes. Los pronósticos vienen de El Tiempo de Apple en todo el mundo y de la agencia meteorológica de Corea en Corea.
+Ronroneo muestra el tiempo a través de una mascota pixel: se cambia de ropa según la sensación térmica y abre el paraguas cuando llega la lluvia. Sin números que leer: un vistazo y lo sabes. Los pronósticos vienen de El Tiempo de Apple en todo el mundo y de la agencia meteorológica de Corea en Corea.
 
 • 15 conjuntos, de la camiseta de tirantes al plumífero con capucha
 • Paraguas: lloviendo ahora, lluvia más tarde (en la mochila), quizá
@@ -32,7 +32,7 @@ Purrcast muestra el tiempo a través de una mascota pixel: se cambia de ropa seg
 • Resumen de la mañana
 • 12 idiomas, °C / °F, 24 h / 12 h, letra pixel o normal
 
-Purrcast Plus
+Ronroneo Plus
 • Se actualiza con cada nuevo pronóstico
 • Lluvia en las próximas 6 horas: cuándo y cuánto — minuto a minuto donde El Tiempo de Apple lo ofrece
 • Avisos una hora antes de la lluvia o la nieve y al empezar, con Actividad en Vivo en la pantalla bloqueada
@@ -55,7 +55,7 @@ Política de privacidad: https://moku143.github.io/purrcast/privacy.html
 
 | 칸 | 값 |
 |---|---|
-| 구독 그룹 표시 이름 | Purrcast Plus |
-| 연간 표시 이름 | Purrcast Plus anual |
-| 월간 표시 이름 | Purrcast Plus mensual |
+| 구독 그룹 표시 이름 | Ronroneo Plus |
+| 연간 표시 이름 | Ronroneo Plus anual |
+| 월간 표시 이름 | Ronroneo Plus mensual |
 | 설명 (두 구독 같음, 43자) | Lluvia, aire, calendario, Watch, personajes |

@@ -2,7 +2,7 @@
 
 | 칸 | 값 | 글자 |
 |---|---|---|
-| 이름 | Purrcast : Météo et Tenues | 26 |
+| 이름 | Ronron Météo : Tenues du jour | 29 |
 | 부제 | Un ami pixel qui s’habille | 26 |
 | 키워드 | pluie,parapluie,widget,quoi porter,prévisions,chat,pixel,écran verrouillé,montre,tenue,calendrier | 97 |
 
@@ -17,7 +17,7 @@ Un ami pixel s’habille selon le ressenti et ouvre son parapluie s’il pleut. 
 ```
 Que porter aujourd’hui ? Demandez à votre ami pixel.
 
-Purrcast montre la météo grâce à un compagnon en pixel : il change de tenue selon la température ressentie et ouvre son parapluie quand la pluie arrive. Pas de chiffres à lire : un coup d’œil suffit. Les prévisions viennent de Météo d’Apple dans le monde entier et de l’agence météorologique coréenne en Corée.
+Ronron Météo montre la météo grâce à un compagnon en pixel : il change de tenue selon la température ressentie et ouvre son parapluie quand la pluie arrive. Pas de chiffres à lire : un coup d’œil suffit. Les prévisions viennent de Météo d’Apple dans le monde entier et de l’agence météorologique coréenne en Corée.
 
 • 15 tenues, du débardeur à la doudoune à capuche fourrée
 • Parapluie : il pleut, il pleuvra (rangé dans le sac), peut-être
@@ -32,7 +32,7 @@ Purrcast montre la météo grâce à un compagnon en pixel : il change de tenue 
 • Résumé du matin
 • 12 langues, °C / °F, 24 h / 12 h, police pixel ou classique
 
-Purrcast Plus
+Ronron Météo Plus
 • Mise à jour à chaque nouvelle prévision
 • Pluie dans les 6 prochaines heures : quand et combien — minute par minute là où Météo d’Apple le propose
 • Alertes une heure avant la pluie ou la neige et quand elle commence, avec une Activité en direct sur l’écran verrouillé
@@ -55,7 +55,7 @@ Politique de confidentialité : https://moku143.github.io/purrcast/privacy.html
 
 | 칸 | 값 |
 |---|---|
-| 구독 그룹 표시 이름 | Purrcast Plus |
-| 연간 표시 이름 | Purrcast Plus annuel |
-| 월간 표시 이름 | Purrcast Plus mensuel |
+| 구독 그룹 표시 이름 | Ronron Météo Plus |
+| 연간 표시 이름 | Ronron Météo Plus annuel |
+| 월간 표시 이름 | Ronron Météo Plus mensuel |
 | 설명 (두 구독 같음, 42자) | Pluie, air, calendrier, Watch, personnages |
