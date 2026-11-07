@@ -26,7 +26,62 @@ struct Place: Codable, Hashable, Identifiable {
     var serverName: String { ko ?? name }
 
     /// Computed (not stored) so the names follow `Lang.current`, which tests may change.
-    static var here: Place { Place(id: "here", name: L("서울 마포구"), short: L("마포구"), lat: 37.5663, lon: 126.9019, region: "kr", timeZone: "Asia/Seoul", sample: "maybe", ko: "서울 마포구") }
+    /// Before the person grants location or picks a place, the app stands in their region's big city, not 마포구:
+    /// the device's region decides (an American first launch opens on 뉴욕), and Korea keeps 서울 마포구.
+    static var here: Place { defaultPlace(region: deviceRegion()) }
+
+    /// The device region `here` reads — swappable, so the unit tests can stand in Korea whatever simulator runs them.
+    static var deviceRegion: () -> String? = { Locale.current.region?.identifier }
+
+    /// The stand-in place for a device region: the capital, or the city better known than it. Regions the table
+    /// does not know fall back to 서울 마포구, like before. The id stays "here" everywhere — it is the same
+    /// "no place picked yet" stand-in, so saved places, 지금 위치 and the widgets' spot-taking all go on as they were.
+    static func defaultPlace(region: String?) -> Place {
+        let seoul = Place(id: "here", name: L("서울 마포구"), short: L("마포구"), lat: 37.5663, lon: 126.9019, region: "kr", timeZone: "Asia/Seoul", sample: "maybe", ko: "서울 마포구")
+        guard let r = region, r != "KR" else { return seoul }
+        let t: [String: (name: String, lat: Double, lon: Double, region: String, tz: String, sample: String)] = [
+            "US": ("뉴욕", 40.7128, -74.0060, "other", "America/New_York", "winter_eve"),
+            "JP": ("도쿄", 35.6764, 139.6500, "jp", "Asia/Tokyo", "tokyo_soon"),
+            "GB": ("런던", 51.5074, -0.1278, "other", "Europe/London", "spring_chill"),
+            "FR": ("파리", 48.8566, 2.3522, "other", "Europe/Paris", "spring_chill"),
+            "DE": ("베를린", 52.5200, 13.4050, "other", "Europe/Berlin", "spring_chill"),
+            "ES": ("마드리드", 40.4168, -3.7038, "other", "Europe/Madrid", "clear"),
+            "IT": ("로마", 41.9028, 12.4964, "other", "Europe/Rome", "clear"),
+            "BR": ("상파울루", -23.5505, -46.6333, "other", "America/Sao_Paulo", "summer_night"),
+            "ID": ("자카르타", -6.1944, 106.8229, "other", "Asia/Jakarta", "summer_monsoon"),
+            "RU": ("모스크바", 55.7558, 37.6173, "other", "Europe/Moscow", "winter_snow"),
+            "SG": ("싱가포르", 1.3521, 103.8198, "other", "Asia/Singapore", "summer_heat"),
+            "TW": ("타이베이", 25.0330, 121.5654, "other", "Asia/Taipei", "maybe"),
+            "TH": ("방콕", 13.7563, 100.5018, "other", "Asia/Bangkok", "summer_heat"),
+            "CN": ("상하이", 31.2304, 121.4737, "other", "Asia/Shanghai", "maybe"),
+            "HK": ("홍콩", 22.3193, 114.1694, "other", "Asia/Hong_Kong", "summer_night"),
+            "AU": ("시드니", -33.8688, 151.2093, "other", "Australia/Sydney", "clear"),
+            "CA": ("토론토", 43.6532, -79.3832, "other", "America/Toronto", "winter_eve"),
+            "MX": ("멕시코시티", 19.4326, -99.1332, "other", "America/Mexico_City", "clear"),
+            "IN": ("뉴델리", 28.6139, 77.2090, "other", "Asia/Kolkata", "spring_dust"),
+        ]
+        guard let v = t[r] else { return seoul }
+        return Place(id: "here", name: L(v.name), short: L(v.name), lat: v.lat, lon: v.lon, region: v.region, timeZone: v.tz, sample: v.sample)
+    }
+
+    /// The store pictures' city, one per store language (-storeCity, debug builds): each market's page shows its
+    /// own city instead of 마포구. Only the label and the spot change — the region stays "kr" and the weather is
+    /// the pinned example, so every page keeps exactly the cards, legends and numbers the pictures always had; the
+    /// time zone is the picture machine's own, so the day rows can never disagree with the date over the clock.
+    static func storeCity(_ lang: String) -> Place? {
+        let c: [String: (name: String, lat: Double, lon: Double)] = [
+            "ko": ("서울", 37.5663, 126.9779), "en": ("New York", 40.7128, -74.0060),
+            "ja": ("東京", 35.6764, 139.6500), "es": ("Madrid", 40.4168, -3.7038),
+            "fr": ("Paris", 48.8566, 2.3522), "de": ("Berlin", 52.5200, 13.4050),
+            "pt-BR": ("São Paulo", -23.5505, -46.6333), "pt": ("São Paulo", -23.5505, -46.6333),
+            "it": ("Roma", 41.9028, 12.4964), "id": ("Jakarta", -6.1944, 106.8229),
+            "ru": ("Москва", 55.7558, 37.6173), "zh-Hans": ("新加坡", 1.3521, 103.8198),
+            "zh-Hant": ("台北", 25.0330, 121.5654),
+        ]
+        guard let v = c[lang] else { return nil }
+        return Place(id: "store", name: v.name, short: v.name, lat: v.lat, lon: v.lon, region: "kr",
+                     timeZone: TimeZone.current.identifier, sample: "maybe", ko: lang == "ko" ? "서울" : nil)
+    }
 
     /// The search list used while there is no geocoding server. Names in the app's language, as it shows them.
     static var catalog: [Place] { [

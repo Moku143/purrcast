@@ -829,3 +829,21 @@
 /* 이 달 머문 곳: VoiceOver — a country row open or folded */
 "펼쳐짐" = "Espanso";
 "접힘" = "Compresso";
+
+/* 지역 기본 도시 · 코드 사용 (region default cities, offer codes) */
+"베를린" = "Berlino";
+"마드리드" = "Madrid";
+"로마" = "Roma";
+"상파울루" = "San Paolo";
+"자카르타" = "Giacarta";
+"모스크바" = "Mosca";
+"싱가포르" = "Singapore";
+"타이베이" = "Taipei";
+"상하이" = "Shanghai";
+"홍콩" = "Hong Kong";
+"시드니" = "Sydney";
+"토론토" = "Toronto";
+"멕시코시티" = "Città del Messico";
+"뉴델리" = "Nuova Delhi";
+"끄면 %@로 봐요" = "Disattivato: mostra %@";
+"코드 사용" = "Riscatta un codice";

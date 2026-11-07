@@ -103,6 +103,7 @@ final class AppModel: ObservableObject {
             loadedPlaces = p
         }
         if let id = arg("-place"), let p = Place.catalog.first(where: { $0.id == id }) { loadedPlaces = [p] }   // screenshots abroad
+        if let l = arg("-storeCity"), let p = Place.storeCity(l) { loadedPlaces = [p] }   // the store pictures' own city per language
         places = loadedPlaces
 
         // what to show before the first answer: the last forecast for this place (server mode), or the example

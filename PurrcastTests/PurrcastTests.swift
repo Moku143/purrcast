@@ -7,10 +7,11 @@ import UIKit
 @MainActor
 final class PurrcastTests: XCTestCase {
 
-    /// The assertions below are the Korean wording; the test host may run on an English simulator.
+    /// The assertions below are the Korean wording and Korean places; the test host may run on an American simulator.
     override func setUp() {
         super.setUp()
         Lang.current = .ko
+        Place.deviceRegion = { "KR" }
     }
     override func tearDown() {
         Lang.current = .ko
@@ -486,6 +487,46 @@ final class PurrcastTests: XCTestCase {
         Lang.current = .en
         let tz = TimeZone(identifier: "America/Los_Angeles")!                 // Thu 16:41 there
         XCTAssertEqual(DayName.row(1, at: fri, tz: tz), "Fri")
+    }
+
+    /// Before the person grants location or picks a place, the app stands in their region's big city: Korea keeps
+    /// 서울 마포구, a known region gets its city (localized), and an unknown one falls back to Seoul — the id stays
+    /// "here" everywhere, so saved places and 지금 위치 go on as they were.
+    func testDefaultPlaceFollowsTheRegion() {
+        Lang.current = .ko
+        defer { Lang.current = .ko }
+        XCTAssertEqual(Place.defaultPlace(region: "KR").name, "서울 마포구")
+        XCTAssertEqual(Place.defaultPlace(region: "US").name, "뉴욕")
+        XCTAssertEqual(Place.defaultPlace(region: "US").region, "other")
+        XCTAssertEqual(Place.defaultPlace(region: "US").id, "here")
+        XCTAssertEqual(Place.defaultPlace(region: "JP").region, "jp")
+        XCTAssertEqual(Place.defaultPlace(region: "DE").timeZone, "Europe/Berlin")
+        XCTAssertEqual(Place.defaultPlace(region: nil).name, "서울 마포구")
+        XCTAssertEqual(Place.defaultPlace(region: "ZZ").name, "서울 마포구")
+        XCTAssertEqual(Place.defaultPlace(region: "ZZ").id, "here")
+        Lang.current = .en
+        XCTAssertEqual(Place.defaultPlace(region: "US").name, "New York")
+        XCTAssertEqual(Place.defaultPlace(region: "MX").name, "Mexico City")
+        Lang.current = .ru
+        XCTAssertEqual(Place.defaultPlace(region: "RU").name, "Москва")
+    }
+
+    /// The store pictures' city, one per language: all twelve exist, keep region "kr" (the pages' cards and
+    /// legends must not change) and the machine's own time zone (the day rows can never disagree with the date).
+    func testStoreCityPerLanguage() {
+        for l in ["ko", "en", "ja", "es", "fr", "de", "pt-BR", "it", "id", "ru", "zh-Hans", "zh-Hant"] {
+            let p = Place.storeCity(l)
+            XCTAssertNotNil(p, l)
+            XCTAssertEqual(p?.region, "kr", l)
+            XCTAssertEqual(p?.timeZone, TimeZone.current.identifier, l)
+            XCTAssertEqual(p?.name, p?.short, l)
+        }
+        XCTAssertEqual(Place.storeCity("ko")?.short, "서울")
+        XCTAssertEqual(Place.storeCity("en")?.short, "New York")
+        XCTAssertEqual(Place.storeCity("pt")?.short, "São Paulo")     // the watch's -lang code for pt-BR
+        XCTAssertEqual(Place.storeCity("zh-Hans")?.short, "新加坡")
+        XCTAssertEqual(Place.storeCity("zh-Hant")?.short, "台北")
+        XCTAssertNil(Place.storeCity("xx"))
     }
 
     func testJapaneseWords() {

@@ -829,3 +829,21 @@
 /* 이 달 머문 곳: VoiceOver — a country row open or folded */
 "펼쳐짐" = "Ausgeklappt";
 "접힘" = "Eingeklappt";
+
+/* 지역 기본 도시 · 코드 사용 (region default cities, offer codes) */
+"베를린" = "Berlin";
+"마드리드" = "Madrid";
+"로마" = "Rom";
+"상파울루" = "São Paulo";
+"자카르타" = "Jakarta";
+"모스크바" = "Moskau";
+"싱가포르" = "Singapur";
+"타이베이" = "Taipeh";
+"상하이" = "Shanghai";
+"홍콩" = "Hongkong";
+"시드니" = "Sydney";
+"토론토" = "Toronto";
+"멕시코시티" = "Mexiko-Stadt";
+"뉴델리" = "Neu-Delhi";
+"끄면 %@로 봐요" = "Aus: zeigt %@";
+"코드 사용" = "Code einlösen";

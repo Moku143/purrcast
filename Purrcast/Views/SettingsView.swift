@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 /// 설정, in the order of the design: plan · 언어 · 지역 · 단위 · 알림 · 가까운 비 · 화면 · 위젯 · 워치 · 정보.
@@ -6,6 +7,7 @@ struct SettingsView: View {
     @EnvironmentObject var purchases: Purchases
     @Binding var route: Route?
     @Environment(\.dismiss) private var dismiss
+    @State private var redeeming = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -13,6 +15,12 @@ struct SettingsView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     plan
+                    // Apple subscription offer codes, right by the plan (3.1.1: Apple's sheet, no coupon path of our own)
+                    Button(L("코드 사용")) { redeeming = true }
+                        .font(.ui(12.5)).foregroundStyle(UI.sub)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.trailing, 22).padding(.top, 8)
+                        .accessibilityIdentifier("redeem-code-settings")
                     languageSection
                     placesSection
                     unitsSection
@@ -26,6 +34,8 @@ struct SettingsView: View {
             }
         }
         .background(UI.bg)
+        // Apple's offer-code sheet; the transaction listener picks the redeemed plan up by itself
+        .offerCodeRedemption(isPresented: $redeeming) { _ in Task { await purchases.refresh(); await purchases.refreshTrialEligibility() } }
     }
 
     // MARK: plan banner
@@ -97,7 +107,7 @@ struct SettingsView: View {
 
     private var hereSubtitle: String? {
         if model.hereIsLive { return model.places.first { $0.id == "here" }?.name }
-        return model.location.allowed || model.location.undecided ? L("끄면 서울 마포구로 봐요") : L("아이폰 설정에서 위치를 허용해 주세요")
+        return model.location.allowed || model.location.undecided ? L("끄면 %@로 봐요", Place.here.name) : L("아이폰 설정에서 위치를 허용해 주세요")
     }
 
     private var placesSection: some View {

@@ -107,7 +107,7 @@ jobs:
           for L in ${LANGS:-ko en ja es fr de pt-BR it id ru zh-Hans zh-Hant}; do
             clock=""; [ "$L" = "en" ] && clock="-clock12"
             code=$L; [ "$L" = "pt-BR" ] && code=pt   # the watch's -lang takes the app's language code
-            for p in 0 1 2; do shot "watchapp-$L-$p" -lang $code -scene clear -char cat -page $p -storeShot $clock; done
+            for p in 0 1 2; do shot "watchapp-$L-$p" -lang $code -scene clear -char cat -page $p -storeShot -storeCity $L $clock; done
           done
       - name: Publish
         if: always()

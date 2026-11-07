@@ -35,10 +35,13 @@ final class WatchLink: NSObject, ObservableObject, WCSessionDelegate {
         if let i = args.firstIndex(of: "-page"), i + 1 < args.count { startPage = Int(args[i + 1]) ?? 0 }
         storeShot = args.contains("-storeShot")
         if let i = args.firstIndex(of: "-scene"), i + 1 < args.count {
-            // screenshots: a fixed example, Plus on
-            var s = SceneLibrary.scene(args[i + 1]); s.place = Place.here.name
+            // screenshots: a fixed example, Plus on (-storeCity: the store pictures' own city per language;
+            // without it the snapshot keeps no place, so the day rows follow the simulator's clock as before)
+            let storePlace = args.firstIndex(of: "-storeCity").flatMap { $0 + 1 < args.count ? Place.storeCity(args[$0 + 1]) : nil }
+            let shown = storePlace ?? Place.here
+            var s = SceneLibrary.scene(args[i + 1]); s.place = shown.name
             let c = args.firstIndex(of: "-char").flatMap { $0 + 1 < args.count ? PurrCharacter(rawValue: args[$0 + 1]) : nil } ?? .cat
-            var w = WeatherSnapshot(scene: s, character: c, plus: !args.contains("-locked"), characterName: c.defaultName, placeShort: Place.here.short, saved: Date())
+            var w = WeatherSnapshot(scene: s, character: c, plus: !args.contains("-locked"), characterName: c.defaultName, placeShort: shown.short, saved: Date(), place: storePlace)
             w.clock12 = args.contains("-clock12")        // an English phone sends 3PM
             snap = w
         } else {

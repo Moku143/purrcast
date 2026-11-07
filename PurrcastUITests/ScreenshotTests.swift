@@ -257,7 +257,8 @@ final class ScreenshotTests: XCTestCase {
             // otherwise launches everyone on 24h, and the English pictures mixed 16:00 with 4PM
             let clock = lang == "en" ? ["-clock12"] : []
             for (n, args) in pages {
-                shot("frame-\(lang)-\(n)", args + clock + ["-storeShot", String(n)], wait: 3, lang: lang) { app in
+                // each market's own city on its pages (-storeCity): the label changes, the weather does not
+                shot("frame-\(lang)-\(n)", args + clock + ["-storeShot", String(n), "-storeCity", lang], wait: 3, lang: lang) { app in
                     // the hero page's four bubbles must sit whole on the canvas in every language: the
                     // picture fails here rather than shipping with a word cut at the edge
                     guard n == 1 else { return }
@@ -346,7 +347,7 @@ final class ScreenshotTests: XCTestCase {
         let langs = ProcessInfo.processInfo.environment["STORE_LANGS"].map { $0.split(separator: " ").map(String.init) } ?? all
         for lang in langs {
             for face in ["analog", "modular"] {
-                let args = ["-scene", "summer_monsoon", "-plus", "-char", "cat", "-watchFace", face, "-storeTime", "10:09"] + (lang == "en" ? ["-clock12"] : [])
+                let args = ["-scene", "summer_monsoon", "-plus", "-char", "cat", "-watchFace", face, "-storeTime", "10:09", "-storeCity", lang] + (lang == "en" ? ["-clock12"] : [])
                 shot("watchface-\(lang)-\(face)", args, wait: 2, lang: lang)
             }
         }
@@ -610,6 +611,25 @@ final class ScreenshotTests: XCTestCase {
             XCTAssertFalse(buy.label.lowercased().contains("test"), "the paywall still offers the test Plus: \(buy.label)")
             XCTAssertTrue(buy.isEnabled, "the purchase button is disabled")
             sleep(2)
+        }
+    }
+
+    /// Both "코드 사용" entries exist and ask StoreKit for Apple's offer-code sheet (3.1.1 — no coupon path of our
+    /// own). The sheet is the system's and the plain CI simulator may not present it at all (this plan loads no
+    /// StoreKit configuration), so past the tap the test only requires the app alive in the foreground; what the
+    /// sheet does is Apple's side, checked by hand on a device.
+    func test25RedeemCode() {
+        let app = XCUIApplication()
+        for (args, id, where_) in [(["-scene", "maybe", "-open", "paywall"], "redeem-code", "the Plus page"),
+                                   (["-scene", "maybe", "-open", "settings"], "redeem-code-settings", "설정")] {
+            app.launchArguments = args + ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+            app.launch()
+            let redeem = app.buttons[id].firstMatch
+            XCTAssertTrue(redeem.waitForExistence(timeout: 10), "no 코드 사용 button on \(where_)")
+            redeem.tap()
+            sleep(3)
+            XCTAssertEqual(app.state, .runningForeground, "the app fell over asking for the offer-code sheet from \(where_)")
+            app.terminate()
         }
     }
 
