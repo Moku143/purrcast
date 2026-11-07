@@ -4,7 +4,7 @@
 |---|---|---|
 | 이름 | Ronrom Clima: Tempo e Roupas | 28 |
 | 부제 | Um amigo pixel que se veste | 27 |
-| 키워드 | chuva,guarda-chuva,widget,o que vestir,previsão,gato,pixel,tela bloqueio,relógio,roupa,calendário | 97 |
+| 키워드 | chuva,guarda-chuva,widget,o que vestir,previsão,gato,tela bloqueio,relógio,roupa,calendário,fofo | 96 |
 
 ## 프로모션 텍스트 (168자)
 

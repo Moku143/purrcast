@@ -4,7 +4,7 @@
 |---|---|---|
 | 이름 | Ronroneo: Tiempo y Ropa | 23 |
 | 부제 | Una mascota pixel que se viste | 30 |
-| 키워드 | lluvia,paraguas,widget,qué ponerme,pronóstico,gato,pixel,pantalla bloqueo,reloj,ropa,calendario | 95 |
+| 키워드 | lluvia,paraguas,widget,qué ponerme,pronóstico,gato,pantalla bloqueo,reloj,ropa,calendario,lindo | 95 |
 
 ## 프로모션 텍스트 (163자)
 

@@ -4,7 +4,7 @@
 |---|---|---|
 | 이름 | Purrcast: Weather & Outfits | 27 |
 | 부제 | Pixel pets dress for the sky | 28 |
-| 키워드 | rain,umbrella,widget,what to wear,forecast,cat,pixel,lock screen,watch,clothes,calendar,cute | 92 |
+| 키워드 | rain,umbrella,widget,what to wear,forecast,cat,lock screen,watch,clothes,calendar,cute,kitty | 92 |
 
 ## 프로모션 텍스트 (164자)
 

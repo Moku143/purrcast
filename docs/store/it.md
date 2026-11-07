@@ -4,7 +4,7 @@
 |---|---|---|
 | 이름 | Fusa Meteo: Outfit del Giorno | 29 |
 | 부제 | Un amico pixel che si veste | 27 |
-| 키워드 | pioggia,ombrello,widget,cosa indossare,previsioni,gatto,pixel,schermata blocco,orologio,calendario | 98 |
+| 키워드 | pioggia,ombrello,widget,cosa indossare,previsioni,gatto,schermata blocco,orologio,calendario,carino | 99 |
 
 ## 프로모션 텍스트 (167자)
 

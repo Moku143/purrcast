@@ -4,7 +4,7 @@
 |---|---|---|
 | 이름 | Schnurrwetter: Wetter & Outfit | 30 |
 | 부제 | Pixel-Freunde im Wetter-Outfit | 30 |
-| 키워드 | regen,schirm,widget,was anziehen,vorhersage,katze,pixel,sperrbildschirm,uhr,kleidung,kalender | 93 |
+| 키워드 | regen,schirm,widget,was anziehen,vorhersage,katze,sperrbildschirm,uhr,kleidung,kalender,süß,niedlich | 100 |
 
 ## 프로모션 텍스트 (166자)
 

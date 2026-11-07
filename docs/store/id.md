@@ -4,7 +4,7 @@
 |---|---|---|
 | 이름 | Purrcast: Cuaca & Pakaian | 25 |
 | 부제 | Teman piksel berbaju cuaca | 26 |
-| 키워드 | hujan,payung,widget,pakai apa,prakiraan,kucing,piksel,layar kunci,jam tangan,baju,kalender | 90 |
+| 키워드 | hujan,payung,widget,pakai apa,prakiraan,kucing,piksel,layar kunci,jam tangan,baju,kalender,lucu,imut | 100 |
 
 ## 프로모션 텍스트 (157자)
 

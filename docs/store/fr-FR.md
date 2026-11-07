@@ -4,7 +4,7 @@
 |---|---|---|
 | 이름 | Ronron Météo : Tenues du jour | 29 |
 | 부제 | Un ami pixel qui s’habille | 26 |
-| 키워드 | pluie,parapluie,widget,quoi porter,prévisions,chat,pixel,écran verrouillé,montre,tenue,calendrier | 97 |
+| 키워드 | pluie,parapluie,widget,quoi porter,prévisions,chat,écran verrouillé,montre,tenue,calendrier,mignon | 98 |
 
 ## 프로모션 텍스트 (166자)
 
