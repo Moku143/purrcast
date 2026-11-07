@@ -82,9 +82,13 @@ struct SampleWeatherProvider: WeatherProvider {
         if ["AU", "IE", "JP", "GB", "US"].contains(place.cc ?? ""), s.next6 != nil {
             // the same rain as the pinned six hours, told the way Apple tells it there: by the minute —
             // dry for a while, rising to the example's peak, still falling at the end of the hour
-            s.minutes = (0..<60).map { m in
-                m < 18 ? 0 : m < 30 ? Double(m - 17) * 0.26 : m < 50 ? 3.2 : 3.2 - Double(m - 49) * 0.18
-            }.map { ($0 * 100).rounded() / 100 }
+            var mm = [Double](repeating: 0, count: 60)
+            for m in 18..<60 {
+                let rising = Double(m - 17) * 0.26, easing = 3.2 - Double(m - 49) * 0.18
+                let v = m < 30 ? rising : (m < 50 ? 3.2 : easing)
+                mm[m] = (v * 100).rounded() / 100
+            }
+            s.minutes = mm
         }
         return s
     }
