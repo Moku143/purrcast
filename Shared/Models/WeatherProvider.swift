@@ -61,6 +61,31 @@ struct SampleWeatherProvider: WeatherProvider {
         var s = SceneLibrary.scene(sceneOverride ?? place.sample)
         s.place = place.name
         if !plus && place.region == "kr" { s.alert = nil }     // the server sends 기상특보 to Plus only (free: the 06:00 run)
+        if place.id == "store" { s = Self.storeAbroad(s, place: place) }
+        return s
+    }
+
+    /// A store picture abroad (-storeCity, the only maker of id "store") follows what the app really gives that
+    /// country: Apple Weather behind everything, no 기상청 특보, OpenWeather air on WHO's steps, and the next hour
+    /// by the minute only where Apple has it (the same countries as PlacesView.minuteRainCountries —
+    /// support.apple.com/105038). The example's numbers otherwise stay exactly as pinned; Korea is untouched.
+    static func storeAbroad(_ scene: WeatherScene, place: Place) -> WeatherScene {
+        guard place.region != "kr" else { return scene }
+        var s = scene
+        s.src = "apple"
+        s.alert = nil
+        if s.nextSource == "kma" { s.nextSource = "apple" }
+        if var d = s.dust {
+            d.src = "OpenWeather"; d.srcKey = "openweather"; d.station = nil; d.alarm = nil
+            s.dust = d
+        }
+        if ["AU", "IE", "JP", "GB", "US"].contains(place.cc ?? ""), s.next6 != nil {
+            // the same rain as the pinned six hours, told the way Apple tells it there: by the minute —
+            // dry for a while, rising to the example's peak, still falling at the end of the hour
+            s.minutes = (0..<60).map { m in
+                m < 18 ? 0 : m < 30 ? Double(m - 17) * 0.26 : m < 50 ? 3.2 : 3.2 - Double(m - 49) * 0.18
+            }.map { ($0 * 100).rounded() / 100 }
+        }
         return s
     }
 }

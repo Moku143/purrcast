@@ -65,22 +65,24 @@ struct Place: Codable, Hashable, Identifiable {
     }
 
     /// The store pictures' city, one per store language (-storeCity, debug builds): each market's page shows its
-    /// own city instead of 마포구. Only the label and the spot change — the region stays "kr" and the weather is
-    /// the pinned example, so every page keeps exactly the cards, legends and numbers the pictures always had; the
-    /// time zone is the picture machine's own, so the day rows can never disagree with the date over the clock.
+    /// own city, with the real region and country — so the pages carry what the app really gives a buyer there
+    /// (KMA and 에어코리아 in Korea; Apple Weather, OpenWeather's WHO air and, where Apple has it, minute rain
+    /// abroad — SampleWeatherProvider adapts the pinned example by this place). The weather numbers stay the
+    /// pinned example's, and the time zone is the picture machine's own, so the day rows can never disagree
+    /// with the date over the clock.
     static func storeCity(_ lang: String) -> Place? {
-        let c: [String: (name: String, lat: Double, lon: Double)] = [
-            "ko": ("서울", 37.5663, 126.9779), "en": ("New York", 40.7128, -74.0060),
-            "ja": ("東京", 35.6764, 139.6500), "es": ("Madrid", 40.4168, -3.7038),
-            "fr": ("Paris", 48.8566, 2.3522), "de": ("Berlin", 52.5200, 13.4050),
-            "pt-BR": ("São Paulo", -23.5505, -46.6333), "pt": ("São Paulo", -23.5505, -46.6333),
-            "it": ("Roma", 41.9028, 12.4964), "id": ("Jakarta", -6.1944, 106.8229),
-            "ru": ("Москва", 55.7558, 37.6173), "zh-Hans": ("新加坡", 1.3521, 103.8198),
-            "zh-Hant": ("台北", 25.0330, 121.5654),
+        let c: [String: (name: String, lat: Double, lon: Double, region: String, cc: String)] = [
+            "ko": ("서울", 37.5663, 126.9779, "kr", "KR"), "en": ("New York", 40.7128, -74.0060, "other", "US"),
+            "ja": ("東京", 35.6764, 139.6500, "jp", "JP"), "es": ("Madrid", 40.4168, -3.7038, "other", "ES"),
+            "fr": ("Paris", 48.8566, 2.3522, "other", "FR"), "de": ("Berlin", 52.5200, 13.4050, "other", "DE"),
+            "pt-BR": ("São Paulo", -23.5505, -46.6333, "other", "BR"), "pt": ("São Paulo", -23.5505, -46.6333, "other", "BR"),
+            "it": ("Roma", 41.9028, 12.4964, "other", "IT"), "id": ("Jakarta", -6.1944, 106.8229, "other", "ID"),
+            "ru": ("Москва", 55.7558, 37.6173, "other", "RU"), "zh-Hans": ("新加坡", 1.3521, 103.8198, "other", "SG"),
+            "zh-Hant": ("台北", 25.0330, 121.5654, "other", "TW"),
         ]
         guard let v = c[lang] else { return nil }
-        return Place(id: "store", name: v.name, short: v.name, lat: v.lat, lon: v.lon, region: "kr",
-                     timeZone: TimeZone.current.identifier, sample: "maybe", ko: lang == "ko" ? "서울" : nil)
+        return Place(id: "store", name: v.name, short: v.name, lat: v.lat, lon: v.lon, region: v.region,
+                     timeZone: TimeZone.current.identifier, sample: "maybe", ko: lang == "ko" ? "서울" : nil, cc: v.cc)
     }
 
     /// The search list used while there is no geocoding server. Names in the app's language, as it shows them.

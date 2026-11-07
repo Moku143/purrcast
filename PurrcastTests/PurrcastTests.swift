@@ -517,16 +517,49 @@ final class PurrcastTests: XCTestCase {
         for l in ["ko", "en", "ja", "es", "fr", "de", "pt-BR", "it", "id", "ru", "zh-Hans", "zh-Hant"] {
             let p = Place.storeCity(l)
             XCTAssertNotNil(p, l)
-            XCTAssertEqual(p?.region, "kr", l)
+            XCTAssertEqual(p?.id, "store", l)
             XCTAssertEqual(p?.timeZone, TimeZone.current.identifier, l)
             XCTAssertEqual(p?.name, p?.short, l)
         }
+        // the real region and country, so the pages carry what the app gives that market
         XCTAssertEqual(Place.storeCity("ko")?.short, "서울")
+        XCTAssertEqual(Place.storeCity("ko")?.region, "kr")
         XCTAssertEqual(Place.storeCity("en")?.short, "New York")
+        XCTAssertEqual(Place.storeCity("en")?.region, "other"); XCTAssertEqual(Place.storeCity("en")?.cc, "US")
+        XCTAssertEqual(Place.storeCity("ja")?.region, "jp"); XCTAssertEqual(Place.storeCity("ja")?.cc, "JP")
+        XCTAssertEqual(Place.storeCity("de")?.cc, "DE")
         XCTAssertEqual(Place.storeCity("pt")?.short, "São Paulo")     // the watch's -lang code for pt-BR
-        XCTAssertEqual(Place.storeCity("zh-Hans")?.short, "新加坡")
-        XCTAssertEqual(Place.storeCity("zh-Hant")?.short, "台北")
+        XCTAssertEqual(Place.storeCity("pt")?.cc, "BR")
+        XCTAssertEqual(Place.storeCity("zh-Hans")?.short, "新加坡"); XCTAssertEqual(Place.storeCity("zh-Hans")?.cc, "SG")
+        XCTAssertEqual(Place.storeCity("zh-Hant")?.short, "台北"); XCTAssertEqual(Place.storeCity("zh-Hant")?.cc, "TW")
         XCTAssertNil(Place.storeCity("xx"))
+    }
+
+    /// The store pictures abroad follow the market: Apple behind everything, WHO air from OpenWeather, no 기상청
+    /// 특보, and the next hour by the minute only where Apple has it (the US and Japan among the store's markets).
+    func testStoreAbroadScene() {
+        let seoulScene = SceneLibrary.scene("seoul_soon")
+        // Korea: untouched
+        let kr = SampleWeatherProvider.storeAbroad(seoulScene, place: Place.storeCity("ko")!)
+        XCTAssertNil(kr.minutes); XCTAssertEqual(kr.dust?.srcKey, seoulScene.dust?.srcKey)
+        // the US: Apple's minute rain, WHO air
+        let us = SampleWeatherProvider.storeAbroad(seoulScene, place: Place.storeCity("en")!)
+        XCTAssertEqual(us.src, "apple"); XCTAssertNil(us.alert)
+        XCTAssertEqual(us.minutes?.count, 60)
+        XCTAssertEqual(us.minutes?.prefix(18).max(), 0)                       // dry, then rising to the example's peak
+        XCTAssertEqual(us.minutes?.max(), 3.2)
+        // Japan too; Berlin keeps the six hourly bars (no minute source there)
+        XCTAssertEqual(SampleWeatherProvider.storeAbroad(seoulScene, place: Place.storeCity("ja")!).minutes?.count, 60)
+        let de = SampleWeatherProvider.storeAbroad(seoulScene, place: Place.storeCity("de")!)
+        XCTAssertNil(de.minutes); XCTAssertNotNil(de.next6)
+        XCTAssertEqual(de.nextSource, "apple")
+        // WHO air from OpenWeather wherever it is not Korea
+        let dusty = SceneLibrary.scene("spring_dust")
+        let abroad = SampleWeatherProvider.storeAbroad(dusty, place: Place.storeCity("fr")!)
+        XCTAssertEqual(abroad.dust?.srcKey, "openweather"); XCTAssertEqual(abroad.dust?.src, "OpenWeather")
+        XCTAssertEqual(abroad.dust?.who, true)
+        XCTAssertNil(abroad.dust?.station); XCTAssertNil(abroad.alert)
+        XCTAssertEqual(abroad.dust?.pm25, dusty.dust?.pm25)                   // the numbers stay the example's
     }
 
     func testJapaneseWords() {

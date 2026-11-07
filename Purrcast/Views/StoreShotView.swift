@@ -187,8 +187,66 @@ struct StoreShotView: View {
 
     // MARK: 6 · 언제, 얼마나 비가 오는지
 
+    /// Korea: the 기상청 six hours. Where Apple has minute rain (the US and Japan among the store's markets,
+    /// via SampleWeatherProvider.storeAbroad): the same page as the next hour by the minute. Elsewhere the six
+    /// hourly bars stand as the app's own next-6-hours card does abroad.
+    @ViewBuilder private var nextHours: some View {
+        if let mm = model.scene.minutes, !mm.isEmpty { minuteHour(mm) } else { sixHours }
+    }
+
+    /// The next hour by the minute, big: when it starts, sixty thin bars and the minute axis
+    private func minuteHour(_ mm: [Double]) -> some View {
+        let s = model.scene, peak = max(mm.max() ?? 0, 1)
+        let nowMin = WeatherScene.clockMinutes(s.clock) ?? 12 * 60
+        var head = L("1시간 동안 비 소식 없어요"), sub = ""
+        if let st = mm.firstIndex(where: { $0 >= 0.1 }) {
+            let s10 = (nowMin + st) / 10 * 10
+            head = st == 0 ? L("지금 %@ · 시간당 %@", L("비"), "\(HomeView.mmText(mm[0]))mm")
+                : L("%@쯤 %@ 예보", HourLabel.clock(s10, clock12: model.clock12), L("비"))
+            sub = "\(Rules.rainKind(peak)) · \(Rules.rainKindNote(peak))"
+        }
+        return shot(L("언제, 얼마나"), L("비가 오는지"), bg: Tone.hours, plus: true) {
+            VStack(alignment: .leading, spacing: 26) {
+                HStack(spacing: 12) {
+                    PixelIcon(name: "umbrella_closed", size: 34)
+                    Text(head).font(.px(28)).lineLimit(1).minimumScaleFactor(0.7)
+                }
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(L("다음 1시간")).font(.px(18))
+                        Spacer()
+                        Text(L("분 단위 · Plus")).font(.ui(14)).foregroundStyle(Color(hex: "#6B7894"))
+                    }
+                    HStack(alignment: .bottom, spacing: 2.5) {
+                        ForEach(Array(mm.enumerated()), id: \.offset) { _, v in
+                            VStack { Spacer(minLength: 0)
+                                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                                    .fill(v >= 0.1 ? Color(hex: "#3D7BE8") : Color(hex: "#D8E2F4"))
+                                    .frame(height: v >= 0.1 ? max(10, v / peak * 380) : 6)
+                            }
+                        }
+                    }
+                    .frame(height: 400, alignment: .bottom)
+                    HStack {
+                        Text(L("지금")).frame(maxWidth: .infinity, alignment: .leading)
+                        ForEach([15, 30, 45], id: \.self) { m in Text(L("%d분", m)).frame(maxWidth: .infinity) }
+                        Text(L("%d분", 60)).frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                    .font(.px(16))
+                    if !sub.isEmpty { Text(sub).font(.ui(15)).foregroundStyle(Color(hex: "#6B7894")).lineLimit(1).minimumScaleFactor(0.7) }
+                }
+            }
+            .foregroundStyle(Color(hex: "#1E2A44"))
+            .padding(24)
+            .frame(width: 400)
+            .background(Color.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 34, style: .continuous))
+            .shadow(color: .black.opacity(0.15), radius: 18, y: 10)
+            .padding(.top, 16)
+        }
+    }
+
     /// The next six hours, big: when it starts, a bar per hour with its amount, the hour and its chance
-    private var nextHours: some View {
+    private var sixHours: some View {
         let s = model.scene, six = s.next6 ?? []
         let R = six.map { $0.mm }, peak = max(R.max() ?? 0, 1)
         // the same words as the app's card: the first rainy stretch, "15~17시 비 예보"
