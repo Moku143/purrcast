@@ -2,7 +2,10 @@ name: Watch complication matrix
 
 # A one-off check (this branch only): the analog and the modular face with each character (cat · abys · brit)
 # on a hot, a cold and a rainy day, Korean — 18 pictures, pushed to the watch-matrix-out branch.
+# Started by pushing to the watch-matrix-run branch (like the store pictures' watch-store-run).
 on:
+  push:
+    branches: [watch-matrix-run]
   workflow_dispatch:
     inputs:
       runner:
