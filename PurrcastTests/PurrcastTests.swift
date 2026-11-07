@@ -552,7 +552,10 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(SampleWeatherProvider.storeAbroad(seoulScene, place: Place.storeCity("ja")!).minutes?.count, 60)
         let de = SampleWeatherProvider.storeAbroad(seoulScene, place: Place.storeCity("de")!)
         XCTAssertNil(de.minutes); XCTAssertNotNil(de.next6)
-        XCTAssertEqual(de.nextSource, "apple")
+        XCTAssertNotEqual(de.nextSource, "kma")                               // seoul_soon never named a source
+        // where the sample did say 기상청, abroad it reads Apple
+        let deMaybe = SampleWeatherProvider.storeAbroad(SceneLibrary.scene("maybe"), place: Place.storeCity("de")!)
+        XCTAssertEqual(deMaybe.nextSource, "apple")
         // WHO air from OpenWeather wherever it is not Korea
         let dusty = SceneLibrary.scene("spring_dust")
         let abroad = SampleWeatherProvider.storeAbroad(dusty, place: Place.storeCity("fr")!)
