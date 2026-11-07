@@ -325,8 +325,26 @@ struct StoreShotView: View {
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
                 }
-                // one home-screen widget, large — two made neither readable
+                // one home-screen widget, large — two mediums made neither readable
                 widget(384, 180, snap) { MediumWidgetView(snap: snap) }
+                // and the rest of the family filling the lower third: the small home widget, and the wind and
+                // UV circles (the sunset circle works out the real sunset, which would not say 17:52 like the
+                // widget's tile — so not that one) on their own patch of lock screen
+                HStack(alignment: .top, spacing: 10) {
+                    widget(170, 170, snap) { SmallWidgetView(snap: snap) }
+                    HStack(spacing: 16) {
+                        glass(74, 74, circle: true) { LockWindCircularView(snap: snap) }
+                        glass(74, 74, circle: true) { LockUVCircularView(snap: snap) }
+                    }
+                    .frame(width: 204, height: 170)
+                    .background {
+                        ZStack(alignment: .top) {
+                            LinearGradient(colors: Tone.lock.map { Color(hex: $0) }, startPoint: .top, endPoint: .bottom)
+                            SkyParticles(scene: snap.scene, width: 204, tiles: 1, animate: false).frame(width: 204, height: 170, alignment: .top).opacity(0.5)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    }
+                }
             }
             .padding(.top, 10)
         }
