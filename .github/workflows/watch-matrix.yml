@@ -1,0 +1,65 @@
+name: Watch complication matrix
+
+# A one-off check (this branch only): the analog and the modular face with each character (cat · abys · brit)
+# on a hot, a cold and a rainy day, Korean — 18 pictures, pushed to the watch-matrix-out branch.
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: 'Runner (macos-15 · macos-15-intel · macos-26)'
+        required: false
+        default: 'macos-15-intel'
+
+permissions:
+  contents: write
+
+jobs:
+  matrix:
+    runs-on: ${{ github.event.inputs.runner || 'macos-15-intel' }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode 26
+        run: |
+          latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$latest" ]; then sudo xcode-select -s "$latest"; fi
+      - name: A 2× iPhone
+        run: |
+          dev="iPhone SE (3rd generation)"
+          if ! xcrun simctl list devices available | grep -q "^ *$dev ("; then
+            rt=$(xcrun simctl list runtimes | grep -E "^iOS" | tail -1 | grep -o "com.apple.CoreSimulator.SimRuntime[^ )]*")
+            xcrun simctl create "$dev" "com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation" "$rt"
+          fi
+          xcrun simctl list devices available | grep "SE"
+      - name: Generate project
+        run: brew install xcodegen && xcodegen generate
+      - name: Matrix
+        run: |
+          set -o pipefail
+          xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast \
+            -only-testing:PurrcastUITests/ScreenshotTests/test16cWatchMatrix \
+            -destination "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=latest" \
+            -resultBundlePath Matrix.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST " || true
+          grep -q "\*\* TEST SUCCEEDED \*\*" test.log || { echo "::error::Tests did not pass: $(grep -cE "Test Case '-\[.*\]' failed" test.log) failed"; exit 1; }
+          mkdir -p raw shots
+          xcrun xcresulttool export attachments --path Matrix.xcresult --output-path raw || true
+          python3 - <<'PY'
+          import json, os, shutil
+          try: m = json.load(open('raw/manifest.json'))
+          except Exception: m = []
+          for t in m:
+              for a in t.get('attachments', []):
+                  src = os.path.join('raw', a['exportedFileName'])
+                  if not src.lower().endswith('.png'): continue
+                  name = (a.get('suggestedHumanReadableName') or a['exportedFileName']).split('_0_')[0]
+                  shutil.copy(src, os.path.join('shots', name if name.endswith('.png') else name + '.png'))
+          print(sorted(os.listdir('shots')))
+          PY
+      - name: Publish
+        if: always()
+        run: |
+          mkdir -p out && cp -r shots out/ 2>/dev/null; cp test.log out/ 2>/dev/null || true
+          echo "run=${{ github.run_id }} sha=${{ github.sha }} $(date -u)" > out/RUN.txt
+          cd out && git init -q && git checkout -q -b b
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "watch complication matrix"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} b:watch-matrix-out

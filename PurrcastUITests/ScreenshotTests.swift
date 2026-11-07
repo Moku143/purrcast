@@ -352,6 +352,21 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    /// A check of the faces across the characters and the weathers (Korean is enough): the analog and the modular
+    /// face with each character on a hot day, a cold day and a rainy day — the character and today's outfit must
+    /// match the scene. The faces draw the complications' own views (WatchCatSlot, the corners), so this is the
+    /// complication matrix too.
+    func test16cWatchMatrix() {
+        for char in ["cat", "abys", "brit"] {
+            for scene in ["summer_heat", "winter_cold", "spring_rain"] {
+                for face in ["analog", "modular"] {
+                    shot("watchmatrix-\(char)-\(scene)-\(face)",
+                         ["-scene", scene, "-plus", "-char", char, "-watchFace", face, "-storeTime", "10:09"], wait: 2)
+                }
+            }
+        }
+    }
+
     /// Plus page now (alerts an hour before, the 대기질 page), the English 미세먼지 card ("Fine dust"), a free 황사 day
     func test17PlusCheck() {
         for lang in ["ko", "en", "ja"] {
