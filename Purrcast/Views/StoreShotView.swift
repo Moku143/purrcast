@@ -330,9 +330,11 @@ struct StoreShotView: View {
 
     // MARK: 8 · 미세먼지도 한눈에
 
+    /// Today's 미세먼지 readings by hour are a Plus tab: the page names the subscription like the others. The card
+    /// stops short of the bottom (its last rows were empty) so the line sits on the page's own blue
     private var dust: some View {
-        shot(L("미세먼지도"), L("한눈에"), bg: Tone.dust) {
-            zoomed(1.09, height: 700) { DayDetailView(start: 0, startMetric: .dust, focus: true) }
+        shot(L("미세먼지도"), L("한눈에"), bg: Tone.dust, plus: true) {
+            zoomed(1.09, height: 680) { DayDetailView(start: 0, startMetric: .dust, focus: true) }
                 .background(Color(hex: "#FFF6E6"), in: RoundedRectangle(cornerRadius: 34, style: .continuous))
         }
     }
@@ -347,7 +349,7 @@ struct StoreShotView: View {
                 CalendarSheet(startMonths: -1).environmentObject(model)
             }
             .frame(height: 724, alignment: .top).clipped()
-            // fading out above the Plus pill, so no row sits under it
+            // fading out above the Plus line, so no row sits under it
             .mask(LinearGradient(stops: [.init(color: .black, location: 0.8), .init(color: .clear, location: 0.95)], startPoint: .top, endPoint: .bottom))
         }
     }
@@ -355,11 +357,15 @@ struct StoreShotView: View {
     // MARK: 9 · 홈 화면도 잠금화면도 바로 확인해요
 
     /// The lock screen on top — the line above the clock (the character dressed for now and the temperature), the
-    /// rectangle and the circles — and the home screen's widgets under it
+    /// rectangle and the circles — then the small widget beside the wind and UV circles, and the medium widget
+    /// last: three blocks with the same room between them, the whole set centred under the caption
     private var screens: some View {
         let snap = model.snapshot
+        // the lock screen's own height: its sky is drawn to exactly this, so nothing spills into the gap below
+        // (a taller sky than the panel ran over the widget under it)
+        let lockH: CGFloat = 300
         return shot(L("홈 화면도 잠금화면도"), L("한눈에 확인해요"), bg: Tone.widgets) {
-            VStack(spacing: 24) {
+            VStack(spacing: 26) {
                 VStack(spacing: 4) {
                     HStack(spacing: 8) {
                         Text(DayLogText.dayLong(DayLog.dayKey(Date(), tz: .current)))
@@ -375,19 +381,16 @@ struct StoreShotView: View {
                     .padding(.top, 8)
                 }
                 .foregroundStyle(.white)
-                .padding(.vertical, 20).frame(width: 404)
+                .frame(width: 404, height: lockH)
                 .background {
                     ZStack(alignment: .top) {
                         LinearGradient(colors: Tone.lock.map { Color(hex: $0) }, startPoint: .top, endPoint: .bottom)
-                        SkyParticles(scene: snap.scene, width: 404, tiles: 2, animate: false).frame(width: 404, height: 330, alignment: .top).opacity(0.5)
+                        SkyParticles(scene: snap.scene, width: 404, tiles: 2, animate: false).frame(width: 404, height: lockH, alignment: .top).opacity(0.5)
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
                 }
-                // one home-screen widget, large — two mediums made neither readable
-                widget(384, 180, snap) { MediumWidgetView(snap: snap) }
-                // and the rest of the family filling the lower third: the small home widget, and the wind and
-                // UV circles (the sunset circle works out the real sunset, which would not say 17:52 like the
-                // widget's tile — so not that one) on their own patch of lock screen
+                // the small home widget, and the wind and UV circles (the sunset circle works out the real sunset,
+                // which would not say 17:52 like the widget's tile — so not that one) on their own patch of lock screen
                 HStack(alignment: .top, spacing: 10) {
                     widget(170, 170, snap) { SmallWidgetView(snap: snap) }
                     HStack(spacing: 16) {
@@ -403,8 +406,10 @@ struct StoreShotView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                     }
                 }
+                // and one home-screen widget, large — two mediums made neither readable
+                widget(384, 180, snap) { MediumWidgetView(snap: snap) }
             }
-            .padding(.top, 10)
+            .frame(maxHeight: .infinity)
         }
     }
 
@@ -467,11 +472,10 @@ struct StoreShotView: View {
         }
         .overlay(alignment: .bottom) {
             if plus {
-                // App Review 2.3.2: the subscription named — a solid pill, readable even in a thumbnail
-                Text(L("Plus 구독 기능")).font(.ui(14, .semibold)).foregroundStyle(.white)
-                    .padding(.horizontal, 14).padding(.vertical, 7)
-                    .background(Color(hex: "#1A2240").opacity(0.92), in: Capsule())
-                    .padding(.bottom, 18)
+                // App Review 2.3.2: the subscription named — plain white type, no pill: quiet on the page, still
+                // readable (every Plus page keeps its own background, not a card, under this line)
+                Text(L("Plus 구독 기능")).font(.ui(15, .semibold)).foregroundStyle(Color.white.opacity(0.85))
+                    .padding(.bottom, 22)
             }
         }
         .background {
