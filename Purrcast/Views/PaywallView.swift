@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 /// Purrcast Plus: what you get (swipeable), yearly / monthly, free trial when eligible.
@@ -8,6 +9,7 @@ struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var pick = Purchases.yearly
     @State private var page = 0
+    @State private var redeeming = false
 
     struct Feature { let art: String; let title: String; let note: String; let check: String }
     static var features: [Feature] {
@@ -37,8 +39,14 @@ struct PaywallView: View {
                     Button { dismiss() } label: { Image(systemName: "xmark").font(.system(size: 17, weight: .semibold)).tapArea() }
                         .foregroundStyle(UI.sub).accessibilityIdentifier("sheet-close").accessibilityLabel(L("닫기"))
                     Spacer()
-                    Button(L("구독 복원")) { Task { await purchases.restore() } }.font(.system(size: 14)).foregroundStyle(UI.sub)
-                        .disabled(purchases.busy)
+                    // 구독 복원, and under it Apple's own offer-code sheet (3.1.1: no coupon path of our own)
+                    VStack(alignment: .trailing, spacing: 7) {
+                        Button(L("구독 복원")) { Task { await purchases.restore() } }
+                            .disabled(purchases.busy)
+                        Button(L("코드 사용")) { redeeming = true }
+                            .accessibilityIdentifier("redeem-code")
+                    }
+                    .font(.system(size: 14)).foregroundStyle(UI.sub)
                 }
                 .padding(.top, 18)
 
@@ -118,6 +126,8 @@ struct PaywallView: View {
         .alert(purchases.message ?? "", isPresented: Binding(get: { purchases.message != nil }, set: { if !$0 { purchases.message = nil } })) {
             Button(L("확인"), role: .cancel) {}
         }
+        // Apple's offer-code sheet; the transaction listener picks the redeemed plan up by itself
+        .offerCodeRedemption(isPresented: $redeeming) { _ in Task { await purchases.refresh(); await purchases.refreshTrialEligibility() } }
         .task {
             if !purchases.loaded { await purchases.load() }
             else if purchases.products.isEmpty { await purchases.loadProducts() }   // offline before: try again

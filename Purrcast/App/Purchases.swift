@@ -42,6 +42,9 @@ final class Purchases: ObservableObject {
             for await result in Transaction.updates {
                 if case .verified(let t) = result { await t.finish() }
                 await self?.refresh()
+                // a new transaction can also spend the intro trial (an offer code among them):
+                // the Plus page's "3일 무료" must follow
+                await self?.refreshTrialEligibility()
             }
         }
     }
@@ -65,9 +68,14 @@ final class Purchases: ObservableObject {
         if let p = try? await Product.products(for: Self.ids) {
             products = p.sorted { $0.id == Self.yearly && $1.id != Self.yearly }
         }
-        if let any = products.first, let sub = any.subscription {
-            trialEligible = await sub.isEligibleForIntroOffer
-        }
+        await refreshTrialEligibility()
+    }
+
+    /// Whether this account can still take the intro trial — read again after every new transaction, since a
+    /// purchase or a redeemed offer code spends it.
+    func refreshTrialEligibility() async {
+        guard let sub = products.first?.subscription else { return }
+        trialEligible = await sub.isEligibleForIntroOffer
     }
 
     func product(_ id: String) -> Product? { products.first { $0.id == id } }
