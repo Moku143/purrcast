@@ -210,7 +210,7 @@ private struct SmallFace: View {
         let s = snap.scene, ink = Ink(night: s.isNight), lv = Rules.clamp(s.level)
         let rain = RainState(rawValue: s.rain) ?? .none
         let tiny = side < 152, k: CGFloat = tiny ? side / 170 : 1
-        let less = max(0, 170 - side) * 0.25      // the wide lines' caps, a touch narrower on smaller widgets
+        let less = max(0, 170 - side) * 0.25 + (tiny ? 2 : 0)      // the wide lines' caps, a touch narrower on smaller widgets
         return ZStack(alignment: .topLeading) {
             HStack(spacing: 4) {
                 Text(snap.placeShort).font(.px(11)).lineLimit(1).minimumScaleFactor(0.7).probe("place")
