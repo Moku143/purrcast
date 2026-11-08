@@ -209,12 +209,6 @@ private struct SmallFace: View {
             Text(snap.deg(s.temp)).font(.px(35)).lineLimit(1).minimumScaleFactor(0.7).probe("temp").halo(ink)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.top, 44).padding(.trailing, 6)
-            // the day's low ~ high under the temperature (widened by the temperature now: the day reached it)
-            if !snap.showsDashes {
-                Text("\(snap.deg(min(s.lo, s.temp)))~\(snap.deg(max(s.hi, s.temp)))").font(.px(10)).lineLimit(1).probe("range").halo(ink)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.top, 86).padding(.trailing, 12)
-            }
             ZStack(alignment: .bottom) {
                 CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false).probe("cat")
                     .frame(width: 72, height: 84, alignment: .bottom)
@@ -233,7 +227,9 @@ private struct SmallFace: View {
             VStack(alignment: .trailing, spacing: 0.9) {
                 if let t = sunsetTile(s, clock12: snap.clock12) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }.padding(.bottom, 2) }
                 Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
+                if !SmallHilo.underRain { hilo(s) }
                 if !snap.showsDashes { Text(L("강수 %d%%", chanceNow(s))).font(.px(9)).probe("chance") }
+                if SmallHilo.underRain { hilo(s) }
             }
             .lineLimit(1).minimumScaleFactor(0.8)
             .halo(ink)
@@ -241,7 +237,18 @@ private struct SmallFace: View {
             .padding(.trailing, 13).padding(.bottom, 9)
         }
     }
+
+    /// The day's high and low (widened by the temperature now: the day reached it), kept clear of the character
+    @ViewBuilder private func hilo(_ s: WeatherScene) -> some View {
+        if !snap.showsDashes {
+            Text(L("최고 %@ 최저 %@", snap.deg(max(s.hi, s.temp)), snap.deg(min(s.lo, s.temp)))).font(.px(9)).probe("hilo")
+                .frame(maxWidth: 80, alignment: .trailing)
+        }
+    }
 }
+
+/// Where the small widget shows 최고 · 최저: under 체감 or under 강수 (two looks to choose from)
+enum SmallHilo { static var underRain = false }
 
 /// The next five days for the medium widget, like the app's 10-day card.
 private struct WidgetDayList: View {

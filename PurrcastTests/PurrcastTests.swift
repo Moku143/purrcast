@@ -1821,7 +1821,10 @@ final class PurrcastTests: XCTestCase {
         s.bubble = WeatherScene.Bubble(kind: "speech", tone: "sky", icon: "umbrella", text: "23시쯤 비 예보")
         XCTAssertEqual(Compact.bubbleWord(s, max: 5), "23시쯤 비")
         s.bubble?.text = "15~17시 비 예보"
-        XCTAssertEqual(Compact.bubbleWord(s, max: 5), "15~17시\n비")
+        XCTAssertEqual(Compact.bubbleWord(s, max: 5), "15~17시 비")
+        // a longer line without a time still breaks
+        s.bubble?.text = "미세먼지 매우 나쁨 · 마스크 챙겨요"
+        XCTAssertEqual(Compact.bubbleWord(s, max: 5), "미세먼지 매우 나쁨\n마스크 챙겨요")
     }
 
     /// Chinese writes no spaces: the watch bubble breaks after the time instead of showing only its icon

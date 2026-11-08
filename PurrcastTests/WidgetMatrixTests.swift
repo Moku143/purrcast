@@ -36,6 +36,46 @@ final class WidgetMatrixTests: XCTestCase {
         add(j)
     }
 
+    /// The small widget's 최고 · 최저 in its two places (under 체감 · under 강수), over a few weathers, for choosing
+    func testSmallHiloChoices() throws {
+        guard ProcessInfo.processInfo.environment["MATRIX"] == "1" else { throw XCTSkip("run by the Widget matrix workflow") }
+        Lang.current = .ko
+        defer { SmallHilo.underRain = false }
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "matrix", withExtension: "json"))
+        let cases = try JSONDecoder().decode([Case].self, from: Data(contentsOf: url))
+        let keys = ["day-partly-none-later-rain5", "day-overcast-rain", "night-clear-none", "day-clear-none-frost"]
+        let snaps = keys.compactMap { k in cases.first { $0.key == k } }.map { c in
+            WeatherSnapshot(scene: c.scene, character: PurrCharacter(rawValue: c.char) ?? .cat, plus: true,
+                            characterName: "", placeShort: "서울", saved: Date())
+        }
+        for (name, under) in [("hilo-under-feels", false), ("hilo-under-rain", true)] {
+            SmallHilo.underRain = under
+            let row = VStack(spacing: 16) {
+                HStack(spacing: 16) {
+                    ForEach(Array(snaps.enumerated()), id: \.offset) { _, snap in
+                        SmallWidgetView(snap: snap).padding(16).frame(width: 170, height: 170)
+                            .background(WidgetBackground(level: Rules.clamp(snap.scene.level), night: snap.scene.isNight, scene: snap.scene))
+                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    }
+                }
+                if let first = snaps.first {
+                    MediumWidgetView(snap: first).padding(16).frame(width: 364, height: 170)
+                        .background(WidgetBackground(level: Rules.clamp(first.scene.level), night: first.scene.isNight, scene: first.scene))
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .padding(16).background(Color(hex: "#DDE3EE"))
+            .environment(\.locale, Locale(identifier: "ko_KR"))
+            let r = ImageRenderer(content: row)
+            r.scale = 3
+            let png = try XCTUnwrap(r.uiImage?.pngData())
+            let a = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")
+            a.name = name; a.lifetime = .keepAlways
+            add(a)
+        }
+    }
+
     /// The design canvas's kit, for one weather (rain, umbrella open, a bubble): each surface's sky alone, the
     /// pieces that stay pictures (bubbles, lock-screen gauges), the whole surface for checking, and where every
     /// part lands (frames in points, from the views' own probes) with its words — so the canvas can rebuild the

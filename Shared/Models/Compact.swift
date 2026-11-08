@@ -81,6 +81,8 @@ enum Compact {
         // one sign over in Korean or Japanese ("23시쯤 비", "23時ごろ雨") still reads best on one line: a lone "비" under
         // the time looks dropped
         if !Lang.current.isLatinLike, h.count <= max + 1 { return h }
+        // a time and the rain ("19~21시 비", "19〜21時ごろ雨") on one line too: broken, the rain sat alone under the time
+        if Lang.current == .ko || Lang.current == .ja, h.count <= max + 5, h.contains(where: \.isNumber) { return h }
         let perLine = Lang.current.isLatinLike ? max * 3 : max + 6   // "미세먼지 매우 나쁨" · "PM2.5 とても悪い" · "Very poor air"
         // the whole line (name · advice) when its two halves are short enough, else the name broken at its middle
         let raw = s.bubble.map { bare($0.text) } ?? h
