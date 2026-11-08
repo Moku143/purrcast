@@ -238,23 +238,28 @@ private struct SmallFace: View {
         }
     }
 
-    /// The day's high and low (widened by the temperature now: the day reached it), short: a warm pixel arrow up
-    /// and a blue one down before the numbers (or the two numbers in those colours)
+    /// The day's high and low (widened by the temperature now: the day reached it), short, in the widget's own pixel
+    /// look: the kit's hot and cold thermometers (as the sunset row has its icon), the range as the forecast writes
+    /// it (low ~ high), or the 10일 list's little bar between the two
     @ViewBuilder private func hilo(_ s: WeatherScene, _ ink: Ink) -> some View {
         if !snap.showsDashes {
             let hi = snap.deg(max(s.hi, s.temp)), lo = snap.deg(min(s.lo, s.temp))
             Group {
-                if SmallHilo.style == 1 {
-                    HStack(spacing: 0) {
-                        Text(hi).foregroundStyle(ink.hot)
-                        Text("/").opacity(0.6).padding(.horizontal, 1.5)
-                        Text(lo).foregroundStyle(ink.blue)
+                switch SmallHilo.style {
+                case 1:
+                    Text("\(lo)~\(hi)")
+                case 2:
+                    HStack(spacing: 3) {
+                        Text(lo)
+                        Capsule().fill(LinearGradient(colors: [Color(hex: "#6FA8FF"), Color(hex: "#FFA94D")], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: 16, height: 4)
+                        Text(hi)
                     }
-                } else {
-                    HStack(spacing: 1.5) {
-                        PixelTriangle(up: true).fill(ink.hot).frame(width: 7, height: 4.2)
+                default:
+                    HStack(spacing: 1) {
+                        PixelIcon(name: "thermo_hot", size: 11)
                         Text(hi).padding(.trailing, 3)
-                        PixelTriangle(up: false).fill(ink.blue).frame(width: 7, height: 4.2)
+                        PixelIcon(name: "thermo_cold", size: 11)
                         Text(lo)
                     }
                 }
@@ -265,25 +270,13 @@ private struct SmallFace: View {
     }
 }
 
-/// Where and how the small widget shows 최고 · 최저: under 체감 or under 강수; arrows (0) or two coloured numbers (1)
+/// Where and how the small widget shows 최고 · 최저: under 체감 or under 강수; thermometers (0), "14°~15°" (1) or a
+/// little bar (2)
 enum SmallHilo {
     static var underRain = false
     static var style = 0
 }
 
-/// A five-pixel-wide triangle, three pixels high, pointing up or down (the high and the low)
-struct PixelTriangle: Shape {
-    let up: Bool
-    func path(in r: CGRect) -> Path {
-        let u = r.width / 5, v = r.height / 3
-        var p = Path()
-        for row in 0..<3 {
-            let w = 1 + row * 2, y = up ? row : 2 - row
-            p.addRect(CGRect(x: r.minX + CGFloat(2 - row) * u, y: r.minY + CGFloat(y) * v, width: CGFloat(w) * u, height: v))
-        }
-        return p
-    }
-}
 
 /// The next five days for the medium widget, like the app's 10-day card.
 private struct WidgetDayList: View {

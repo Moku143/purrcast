@@ -62,7 +62,7 @@ final class WidgetMatrixTests: XCTestCase {
             return r.uiImage
         }
         // each look, under 체감 (top row) and under 강수 (bottom row)
-        for (name, style) in [("hilo-arrows", 0), ("hilo-colours", 1)] {
+        for (name, style) in [("hilo-thermo", 0), ("hilo-range", 1), ("hilo-bar", 2)] {
             SmallHilo.style = style
             let top = shot(false), bottom = shot(true)
             let sheet = VStack(spacing: 16) {
