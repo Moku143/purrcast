@@ -51,8 +51,8 @@ final class CloudLog: ObservableObject {
     }
 
     /// Pull, fold in, save. At most every five minutes unless forced (the switch turned on).
-    func sync(model: AppModel? = AppModel.shared, force: Bool = false) async {
-        guard Self.active, enabled, let model, model.cloudAllowed, !running else { return }
+    func sync(model given: AppModel? = nil, force: Bool = false) async {
+        guard Self.active, enabled, let model = given ?? AppModel.shared, model.cloudAllowed, !running else { return }
         if !force, let l = lastRun, Date().timeIntervalSince(l) < 300 { return }
         running = true; lastRun = Date()
         defer { running = false }

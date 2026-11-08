@@ -1789,6 +1789,16 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(Notifications.monthlyFire(after: late, morning: morning, calendar: c)?.month, "2027-01")
     }
 
+    /// "23시쯤 비" stays on one line in the widget's bubble (a lone "비" under the time looked dropped); a longer line
+    /// still breaks
+    func testShortRainLineStaysOnOneLine() {
+        var s = WeatherScene()
+        s.bubble = WeatherScene.Bubble(kind: "speech", tone: "sky", icon: "umbrella", text: "23시쯤 비 예보")
+        XCTAssertEqual(Compact.bubbleWord(s, max: 5), "23시쯤 비")
+        s.bubble?.text = "15~17시 비 예보"
+        XCTAssertEqual(Compact.bubbleWord(s, max: 5), "15~17시\n비")
+    }
+
     /// Chinese writes no spaces: the watch bubble breaks after the time instead of showing only its icon
     func testChineseBubbleBreaksAfterTheTime() {
         Lang.current = .zhHans
