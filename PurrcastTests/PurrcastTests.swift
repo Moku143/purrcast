@@ -1490,6 +1490,31 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(log.records("tokyo").count, 0, "a removed place loses its days")
     }
 
+    /// 비 지도: the radar's Lambert conformal conic matches PROJ (+proj=lcc +lat_1=30 +lat_2=60 +lat_0=38 +lon_0=126,
+    /// GRS80) to the metre; a picture's corners map to 0…1; rain rates fall into the five legend levels; the example
+    /// has twelve frames around now, the forecast ones marked
+    func testRadarProjectionAndLevels() throws {
+        var p = RadarMap.Proj(kind: "lcc")
+        for (lat, lon, x, y) in [(37.5, 127.0, 86234.90, -53552.85), (33.5, 126.5, 45836.05, -489111.71), (38.0, 126.0, 0, 0), (35.1, 129.0, 268411.06, -309585.25)] {
+            let (px, py) = p.lcc(lat: lat, lon: lon)
+            XCTAssertEqual(px, x, accuracy: 1, "\(lat),\(lon) x")
+            XCTAssertEqual(py, y, accuracy: 1, "\(lat),\(lon) y")
+        }
+        p.x0 = -400_000; p.y0 = 500_000; p.x1 = 600_000; p.y1 = -700_000
+        let (u, v) = p.unit(lat: 38, lon: 126)
+        XCTAssertEqual(u, 0.4, accuracy: 1e-9); XCTAssertEqual(v, 500_000.0 / 1_200_000, accuracy: 1e-9)
+        XCTAssertEqual([0, 0.05, 0.5, 3, 7, 20, 60].map(RadarMap.level), [0, 0, 1, 2, 3, 4, 5])
+        let m = RadarMap.sample(lat: 37.57, lon: 126.98, now: Date(timeIntervalSince1970: 1_794_041_400))
+        XCTAssertEqual(m.frames.count, 13)
+        XCTAssertEqual(m.frames.filter(\.fc).count, 6)
+        XCTAssertEqual(m.at, m.frames[6].t)
+        XCTAssertTrue(m.frames.allSatisfy { ($0.grid?.v.count ?? 0) == 88 * 74 })
+        XCTAssertGreaterThan(m.frames[6].grid?.v.max() ?? 0, 5, "the example has some real rain in it")
+        let json = #"{"src":"kma","at":"2026-11-08 16:50","proj":{"kind":"lcc","x0":-1,"y0":1,"x1":1,"y1":-1},"frames":[{"t":"2026-11-08 16:50","fc":false,"url":"/v1/radar/img?t=1"}],"scale":[{"rgb":"#00C8FF","mm":0.1}]}"#
+        let d = try JSONDecoder().decode(RadarMap.self, from: Data(json.utf8))
+        XCTAssertEqual(d.proj.lat1, 30); XCTAssertEqual(d.proj.lon0, 126); XCTAssertEqual(d.frames.first?.url, "/v1/radar/img?t=1")
+    }
+
     /// 날씨 기록 in iCloud: one day kept on two phones — an observed day stays observed, the one confirmed later
     /// wins, a tie keeps this phone's own, Plus sticks; a month folded in adds the missing days and changes nothing
     /// the second time; the same days pack to the same bytes in any order (so an unchanged month is not saved again)

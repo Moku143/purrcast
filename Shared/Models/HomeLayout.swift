@@ -8,7 +8,7 @@ enum HomeLayout {
     /// The order out of the box (the prototype's)
     static func defaults(tiles: Int) -> [String] {
         let t = (0..<tiles).map { "tile\($0)" }
-        return ["next", "hourly", "daily"] + t.prefix(2) + ["dust", "air", "wind", "cmp"] + t.dropFirst(2) + ["week"]
+        return ["next", "hourly", "radar", "daily"] + t.prefix(2) + ["dust", "air", "wind", "cmp"] + t.dropFirst(2) + ["week"]
     }
 
     static func isHalf(_ id: String) -> Bool { id.hasPrefix("tile") }

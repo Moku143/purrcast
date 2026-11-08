@@ -856,3 +856,23 @@
 "iCloud에 보관했어요 · %@" = "Salvato in iCloud · %@";
 "iCloud에 로그인하면 보관돼요" = "Accedi a iCloud per conservarlo";
 "지금은 iCloud에 연결할 수 없어요" = "Al momento iCloud non è raggiungibile";
+
+/* 비 지도 */
+"다소 강한 비" = "Pioggia moderata";
+"비 지도를 불러오는 중이에요" = "Caricamento della mappa della pioggia…";
+"지금 여기 %@" = "Qui adesso: %@";
+"%@쯤 비구름이 와요" = "Nubi di pioggia verso le %@";
+"1시간 안에는 비구름이 없어요" = "Nessuna nube di pioggia entro un'ora";
+"비 지도" = "Mappa della pioggia";
+"기상청 레이더 · %@" = "Radar KMA · %@";
+"Plus에서 비구름의 움직임을 볼 수 있어요" = "Con Plus vedi come si muovono le nubi di pioggia";
+"눌러서 크게 보기" = "Tocca per ingrandire";
+"예측" = "Previsione";
+"관측" = "Osservato";
+"비 지도를 불러오지 못했어요" = "Impossibile caricare la mappa della pioggia";
+"멈춤" = "Pausa";
+"재생" = "Riproduci";
+"여기: %@" = "Qui: %@";
+"기상청 레이더 · 초단기 강수예측 (공공누리 제1유형)" = "Radar KMA · nowcast (KOGL tipo 1)";
+"비 지도 시간" = "Ora della mappa della pioggia";
+"기상청 레이더로 지난 1시간 비구름과 다음 1시간 예측을 재생해요" = "Riproduce le nubi di pioggia dell'ultima ora e la previsione per l'ora successiva dal radar KMA";

@@ -15,6 +15,8 @@ protocol WeatherProvider {
     func airMap(for place: Place) async throws -> AirMap
     /// 날씨 기록's missing days (Plus): what each past day's weather was, "YYYY-MM-DD" … "YYYY-MM-DD"
     func history(for place: Place, from: String, to: String) async throws -> [DayRecord]
+    /// 비 지도 (Plus, Korea): the radar's last hour and the next hour's 초단기 강수예측
+    func radar(for place: Place) async throws -> RadarMap
 }
 
 extension WeatherProvider {
@@ -25,6 +27,8 @@ extension WeatherProvider {
     func airMap(for place: Place) async throws -> AirMap { AirMap.sample(lat: place.lat, lon: place.lon, korea: place.region == "kr") }
     /// Without the server: nothing to fill in (the example weather makes up its own days)
     func history(for place: Place, from: String, to: String) async throws -> [DayRecord] { [] }
+    /// Without the server: rain bands made up around the place
+    func radar(for place: Place) async throws -> RadarMap { RadarMap.sample(lat: place.lat, lon: place.lon) }
 }
 
 extension SampleWeatherProvider {
@@ -150,6 +154,22 @@ extension ServerWeatherProvider {
         guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else { throw URLError(.badServerResponse) }
         let m = try JSONDecoder().decode(AirMap.self, from: data)
         guard !m.points.isEmpty else { throw URLError(.cannotParseResponse) }
+        return m
+    }
+
+    /// GET {base}/v1/radar?region=kr → the frames (each a PNG on the server) and their projection (docs/server-api.md)
+    func radar(for place: Place) async throws -> RadarMap {
+        guard place.region == "kr" else { throw URLError(.unsupportedURL) }
+        var c = URLComponents(url: baseURL.appendingPathComponent("v1/radar"), resolvingAgainstBaseURL: false)!
+        c.queryItems = [URLQueryItem(name: "region", value: place.region)]
+        var req = URLRequest(url: c.url!, timeoutInterval: 20)
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        let (data, resp) = try await session.data(for: req)
+        guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else { throw URLError(.badServerResponse) }
+        var m = try JSONDecoder().decode(RadarMap.self, from: data)
+        guard !m.frames.isEmpty else { throw URLError(.cannotParseResponse) }
+        // a frame's picture may be named relative to the server
+        for i in m.frames.indices { if let u = m.frames[i].url, !u.hasPrefix("http") { m.frames[i].url = URL(string: u, relativeTo: baseURL)?.absoluteString } }
         return m
     }
 

@@ -369,6 +369,24 @@ final class AppModel: ObservableObject {
         }
     }
 
+    // MARK: 비 지도 (Plus, Korea)
+
+    /// The radar frames (the whole country, the same for every place); asked again after four minutes at most
+    @Published var radar: RadarMap?
+    @Published var radarFailed = false
+    private var radarAt: Date?
+    func loadRadar(force: Bool = false) async {
+        guard currentPlace.region == "kr" else { return }
+        if !force, radar != nil, let t = radarAt, Date().timeIntervalSince(t) < 240 { return }
+        if force, let t = radarAt, Date().timeIntervalSince(t) < 30 { return }     // the sheet opening right after the card
+        do {
+            let r = try await provider.radar(for: currentPlace)
+            radar = r; radarFailed = false; radarAt = Date()
+        } catch {
+            if !Self.isCancel(error), radar == nil { radarFailed = true }
+        }
+    }
+
     func windText(_ ms: Int) -> String { windNumber(ms) + windUnit }
     func windNumber(_ ms: Int) -> String {
         switch wind {

@@ -21,6 +21,10 @@ struct PaywallView: View {
                     note: AppModel.hereIsKorea ? L("기상청 초단기 예보로 다음 6시간을 시간 단위로 · 비·눈 1시간 전과 올 때 알림 · 기상특보 · 미세먼지 · 기온 변화")
                                                : L("비 올 시각까지 분 단위 (Apple 날씨가 주는 곳) · 비·눈 1시간 전과 올 때 알림 · 기상특보 · 미세먼지 · 기온 변화"),
                     check: L("가까운 비 · 알림")),
+        ]
+        // 비 지도: the 기상청 radar, Korea only
+        if AppModel.hereIsKorea { f.append(Feature(art: "radar", title: L("비 지도"), note: L("기상청 레이더로 지난 1시간 비구름과 다음 1시간 예측을 재생해요"), check: L("비 지도"))) }
+        f += [
             Feature(art: "air", title: L("대기질 지도"), note: L("미세먼지 매시간 업데이트 · 잠금화면 미세먼지 위젯 · 오염 물질 6종"), check: L("대기질")),
             Feature(art: "calendar", title: L("날씨 달력 · 월간 리포트"), note: L("날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷 · 1일에 알림"), check: L("날씨 달력")),
             Feature(art: "watch", title: L("애플워치"), note: L("손목에서 지금 날씨 · 시간별 · 10일\n워치 페이스에 기온 · 비 확률 · 캐릭터"), check: L("애플워치")),
@@ -184,6 +188,7 @@ struct PaywallView: View {
             case "watch": watchArt
             case "places": placesArt
             case "air": airArt
+            case "radar": RadarPaywallArt(place: model.currentPlace).padding(.horizontal, 14)
             case "calendar": calendarArt
             default: charsArt
             }

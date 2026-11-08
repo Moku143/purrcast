@@ -856,3 +856,23 @@
 "iCloud에 보관했어요 · %@" = "Tersimpan di iCloud · %@";
 "iCloud에 로그인하면 보관돼요" = "Masuk ke iCloud agar tersimpan di sana";
 "지금은 iCloud에 연결할 수 없어요" = "Tidak bisa terhubung ke iCloud sekarang";
+
+/* 비 지도 */
+"다소 강한 비" = "Hujan sedang";
+"비 지도를 불러오는 중이에요" = "Memuat peta hujan…";
+"지금 여기 %@" = "Di sini sekarang: %@";
+"%@쯤 비구름이 와요" = "Awan hujan sekitar %@";
+"1시간 안에는 비구름이 없어요" = "Tidak ada awan hujan dalam satu jam";
+"비 지도" = "Peta hujan";
+"기상청 레이더 · %@" = "Radar KMA · %@";
+"Plus에서 비구름의 움직임을 볼 수 있어요" = "Lihat awan hujan bergerak dengan Plus";
+"눌러서 크게 보기" = "Ketuk untuk memperbesar";
+"예측" = "Prakiraan";
+"관측" = "Teramati";
+"비 지도를 불러오지 못했어요" = "Peta hujan tidak dapat dimuat";
+"멈춤" = "Jeda";
+"재생" = "Putar";
+"여기: %@" = "Di sini: %@";
+"기상청 레이더 · 초단기 강수예측 (공공누리 제1유형)" = "Radar KMA · prakiraan singkat (KOGL Tipe 1)";
+"비 지도 시간" = "Waktu peta hujan";
+"기상청 레이더로 지난 1시간 비구름과 다음 1시간 예측을 재생해요" = "Memutar awan hujan satu jam terakhir dan prakiraan satu jam berikutnya dari radar KMA";
