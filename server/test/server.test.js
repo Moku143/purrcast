@@ -1193,6 +1193,21 @@ test('Short alerts: warnings (황사경보 too), 미세먼지 주의보, rain so
 });
 
 
+test('raining now by the nowcast, dry by the last hour\'s observation: umbrella up, the bubble says rain now', () => {
+  // 22:08 · 초단기실황 at 22:00: no rain in the hour before · 초단기예보: rain this hour and the next two
+  const hr = (h, mm, pop) => ({ t: at(h), step: 1, temp: 7, rh: 80, wind: 2, dir: 270, cloud: 90, mm, pop, type: mm > 0 ? 'rain' : 'none' });
+  const points = [hr(21, 0, 30), hr(22, 0.5, 60), hr(23, 0.5, 60), hr(0, 0, 60, 22), hr(1, 0, 30)].map((p, i) => (i >= 3 ? { ...p, t: at(i - 3, 0, 22) } : p));
+  const dry = { t: at(22), temp: 7, rh: 80, wind: 2, dir: 270, mm: 0, type: 'none' };
+  const s = buildScene({ points, now: dry, updated: at(21, 30) }, { ...SEOUL, plan: 'plus', now: at(22, 8) });
+  assert.equal(s.rain, 'umbrella');
+  assert.equal(s.bubble?.text, '비!');
+  // an observed shower the forecast missed still counts, and a dry forecast hour stays dry
+  const wet = buildScene({ points: points.map((p) => ({ ...p, mm: 0, type: 'none', pop: 0 })), now: { ...dry, mm: 1.2, type: 'rain' }, updated: at(21, 30) }, { ...SEOUL, plan: 'plus', now: at(22, 8) });
+  assert.equal(wet.rain, 'umbrella');
+  const none = buildScene({ points: points.map((p) => ({ ...p, mm: 0, type: 'none', pop: 0 })), now: dry, updated: at(21, 30) }, { ...SEOUL, plan: 'plus', now: at(22, 8) });
+  assert.equal(none.rain, 'none');
+});
+
 test('every added language: a whole scene in it, no Korean left in the words', () => {
   for (const lang of LANGS.filter((l) => !['ko', 'en', 'ja'].includes(l))) {
     const m = parseMet(met(at(13), flat(40, { cloud: 90, sym: 'rain', mm: 1.2 })));
