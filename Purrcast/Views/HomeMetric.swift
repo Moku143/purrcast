@@ -17,13 +17,22 @@ enum HomeMetric: String, CaseIterable {
     /// The wind for each of the 시간별 hours: now from the scene, then the day sheets' rows of the same hour
     /// (today's, then tomorrow's); nil where no row has it
     static func hourWinds(_ s: WeatherScene) -> [HourWind?] {
-        let rows = (s.dayDetail ?? []).prefix(2).flatMap { $0 }
-        var from = 0
+        // the day sheets' rows on one clock: today's hours, then tomorrow's +24 (rows can be every hour or every three)
+        let days = (s.dayDetail ?? []).prefix(2)
+        var rows: [(Int, WeatherScene.DayHour)] = []
+        for (d, day) in days.enumerated() {
+            for r in day { if let h = HourLabel.hour(r.label) ?? (r.label == "자정" ? 0 : nil) { rows.append((h + 24 * d, r)) } }
+        }
+        let now = WeatherScene.clockMinutes(s.clock).map { $0 / 60 } ?? HourLabel.hour(s.hours.first?.label ?? "") ?? 0
+        var last = now
         return s.hours.enumerated().map { i, h in
             if i == 0 { return HourWind(speed: s.wind.speed, dir: s.wind.deg) }
-            guard from < rows.count, let k = rows[from...].firstIndex(where: { $0.label == h.label }) else { return nil }
-            from = k + 1
-            return HourWind(speed: Int(rows[k].wind.rounded()), dir: rows[k].dir.map { Int($0.rounded()) })
+            guard var hh = HourLabel.hour(h.label) else { return nil }
+            while hh <= last { hh += 24 }          // past midnight: tomorrow's hour
+            last = hh
+            // that hour's row, else the nearest within two hours (a three-hourly forecast)
+            guard let best = rows.min(by: { abs($0.0 - hh) < abs($1.0 - hh) }), abs(best.0 - hh) <= 2 else { return nil }
+            return HourWind(speed: Int(best.1.wind.rounded()), dir: best.1.dir.map { Int($0.rounded()) })
         }
     }
 
@@ -114,18 +123,21 @@ struct PixelRainColumn: View {
     let mm: Double
     let chance: Int
     let ink: Ink
-    static let steps: [Double] = [0.1, 0.5, 1, 2, 3, 5, 7, 10, 15, 20]
+    static let steps: [Double] = [0.1, 0.3, 0.5, 1, 1.5, 2, 3, 5, 7, 10, 15]
     var body: some View {
         let n = mm > 0 ? max(1, Self.steps.filter { mm >= $0 }.count) : 0
         VStack(spacing: 1) {
             Spacer(minLength: 0)
             if n == 0 && chance >= 30 {
-                Rectangle().fill(ink.blue.opacity(0.3)).frame(width: 16, height: 3)
+                Rectangle().fill(ink.blue.opacity(0.28)).frame(width: 18, height: 3)
             }
-            ForEach(0..<n, id: \.self) { _ in Rectangle().fill(ink.blue).frame(width: 16, height: 3) }
+            ForEach(0..<n, id: \.self) { k in
+                // heavier rain darker toward the top, as the radar's colours
+                Rectangle().fill(n - k > 8 ? Color(hex: "#E8292A") : n - k > 6 ? Color(hex: "#F2B705") : ink.blue).frame(width: 18, height: 3)
+            }
         }
-        .frame(width: 20)
-        .background(alignment: .bottom) { Rectangle().fill(ink.track).frame(width: 20, height: 2) }
+        .frame(width: 22)
+        .background(alignment: .bottom) { Rectangle().fill(ink.track).frame(width: 22, height: 2) }
     }
 }
 

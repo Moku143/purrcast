@@ -438,7 +438,6 @@ struct HomeView: View {
                     }
                 }
             }.padding(.horizontal, -8)
-            .animation(Motion.gentle, value: metric)
         }
     }
 
