@@ -51,6 +51,12 @@ extension Font {
         return FontPref.pixel ? .custom("PurrcastPixel-Medium", fixedSize: s) : .system(size: s * 1.04, weight: .bold, design: .rounded)
     }
     static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font { .system(size: bump(size), weight: weight) }
+    /// `.px(size)` stepped down to `k` of its drawn size (the notch included, so the steps stay in proportion)
+    static func pxScaled(_ size: CGFloat, _ k: CGFloat) -> Font {
+        guard k != 1 else { return px(size) }
+        let d = bump(size) * k
+        return FontPref.pixel ? .custom("PurrcastPixel-Medium", fixedSize: d) : .system(size: d * 1.04, weight: .bold, design: .rounded)
+    }
 }
 
 /// Pixel icons from the kit (icon-<name>), drawn with nearest-neighbour scaling.

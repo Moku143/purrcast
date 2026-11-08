@@ -84,7 +84,7 @@ func bubbleShiftX(_ c: PurrCharacter, _ rain: RainState, level: Int, spriteWidth
     let x = rain == .umbrella ? Sprite.umbrellaTipX : CGFloat(a.head_cx[lv])
     return (x - Sprite.width / 2) / Sprite.width * w
 }
-private func chanceNow(_ s: WeatherScene) -> Int { s.hours.prefix(6).map { $0.chance }.max() ?? 0 }
+func chanceNow(_ s: WeatherScene) -> Int { s.hours.prefix(6).map { $0.chance }.max() ?? 0 }
 
 /// Medium (2×4): the 2×2 face on the left, as wide as the widget is tall, and the next five days on the right on
 /// a soft panel down to the bottom edge — day, weather, chance of rain, low, the range bar (the app's 10-day
@@ -133,31 +133,12 @@ struct HoursWidgetView: View {
                         .frame(maxWidth: .infinity, alignment: .trailing)
                         .padding(.trailing, 14).padding(.top, 10)
                 }
-                // the 2×2's list (SmallStack), every line right-aligned, standing on the panel beside the character
-                VStack(alignment: .trailing, spacing: 0.9) {
-                    ForEach(SmallStack.order, id: \.self) { item in
-                        switch item {
-                        case "sun":
-                            if let t = sunsetTile(s, clock12: snap.clock12) {
-                                SunLine(icon: sunTileIcon(s), time: t)
-                            }
-                        case "chance":
-                            if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
-                        case "feels":
-                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
-                        default:
-                            if !snap.showsDashes { HiLoLine(snap: snap).probe("hilo") }
-                        }
-                    }
-                }
-                .lineLimit(1).minimumScaleFactor(0.8)
-                .multilineTextAlignment(.trailing)
-                .halo(ink)
-                // no wider than the room right of the character: a long word shrinks a little instead of running under it
-                .frame(maxWidth: max(60, g.size.width * 0.365 - catW / 2 - 17.5), alignment: .trailing)
-                .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.trailing, 13.5)      // the words' ink on the weather icon's right edge (14)
-                .frame(height: panelTop - 5, alignment: .bottom)
+                // the 2×2's list (SmallStack), every line right-aligned and one size, standing on the panel beside the character
+                UniformList(snap: snap, room: max(60, g.size.width * 0.365 - catW / 2 - 17.5))
+                    .halo(ink)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.trailing, 13.5)      // the words' ink on the weather icon's right edge (14)
+                    .frame(height: panelTop - 5, alignment: .bottom)
                 ZStack(alignment: .bottom) {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: false).probe("cat")
                         .frame(width: catW, height: catH, alignment: .bottom)
@@ -257,27 +238,10 @@ private struct SmallFace: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             .padding(.leading, 13 * k).padding(.bottom, 8 * k)
             // close together at the bottom right (SmallStack): the rain chance and the sun with their pixel icons, then
-            // 체감 and 최고 · 최저 in words at the bottom
-            VStack(alignment: .trailing, spacing: 0.9) {      // every line right-aligned
-                ForEach(SmallStack.order, id: \.self) { item in
-                    switch item {
-                    case "sun":
-                        if let t = sunsetTile(s, clock12: snap.clock12) {
-                            SunLine(icon: sunTileIcon(s), time: t)
-                        }
-                    case "chance":
-                        if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
-                    case "feels":
-                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels").capWidth(74 - less)
-                    default:
-                        if !snap.showsDashes { HiLoLine(snap: snap, thermo: tiny).probe("hilo").capWidth(80 - less) }
-                    }
-                }
-            }
-            .lineLimit(1).minimumScaleFactor(0.8)
-            .multilineTextAlignment(.trailing)      // a line shrunk to fit stays against the right edge
-            .halo(ink)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            // 체감 and 최고 · 최저 in words at the bottom, every line one size
+            UniformList(snap: snap, thermo: tiny, room: 80 - less, feelsRoom: 74 - less)
+                .halo(ink)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             .padding(.trailing, SmallStack.edge - 0.5).padding(.bottom, 9)
         }
     }
@@ -291,12 +255,64 @@ struct SunLine: View {
     var size: CGFloat = 9
     var iconSize: CGFloat? = nil      // ☂'s icon size on that list (the widgets' 11 by default)
     var nudge: CGFloat = 0            // drawn half a point short of the edge on some lists (the watch's): onto it
+    var k: CGFloat = 1                // the list's shared step down (UniformList)
     var body: some View {
-        HStack(spacing: iconGap(size)) {
-            PixelIcon(name: icon, size: iconSize ?? (size * 11 / 9).rounded()).probe("sunsetIcon")
-            Text(time).font(.px(size)).probe("sunsetText")
+        HStack(spacing: iconGap(size * k)) {
+            PixelIcon(name: icon, size: ((iconSize ?? size * 11 / 9) * k).rounded()).probe("sunsetIcon")
+            Text(time).font(.pxScaled(size, k)).probe("sunsetText")
         }
-        .offset(x: nudge)
+        .offset(x: nudge * k)
+    }
+}
+
+/// The bottom-right list (☂ · the sun · 체감 · 최고 최저), every line one size. Each line has its room (`room` for
+/// 최고 · 최저, the widest; `narrow` beside the character's coat on the watch; `feelsRoom` for 체감 on the 2×2); when a
+/// line would not fit its room, the whole list steps down together — never that one line alone — so the sizes stay
+/// matched. ViewThatFits takes the first step whose lines all fit (a line's room as leading padding up to `room`).
+struct UniformList: View {
+    let snap: WeatherSnapshot
+    var order: [String] = SmallStack.order
+    var size: CGFloat = 9              // the list's text size (as `.px` takes it)
+    var icon: CGFloat = 11             // its icons
+    var thermo = false                 // 최고 · 최저 behind the thermometers
+    var spacing: CGFloat = 0.9
+    var room: CGFloat
+    var narrow: CGFloat? = nil
+    var feelsRoom: CGFloat? = nil
+    var sunNudge: CGFloat = 0
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            stack(1); stack(0.94); stack(0.88); stack(0.82); stack(0.76); stack(0.7)
+        }
+        .frame(maxWidth: room, alignment: .trailing)
+    }
+
+    private func stack(_ k: CGFloat) -> some View {
+        let s = snap.scene
+        let other = min(narrow ?? room, room)
+        return VStack(alignment: .trailing, spacing: spacing * k) {
+            ForEach(order, id: \.self) { item in
+                switch item {
+                case "sun":
+                    if let t = sunsetTile(s, clock12: snap.clock12) {
+                        SunLine(icon: sunTileIcon(s), time: t, size: size, iconSize: icon, nudge: sunNudge, k: k)
+                            .fixedSize().padding(.leading, room - other)
+                    }
+                case "chance":
+                    if !snap.showsDashes {
+                        ChanceLine(chance: chanceNow(s), size: size, icon: icon, k: k).probe("chance")
+                            .fixedSize().padding(.leading, room - other)
+                    }
+                case "feels":
+                    Text(L("체감 %@", snap.deg(s.feels))).font(.pxScaled(size, k)).probe("feels")
+                        .fixedSize().padding(.leading, room - min(feelsRoom ?? other, other))
+                default:
+                    if !snap.showsDashes { HiLoLine(snap: snap, size: size, thermo: thermo, icon: icon, k: k).probe("hilo").fixedSize() }
+                }
+            }
+        }
+        .multilineTextAlignment(.trailing)
     }
 }
 
@@ -334,14 +350,15 @@ struct ChanceLine: View {
     let chance: Int
     var size: CGFloat = 9
     var icon: CGFloat = 11
+    var k: CGFloat = 1      // the list's shared step down (UniformList)
     /// The umbrella from 50 % (as the watch's corner), the raindrop below
     static func iconName(_ chance: Int) -> String { chance >= 50 ? "umbrella" : "raindrop" }
     var body: some View {
-        HStack(spacing: iconGap(size)) {
-            PixelIcon(name: Self.iconName(chance), size: icon)
+        HStack(spacing: iconGap(size * k)) {
+            PixelIcon(name: Self.iconName(chance), size: (icon * k).rounded())
             Text("\(chance)%")
         }
-        .font(.px(size))
+        .font(.pxScaled(size, k))
         .accessibilityElement(children: .ignore).accessibilityLabel(L("강수확률 %d%%", chance))
     }
 }
@@ -353,15 +370,16 @@ struct HiLoLine: View {
     var size: CGFloat = 9
     var thermo = false
     var icon: CGFloat = 11
+    var k: CGFloat = 1      // the list's shared step down (UniformList)
     var body: some View {
         let s = snap.scene
         let hi = snap.deg(max(s.hi, s.temp)), lo = snap.deg(min(s.lo, s.temp))
         Group {
             if thermo {
-                HStack(spacing: iconGap(size)) {
-                    PixelIcon(name: "thermo_hot", size: icon)
-                    Text(hi).padding(.trailing, size / 2)
-                    PixelIcon(name: "thermo_cold", size: icon)
+                HStack(spacing: iconGap(size * k)) {
+                    PixelIcon(name: "thermo_hot", size: (icon * k).rounded())
+                    Text(hi).padding(.trailing, size * k / 2)
+                    PixelIcon(name: "thermo_cold", size: (icon * k).rounded())
                     Text(lo).probe("hiloEnd")
                 }
                 .fixedSize()      // its own width, no more: the last number ends on the list's right edge
@@ -369,7 +387,7 @@ struct HiLoLine: View {
                 Text(L("최고 %@ 최저 %@", hi, lo))
             }
         }
-        .font(.px(size))
+        .font(.pxScaled(size, k))
         .accessibilityElement(children: .ignore).accessibilityLabel(L("최고 %@ 최저 %@", hi, lo))
     }
 }

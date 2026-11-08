@@ -55,27 +55,10 @@ struct WatchNow: View {
                 .padding(.leading, 16.5).padding(.bottom, 14.5)
                 // sunset · feels · rain at the bottom right
                 // close together, down by the rain chance; the sunset row a little higher
-                VStack(alignment: .trailing, spacing: 1.2 * k) {      // every line right-aligned
-                    // as the widgets: the rain chance and the sun with their icons, then 체감, and 최고 · 최저 behind the
-                    // thermometers (the words do not fit beside the character here)
-                    ForEach(WatchHiLo.order, id: \.self) { item in
-                        switch item {
-                        case "sun":
-                            if let t = sunsetTile(s, clock12: snap.clock12) {
-                                SunLine(icon: sunTileIcon(s), time: t, size: 12 * k, iconSize: 14 * k, nudge: 0.65 * k)
-                                    .capWidth(narrow)
-                            }
-                        case "chance":
-                            if !snap.showsDashes { ChanceLine(chance: s.hours.prefix(6).map { $0.chance }.max() ?? 0, size: 12 * k, icon: 14 * k).probe("chance").capWidth(narrow) }
-                        case "feels":
-                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels").capWidth(narrow)   // a long word shrinks
-                        default:
-                            if !snap.showsDashes { HiLoLine(snap: snap, size: 12 * k, thermo: true, icon: 14 * k).probe("hilo").capWidth(hiloRoom) }
-                        }
-                    }
-                }
-                .lineLimit(1).minimumScaleFactor(0.7)
-                .multilineTextAlignment(.trailing)      // a line shrunk to fit stays against the right edge
+                // as the widgets: the rain chance and the sun with their icons, then 체감, and 최고 · 최저 behind the
+                // thermometers (the words do not fit beside the character here); every line one size
+                UniformList(snap: snap, order: WatchHiLo.order, size: 12 * k, icon: 14 * k, thermo: true, spacing: 1.2 * k,
+                            room: hiloRoom, narrow: narrow, sunNudge: 0.65 * k)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                 .padding(.trailing, edge).padding(.bottom, 23.5)
             }

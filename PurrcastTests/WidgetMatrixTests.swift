@@ -237,7 +237,7 @@ final class WidgetMatrixTests: XCTestCase {
                             }
                             // a line cut short: its words at full size, shrunk as far as the list allows, still wider than it got
                             let px = surface == "watch" ? 12 * min(1, max(0.82, size.width / 208)) : 9
-                            let minScale: CGFloat = surface == "watch" ? 0.7 : 0.8
+                            let minScale: CGFloat = 0.7      // the lists step down together as far as 70 %
                             var cut: [String] = []
                             for (line, words) in [("hilo", L("최고 %@ 최저 %@", snap.deg(max(s.hi, s.temp)), snap.deg(min(s.lo, s.temp)))),
                                                   ("feels", L("체감 %@", snap.deg(s.feels)))] {
