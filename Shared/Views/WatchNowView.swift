@@ -21,6 +21,9 @@ struct WatchNow: View {
             // shrink the character and the words
             let k = min(1, max(0.82, g.size.width / 208))
             let catW = 84 * k, catH = catW * Sprite.height / Sprite.width
+            // the list's room right of the character: beside its coat, hood or umbrella, and (the bottom line) beside
+            // its feet, which are narrower
+            let narrow = max(56, g.size.width - 20 - (16.5 + catW + 6) - 3), wide = max(64, g.size.width - 20 - (16.5 + catW * 0.75) - 3)
             ZStack(alignment: .topLeading) {
                 WidgetBackground(level: lv, night: s.isNight, scene: s, animate: !dimmed)
                 HStack(spacing: 4) {
@@ -57,19 +60,24 @@ struct WatchNow: View {
                         case "sun":
                             if let t = sunsetTile(s, clock12: snap.clock12) {
                                 HStack(spacing: 3) { PixelIcon(name: sunTileIcon(s), size: 14 * k).probe("sunsetIcon"); Text(t).font(.px(12 * k)).probe("sunsetText") }
+                                    .frame(maxWidth: narrow, alignment: .trailing)
                             }
                         case "chance":
-                            if !snap.showsDashes { ChanceLine(chance: s.hours.prefix(6).map { $0.chance }.max() ?? 0, size: 12 * k, icon: 14 * k).probe("chance") }
+                            if !snap.showsDashes { ChanceLine(chance: s.hours.prefix(6).map { $0.chance }.max() ?? 0, size: 12 * k, icon: 14 * k).probe("chance").frame(maxWidth: narrow, alignment: .trailing) }
                         case "feels":
-                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels")
+                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels").frame(maxWidth: narrow, alignment: .trailing)   // a long word shrinks
                         default:
-                            if !snap.showsDashes { HiLoLine(snap: snap, size: 12 * k).probe("hilo") }   // one line: shrinks a little when long
+                            // the bottom line, beside the character's feet (narrower than its coat, hood or umbrella): a
+                            // little more room, and it may shrink a little further — on one line, never cut short
+                            if !snap.showsDashes {
+                                HiLoLine(snap: snap, size: 12 * k).probe("hilo")
+                                    .minimumScaleFactor(0.62)
+                                    .frame(maxWidth: wide, alignment: .trailing)
+                            }
                         }
                     }
                 }
                 .lineLimit(1).minimumScaleFactor(0.7)
-                // no wider than the room right of the character: a long word ("Ощущается") shrinks instead of touching it
-                .frame(maxWidth: max(56, g.size.width - 20 - (16.5 + catW + 6) - 3), alignment: .trailing)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                 .padding(.trailing, 20).padding(.bottom, 23.5)
             }
