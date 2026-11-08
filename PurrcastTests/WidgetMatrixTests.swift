@@ -48,26 +48,30 @@ final class WidgetMatrixTests: XCTestCase {
             WeatherSnapshot(scene: c.scene, character: PurrCharacter(rawValue: c.char) ?? .cat, plus: true,
                             characterName: "", placeShort: "서울", saved: Date())
         }
-        for (name, under) in [("hilo-under-feels", false), ("hilo-under-rain", true)] {
+        defer { SmallHilo.style = 0 }
+        func shot(_ under: Bool) -> UIImage? {
             SmallHilo.underRain = under
-            let row = VStack(spacing: 16) {
-                HStack(spacing: 16) {
-                    ForEach(Array(snaps.enumerated()), id: \.offset) { _, snap in
-                        SmallWidgetView(snap: snap).padding(16).frame(width: 170, height: 170)
-                            .background(WidgetBackground(level: Rules.clamp(snap.scene.level), night: snap.scene.isNight, scene: snap.scene))
-                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    }
-                }
-                if let first = snaps.first {
-                    MediumWidgetView(snap: first).padding(16).frame(width: 364, height: 170)
-                        .background(WidgetBackground(level: Rules.clamp(first.scene.level), night: first.scene.isNight, scene: first.scene))
+            let r = ImageRenderer(content: HStack(spacing: 16) {
+                ForEach(Array(snaps.enumerated()), id: \.offset) { _, snap in
+                    SmallWidgetView(snap: snap).padding(16).frame(width: 170, height: 170)
+                        .background(WidgetBackground(level: Rules.clamp(snap.scene.level), night: snap.scene.isNight, scene: snap.scene))
                         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
+            }.environment(\.locale, Locale(identifier: "ko_KR")))
+            r.scale = 3
+            return r.uiImage
+        }
+        // each look, under 체감 (top row) and under 강수 (bottom row)
+        for (name, style) in [("hilo-arrows", 0), ("hilo-colours", 1)] {
+            SmallHilo.style = style
+            let top = shot(false), bottom = shot(true)
+            let sheet = VStack(spacing: 16) {
+                if let top { Image(uiImage: top) }
+                if let bottom { Image(uiImage: bottom) }
             }
             .padding(16).background(Color(hex: "#DDE3EE"))
             .environment(\.locale, Locale(identifier: "ko_KR"))
-            let r = ImageRenderer(content: row)
+            let r = ImageRenderer(content: sheet)
             r.scale = 3
             let png = try XCTUnwrap(r.uiImage?.pngData())
             let a = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")

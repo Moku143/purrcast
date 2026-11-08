@@ -227,9 +227,9 @@ private struct SmallFace: View {
             VStack(alignment: .trailing, spacing: 0.9) {
                 if let t = sunsetTile(s, clock12: snap.clock12) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }.padding(.bottom, 2) }
                 Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
-                if !SmallHilo.underRain { hilo(s) }
+                if !SmallHilo.underRain { hilo(s, ink) }
                 if !snap.showsDashes { Text(L("강수 %d%%", chanceNow(s))).font(.px(9)).probe("chance") }
-                if SmallHilo.underRain { hilo(s) }
+                if SmallHilo.underRain { hilo(s, ink) }
             }
             .lineLimit(1).minimumScaleFactor(0.8)
             .halo(ink)
@@ -238,17 +238,52 @@ private struct SmallFace: View {
         }
     }
 
-    /// The day's high and low (widened by the temperature now: the day reached it), kept clear of the character
-    @ViewBuilder private func hilo(_ s: WeatherScene) -> some View {
+    /// The day's high and low (widened by the temperature now: the day reached it), short: a warm pixel arrow up
+    /// and a blue one down before the numbers (or the two numbers in those colours)
+    @ViewBuilder private func hilo(_ s: WeatherScene, _ ink: Ink) -> some View {
         if !snap.showsDashes {
-            Text(L("최고 %@ 최저 %@", snap.deg(max(s.hi, s.temp)), snap.deg(min(s.lo, s.temp)))).font(.px(9)).probe("hilo")
-                .frame(maxWidth: 80, alignment: .trailing)
+            let hi = snap.deg(max(s.hi, s.temp)), lo = snap.deg(min(s.lo, s.temp))
+            Group {
+                if SmallHilo.style == 1 {
+                    HStack(spacing: 0) {
+                        Text(hi).foregroundStyle(ink.hot)
+                        Text("/").opacity(0.6).padding(.horizontal, 1.5)
+                        Text(lo).foregroundStyle(ink.blue)
+                    }
+                } else {
+                    HStack(spacing: 1.5) {
+                        PixelTriangle(up: true).fill(ink.hot).frame(width: 7, height: 4.2)
+                        Text(hi).padding(.trailing, 3)
+                        PixelTriangle(up: false).fill(ink.blue).frame(width: 7, height: 4.2)
+                        Text(lo)
+                    }
+                }
+            }
+            .font(.px(9)).probe("hilo")
+            .accessibilityElement(children: .ignore).accessibilityLabel(L("최고 %@ 최저 %@", hi, lo))
         }
     }
 }
 
-/// Where the small widget shows 최고 · 최저: under 체감 or under 강수 (two looks to choose from)
-enum SmallHilo { static var underRain = false }
+/// Where and how the small widget shows 최고 · 최저: under 체감 or under 강수; arrows (0) or two coloured numbers (1)
+enum SmallHilo {
+    static var underRain = false
+    static var style = 0
+}
+
+/// A five-pixel-wide triangle, three pixels high, pointing up or down (the high and the low)
+struct PixelTriangle: Shape {
+    let up: Bool
+    func path(in r: CGRect) -> Path {
+        let u = r.width / 5, v = r.height / 3
+        var p = Path()
+        for row in 0..<3 {
+            let w = 1 + row * 2, y = up ? row : 2 - row
+            p.addRect(CGRect(x: r.minX + CGFloat(2 - row) * u, y: r.minY + CGFloat(y) * v, width: CGFloat(w) * u, height: v))
+        }
+        return p
+    }
+}
 
 /// The next five days for the medium widget, like the app's 10-day card.
 private struct WidgetDayList: View {
