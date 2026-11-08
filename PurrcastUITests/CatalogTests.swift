@@ -71,7 +71,20 @@ final class CatalogTests: XCTestCase {
         case "f": partF()
         case "g": partG()
         case "h": partH()
+        case "r": radarShots()
         default: partB()
+        }
+    }
+
+    // MARK: 비 지도 — the sheet (Plus), the card on home with Plus and without, the sheet playing
+
+    private func radarShots() {
+        seq("radar.sheet", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "radar"], wait: 4)
+        seq("radar.card", ["-scene", "maybe", "-plus", "-char", "cat"], swipes: 1, wait: 4)
+        seq("radar.card-free", ["-scene", "maybe", "-char", "cat"], swipes: 1, wait: 4)
+        steps("radar.play", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "radar"], wait: 4) { app, take in
+            let play = app.buttons["radar-play"].firstMatch
+            if play.waitForExistence(timeout: 3) { play.tap(); sleep(2); take() }
         }
     }
 

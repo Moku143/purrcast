@@ -396,6 +396,7 @@ struct RadarSheet: View {
                 }
                 .buttonStyle(.press(0.92))
                 .accessibilityLabel(playing ? L("멈춤") : L("재생"))
+                .accessibilityIdentifier("radar-play")
                 VStack(alignment: .leading, spacing: 3) {
                     if let m, index < m.frames.count {
                         let f = m.frames[index], c = CLLocationCoordinate2D(latitude: model.currentPlace.lat, longitude: model.currentPlace.lon)
