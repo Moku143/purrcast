@@ -1490,6 +1490,44 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(log.records("tokyo").count, 0, "a removed place loses its days")
     }
 
+    /// 날씨 기록 in iCloud: one day kept on two phones — an observed day stays observed, the one confirmed later
+    /// wins, a tie keeps this phone's own, Plus sticks; a month folded in adds the missing days and changes nothing
+    /// the second time; the same days pack to the same bytes in any order (so an unchanged month is not saved again)
+    func testCloudMergeOfDays() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let log = DayLog(dir: dir)
+        let t0 = Date(timeIntervalSince1970: 1_793_000_000)
+        var a = DayRecord(date: "2026-11-03", hi: 15, lo: 6, icon: "sun"); a.confirmed = t0
+        var b = DayRecord(date: "2026-11-03", hi: 16, lo: 7, icon: "cloud"); b.confirmed = t0.addingTimeInterval(60)
+        XCTAssertEqual(DayLog.merge(a, b).icon, "cloud", "the later confirmed wins")
+        XCTAssertEqual(DayLog.merge(b, a).icon, "cloud", "the later confirmed wins either way round")
+        var tie = b; tie.icon = "raincloud"
+        XCTAssertEqual(DayLog.merge(b, tie).icon, "cloud", "a tie keeps this phone's")
+        var obs = a; obs.obs = true; obs.confirmed = nil
+        XCTAssertEqual(DayLog.merge(b, obs).obs, true, "an observed day stays observed")
+        var plus = a; plus.plus = true
+        XCTAssertEqual(DayLog.merge(b, plus).plus, true, "a Plus day stays a Plus day")
+        var old = a; old.confirmed = nil
+        XCTAssertEqual(DayLog.merge(old, b).icon, "cloud", "a day without a confirmation gives way to one with")
+
+        log.save([a], for: "here")
+        let c = DayRecord(date: "2026-11-04", hi: 12, lo: 3, icon: "sun")
+        XCTAssertTrue(log.mergeIn([b, c], for: "here"))
+        XCTAssertEqual(log.records("here").map(\.date), ["2026-11-03", "2026-11-04"])
+        XCTAssertEqual(log.records("here").first?.icon, "cloud")
+        XCTAssertFalse(log.mergeIn([b, c], for: "here"), "the same month twice changes nothing")
+        XCTAssertEqual(Set(log.months("here").keys), ["2026-11"])
+        XCTAssertEqual(DayLog.pack([c, b]), DayLog.pack([b, c]))
+        XCTAssertEqual(DayLog.unpack(try XCTUnwrap(DayLog.pack([b, c])))?.map(\.date), ["2026-11-03", "2026-11-04"])
+        XCTAssertEqual(CloudLog.recordName(place: "here", month: "2026-11"), "m_here_2026-11")
+        XCTAssertNotEqual(CloudLog.recordName(place: "kr:1168010100", month: "2026-11"), CloudLog.recordName(place: "kr:1168010200", month: "2026-11"))
+        XCTAssertEqual(CloudLog.recordName(place: "mk:37.566,126.902", month: "2026-11"), CloudLog.recordName(place: "mk:37.566,126.902", month: "2026-11"))
+        XCTAssertTrue(CloudLog.recordName(place: "mk:37.566,126.902", month: "2026-11").allSatisfy(\.isASCII))
+        let raw = try XCTUnwrap(DayLog.pack([b, c]))
+        XCTAssertEqual(CloudLog.unzip(try XCTUnwrap(CloudLog.zip(raw))), raw)
+    }
+
     /// A 날씨 기록 day speaks in the past tense: every present-tense sentence the day sheet can show for a past
     /// day has a past form, none of the past forms gives advice, and all 12 languages translate each one (a
     /// missing entry would fall back to the Korean key, which the test catches)

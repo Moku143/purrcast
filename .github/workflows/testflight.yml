@@ -121,7 +121,8 @@ jobs:
           if [ $st -ne 0 ] && grep -q "No profiles for\|Authentication failed" export.log; then
             if [ "${{ github.event.inputs.submission }}" = "yes" ]; then
               # a submission build must carry everything: without the App Group the widgets cannot read the
-              # forecast, and without aps-environment there is no push — never send that to App Review
+              # forecast, without aps-environment there is no push, and without iCloud the 날씨 기록 is not kept
+              # — never send that to App Review
               echo "::error::Export failed on a submission build — not falling back to an upload without the App Group / aps-environment"
               grep -E "error:" export.log | sort -u | head -8 | while read -r l; do echo "::error::${l:0:300}"; done
               exit $st

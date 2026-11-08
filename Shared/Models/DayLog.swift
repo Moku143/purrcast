@@ -688,3 +688,58 @@ extension DayLog {
         return c.date(from: DateComponents(year: p[0], month: p[1], day: p[2], hour: 12))
     }
 }
+
+// MARK: iCloud — the same days, one record per place and month (CloudLog in the app)
+
+extension DayLog {
+    /// "2026-11" for "2026-11-03"
+    static func month(_ date: String) -> String { String(date.prefix(7)) }
+
+    /// The place's days by month
+    func months(_ placeID: String) -> [String: [DayRecord]] {
+        Dictionary(grouping: records(placeID), by: { Self.month($0.date) })
+    }
+
+    /// One day kept on two phones: an observed day stays observed; otherwise the one whose place was confirmed last
+    /// (where the phone was as the day went on) wins, and a tie keeps this phone's own. A day seen with Plus on either
+    /// stays a Plus day.
+    static func merge(_ mine: DayRecord, _ theirs: DayRecord) -> DayRecord {
+        var w: DayRecord
+        if (mine.obs == true) != (theirs.obs == true) {
+            w = mine.obs == true ? mine : theirs
+        } else {
+            switch (mine.confirmed, theirs.confirmed) {
+            case let (a?, b?): w = b > a ? theirs : mine
+            case (nil, _?): w = theirs
+            default: w = mine
+            }
+        }
+        if mine.plus == true || theirs.plus == true { w.plus = true }
+        return w
+    }
+
+    /// Folds days kept elsewhere (iCloud) into the place's file; true when anything changed
+    @discardableResult
+    func mergeIn(_ theirs: [DayRecord], for placeID: String) -> Bool {
+        guard !theirs.isEmpty else { return false }
+        var byDate = Dictionary(records(placeID).map { ($0.date, $0) }, uniquingKeysWith: { a, _ in a })
+        var changed = false
+        for t in theirs {
+            let w = byDate[t.date].map { Self.merge($0, t) } ?? t
+            if byDate[t.date] != w { byDate[t.date] = w; changed = true }
+        }
+        guard changed else { return false }
+        var all = byDate.values.sorted { $0.date < $1.date }
+        if all.count > Self.keepDays { all.removeFirst(all.count - Self.keepDays) }
+        save(all, for: placeID)
+        return true
+    }
+
+    /// A month's days as stored in iCloud: sorted, keys sorted, so the same days always give the same bytes
+    static func pack(_ days: [DayRecord]) -> Data? {
+        let e = JSONEncoder(); e.outputFormatting = .sortedKeys
+        return try? e.encode(days.sorted { $0.date < $1.date })
+    }
+
+    static func unpack(_ data: Data) -> [DayRecord]? { try? JSONDecoder().decode([DayRecord].self, from: data) }
+}

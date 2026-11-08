@@ -45,6 +45,9 @@ targets:
       properties:
         com.apple.security.application-groups: [group.app.purrcast]
         aps-environment: development
+        # 날씨 기록 in the person's own iCloud (CloudLog): CloudKit private database
+        com.apple.developer.icloud-container-identifiers: [iCloud.app.purrcast.ios]
+        com.apple.developer.icloud-services: [CloudKit]
     dependencies:
       - target: PurrcastWidgets
         embed: true

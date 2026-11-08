@@ -847,3 +847,12 @@
 "뉴델리" = "Neu-Delhi";
 "끄면 %@로 봐요" = "Aus: zeigt %@";
 "코드 사용" = "Code einlösen";
+
+/* 날씨 달력 · iCloud */
+"iCloud에 보관" = "In iCloud sichern";
+"이 폰에만 보관해요" = "Nur auf diesem iPhone gespeichert";
+"폰을 바꾸거나 앱을 다시 설치해도 날씨 달력이 그대로 남아요" = "Dein Wetterkalender bleibt – auch auf einem neuen iPhone oder nach einer Neuinstallation";
+"iCloud에 보관하는 중…" = "Wird in iCloud gesichert …";
+"iCloud에 보관했어요 · %@" = "In iCloud gesichert · %@";
+"iCloud에 로그인하면 보관돼요" = "Melde dich bei iCloud an, um ihn dort zu sichern";
+"지금은 iCloud에 연결할 수 없어요" = "iCloud ist gerade nicht erreichbar";

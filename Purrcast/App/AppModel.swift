@@ -163,6 +163,10 @@ final class AppModel: ObservableObject {
     /// elsewhere) — from the last forecast handed to the widgets, else the app's language
     static var hereIsKorea: Bool { SharedStore.load()?.place.map { $0.region == "kr" } ?? (Lang.current == .ko) }
     var isSample: Bool { provider.isSample }
+    /// 날씨 기록 goes to iCloud only from the real app: not the example weather, not a pinned screenshot scene
+    var cloudAllowed: Bool { !isSample && pinnedScene == nil }
+    /// Days came in from iCloud: the calendar and the home card read the files again
+    func dayLogChanged() { dayLogVersion += 1 }
     /// The weather held is the place on screen's (after a switch offline it can still be the last place's)
     private var weatherIsThisPlace: Bool { isSample || raw.id.isEmpty || raw.id == currentPlace.id }
 

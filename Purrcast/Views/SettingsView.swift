@@ -8,6 +8,7 @@ struct SettingsView: View {
     @Binding var route: Route?
     @Environment(\.dismiss) private var dismiss
     @State private var redeeming = false
+    @ObservedObject private var cloud = CloudLog.shared
 
     var body: some View {
         VStack(spacing: 0) {
@@ -27,6 +28,7 @@ struct SettingsView: View {
                     notificationsSection
                     displaySection
                     widgetsSection
+                    cloudSection
                     infoSection
                     Text(model.isSample ? L("지금은 예시 날씨로 보여요 (서버 연결 전)") : "")
                         .font(.ui(11)).foregroundStyle(UI.faint).padding(.top, 14).padding(.bottom, 30)
@@ -221,6 +223,36 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    // MARK: 날씨 달력 · iCloud
+
+    private var cloudSection: some View {
+        Group {
+            SectionLabel(text: L("날씨 달력"))
+            RowGroup {
+                SettingRow(icon: "cloud", title: L("iCloud에 보관"), subtitle: cloudLine) { toggle($cloud.enabled, L("iCloud에 보관")) }
+            }
+        }
+    }
+
+    private var cloudLine: String {
+        switch cloud.status {
+        case .off: return L("이 폰에만 보관해요")
+        case .idle: return L("폰을 바꾸거나 앱을 다시 설치해도 날씨 달력이 그대로 남아요")
+        case .syncing: return L("iCloud에 보관하는 중…")
+        case .saved(let t): return L("iCloud에 보관했어요 · %@", Self.when(t))
+        case .noAccount: return L("iCloud에 로그인하면 보관돼요")
+        case .failed: return L("지금은 iCloud에 연결할 수 없어요")
+        }
+    }
+
+    /// "14:32" today, "11월 7일" before (in the app's language)
+    private static func when(_ t: Date) -> String {
+        let f = DateFormatter(); f.locale = Lang.current.locale
+        if Calendar.current.isDateInToday(t) { f.timeStyle = .short; f.dateStyle = .none }
+        else { f.setLocalizedDateFormatFromTemplate("MMMd") }
+        return f.string(from: t)
     }
 
     // MARK: 정보

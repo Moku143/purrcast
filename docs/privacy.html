@@ -40,6 +40,7 @@
       <li><b>비 알림용 기기 등록 (Plus만)</b> — Plus를 쓰시는 동안, 앱을 열지 않아도 비 오기 전과 특보·미세먼지 때 알려 드리기 위해(잠금 화면·Dynamic Island 알림), 앱이 서버에 다음을 등록합니다: 앱이 만든 무작위 기기 ID(이름·Apple ID와 관계없음), 약 1km 좌표와 시간대·지역 이름, 언어·캐릭터, 비 알림과 특보·미세먼지 알림을 켰는지, Apple 푸시 토큰. 이 정보는 이 알림을 보내는 데만 씁니다. 무료로 쓰시면 등록하지 않으며, Plus가 끝나면 앱이 다음에 열릴 때 등록을 지웁니다. 앱이 45일 동안 다시 확인하지 않은 등록도 자동으로 지워집니다.</li>
       <li><b>지역별 날씨 기록</b> — "어제보다 따뜻해요" 같은 비교를 위해 약 1km 칸별 기온과 날씨 응답을 서버에 잠시(최대 이틀) 보관합니다. 기기 ID와 연결하지 않아요.</li>
       <li><b>저장한 지역 · 설정 · 캐릭터 이름</b> — 기기 안에만 저장됩니다.</li>
+      <li><b>날씨 기록(날씨 달력)</b> — 기기에 저장되고, 설정의 'iCloud에 보관'이 켜져 있으면 여러분의 Apple 계정 iCloud(개인 저장 공간)에도 보관됩니다. 이 기록은 그 Apple 계정으로만 열 수 있고, Purrcast는 볼 수 없어요. 설정에서 언제든 끌 수 있습니다.</li>
       <li><b>구독</b> — 결제는 Apple이 처리합니다. Purrcast는 카드 정보를 받지 않고, 구독 중인지 여부만 Apple에게서 확인합니다.</li>
       <li><b>IP 주소</b> — 서버가 과도한 요청을 막기 위해(레이트 리밋) 요청 순간의 IP 주소로 잠깐 요청 횟수를 셉니다. 날씨 응답이나 기기 등록과 연결하지 않아요.</li>
       <li><b>공휴일</b> — 날씨 달력의 공휴일은 나라 코드(예: KR)만 보내 받아 옵니다. 좌표나 기기 ID는 보내지 않아요.</li>
@@ -66,7 +67,7 @@
 
   <section>
     <h2>4. 지우기</h2>
-    <p>앱을 지우면 기기에 저장된 정보가 모두 지워지고, 서버의 기기 등록(Plus만)은 45일 안에 자동으로 지워집니다. 그 전에 지우고 싶으시면 아래 메일로 알려 주세요.</p>
+    <p>앱을 지우면 기기에 저장된 정보가 모두 지워지고, 서버의 기기 등록(Plus만)은 45일 안에 자동으로 지워집니다. 그 전에 지우고 싶으시면 아래 메일로 알려 주세요. iCloud에 보관한 날씨 기록은 아이폰 설정 → 내 이름 → iCloud → 저장 공간 관리에서 Purrcast를 골라 지울 수 있어요.</p>
   </section>
 
   <section>
@@ -95,6 +96,7 @@
       <li><b>Device registration for alerts (Plus only)</b> — while you use Plus, so we can warn you before rain and about warnings and fine dust without the app open (Lock Screen and Dynamic Island), the app registers with our server: a random device ID the app creates (unrelated to your name or Apple ID), coordinates rounded to about 1 km with the time zone and place name, your language and character, whether rain and warning alerts are on, and an Apple push token. This is used only to send these alerts. On the free plan nothing is registered; when Plus ends, the app removes the registration the next time it opens, and a registration the app has not confirmed for 45 days is deleted automatically.</li>
       <li><b>Weather by area</b> — to say things like "warmer than yesterday", the server briefly keeps (up to two days) temperatures and weather answers for each ~1 km area. These are not linked to any device ID.</li>
       <li><b>Saved places, settings and character names</b> — stored only on your device.</li>
+      <li><b>Weather records (the weather calendar)</b> — stored on your device and, while 'Keep in iCloud' is on in Settings, also in your own iCloud (your Apple Account's private storage). Only that Apple Account can open them; Purrcast cannot see them. You can turn this off in Settings at any time.</li>
       <li><b>Subscriptions</b> — payments are handled by Apple. Purrcast never receives card details; it only checks with Apple whether you are subscribed.</li>
       <li><b>IP address</b> — the server briefly counts requests by their IP address to stop excessive use (rate limiting). It is not linked to weather answers or device registrations.</li>
       <li><b>Public holidays</b> — the weather calendar fetches holidays with a country code alone (e.g. KR); no coordinates or device ID are sent.</li>
@@ -121,7 +123,7 @@
 
   <section>
     <h2>4. Deleting</h2>
-    <p>Deleting the app removes everything stored on your device, and its registration on our server (Plus only) is deleted automatically within 45 days. To have it removed sooner, email us at the address below.</p>
+    <p>Deleting the app removes everything stored on your device, and its registration on our server (Plus only) is deleted automatically within 45 days. To have it removed sooner, email us at the address below. Weather records kept in iCloud can be deleted in iPhone Settings → your name → iCloud → Manage Storage → Purrcast.</p>
   </section>
 
   <section>
@@ -150,6 +152,7 @@
       <li><b>お知らせ用の端末登録（Plusのみ）</b> — Plusをお使いの間、アプリを開いていなくても雨の前や警報・大気汚染のときにお知らせするため（ロック画面・Dynamic Island）、アプリはサーバーに次の情報を登録します：アプリが作るランダムな端末ID（名前やApple IDとは無関係）、約1kmに丸めた座標・タイムゾーン・地域名、言語・キャラクター、雨と警報のお知らせのオン/オフ、Appleのプッシュトークン。このお知らせにだけ使います。無料プランでは登録せず、Plusが終わると次にアプリを開いたときに登録を削除します。45日間アプリからの確認がない登録も自動的に削除されます。</li>
       <li><b>地域ごとの天気の記録</b> — 「昨日より暖かい」などの比較のため、約1kmの区画ごとの気温と天気の応答をサーバーに短期間（最大2日）保管します。端末IDとは結びつけません。</li>
       <li><b>保存した地域・設定・キャラクター名</b> — 端末の中だけに保存されます。</li>
+      <li><b>天気の記録（天気カレンダー）</b> — 端末に保存され、設定の「iCloudに保存」がオンのときは、あなたのApple アカウントのiCloud（個人の保存領域）にも保管されます。そのApple アカウントでしか開けず、Purrcastは見ることができません。設定からいつでもオフにできます。</li>
       <li><b>サブスクリプション</b> — 決済はAppleが行います。Purrcastはカード情報を受け取らず、購読中かどうかだけをAppleに確認します。</li>
       <li><b>IPアドレス</b> — サーバーは過剰なリクエストを防ぐため（レート制限）、リクエスト時のIPアドレスで回数を一時的に数えます。天気の応答や端末登録とは結びつけません。</li>
       <li><b>祝日</b> — 天気カレンダーの祝日は国コード（例：KR）だけを送って取得します。座標や端末IDは送りません。</li>
@@ -176,7 +179,7 @@
 
   <section>
     <h2>4. 削除</h2>
-    <p>アプリを削除すると端末内の情報はすべて消え、サーバーの端末登録（Plusのみ）も45日以内に自動的に削除されます。それより早く削除したい場合は、下記のメールでお知らせください。</p>
+    <p>アプリを削除すると端末内の情報はすべて消え、サーバーの端末登録（Plusのみ）も45日以内に自動的に削除されます。それより早く削除したい場合は、下記のメールでお知らせください。iCloudに保管した天気の記録は、iPhoneの設定 → ユーザ名 → iCloud → ストレージを管理 → Purrcast から削除できます。</p>
   </section>
 
   <section>

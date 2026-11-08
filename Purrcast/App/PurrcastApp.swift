@@ -57,6 +57,7 @@ struct PurrcastApp: App {
                     await purchases.load()
                     syncPlan()
                     await model.refresh(force: true)
+                    await CloudLog.shared.sync(model: model, force: true)    // 날씨 기록 ⇄ the person's iCloud
                 }
                 .onChange(of: phase) { _, p in
                     // going away: ask for a best-effort wake near midnight, so the day closes with where the phone is
@@ -68,6 +69,7 @@ struct PurrcastApp: App {
                         syncPlan()
                         AppIcon.follow(model.shownCharacter)
                         await model.refresh()
+                        await CloudLog.shared.sync(model: model)
                     }
                 }
                 // the sun-face icon is the character shown; a Plus character's umbrella icon goes back to the
