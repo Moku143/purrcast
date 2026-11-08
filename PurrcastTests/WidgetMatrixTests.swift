@@ -112,6 +112,52 @@ final class WidgetMatrixTests: XCTestCase {
         add(a)
     }
 
+    /// The 2×2 on the big (170), the 6.1" (158) and the SE (148) phones, the list where it was (13 from the edge) and
+    /// a little to the right (SmallStack.trailing), in Korean, English and Russian.
+    func testSmallSizes() throws {
+        guard ProcessInfo.processInfo.environment["MATRIX"] == "1" else { throw XCTSkip("run by the Widget matrix workflow") }
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "matrix", withExtension: "json"))
+        let cases = try JSONDecoder().decode([Case].self, from: Data(contentsOf: url))
+        let c = try XCTUnwrap(cases.first { $0.key == "day-overcast-rain" })
+        let cold = try XCTUnwrap(cases.first { $0.key == "day-clear-none-frost" })
+        let keep = SmallStack.trailing
+        defer { Lang.current = .ko; SmallStack.trailing = keep }
+        var rows: [UIImage] = []
+        for lang in [Lang.ko, .en, .ru] {
+            Lang.current = lang
+            for k in [c, cold] {
+                var s = k.scene
+                if k.key == "day-clear-none-frost" { s.temp = -13; s.hi = -13; s.lo = -14; s.feels = -18 }
+                let snap = WeatherSnapshot(scene: s, character: PurrCharacter(rawValue: k.char) ?? .cat, plus: true, characterName: "",
+                                           placeShort: "성읍리", saved: Date(), clock12: lang.isLatinLike)
+                var cells: [UIImage] = []
+                for trailing in [CGFloat(13), keep] {
+                    SmallStack.trailing = trailing
+                    let r = ImageRenderer(content: HStack(alignment: .top, spacing: 10) {
+                        ForEach([CGFloat(170), 158, 148], id: \.self) { w in
+                            SmallWidgetView(snap: snap).padding(16).frame(width: w, height: w)
+                                .background(WidgetBackground(level: Rules.clamp(s.level), night: s.isNight, scene: s))
+                                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        }
+                    })
+                    r.scale = 2
+                    if let img = r.uiImage { cells.append(img) }
+                }
+                let pair = ImageRenderer(content: HStack(alignment: .top, spacing: 28) { ForEach(Array(cells.enumerated()), id: \.offset) { _, i in Image(uiImage: i) } })
+                pair.scale = 1
+                if let img = pair.uiImage { rows.append(img) }
+            }
+        }
+        let sheet = VStack(alignment: .leading, spacing: 12) { ForEach(Array(rows.enumerated()), id: \.offset) { _, img in Image(uiImage: img) } }
+            .padding(16).background(Color(hex: "#DDE3EE"))
+        let r = ImageRenderer(content: sheet)
+        r.scale = 1
+        let png = try XCTUnwrap(r.uiImage?.pngData())
+        let a = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")
+        a.name = "small-sizes"; a.lifetime = .keepAlways
+        add(a)
+    }
+
     /// The bottom-right list never touches the character: every language, °C and °F, the coldest and the hottest
     /// numbers, every character, on the small widget, the hourly medium widget and the watch. Each line's left edge
     /// (from the views' probes) against the sprite's rightmost drawn pixel in that line's band; a line that would
@@ -157,6 +203,10 @@ final class WidgetMatrixTests: XCTestCase {
                         let bgv = WidgetBackground(level: lv, night: s.isNight, scene: s)
                         let surfaces: [(String, CGSize, AnyView, [String])] = [
                             ("small", CGSize(width: 170, height: 170), AnyView(SmallWidgetView(snap: snap).padding(16).frame(width: 170, height: 170).background(bgv)),
+                             ["chance", "sunsetIcon", "feels", "hilo"]),
+                            ("small-158", CGSize(width: 158, height: 158), AnyView(SmallWidgetView(snap: snap).padding(16).frame(width: 158, height: 158).background(bgv)),
+                             ["chance", "sunsetIcon", "feels", "hilo"]),
+                            ("small-148", CGSize(width: 148, height: 148), AnyView(SmallWidgetView(snap: snap).padding(16).frame(width: 148, height: 148).background(bgv)),
                              ["chance", "sunsetIcon", "feels", "hilo"]),
                             ("hours", CGSize(width: 364, height: 170), AnyView(HoursWidgetView(snap: snap).padding(16).frame(width: 364, height: 170).background(bgv)),
                              ["chance", "sunsetIcon", "feels", "hilo"]),

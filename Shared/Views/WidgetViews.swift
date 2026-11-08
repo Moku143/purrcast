@@ -267,7 +267,7 @@ private struct SmallFace: View {
             .lineLimit(1).minimumScaleFactor(0.8)
             .halo(ink)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-            .padding(.trailing, 13).padding(.bottom, 9)
+            .padding(.trailing, SmallStack.trailing).padding(.bottom, 9)
         }
     }
 }
@@ -296,7 +296,12 @@ extension View { func capWidth(_ w: CGFloat) -> some View { CapWidth(max: w) { s
 
 /// The small widget's and the watch's list at the bottom right, top to bottom: 강수확률, the sunset (sunrise at night),
 /// 체감, and 최고 · 최저 at the very bottom — the two with pixel icons above the two in words
-enum SmallStack { static let order = ["chance", "sun", "feels", "hilo"] }
+enum SmallStack {
+    static let order = ["chance", "sun", "feels", "hilo"]
+    /// The list's room from the widget's right edge: a little nearer the edge than the place and icon (12), so the
+    /// bottom line keeps clear of the character's feet on the 6.1" phones' 158-pt widgets
+    static var trailing: CGFloat = 9
+}
 
 /// The chance of rain in the next hours (강수확률; 강수 alone is the amount, in mm): a pixel icon before the percentage,
 /// as the sunset row has its icon.
