@@ -35,9 +35,10 @@ struct WatchNow: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .padding(.top, 64 * k).padding(.trailing, 12)
                 if FeelsSpot.spot == "temp" {
-                    Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).lineLimit(1).probe("feels")
+                    Text(L("체감 %@", snap.deg(s.feels))).font(.px((FeelsSpot.small ? 10 : 12) * k)).lineLimit(1).probe("feels")
+                        .opacity(FeelsSpot.small ? 0.85 : 1)
                         .frame(maxWidth: .infinity, alignment: .trailing)
-                        .padding(.top, 124 * k).padding(.trailing, 18)
+                        .padding(.top, (FeelsSpot.small ? 117 : 124) * k).padding(.trailing, FeelsSpot.small ? 16 : 18)
                 }
                 // the character at the bottom left; its bubble rides on it (above the head, or above the umbrella)
                 ZStack(alignment: .bottom) {
