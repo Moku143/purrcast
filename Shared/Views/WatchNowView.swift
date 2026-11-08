@@ -21,9 +21,8 @@ struct WatchNow: View {
             // shrink the character and the words
             let k = min(1, max(0.82, g.size.width / 208))
             let catW = 84 * k, catH = catW * Sprite.height / Sprite.width
-            // the list's room right of the character: beside its coat, hood or umbrella, and (the bottom line) beside
-            // its feet, which are narrower
-            let narrow = max(56, g.size.width - 20 - (16.5 + catW + 6) - 3), wide = max(64, g.size.width - 20 - (16.5 + catW * 0.75) - 3)
+            // the list's room right of the character (beside its coat, hood or umbrella)
+            let narrow = max(56, g.size.width - 20 - (16.5 + catW + 6) - 3)
             ZStack(alignment: .topLeading) {
                 WidgetBackground(level: lv, night: s.isNight, scene: s, animate: !dimmed)
                 HStack(spacing: 4) {
@@ -37,6 +36,11 @@ struct WatchNow: View {
                 Text(snap.deg(s.temp)).font(.px((snap.deg(s.temp).count >= 4 ? 46 : 52) * k)).lineLimit(1).rolling(s.temp).probe("temp")
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .padding(.top, 64 * k).padding(.trailing, 12)
+                if WatchHiLo.style == "temp" && !snap.showsDashes {
+                    HiLoLine(snap: snap, size: 11 * k).lineLimit(1).minimumScaleFactor(0.7).probe("hilo")
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.top, 122 * k).padding(.trailing, 16).padding(.leading, 96 * k)
+                }
                 // the character at the bottom left; its bubble rides on it (above the head, or above the umbrella)
                 ZStack(alignment: .bottom) {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: !dimmed).probe("cat")
@@ -69,10 +73,13 @@ struct WatchNow: View {
                         default:
                             // the bottom line, beside the character's feet (narrower than its coat, hood or umbrella): a
                             // little more room, and it may shrink a little further — on one line, never cut short
-                            if !snap.showsDashes {
-                                HiLoLine(snap: snap, size: 12 * k).probe("hilo")
-                                    .minimumScaleFactor(0.62)
-                                    .frame(maxWidth: wide, alignment: .trailing)
+                            if !snap.showsDashes && WatchHiLo.style != "temp" {
+                                if WatchHiLo.style == "two" {
+                                    HiLoLine(snap: snap, size: 12 * k, twoLines: true).probe("hilo").frame(maxWidth: narrow, alignment: .trailing)
+                                } else {
+                                    // one line, a size smaller than the rest
+                                    HiLoLine(snap: snap, size: 10 * k).probe("hilo").minimumScaleFactor(0.6).frame(maxWidth: narrow, alignment: .trailing)
+                                }
                             }
                         }
                     }

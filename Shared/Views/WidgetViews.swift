@@ -277,19 +277,36 @@ struct ChanceLine: View {
     }
 }
 
-/// The day's high and low in words, "최고 15° 최저 14°", on one line (the list around it keeps it clear of the
-/// character; a long one shrinks a little). Widened by the temperature now: the day has reached it.
+/// The day's high and low in words, "최고 15° 최저 14°" — or broken after the high onto two lines. Widened by the
+/// temperature now: the day has reached it.
 struct HiLoLine: View {
     let snap: WeatherSnapshot
     var size: CGFloat = 9
+    var twoLines = false
     var body: some View {
         let s = snap.scene
         let hi = snap.deg(max(s.hi, s.temp)), lo = snap.deg(min(s.lo, s.temp))
-        Text(L("최고 %@ 최저 %@", hi, lo))
-            .font(.px(size))
-            .accessibilityLabel(L("최고 %@ 최저 %@", hi, lo))
+        let full = L("최고 %@ 최저 %@", hi, lo)
+        Group {
+            if twoLines {
+                // the same short words, broken after the high ("최고 15°" / "최저 14°")
+                let cut = full.range(of: hi)?.upperBound ?? full.endIndex
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(String(full[..<cut]))
+                    Text(String(full[cut...]).trimmingCharacters(in: .whitespaces))
+                }
+            } else {
+                Text(full)
+            }
+        }
+        .font(.px(size))
+        .accessibilityElement(children: .ignore).accessibilityLabel(full)
     }
 }
+
+/// How the watch shows 최고 · 최저 (the looks on offer): "small" one line a size smaller at the bottom of the list,
+/// "two" two lines there, "temp" one line under the big temperature
+enum WatchHiLo { static var style = "small" }
 
 
 /// The next five days for the medium widget, like the app's 10-day card.

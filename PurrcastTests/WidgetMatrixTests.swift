@@ -49,8 +49,9 @@ final class WidgetMatrixTests: XCTestCase {
                             characterName: "", placeShort: "서울", saved: Date())
         }
         func bg(_ s: WeatherScene) -> some View { WidgetBackground(level: Rules.clamp(s.level), night: s.isNight, scene: s) }
-        do {
-        let name = "hilo-everywhere"
+        defer { WatchHiLo.style = "small" }
+        for (name, style) in [("watch-small", "small"), ("watch-two", "two"), ("watch-temp", "temp")] {
+        WatchHiLo.style = style
         let sheet = VStack(alignment: .leading, spacing: 16) {
             ForEach(Array(snaps.enumerated()), id: \.offset) { _, snap in
                 HStack(alignment: .top, spacing: 16) {
@@ -149,7 +150,7 @@ final class WidgetMatrixTests: XCTestCase {
                             }
                             // a line cut short: its words at full size, shrunk as far as the list allows, still wider than it got
                             let px = surface == "watch" ? 12 * min(1, max(0.82, size.width / 208)) : 9
-                            let minScale: CGFloat = surface == "watch" ? 0.7 : 0.8      // the watch's bottom line: 0.62
+                            let minScale: CGFloat = surface == "watch" ? 0.7 : 0.8      // the watch's 최고 · 최저: 0.6
                             var cut: [String] = []
                             for (line, words) in [("hilo", L("최고 %@ 최저 %@", snap.deg(max(s.hi, s.temp)), snap.deg(min(s.lo, s.temp)))),
                                                   ("feels", L("체감 %@", snap.deg(s.feels)))] {
@@ -158,7 +159,13 @@ final class WidgetMatrixTests: XCTestCase {
                                 Probe.sink = { n, r in if n == "ideal" { ideal = r.width } }
                                 _ = ImageRenderer(content: Text(words).font(.px(px)).fixedSize().probe("ideal").coordinateSpace(name: "probe")).uiImage
                                 Probe.sink = nil
-                                if ideal * (surface == "watch" && line == "hilo" ? 0.62 : minScale) > f.width + 0.5 { cut.append(line) }
+                                let lineSize: CGFloat = surface == "watch" && line == "hilo" ? px * 10 / 12 : px
+                                if lineSize != px {
+                                    Probe.sink = { n, r in if n == "ideal" { ideal = r.width } }
+                                    _ = ImageRenderer(content: Text(words).font(.px(lineSize)).fixedSize().probe("ideal").coordinateSpace(name: "probe")).uiImage
+                                    Probe.sink = nil
+                                }
+                                if ideal * (surface == "watch" && line == "hilo" ? 0.6 : minScale) > f.width + 0.5 { cut.append(line) }
                             }
                             if !cut.isEmpty { worst = min(worst, -99); worstLine = "cut:" + cut.joined(separator: ",") }
                             let name = "\(lang.rawValue)-\(unitF ? "F" : "C")-\(key)-\(temp)-\(ch.rawValue)-\(surface)"
