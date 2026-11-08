@@ -113,15 +113,15 @@ final class WidgetMatrixTests: XCTestCase {
     }
 
     /// The 2×2 on the big (170), the 6.1" (158) and the SE (148) phones, the list where it was (13 from the edge) and
-    /// a little to the right (SmallStack.trailing), in Korean, English and Russian.
+    /// on its one right edge (SmallStack.edge), in Korean, English and Russian.
     func testSmallSizes() throws {
         guard ProcessInfo.processInfo.environment["MATRIX"] == "1" else { throw XCTSkip("run by the Widget matrix workflow") }
         let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "matrix", withExtension: "json"))
         let cases = try JSONDecoder().decode([Case].self, from: Data(contentsOf: url))
         let c = try XCTUnwrap(cases.first { $0.key == "day-overcast-rain" })
         let cold = try XCTUnwrap(cases.first { $0.key == "day-clear-none-frost" })
-        let keep = SmallStack.trailing
-        defer { Lang.current = .ko; SmallStack.trailing = keep }
+        let keep = SmallStack.edge
+        defer { Lang.current = .ko; SmallStack.edge = keep }
         var rows: [UIImage] = []
         for lang in [Lang.ko, .en, .ru] {
             Lang.current = lang
@@ -132,7 +132,7 @@ final class WidgetMatrixTests: XCTestCase {
                                            placeShort: "성읍리", saved: Date(), clock12: lang.isLatinLike)
                 var cells: [UIImage] = []
                 for trailing in [keep] {
-                    SmallStack.trailing = trailing
+                    SmallStack.edge = trailing
                     let r = ImageRenderer(content: HStack(alignment: .top, spacing: 10) {
                         ForEach([CGFloat(170), 158, 148], id: \.self) { w in
                             SmallWidgetView(snap: snap).padding(16).frame(width: w, height: w)

@@ -22,9 +22,10 @@ struct WatchNow: View {
             let k = min(1, max(0.82, g.size.width / 208))
             let catW = 84 * k, catH = catW * Sprite.height / Sprite.width
             // the list's room right of the character (beside its coat, hood or umbrella)
-            let narrow = max(56, g.size.width - 20 - (16.5 + catW + 6) - 3)
+            let edge: CGFloat = 14.5      // the list's right edge: under the temperature's (its ink 15 from the edge)
+            let narrow = max(56, g.size.width - edge - (16.5 + catW + 6) - 3)
             // the thermometer line, at the bottom beside the coat's hem, has a little more (the clearance test checks it)
-            let hiloRoom = max(64, g.size.width - 20 - (16.5 + catW * 0.95))
+            let hiloRoom = max(64, g.size.width - edge - (16.5 + catW * 0.95))
             ZStack(alignment: .topLeading) {
                 WidgetBackground(level: lv, night: s.isNight, scene: s, animate: !dimmed)
                 HStack(spacing: 4) {
@@ -74,8 +75,9 @@ struct WatchNow: View {
                     }
                 }
                 .lineLimit(1).minimumScaleFactor(0.7)
+                .multilineTextAlignment(.trailing)      // a line shrunk to fit stays against the right edge
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                .padding(.trailing, 20).padding(.bottom, 23.5)
+                .padding(.trailing, edge).padding(.bottom, 23.5)
             }
             .foregroundStyle(ink.ink)
         }

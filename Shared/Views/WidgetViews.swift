@@ -151,11 +151,12 @@ struct HoursWidgetView: View {
                     }
                 }
                 .lineLimit(1).minimumScaleFactor(0.8)
+                .multilineTextAlignment(.trailing)
                 .halo(ink)
                 // no wider than the room right of the character: a long word shrinks a little instead of running under it
-                .frame(maxWidth: max(60, g.size.width * 0.365 - catW / 2 - 18), alignment: .trailing)
+                .frame(maxWidth: max(60, g.size.width * 0.365 - catW / 2 - 17.5), alignment: .trailing)
                 .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.trailing, 14)
+                .padding(.trailing, 13.5)      // the words' ink on the weather icon's right edge (14)
                 .frame(height: panelTop - 5, alignment: .bottom)
                 ZStack(alignment: .bottom) {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: false).probe("cat")
@@ -236,10 +237,11 @@ private struct SmallFace: View {
                 PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16).probe("icon")
             }
             .halo(ink)
-            .padding(.top, 9).padding(.horizontal, 12)
+            .padding(.top, 9).padding(.leading, 12).padding(.trailing, SmallStack.edge)
+            // the big number's last glyph (°) carries ~2.5 pt of its own room: set in that much so its ink meets the edge
             Text(snap.deg(s.temp)).font(.px(35)).lineLimit(1).minimumScaleFactor(0.7).probe("temp").halo(ink)
                 .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.top, 44).padding(.trailing, 6)
+                .padding(.top, 44).padding(.trailing, SmallStack.edge - 2.5)
             ZStack(alignment: .bottom) {
                 CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72 * k, animate: false).probe("cat")
                     .frame(width: 72 * k, height: 84 * k, alignment: .bottom)
@@ -273,9 +275,10 @@ private struct SmallFace: View {
                 }
             }
             .lineLimit(1).minimumScaleFactor(0.8)
+            .multilineTextAlignment(.trailing)      // a line shrunk to fit stays against the right edge
             .halo(ink)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-            .padding(.trailing, SmallStack.trailing).padding(.bottom, 9)
+            .padding(.trailing, SmallStack.edge - 0.5).padding(.bottom, 9)
         }
     }
 }
@@ -292,6 +295,7 @@ struct SunLine: View {
             PixelIcon(name: icon, size: s + 2).probe("sunsetIcon")
             Text(time).font(.px(s)).probe("sunsetText")
         }
+        .offset(x: size / 18)      // its smaller digits end half a point short of the other lines: onto the edge
     }
 }
 
@@ -317,9 +321,10 @@ extension View { func capWidth(_ w: CGFloat) -> some View { CapWidth(max: w) { s
 /// 체감, and 최고 · 최저 at the very bottom — the two with pixel icons above the two in words
 enum SmallStack {
     static let order = ["chance", "sun", "feels", "hilo"]
-    /// The list's room from the widget's right edge: a little nearer the edge than the place and icon (12), so the
-    /// bottom line keeps clear of the character's feet on the 6.1" phones' 158-pt widgets
-    static var trailing: CGFloat = 9
+    /// The one right edge of the 2×2 (from the widget's edge to the ink): the weather icon, the big temperature and
+    /// every line of the list end on it. Near enough the edge that the bottom line keeps clear of the character's
+    /// feet on the 6.1" phones' 158-pt widgets.
+    static var edge: CGFloat = 9.5
 }
 
 /// The chance of rain in the next hours (강수확률; 강수 alone is the amount, in mm): a pixel icon before the percentage,
