@@ -231,19 +231,19 @@ private struct SmallFace: View {
             .padding(.leading, 13).padding(.bottom, 8)
             // close together at the bottom right (SmallStack): the rain chance and the sun with their pixel icons, then
             // 체감 and 최고 · 최저 in words at the bottom
-            VStack(alignment: .trailing, spacing: 0.9) {
+            ListStack(spacing: 0.9) {
                 ForEach(SmallStack.order, id: \.self) { item in
                     switch item {
                     case "sun":
                         if let t = sunsetTile(s, clock12: snap.clock12) {
-                            HStack(spacing: 2) { PixelIcon(name: sunTileIcon(s), size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }
+                            HStack(spacing: iconGap(9)) { PixelIcon(name: sunTileIcon(s), size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }
                         }
                     case "chance":
                         if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
                     case "feels":
-                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels").frame(maxWidth: 74, alignment: .trailing)
+                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels").capWidth(74)
                     default:
-                        if !snap.showsDashes { HiLoLine(snap: snap).probe("hilo").frame(maxWidth: 80, alignment: .trailing) }
+                        if !snap.showsDashes { HiLoLine(snap: snap).probe("hilo").capWidth(80) }
                     }
                 }
             }
@@ -251,6 +251,61 @@ private struct SmallFace: View {
             .halo(ink)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             .padding(.trailing, 13).padding(.bottom, 9)
+        }
+    }
+}
+
+/// The gap between a pixel icon and its words, the same on every line: a quarter of the text size
+func iconGap(_ size: CGFloat) -> CGFloat { (size / 4).rounded() }
+
+/// How the bottom-right list stacks its lines (the looks on offer): "fixed" in its order, right-aligned · "sorted"
+/// the shortest line on top whatever the language or the numbers, right-aligned · "block" in its order, the lines'
+/// left edges lined up (the block itself at the right)
+enum ListLook { static var mode = "fixed" }
+
+/// The lines stacked shortest first, right-aligned: a longer line never sits above a shorter one, in any language
+struct ShortFirstStack: Layout {
+    var spacing: CGFloat = 1
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let sizes = subviews.map { $0.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil)) }
+        return CGSize(width: sizes.map(\.width).max() ?? 0,
+                      height: sizes.map(\.height).reduce(0, +) + spacing * CGFloat(max(0, sizes.count - 1)))
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let p = ProposedViewSize(width: bounds.width, height: nil)
+        let sized = subviews.enumerated().map { ($0.offset, $0.element, $0.element.sizeThatFits(p)) }
+            .sorted { $0.2.width == $1.2.width ? $0.0 < $1.0 : $0.2.width < $1.2.width }
+        var y = bounds.minY
+        for (_, v, s) in sized {
+            v.place(at: CGPoint(x: bounds.maxX, y: y), anchor: .topTrailing, proposal: ProposedViewSize(width: bounds.width, height: s.height))
+            y += s.height + spacing
+        }
+    }
+}
+
+/// A width cap that hugs its content: no wider than its words (or than `max`, where long words shrink) — unlike
+/// `.frame(maxWidth:)`, which takes the whole width it is offered, so the list's lines keep their own lengths
+struct CapWidth: Layout {
+    var max: CGFloat
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let v = subviews.first else { return .zero }
+        return v.sizeThatFits(ProposedViewSize(width: Swift.min(proposal.width ?? .infinity, max), height: proposal.height))
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, proposal: ProposedViewSize(width: bounds.width, height: bounds.height))
+    }
+}
+extension View { func capWidth(_ w: CGFloat) -> some View { CapWidth(max: w) { self } } }
+
+/// The list in the look chosen (ListLook)
+struct ListStack<Content: View>: View {
+    var spacing: CGFloat
+    @ViewBuilder var content: Content
+    var body: some View {
+        switch ListLook.mode {
+        case "sorted": ShortFirstStack(spacing: spacing) { content }
+        case "block": VStack(alignment: .leading, spacing: spacing) { content }
+        default: VStack(alignment: .trailing, spacing: spacing) { content }
         }
     }
 }
@@ -268,7 +323,7 @@ struct ChanceLine: View {
     /// The umbrella from 50 % (as the watch's corner), the raindrop below
     static func iconName(_ chance: Int) -> String { chance >= 50 ? "umbrella" : "raindrop" }
     var body: some View {
-        HStack(spacing: 1) {
+        HStack(spacing: iconGap(size)) {
             PixelIcon(name: Self.iconName(chance), size: icon)
             Text("\(chance)%")
         }
@@ -289,9 +344,9 @@ struct HiLoLine: View {
         let hi = snap.deg(max(s.hi, s.temp)), lo = snap.deg(min(s.lo, s.temp))
         Group {
             if thermo {
-                HStack(spacing: 1) {
+                HStack(spacing: iconGap(size)) {
                     PixelIcon(name: "thermo_hot", size: icon)
-                    Text(hi).padding(.trailing, size / 3)
+                    Text(hi).padding(.trailing, size / 2)
                     PixelIcon(name: "thermo_cold", size: icon)
                     Text(lo)
                 }
@@ -306,7 +361,7 @@ struct HiLoLine: View {
 
 /// The watch's list, top to bottom (the looks on offer): "chance" 강수확률 · "sun" sunset / sunrise · "feels" 체감 ·
 /// "hilo" 최고 · 최저 behind the thermometers
-enum WatchHiLo { static var order = ["chance", "feels", "sun", "hilo"] }
+enum WatchHiLo { static var order = ["chance", "sun", "feels", "hilo"] }
 
 
 /// The next five days for the medium widget, like the app's 10-day card.

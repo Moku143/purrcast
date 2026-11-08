@@ -52,22 +52,22 @@ struct WatchNow: View {
                 .padding(.leading, 16.5).padding(.bottom, 14.5)
                 // sunset · feels · rain at the bottom right
                 // close together, down by the rain chance; the sunset row a little higher
-                VStack(alignment: .trailing, spacing: 1.2 * k) {
+                ListStack(spacing: 1.2 * k) {
                     // as the widgets: the rain chance and the sun with their icons, then 체감, and 최고 · 최저 behind the
                     // thermometers (the words do not fit beside the character here)
                     ForEach(WatchHiLo.order, id: \.self) { item in
                         switch item {
                         case "sun":
                             if let t = sunsetTile(s, clock12: snap.clock12) {
-                                HStack(spacing: 3) { PixelIcon(name: sunTileIcon(s), size: 14 * k).probe("sunsetIcon"); Text(t).font(.px(12 * k)).probe("sunsetText") }
-                                    .frame(maxWidth: narrow, alignment: .trailing)
+                                HStack(spacing: iconGap(12 * k)) { PixelIcon(name: sunTileIcon(s), size: 14 * k).probe("sunsetIcon"); Text(t).font(.px(12 * k)).probe("sunsetText") }
+                                    .capWidth(narrow)
                             }
                         case "chance":
-                            if !snap.showsDashes { ChanceLine(chance: s.hours.prefix(6).map { $0.chance }.max() ?? 0, size: 12 * k, icon: 14 * k).probe("chance").frame(maxWidth: narrow, alignment: .trailing) }
+                            if !snap.showsDashes { ChanceLine(chance: s.hours.prefix(6).map { $0.chance }.max() ?? 0, size: 12 * k, icon: 14 * k).probe("chance").capWidth(narrow) }
                         case "feels":
-                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels").frame(maxWidth: narrow, alignment: .trailing)   // a long word shrinks
+                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels").capWidth(narrow)   // a long word shrinks
                         default:
-                            if !snap.showsDashes { HiLoLine(snap: snap, size: 12 * k, thermo: true, icon: 14 * k).probe("hilo").frame(maxWidth: narrow, alignment: .trailing) }
+                            if !snap.showsDashes { HiLoLine(snap: snap, size: 12 * k, thermo: true, icon: 14 * k).probe("hilo").capWidth(narrow) }
                         }
                     }
                 }

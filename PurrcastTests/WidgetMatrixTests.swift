@@ -36,45 +36,43 @@ final class WidgetMatrixTests: XCTestCase {
         add(j)
     }
 
-    /// 최고 · 최저 with the pixel thermometers under 강수, on every surface that shows it: the small widget, both
-    /// medium widgets and the watch app — a few weathers, for checking by eye
-    func testHiLoEverywhere() throws {
+    /// The bottom-right list in each look (in its order · the shortest line on top · the left edges lined up), in
+    /// four languages whose lines differ in length, on the small widget and the watch — for choosing by eye
+    func testListLooks() throws {
         guard ProcessInfo.processInfo.environment["MATRIX"] == "1" else { throw XCTSkip("run by the Widget matrix workflow") }
-        Lang.current = .ko
         let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "matrix", withExtension: "json"))
         let cases = try JSONDecoder().decode([Case].self, from: Data(contentsOf: url))
-        let keys = ["day-partly-none-later-rain5", "day-overcast-rain", "night-clear-none", "day-clear-none-frost"]
-        let snaps = keys.compactMap { k in cases.first { $0.key == k } }.map { c in
-            WeatherSnapshot(scene: c.scene, character: PurrCharacter(rawValue: c.char) ?? .cat, plus: true,
-                            characterName: "", placeShort: "서울", saved: Date())
-        }
-        func bg(_ s: WeatherScene) -> some View { WidgetBackground(level: Rules.clamp(s.level), night: s.isNight, scene: s) }
-        let usualWatch = WatchHiLo.order
-        defer { WatchHiLo.order = usualWatch }
-        for (name, order) in [("watch-sun-second", ["chance", "sun", "feels", "hilo"]), ("watch-feels-second", ["chance", "feels", "sun", "hilo"])] {
-        WatchHiLo.order = order
-        let sheet = VStack(alignment: .leading, spacing: 16) {
-            ForEach(Array(snaps.enumerated()), id: \.offset) { _, snap in
-                HStack(alignment: .top, spacing: 16) {
-                    SmallWidgetView(snap: snap).padding(16).frame(width: 170, height: 170).background(bg(snap.scene))
-                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    MediumWidgetView(snap: snap).padding(16).frame(width: 364, height: 170).background(bg(snap.scene))
-                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    HoursWidgetView(snap: snap).padding(16).frame(width: 364, height: 170).background(bg(snap.scene))
-                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    WatchAppScreen(snap: snap).frame(width: 198, height: 242)
-                        .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+        let c = try XCTUnwrap(cases.first { $0.key == "day-partly-none-later-rain5" })
+        let cold = try XCTUnwrap(cases.first { $0.key == "day-clear-none-frost" })
+        defer { ListLook.mode = "fixed"; Lang.current = .ko }
+        for mode in ["fixed", "sorted", "block"] {
+            ListLook.mode = mode
+            var rows: [UIImage] = []
+            for lang in [Lang.ko, .en, .ru, .de] {
+                Lang.current = lang
+                let snaps = [c, cold].map { k in
+                    WeatherSnapshot(scene: k.scene, character: PurrCharacter(rawValue: k.char) ?? .cat, plus: true, characterName: "",
+                                    placeShort: "서울", saved: Date(), clock12: lang.isLatinLike)
                 }
+                let r = ImageRenderer(content: HStack(alignment: .top, spacing: 16) {
+                    ForEach(Array(snaps.enumerated()), id: \.offset) { _, snap in
+                        SmallWidgetView(snap: snap).padding(16).frame(width: 170, height: 170)
+                            .background(WidgetBackground(level: Rules.clamp(snap.scene.level), night: snap.scene.isNight, scene: snap.scene))
+                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        WatchAppScreen(snap: snap).frame(width: 198, height: 242).clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                    }
+                })
+                r.scale = 2
+                if let img = r.uiImage { rows.append(img) }
             }
-        }
-        .padding(16).background(Color(hex: "#DDE3EE"))
-        .environment(\.locale, Locale(identifier: "ko_KR"))
-        let r = ImageRenderer(content: sheet)
-        r.scale = 2
-        let png = try XCTUnwrap(r.uiImage?.pngData())
-        let a = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")
-        a.name = name; a.lifetime = .keepAlways
-        add(a)
+            let sheet = VStack(alignment: .leading, spacing: 16) { ForEach(Array(rows.enumerated()), id: \.offset) { _, img in Image(uiImage: img) } }
+                .padding(16).background(Color(hex: "#DDE3EE"))
+            let r = ImageRenderer(content: sheet)
+            r.scale = 2
+            let png = try XCTUnwrap(r.uiImage?.pngData())
+            let a = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")
+            a.name = "list-\(mode)"; a.lifetime = .keepAlways
+            add(a)
         }
     }
 
