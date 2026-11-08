@@ -290,12 +290,13 @@ struct SunLine: View {
     let time: String
     var size: CGFloat = 9
     var iconSize: CGFloat? = nil      // ☂'s icon size on that list (the widgets' 11 by default)
+    var nudge: CGFloat = 0            // drawn half a point short of the edge on some lists (the watch's): onto it
     var body: some View {
         HStack(spacing: iconGap(size)) {
             PixelIcon(name: icon, size: iconSize ?? (size * 11 / 9).rounded()).probe("sunsetIcon")
             Text(time).font(.px(size)).probe("sunsetText")
         }
-        .offset(x: size / 18)      // its last digit keeps half a point more room than "%" or "°": onto the edge
+        .offset(x: nudge)
     }
 }
 
