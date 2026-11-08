@@ -23,7 +23,7 @@ struct PaywallView: View {
                     check: L("가까운 비 · 알림")),
         ]
         // 비 지도: the 기상청 radar, Korea only
-        if AppModel.hereIsKorea { f.append(Feature(art: "radar", title: L("비 지도"), note: L("기상청 레이더로 지난 1시간 비구름과 다음 1시간 예측을 재생해요"), check: L("비 지도"))) }
+        if Features.radar && AppModel.hereIsKorea { f.append(Feature(art: "radar", title: L("비 지도"), note: L("기상청 레이더로 지난 1시간 비구름과 다음 1시간 예측을 재생해요"), check: L("비 지도"))) }
         f += [
             Feature(art: "air", title: L("대기질 지도"), note: L("미세먼지 매시간 업데이트 · 잠금화면 미세먼지 위젯 · 오염 물질 6종"), check: L("대기질")),
             Feature(art: "calendar", title: L("날씨 달력 · 월간 리포트"), note: L("날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷 · 1일에 알림"), check: L("날씨 달력")),

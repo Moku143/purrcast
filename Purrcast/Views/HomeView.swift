@@ -543,7 +543,7 @@ struct HomeView: View {
         if s.dust != nil { ids.append("dust") }
         if s.isPlus && !(model.airMapFailed && model.airMap == nil) { ids.append("air") }
         // 비 지도: Korea only; free sees the example under a Plus tag
-        if model.currentPlace.region == "kr" && !(s.isPlus && model.radarFailed && model.radar == nil) { ids.append("radar") }
+        if Features.radar && model.currentPlace.region == "kr" && !(s.isPlus && model.radarFailed && model.radar == nil) { ids.append("radar") }
         if s.cmp != nil { ids.append("cmp") }
         return ids
     }
@@ -570,7 +570,7 @@ struct HomeView: View {
         }
         // the 대기질 map (Plus) for the place, again after each refresh — here, not on the card, so a place without a
         // map tries again on the next refresh
-        .task(id: "\(model.currentPlace.id)|\(s.updated)|\(s.clock)|\(s.isPlus)") { if s.isPlus { await model.loadAirMap(); await model.loadRadar() } }
+        .task(id: "\(model.currentPlace.id)|\(s.updated)|\(s.clock)|\(s.isPlus)") { if s.isPlus { await model.loadAirMap(); if Features.radar { await model.loadRadar() } } }
     }
 
     @ViewBuilder private func card(_ id: String, _ s: WeatherScene, ink: Ink) -> some View {
