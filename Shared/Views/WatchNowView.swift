@@ -34,6 +34,11 @@ struct WatchNow: View {
                 Text(snap.deg(s.temp)).font(.px((snap.deg(s.temp).count >= 4 ? 46 : 52) * k)).lineLimit(1).rolling(s.temp).probe("temp")
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .padding(.top, 64 * k).padding(.trailing, 12)
+                if FeelsSpot.spot == "temp" {
+                    Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).lineLimit(1).probe("feels")
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.top, 124 * k).padding(.trailing, 18)
+                }
                 // the character at the bottom left; its bubble rides on it (above the head, or above the umbrella)
                 ZStack(alignment: .bottom) {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: !dimmed).probe("cat")
@@ -52,10 +57,13 @@ struct WatchNow: View {
                 // close together, down by the rain chance; the sunset row a little higher
                 VStack(alignment: .trailing, spacing: 1.2 * k) {
                     if let t = sunsetTile(s, clock12: snap.clock12) { HStack(spacing: 3) { PixelIcon(name: "sunset", size: 14 * k).probe("sunsetIcon"); Text(t).font(.px(12 * k)).probe("sunsetText") }.padding(.bottom, 2.5 * k) }
-                    // as the widgets: the rain chance, how it feels, the day's high and low
+                    // as the widgets: the rain chance and the day's high and low behind their icons
+                    let feels = Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k))
+                    if FeelsSpot.spot == "top" { feels.probe("feels") }
                     if !snap.showsDashes { ChanceLine(chance: s.hours.prefix(6).map { $0.chance }.max() ?? 0, size: 12 * k, icon: 14 * k).probe("chance") }
-                    Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels")
+                    if FeelsSpot.spot == "middle" { feels.probe("feels") }
                     if !snap.showsDashes { HiLoLine(snap: snap, size: 12 * k, icon: 14 * k).probe("hilo") }
+                    if FeelsSpot.spot == "bottom" { feels.probe("feels") }
                 }
                 .lineLimit(1).minimumScaleFactor(0.7)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)

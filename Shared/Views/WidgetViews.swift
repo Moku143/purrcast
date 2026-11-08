@@ -209,6 +209,12 @@ private struct SmallFace: View {
             Text(snap.deg(s.temp)).font(.px(35)).lineLimit(1).minimumScaleFactor(0.7).probe("temp").halo(ink)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.top, 44).padding(.trailing, 6)
+            // how it feels, under the temperature it goes with (the look on offer: or in the list at the bottom right)
+            if FeelsSpot.spot == "temp" {
+                Text(L("체감 %@", snap.deg(s.feels))).font(.px(10)).lineLimit(1).probe("feels").halo(ink)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.top, 86).padding(.trailing, 12)
+            }
             ZStack(alignment: .bottom) {
                 CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false).probe("cat")
                     .frame(width: 72, height: 84, alignment: .bottom)
@@ -226,10 +232,12 @@ private struct SmallFace: View {
             // close together, down by the rain chance; the sunset row a little higher
             VStack(alignment: .trailing, spacing: 0.9) {
                 if let t = sunsetTile(s, clock12: snap.clock12) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }.padding(.bottom, 2) }
-                // the rain chance, then how it feels, then the day's high and low at the bottom
+                // the rain chance and the day's high and low, each behind its pixel icon as the sunset is
+                if FeelsSpot.spot == "top" { Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels") }
                 if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
-                Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
+                if FeelsSpot.spot == "middle" { Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels") }
                 if !snap.showsDashes { HiLoLine(snap: snap).probe("hilo") }
+                if FeelsSpot.spot == "bottom" { Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels") }
             }
             .lineLimit(1).minimumScaleFactor(0.8)
             .halo(ink)
@@ -238,6 +246,10 @@ private struct SmallFace: View {
         }
     }
 }
+
+/// Where 체감 sits on the small widget and the watch (the looks on offer): "temp" under the big temperature, or in the
+/// list at the bottom right — "top", "middle" (between the rain chance and the high and low) or "bottom"
+enum FeelsSpot { static var spot = "temp" }
 
 /// The chance of rain in the next hours (강수확률; 강수 alone is the amount, in mm): a pixel icon before the percentage,
 /// as the thermometers stand before the high and the low.
