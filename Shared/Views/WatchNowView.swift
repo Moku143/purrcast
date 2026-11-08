@@ -36,11 +36,6 @@ struct WatchNow: View {
                 Text(snap.deg(s.temp)).font(.px((snap.deg(s.temp).count >= 4 ? 46 : 52) * k)).lineLimit(1).rolling(s.temp).probe("temp")
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .padding(.top, 64 * k).padding(.trailing, 12)
-                if WatchHiLo.style == "temp" && !snap.showsDashes {
-                    HiLoLine(snap: snap, size: 11 * k).lineLimit(1).minimumScaleFactor(0.7).probe("hilo")
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .padding(.top, 122 * k).padding(.trailing, 16).padding(.leading, 96 * k)
-                }
                 // the character at the bottom left; its bubble rides on it (above the head, or above the umbrella)
                 ZStack(alignment: .bottom) {
                     CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: catW, animate: !dimmed).probe("cat")
@@ -58,8 +53,9 @@ struct WatchNow: View {
                 // sunset · feels · rain at the bottom right
                 // close together, down by the rain chance; the sunset row a little higher
                 VStack(alignment: .trailing, spacing: 1.2 * k) {
-                    // as the widgets (SmallStack): the rain chance and the sun with their icons, 체감 and 최고 · 최저 in words
-                    ForEach(SmallStack.order, id: \.self) { item in
+                    // as the widgets: the rain chance and the sun with their icons, then 체감, and 최고 · 최저 behind the
+                    // thermometers (the words do not fit beside the character here)
+                    ForEach(WatchHiLo.feelsLast ? ["chance", "sun", "hilo", "feels"] : ["chance", "sun", "feels", "hilo"], id: \.self) { item in
                         switch item {
                         case "sun":
                             if let t = sunsetTile(s, clock12: snap.clock12) {
@@ -71,16 +67,7 @@ struct WatchNow: View {
                         case "feels":
                             Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels").frame(maxWidth: narrow, alignment: .trailing)   // a long word shrinks
                         default:
-                            // the bottom line, beside the character's feet (narrower than its coat, hood or umbrella): a
-                            // little more room, and it may shrink a little further — on one line, never cut short
-                            if !snap.showsDashes && WatchHiLo.style != "temp" {
-                                if WatchHiLo.style == "two" {
-                                    HiLoLine(snap: snap, size: 12 * k, twoLines: true).probe("hilo").frame(maxWidth: narrow, alignment: .trailing)
-                                } else {
-                                    // one line, a size smaller than the rest
-                                    HiLoLine(snap: snap, size: 10 * k).probe("hilo").minimumScaleFactor(0.6).frame(maxWidth: narrow, alignment: .trailing)
-                                }
-                            }
+                            if !snap.showsDashes { HiLoLine(snap: snap, size: 12 * k, thermo: true, icon: 14 * k).probe("hilo").frame(maxWidth: narrow, alignment: .trailing) }
                         }
                     }
                 }
