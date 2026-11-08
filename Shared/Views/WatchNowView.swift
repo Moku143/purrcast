@@ -61,13 +61,13 @@ struct WatchNow: View {
                         switch item {
                         case "sun":
                             if let t = sunsetTile(s, clock12: snap.clock12) {
-                                HStack(spacing: iconGap(12 * k)) { PixelIcon(name: sunTileIcon(s), size: 14 * k).probe("sunsetIcon"); Text(t).font(.px(12 * k)).probe("sunsetText") }
+                                SunLine(icon: sunTileIcon(s), time: t, size: 12 * k)
                                     .capWidth(narrow)
                             }
                         case "chance":
                             if !snap.showsDashes { ChanceLine(chance: s.hours.prefix(6).map { $0.chance }.max() ?? 0, size: 12 * k, icon: 14 * k).probe("chance").capWidth(narrow) }
                         case "feels":
-                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(feelsSize(12) * k)).probe("feels").capWidth(narrow)   // a long word shrinks
+                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels").capWidth(narrow)   // a long word shrinks
                         default:
                             if !snap.showsDashes { HiLoLine(snap: snap, size: 12 * k, thermo: true, icon: 14 * k).probe("hilo").capWidth(hiloRoom) }
                         }

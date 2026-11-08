@@ -131,7 +131,7 @@ final class WidgetMatrixTests: XCTestCase {
                 let snap = WeatherSnapshot(scene: s, character: PurrCharacter(rawValue: k.char) ?? .cat, plus: true, characterName: "",
                                            placeShort: "성읍리", saved: Date(), clock12: lang.isLatinLike)
                 var cells: [UIImage] = []
-                for trailing in [CGFloat(13), keep] {
+                for trailing in [keep] {
                     SmallStack.trailing = trailing
                     let r = ImageRenderer(content: HStack(alignment: .top, spacing: 10) {
                         ForEach([CGFloat(170), 158, 148], id: \.self) { w in
@@ -144,14 +144,14 @@ final class WidgetMatrixTests: XCTestCase {
                     if let img = r.uiImage { cells.append(img) }
                 }
                 let pair = ImageRenderer(content: HStack(alignment: .top, spacing: 28) { ForEach(Array(cells.enumerated()), id: \.offset) { _, i in Image(uiImage: i) } })
-                pair.scale = 1
+                pair.scale = 2
                 if let img = pair.uiImage { rows.append(img) }
             }
         }
         let sheet = VStack(alignment: .leading, spacing: 12) { ForEach(Array(rows.enumerated()), id: \.offset) { _, img in Image(uiImage: img) } }
             .padding(16).background(Color(hex: "#DDE3EE"))
         let r = ImageRenderer(content: sheet)
-        r.scale = 1
+        r.scale = 2
         let png = try XCTUnwrap(r.uiImage?.pngData())
         let a = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")
         a.name = "small-sizes"; a.lifetime = .keepAlways

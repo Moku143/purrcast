@@ -139,7 +139,7 @@ struct HoursWidgetView: View {
                         switch item {
                         case "sun":
                             if let t = sunsetTile(s, clock12: snap.clock12) {
-                                HStack(spacing: iconGap(9)) { PixelIcon(name: sunTileIcon(s), size: 11).probe("sunsetIcon"); Text(t).font(.px(9)) }
+                                SunLine(icon: sunTileIcon(s), time: t)
                             }
                         case "chance":
                             if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
@@ -261,12 +261,12 @@ private struct SmallFace: View {
                     switch item {
                     case "sun":
                         if let t = sunsetTile(s, clock12: snap.clock12) {
-                            HStack(spacing: iconGap(9)) { PixelIcon(name: sunTileIcon(s), size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }
+                            SunLine(icon: sunTileIcon(s), time: t)
                         }
                     case "chance":
                         if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
                     case "feels":
-                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(feelsSize(9))).probe("feels").capWidth(74 - less)
+                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels").capWidth(74 - less)
                     default:
                         if !snap.showsDashes { HiLoLine(snap: snap, thermo: tiny).probe("hilo").capWidth(80 - less) }
                     }
@@ -280,9 +280,20 @@ private struct SmallFace: View {
     }
 }
 
-/// 체감 a size up where the words are short (Korean, Japanese, Chinese: "체감 15°", "体感 15°"); the longer ones
-/// ("Ощущается 15°") keep the list's size, so they stay clear of the character
-func feelsSize(_ size: CGFloat) -> CGFloat { Lang.current.isCJK ? size + 1 : size }
+/// The sunset (sunrise at night) line of the lists: a size under the other lines (☂, 체감, 최고 · 최저 share one size),
+/// so it reads as the quiet one. `size` is the list's text size.
+struct SunLine: View {
+    let icon: String
+    let time: String
+    var size: CGFloat = 9
+    var body: some View {
+        let s = size - 1
+        HStack(spacing: iconGap(s)) {
+            PixelIcon(name: icon, size: s + 2).probe("sunsetIcon")
+            Text(time).font(.px(s)).probe("sunsetText")
+        }
+    }
+}
 
 /// The gap between a pixel icon and its words, the same on every line: a quarter of the text size
 func iconGap(_ size: CGFloat) -> CGFloat { (size / 4).rounded() }
