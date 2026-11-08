@@ -209,6 +209,12 @@ private struct SmallFace: View {
             Text(snap.deg(s.temp)).font(.px(35)).lineLimit(1).minimumScaleFactor(0.7).probe("temp").halo(ink)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.top, 44).padding(.trailing, 6)
+            // the day's low ~ high under the temperature (widened by the temperature now: the day reached it)
+            if !snap.showsDashes {
+                Text("\(snap.deg(min(s.lo, s.temp)))~\(snap.deg(max(s.hi, s.temp)))").font(.px(10)).lineLimit(1).probe("range").halo(ink)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.top, 86).padding(.trailing, 12)
+            }
             ZStack(alignment: .bottom) {
                 CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false).probe("cat")
                     .frame(width: 72, height: 84, alignment: .bottom)
