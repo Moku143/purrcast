@@ -227,7 +227,7 @@ struct WatchSummary: View {
                 Spacer(minLength: 0)
             }
         } else {
-            // at a glance, no exclamation: "☁ 16° 비" / "어제보다 3° 낮아요" / "🌡16° 🌡11° · 강수 80%" (the pixel thermometers)
+            // at a glance, no exclamation: "☁ 16° 비" / "어제보다 3° 낮아요" / "최고 16° 최저 11° · ☂80%"
             let y = s.yday
             let vs = abs(y) < 2 ? L("어제와 비슷해요") : y > 0 ? L("어제보다 %d° 높아요", abs(y)) : L("어제보다 %d° 낮아요", abs(y))
             VStack(alignment: .leading, spacing: 4) {
@@ -237,12 +237,9 @@ struct WatchSummary: View {
                     Text(f.cond).font(.system(size: 12, weight: .semibold)).foregroundStyle(Color(hex: "#C9CDDC")).lineLimit(1).minimumScaleFactor(0.8)
                 }
                 if !snap.showsDashes { Text(vs).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.8) }
-                // the widgets' thermometers before the high and the low
+                // as the widgets: 최고 · 최저 in words, the rain chance behind its icon
                 HStack(spacing: 2) {
-                    PixelIcon(name: "thermo_hot", size: 12)
-                    Text(snap.deg(s.hi)).padding(.trailing, 3)
-                    PixelIcon(name: "thermo_cold", size: 12)
-                    Text(snap.deg(s.lo))
+                    Text(L("최고 %@ 최저 %@", snap.deg(s.hi), snap.deg(s.lo)))
                     if f.chance >= 10 {
                         Text(" · ")
                         PixelIcon(name: ChanceLine.iconName(f.chance), size: 12); Text("\(f.chance)%")

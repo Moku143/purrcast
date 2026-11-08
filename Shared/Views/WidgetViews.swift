@@ -62,6 +62,10 @@ struct WidgetBackground: View {
 /// The sun tile's time for the small rows: "17:52" as the forecast writes it — or "5:52PM" where the person
 /// uses the 12-hour clock, the way the lock-screen sun widget already shows it (ko·ja·zh keep 24 h, like
 /// their hour labels do).
+/// The sun tile's own icon: the sunset by day, the sunrise at night
+func sunTileIcon(_ s: WeatherScene) -> String {
+    s.tiles.first(where: { $0.icon == "sunset" || $0.icon == "sunrise" })?.icon ?? "sunset"
+}
 func sunsetTile(_ s: WeatherScene, clock12: Bool) -> String? {
     guard let t = s.tiles.first(where: { $0.icon == "sunset" || $0.icon == "sunrise" })?.value else { return nil }
     guard clock12, Lang.current.isLatinLike, let m = WeatherScene.clockMinutes(t) else { return t }
@@ -209,13 +213,6 @@ private struct SmallFace: View {
             Text(snap.deg(s.temp)).font(.px(35)).lineLimit(1).minimumScaleFactor(0.7).probe("temp").halo(ink)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.top, 44).padding(.trailing, 6)
-            // how it feels, under the temperature it goes with (the look on offer: or in the list at the bottom right)
-            if FeelsSpot.spot == "temp" {
-                Text(L("체감 %@", snap.deg(s.feels))).font(.px(FeelsSpot.small ? 8 : 10)).lineLimit(1).probe("feels").halo(ink)
-                    .opacity(FeelsSpot.small ? 0.85 : 1)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.top, FeelsSpot.small ? 80 : 86).padding(.trailing, FeelsSpot.small ? 10 : 12)
-            }
             ZStack(alignment: .bottom) {
                 CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false).probe("cat")
                     .frame(width: 72, height: 84, alignment: .bottom)
@@ -230,15 +227,23 @@ private struct SmallFace: View {
             .frame(width: 80, height: 118, alignment: .bottom)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             .padding(.leading, 13).padding(.bottom, 8)
-            // close together, down by the rain chance; the sunset row a little higher
+            // close together at the bottom right, in the order on offer (SmallStack): the rain chance and the sun with
+            // their pixel icons, 체감 and 최고 · 최저 in words
             VStack(alignment: .trailing, spacing: 0.9) {
-                if let t = sunsetTile(s, clock12: snap.clock12) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }.padding(.bottom, 2) }
-                // the rain chance and the day's high and low, each behind its pixel icon as the sunset is
-                if FeelsSpot.spot == "top" { Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels") }
-                if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
-                if FeelsSpot.spot == "middle" { Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels") }
-                if !snap.showsDashes { HiLoLine(snap: snap).probe("hilo") }
-                if FeelsSpot.spot == "bottom" { Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels") }
+                ForEach(SmallStack.order, id: \.self) { item in
+                    switch item {
+                    case "sun":
+                        if let t = sunsetTile(s, clock12: snap.clock12) {
+                            HStack(spacing: 2) { PixelIcon(name: sunTileIcon(s), size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }
+                        }
+                    case "chance":
+                        if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
+                    case "feels":
+                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
+                    default:
+                        if !snap.showsDashes { HiLoLine(snap: snap).frame(maxWidth: 82, alignment: .trailing).probe("hilo") }
+                    }
+                }
             }
             .lineLimit(1).minimumScaleFactor(0.8)
             .halo(ink)
@@ -248,13 +253,9 @@ private struct SmallFace: View {
     }
 }
 
-/// Where 체감 sits on the small widget and the watch (the looks on offer): "temp" under the big temperature, or in the
-/// list at the bottom right — "top", "middle" (between the rain chance and the high and low) or "bottom"
-enum FeelsSpot {
-    static var spot = "temp"
-    /// Under the temperature: small and close to it (true), or a size up with a little air (false)
-    static var small = true
-}
+/// The order of the small widget's and the watch's list at the bottom right, top to bottom (the looks on offer):
+/// "chance" 강수확률 · "sun" sunset / sunrise · "feels" 체감 · "hilo" 최고 · 최저
+enum SmallStack { static var order = ["chance", "sun", "feels", "hilo"] }
 
 /// The chance of rain in the next hours (강수확률; 강수 alone is the amount, in mm): a pixel icon before the percentage,
 /// as the thermometers stand before the high and the low.
@@ -278,17 +279,25 @@ struct ChanceLine: View {
 /// The day's high and low in the widgets' pixel look: the kit's hot thermometer before the high, the cold one
 /// before the low (as the sunset row has its icon). Widened by the temperature now: the day has reached it.
 struct HiLoLine: View {
+    /// In words ("최고 15° 최저 14°") or behind the thermometers
+    static var words = true
     let snap: WeatherSnapshot
     var size: CGFloat = 9
     var icon: CGFloat = 11
     var body: some View {
         let s = snap.scene
         let hi = snap.deg(max(s.hi, s.temp)), lo = snap.deg(min(s.lo, s.temp))
-        HStack(spacing: 1) {
-            PixelIcon(name: "thermo_hot", size: icon)
-            Text(hi).padding(.trailing, size / 3)
-            PixelIcon(name: "thermo_cold", size: icon)
-            Text(lo)
+        Group {
+            if Self.words {
+                Text(L("최고 %@ 최저 %@", hi, lo))
+            } else {
+                HStack(spacing: 1) {
+                    PixelIcon(name: "thermo_hot", size: icon)
+                    Text(hi).padding(.trailing, size / 3)
+                    PixelIcon(name: "thermo_cold", size: icon)
+                    Text(lo)
+                }
+            }
         }
         .font(.px(size))
         .accessibilityElement(children: .ignore).accessibilityLabel(L("최고 %@ 최저 %@", hi, lo))

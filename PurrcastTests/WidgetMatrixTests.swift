@@ -49,11 +49,14 @@ final class WidgetMatrixTests: XCTestCase {
                             characterName: "", placeShort: "서울", saved: Date())
         }
         func bg(_ s: WeatherScene) -> some View { WidgetBackground(level: Rules.clamp(s.level), night: s.isNight, scene: s) }
-        defer { ChanceLine.look = "raindrop"; FeelsSpot.spot = "temp"; FeelsSpot.small = true }
-        // 체감 under the temperature: small and close, or a size up (the rain chance's umbrella from 50 %)
+        let usual = SmallStack.order
+        defer { ChanceLine.look = "raindrop"; SmallStack.order = usual }
+        // the list in four orders (the rain chance's umbrella from 50 %, 최고 · 최저 in words)
         ChanceLine.look = "auto"
-        for (name, small) in [("feels-small", true), ("feels-temp", false)] {
-        FeelsSpot.small = small
+        let orders = [("stack-1", ["chance", "sun", "feels", "hilo"]), ("stack-2", ["sun", "chance", "feels", "hilo"]),
+                      ("stack-3", ["feels", "hilo", "sun", "chance"]), ("stack-4", ["chance", "sun", "hilo", "feels"])]
+        for (name, order) in orders {
+        SmallStack.order = order
         let sheet = VStack(alignment: .leading, spacing: 16) {
             ForEach(Array(snaps.enumerated()), id: \.offset) { _, snap in
                 HStack(alignment: .top, spacing: 16) {
