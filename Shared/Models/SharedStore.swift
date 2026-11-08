@@ -97,8 +97,8 @@ struct WeatherSnapshot: Codable {
                                placeShort: Place.here.short, saved: Date(), isSample: true)
     }
 
-    /// The snapshot as a widget should show it at `date`, without a refresh. Under an hour old, a sample, the
-    /// placeholder or a forecast with no hourly rows: returned unchanged. Within the forecast: the hour that
+    /// The snapshot as a widget should show it at `date`, without a refresh. Under an hour old (and the same day), a
+    /// sample, the placeholder or a forecast with no hourly rows: returned unchanged. Within the forecast: the hour that
     /// holds `date` becomes "지금" — its temperature, the rows from it on, the clock, and day or night from the
     /// sun — and past midnight the day list turns (hi · lo from the new first day; "어제보다" and the day's
     /// 미세먼지 dropped, they belonged to a day now gone). Past the last forecast hour: the waiting dashes and
@@ -106,10 +106,12 @@ struct WeatherSnapshot: Codable {
     /// feels-like chose them), and the aged hour's feels is its temperature (the saved feels went with its hour).
     /// Pure: nothing is written back, so the app still sees how old the stored forecast really is.
     func aged(at date: Date = Date()) -> WeatherSnapshot {
-        guard !isSample, !stale, scene.hours.count >= 2, let p = place, let tz = TimeZone(identifier: p.timeZone),
-              date.timeIntervalSince(saved) >= 3600 else { return self }
+        guard !isSample, !stale, scene.hours.count >= 2, let p = place, let tz = TimeZone(identifier: p.timeZone) else { return self }
         var out = self
         var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
+        // under an hour old the saved "now" stands — unless midnight came in between: at 0시 the day list turns
+        // (the new day's 최고 · 최저) whenever the forecast was saved
+        guard date.timeIntervalSince(saved) >= 3600 || (date > saved && !cal.isDate(saved, inSameDayAs: date)) else { return self }
         var s = out.scene
         guard let i = s.hourIndex(at: date, tz: tz, now: saved) else {
             // the forecast has run out: no numbers at all, and the bubble asks for the app

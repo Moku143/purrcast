@@ -3,7 +3,7 @@ import SwiftUI
 /// The watch app's first page (also rendered on the phone for the widget matrix and the Plus page).
 /// Laid out like the small (2×2) home-screen widget: place and weather icon on the top row — in the watch's clock
 /// row, left of the time — the character standing at the bottom left with its bubble clear above the head, and on
-/// the right the temperature, sunset / sunrise, feels-like and chance of rain.
+/// the right the temperature, sunset / sunrise, feels-like, chance of rain and the day's high and low.
 struct WatchNow: View {
     let snap: WeatherSnapshot
     /// How far down the top row sits: level with the watch's clock (the system draws the time at the top right).
@@ -53,7 +53,10 @@ struct WatchNow: View {
                 VStack(alignment: .trailing, spacing: 1.2 * k) {
                     if let t = sunsetTile(s, clock12: snap.clock12) { HStack(spacing: 3) { PixelIcon(name: "sunset", size: 14 * k).probe("sunsetIcon"); Text(t).font(.px(12 * k)).probe("sunsetText") }.padding(.bottom, 2.5 * k) }
                     Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels")
-                    if !snap.showsDashes { Text(L("강수 %d%%", s.hours.prefix(6).map { $0.chance }.max() ?? 0)).font(.px(12 * k)).probe("chance") }
+                    if !snap.showsDashes {
+                        ChanceLine(chance: s.hours.prefix(6).map { $0.chance }.max() ?? 0, size: 12 * k, icon: 14 * k).probe("chance")
+                        HiLoLine(snap: snap, size: 12 * k, icon: 14 * k).probe("hilo")      // as the widgets: under 강수
+                    }
                 }
                 .lineLimit(1).minimumScaleFactor(0.7)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)

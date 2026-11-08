@@ -1128,6 +1128,17 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(aged.scene.yday, 0)
         XCTAssertNil(aged.scene.dust)
         XCTAssertEqual(aged.scene.time, "night")
+        // saved at 23:30, looked at 0:05: under an hour, but a new day — its 최고 · 최저 at 0시 sharp
+        let early = snap.aged(at: cal.date(from: DateComponents(year: 2026, month: 11, day: 5, hour: 0, minute: 5))!)
+        XCTAssertEqual(early.scene.hi, 15); XCTAssertEqual(early.scene.lo, 6)
+        XCTAssertEqual(early.scene.days.first?.name, L("오늘"))
+        XCTAssertEqual(snap.aged(at: cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 23, minute: 50))!).scene.hi, 19, "same day, under an hour: unchanged")
+        // Plus refreshes a couple of minutes after midnight, unless a regular refresh comes first
+        let tz = TimeZone(identifier: "Asia/Seoul")!
+        let late = cal.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 23, minute: 55))!
+        let open = try XCTUnwrap(DayLog.openingRefresh(after: late, regular: late.addingTimeInterval(1800), tz: tz))
+        XCTAssertEqual(cal.dateComponents([.day, .hour, .minute], from: open), DateComponents(day: 5, hour: 0, minute: 2))
+        XCTAssertNil(DayLog.openingRefresh(after: late, regular: late.addingTimeInterval(240), tz: tz))
     }
 
     /// Past the last forecast hour nothing is invented: the dashes of the waiting look, and the bubble asks for

@@ -40,9 +40,6 @@ struct WatchFacts {
     var head: String { s.bubble?.text ?? cond }
     var headIcon: String { s.bubble.map { $0.icon == "none" ? icon : $0.icon } ?? icon }
     var cond: String { s.cond.components(separatedBy: " · ").first ?? s.cond }
-    var range: String {
-        L("최고 %@ · 최저 %@", snap.deg(s.hi), snap.deg(s.lo)) + (chance >= 10 ? " · " + L("강수 %d%%", chance) : "")
-    }
     var sprite: String { snap.shownCharacter.stand(level: level, rain: rain) }
 }
 
@@ -220,13 +217,17 @@ struct WatchSummary: View {
                         Text(f.temp).font(.px(26))
                         Text(f.cond).font(.px(10)).lineLimit(1)
                     }
-                    Text(L("체감 %@", f.feels) + (f.chance >= 10 ? " · " + L("강수 %d%%", f.chance) : "")).font(.px(9)).opacity(0.85).lineLimit(1)
+                    HStack(spacing: 0) {
+                        Text(L("체감 %@", f.feels)).font(.px(9))
+                        if f.chance >= 10 { Text(" · ").font(.px(9)); ChanceLine(chance: f.chance, size: 9, icon: 10) }
+                    }
+                    .opacity(0.85).lineLimit(1)
                 }
                 .foregroundStyle(ink)
                 Spacer(minLength: 0)
             }
         } else {
-            // at a glance, no exclamation: "☁ 16° 비" / "어제보다 3° 낮아요" / "↑16° ↓11° · 강수 80%"
+            // at a glance, no exclamation: "☁ 16° 비" / "어제보다 3° 낮아요" / "🌡16° 🌡11° · 강수 80%" (the pixel thermometers)
             let y = s.yday
             let vs = abs(y) < 2 ? L("어제와 비슷해요") : y > 0 ? L("어제보다 %d° 높아요", abs(y)) : L("어제보다 %d° 낮아요", abs(y))
             VStack(alignment: .leading, spacing: 4) {
@@ -236,8 +237,19 @@ struct WatchSummary: View {
                     Text(f.cond).font(.system(size: 12, weight: .semibold)).foregroundStyle(Color(hex: "#C9CDDC")).lineLimit(1).minimumScaleFactor(0.8)
                 }
                 if !snap.showsDashes { Text(vs).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.8) }
-                Text("↑\(snap.deg(s.hi)) ↓\(snap.deg(s.lo))" + (f.chance >= 10 ? " · " + L("강수 %d%%", f.chance) : "")).font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color(hex: "#9EA3B5")).lineLimit(1).minimumScaleFactor(0.8)
+                // the widgets' thermometers before the high and the low
+                HStack(spacing: 2) {
+                    PixelIcon(name: "thermo_hot", size: 12)
+                    Text(snap.deg(s.hi)).padding(.trailing, 3)
+                    PixelIcon(name: "thermo_cold", size: 12)
+                    Text(snap.deg(s.lo))
+                    if f.chance >= 10 {
+                        Text(" · ")
+                        if ChanceLine.word { Text(L("강수확률 %d%%", f.chance)) } else { PixelIcon(name: "raindrop", size: 12); Text("\(f.chance)%") }
+                    }
+                }
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color(hex: "#9EA3B5")).lineLimit(1).minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

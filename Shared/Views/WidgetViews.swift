@@ -128,7 +128,7 @@ struct HoursWidgetView: View {
                 VStack(alignment: .trailing, spacing: 2.5) {
                     Text(Compact.condWord(s)).font(.px(11)).probe("cond")
                     Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
-                    Text(L("최고 %@ · 최저 %@", snap.deg(s.hi), snap.deg(s.lo))).font(.px(9)).probe("hilo")
+                    if !snap.showsDashes { HiLoLine(snap: snap).probe("hilo") }
                 }
                 .lineLimit(1).minimumScaleFactor(0.8)
                 .halo(ink)
@@ -227,9 +227,10 @@ private struct SmallFace: View {
             VStack(alignment: .trailing, spacing: 0.9) {
                 if let t = sunsetTile(s, clock12: snap.clock12) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }.padding(.bottom, 2) }
                 Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
-                if !SmallHilo.underRain { hilo(s, ink) }
-                if !snap.showsDashes { Text(L("강수 %d%%", chanceNow(s))).font(.px(9)).probe("chance") }
-                if SmallHilo.underRain { hilo(s, ink) }
+                if !snap.showsDashes {
+                    ChanceLine(chance: chanceNow(s)).probe("chance")
+                    HiLoLine(snap: snap).probe("hilo")
+                }
             }
             .lineLimit(1).minimumScaleFactor(0.8)
             .halo(ink)
@@ -237,44 +238,50 @@ private struct SmallFace: View {
             .padding(.trailing, 13).padding(.bottom, 9)
         }
     }
+}
 
-    /// The day's high and low (widened by the temperature now: the day reached it), short, in the widget's own pixel
-    /// look: the kit's hot and cold thermometers (as the sunset row has its icon), the range as the forecast writes
-    /// it (low ~ high), or the 10일 list's little bar between the two
-    @ViewBuilder private func hilo(_ s: WeatherScene, _ ink: Ink) -> some View {
-        if !snap.showsDashes {
-            let hi = snap.deg(max(s.hi, s.temp)), lo = snap.deg(min(s.lo, s.temp))
-            Group {
-                switch SmallHilo.style {
-                case 1:
-                    Text("\(lo)~\(hi)")
-                case 2:
-                    HStack(spacing: 3) {
-                        Text(lo)
-                        Capsule().fill(LinearGradient(colors: [Color(hex: "#6FA8FF"), Color(hex: "#FFA94D")], startPoint: .leading, endPoint: .trailing))
-                            .frame(width: 16, height: 4)
-                        Text(hi)
-                    }
-                default:
-                    HStack(spacing: 1) {
-                        PixelIcon(name: "thermo_hot", size: 11)
-                        Text(hi).padding(.trailing, 3)
-                        PixelIcon(name: "thermo_cold", size: 11)
-                        Text(lo)
-                    }
+/// The chance of rain in the next hours (강수확률; 강수 alone is the amount, in mm): the kit's raindrop before the
+/// percentage, as the thermometers stand before the high and the low — or written out, the other look on offer.
+struct ChanceLine: View {
+    let chance: Int
+    var size: CGFloat = 9
+    var icon: CGFloat = 11
+    /// The look being chosen: false the raindrop and "90%", true "강수확률 90%"
+    static var word = false
+    var body: some View {
+        Group {
+            if Self.word {
+                Text(L("강수확률 %d%%", chance))
+            } else {
+                HStack(spacing: 1) {
+                    PixelIcon(name: "raindrop", size: icon)
+                    Text("\(chance)%")
                 }
             }
-            .font(.px(9)).probe("hilo")
-            .accessibilityElement(children: .ignore).accessibilityLabel(L("최고 %@ 최저 %@", hi, lo))
         }
+        .font(.px(size))
+        .accessibilityElement(children: .ignore).accessibilityLabel(L("강수확률 %d%%", chance))
     }
 }
 
-/// Where and how the small widget shows 최고 · 최저: under 체감 or under 강수; thermometers (0), "14°~15°" (1) or a
-/// little bar (2)
-enum SmallHilo {
-    static var underRain = false
-    static var style = 0
+/// The day's high and low in the widgets' pixel look: the kit's hot thermometer before the high, the cold one
+/// before the low (as the sunset row has its icon). Widened by the temperature now: the day has reached it.
+struct HiLoLine: View {
+    let snap: WeatherSnapshot
+    var size: CGFloat = 9
+    var icon: CGFloat = 11
+    var body: some View {
+        let s = snap.scene
+        let hi = snap.deg(max(s.hi, s.temp)), lo = snap.deg(min(s.lo, s.temp))
+        HStack(spacing: 1) {
+            PixelIcon(name: "thermo_hot", size: icon)
+            Text(hi).padding(.trailing, size / 3)
+            PixelIcon(name: "thermo_cold", size: icon)
+            Text(lo)
+        }
+        .font(.px(size))
+        .accessibilityElement(children: .ignore).accessibilityLabel(L("최고 %@ 최저 %@", hi, lo))
+    }
 }
 
 

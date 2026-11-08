@@ -130,6 +130,16 @@ struct DayLog {
         return at
     }
 
+    /// Plus: the widget's first refresh of a new day, a couple of minutes after midnight where the place is (when the
+    /// next one would come later), so the day's 최고 · 최저 come from the newest forecast. nil when the regular one comes
+    /// first.
+    static func openingRefresh(after now: Date, regular next: Date, tz: TimeZone) -> Date? {
+        var c = Calendar(identifier: .gregorian); c.timeZone = tz
+        guard let at = c.nextDate(after: now, matching: DateComponents(hour: 0, minute: 2), matchingPolicy: .nextTime),
+              at < next, at.timeIntervalSince(now) > 120 else { return nil }
+        return at
+    }
+
     static var defaultDir: URL {
         let base = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: SharedStore.groupID)
             ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]

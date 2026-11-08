@@ -36,11 +36,11 @@ final class WidgetMatrixTests: XCTestCase {
         add(j)
     }
 
-    /// The small widget's 최고 · 최저 in its two places (under 체감 · under 강수), over a few weathers, for choosing
-    func testSmallHiloChoices() throws {
+    /// 최고 · 최저 with the pixel thermometers under 강수, on every surface that shows it: the small widget, both
+    /// medium widgets and the watch app — a few weathers, for checking by eye
+    func testHiLoEverywhere() throws {
         guard ProcessInfo.processInfo.environment["MATRIX"] == "1" else { throw XCTSkip("run by the Widget matrix workflow") }
         Lang.current = .ko
-        defer { SmallHilo.underRain = false }
         let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "matrix", withExtension: "json"))
         let cases = try JSONDecoder().decode([Case].self, from: Data(contentsOf: url))
         let keys = ["day-partly-none-later-rain5", "day-overcast-rain", "night-clear-none", "day-clear-none-frost"]
@@ -48,35 +48,33 @@ final class WidgetMatrixTests: XCTestCase {
             WeatherSnapshot(scene: c.scene, character: PurrCharacter(rawValue: c.char) ?? .cat, plus: true,
                             characterName: "", placeShort: "서울", saved: Date())
         }
-        defer { SmallHilo.style = 0 }
-        func shot(_ under: Bool) -> UIImage? {
-            SmallHilo.underRain = under
-            let r = ImageRenderer(content: HStack(spacing: 16) {
-                ForEach(Array(snaps.enumerated()), id: \.offset) { _, snap in
-                    SmallWidgetView(snap: snap).padding(16).frame(width: 170, height: 170)
-                        .background(WidgetBackground(level: Rules.clamp(snap.scene.level), night: snap.scene.isNight, scene: snap.scene))
+        func bg(_ s: WeatherScene) -> some View { WidgetBackground(level: Rules.clamp(s.level), night: s.isNight, scene: s) }
+        defer { ChanceLine.word = false }
+        // each look of the rain chance: the raindrop, then "강수확률" written out
+        for (name, word) in [("hilo-everywhere", false), ("hilo-everywhere-word", true)] {
+        ChanceLine.word = word
+        let sheet = VStack(alignment: .leading, spacing: 16) {
+            ForEach(Array(snaps.enumerated()), id: \.offset) { _, snap in
+                HStack(alignment: .top, spacing: 16) {
+                    SmallWidgetView(snap: snap).padding(16).frame(width: 170, height: 170).background(bg(snap.scene))
                         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    MediumWidgetView(snap: snap).padding(16).frame(width: 364, height: 170).background(bg(snap.scene))
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    HoursWidgetView(snap: snap).padding(16).frame(width: 364, height: 170).background(bg(snap.scene))
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    WatchAppScreen(snap: snap).frame(width: 198, height: 242)
+                        .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
                 }
-            }.environment(\.locale, Locale(identifier: "ko_KR")))
-            r.scale = 3
-            return r.uiImage
-        }
-        // each look, under 체감 (top row) and under 강수 (bottom row)
-        for (name, style) in [("hilo-thermo", 0), ("hilo-range", 1), ("hilo-bar", 2)] {
-            SmallHilo.style = style
-            let top = shot(false), bottom = shot(true)
-            let sheet = VStack(spacing: 16) {
-                if let top { Image(uiImage: top) }
-                if let bottom { Image(uiImage: bottom) }
             }
-            .padding(16).background(Color(hex: "#DDE3EE"))
-            .environment(\.locale, Locale(identifier: "ko_KR"))
-            let r = ImageRenderer(content: sheet)
-            r.scale = 3
-            let png = try XCTUnwrap(r.uiImage?.pngData())
-            let a = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")
-            a.name = name; a.lifetime = .keepAlways
-            add(a)
+        }
+        .padding(16).background(Color(hex: "#DDE3EE"))
+        .environment(\.locale, Locale(identifier: "ko_KR"))
+        let r = ImageRenderer(content: sheet)
+        r.scale = 2
+        let png = try XCTUnwrap(r.uiImage?.pngData())
+        let a = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")
+        a.name = name; a.lifetime = .keepAlways
+        add(a)
         }
     }
 

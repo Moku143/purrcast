@@ -27,8 +27,11 @@ struct Provider: TimelineProvider {
             let now = Date()
             var next = Calendar.current.date(byAdding: .minute, value: snap.plusActive ? 30 : 180, to: now) ?? now.addingTimeInterval(1800)
             // and once just before midnight: the day's 날씨 기록 closes with where the phone is then
-            if let p = snap.place, let tz = TimeZone(identifier: p.timeZone), let close = DayLog.closingRefresh(after: now, regular: next, tz: tz) {
-                next = close
+            if let p = snap.place, let tz = TimeZone(identifier: p.timeZone) {
+                if let close = DayLog.closingRefresh(after: now, regular: next, tz: tz) { next = close }
+                // Plus: and once just after it, for the new day's 최고 · 최저 from the newest forecast (free: the saved
+                // forecast's next day takes over at 0시, in the entries below)
+                if snap.plusActive, let open = DayLog.openingRefresh(after: now, regular: next, tz: tz) { next = open }
             }
             // the entries age the forecast by the hour (and at the sun's turn) instead of repeating its "now":
             // when the fetch failed they go on to the forecast's end, covering the refreshes the system defers
