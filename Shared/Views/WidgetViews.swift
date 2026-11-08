@@ -337,7 +337,7 @@ extension View { func capWidth(_ w: CGFloat) -> some View { CapWidth(max: w) { s
 /// The small widget's and the watch's list at the bottom right, top to bottom: 강수확률, the sunset (sunrise at night),
 /// 체감, and 최고 · 최저 at the very bottom — the two with pixel icons above the two in words
 enum SmallStack {
-    static let order = ["chance", "sun", "feels", "hilo"]
+    static let order = ["chance", "feels", "sun", "hilo"]
     /// The one right edge of the 2×2 (from the widget's edge to the ink): the weather icon, the big temperature and
     /// every line of the list end on it. Near enough the edge that the bottom line keeps clear of the character's
     /// feet on the 6.1" phones' 158-pt widgets.
@@ -394,7 +394,7 @@ struct HiLoLine: View {
 
 /// The watch's list, top to bottom (the looks on offer): "chance" 강수확률 · "sun" sunset / sunrise · "feels" 체감 ·
 /// "hilo" 최고 · 최저 behind the thermometers
-enum WatchHiLo { static var order = ["chance", "sun", "feels", "hilo"] }
+enum WatchHiLo { static var order = ["chance", "feels", "sun", "hilo"] }
 
 
 /// The next five days for the medium widget, like the app's 10-day card.
