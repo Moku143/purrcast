@@ -109,7 +109,7 @@ final class RadarFrames: ObservableObject {
             let l = Int(s.lv[Int(k)])
             guard l > 0 else { continue }
             lv[i] = UInt8(l)
-            let c = cols[min(l, cols.count) - 1], a = l == 1 ? 0.55 : 0.78
+            let c = cols[min(l, cols.count) - 1], a = l == 1 ? 0.66 : 0.86
             px[i * 4] = UInt8(Double(c.0) * a); px[i * 4 + 1] = UInt8(Double(c.1) * a); px[i * 4 + 2] = UInt8(Double(c.2) * a)
             px[i * 4 + 3] = UInt8(255 * a)
         }
@@ -267,8 +267,9 @@ struct RadarMapView: UIViewRepresentable {
         }
         /// The place: a dot in the app's ink with a white ring
         static let dot: UIImage = UIGraphicsImageRenderer(size: CGSize(width: 18, height: 18)).image { _ in
+            UIColor(white: 0, alpha: 0.25).setFill(); UIBezierPath(ovalIn: CGRect(x: 0, y: 1, width: 18, height: 18)).fill()
             UIColor.white.setFill(); UIBezierPath(ovalIn: CGRect(x: 0, y: 0, width: 18, height: 18)).fill()
-            UIColor(Color(hex: "#3D6BFF")).setFill(); UIBezierPath(ovalIn: CGRect(x: 3.5, y: 3.5, width: 11, height: 11)).fill()
+            UIColor(Color(hex: "#1A2440")).setFill(); UIBezierPath(ovalIn: CGRect(x: 3.5, y: 3.5, width: 11, height: 11)).fill()
         }
     }
 }
@@ -309,10 +310,10 @@ struct RadarHomeCard: View {
                     if let m, plus { Text(L("기상청 레이더 · %@", RadarText.time(m.at, clock12: model.clock12))).font(.ui(11)).foregroundStyle(ink.sub).lineLimit(1) }
                 }
                 ZStack {
-                    RadarMapView(place: model.currentPlace, frames: frames, index: m.map(RadarText.now) ?? 0)
+                    RadarMapView(place: model.currentPlace, frames: frames, index: m.map(RadarText.now) ?? 0, span: 2.1)
                     if !frames.ready { ProgressView().tint(.gray) }
                 }
-                .frame(height: 180)
+                .frame(height: 210)
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.white.opacity(0.6), lineWidth: 1))
                 HStack(spacing: 4) {
@@ -350,7 +351,7 @@ struct RadarSheet: View {
         VStack(spacing: 0) {
             SheetHeader(title: L("비 지도"), trailing: L("닫기")) { dismiss() }
             ZStack(alignment: .topLeading) {
-                RadarMapView(place: model.currentPlace, frames: frames, index: index, interactive: true, span: 2.4)
+                RadarMapView(place: model.currentPlace, frames: frames, index: index, interactive: true, span: 3.2)
                 if let m, index < m.frames.count {
                     let f = m.frames[index]
                     Text(RadarText.time(f.t, clock12: model.clock12) + " · " + (f.fc ? L("예측") : L("관측")))

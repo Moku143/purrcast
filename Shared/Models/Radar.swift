@@ -81,13 +81,13 @@ struct RadarMap: Decodable, Equatable {
         mm < 0.1 ? 0 : mm < 1 ? 1 : mm < 5 ? 2 : mm < 10 ? 3 : mm < 30 ? 4 : 5
     }
     /// The app's colours per level (1…5), and the legend's words
-    static let colors = ["#8EC5FF", "#3D8BFF", "#2DBE6C", "#F6C933", "#F2453D"]
+    static let colors = ["#6FB2FF", "#2B74F2", "#13A84E", "#F2B705", "#E8292A"]
     static let words = ["약한 비", "비", "다소 강한 비", "강한 비", "매우 강한 비"]
 
     /// The example: rain bands drifting east-north-east over Korea, six frames back, now, six ahead (ten minutes apart)
     static func sample(lat: Double, lon: Double, now: Date = Date(), tz: TimeZone = TimeZone(identifier: "Asia/Seoul") ?? .current) -> RadarMap {
         var p = Proj(kind: "latlon"); p.n = 39.8; p.s = 32.4; p.w = 123.6; p.e = 132.4
-        let cols = 88, rows = 74
+        let cols = 220, rows = 185
         var cal = Calendar(identifier: .gregorian); cal.timeZone = tz
         let base = cal.date(bySetting: .second, value: 0, of: now) ?? now
         let m = cal.component(.minute, from: base)

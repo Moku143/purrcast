@@ -1508,7 +1508,7 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(m.frames.count, 13)
         XCTAssertEqual(m.frames.filter(\.fc).count, 6)
         XCTAssertEqual(m.at, m.frames[6].t)
-        XCTAssertTrue(m.frames.allSatisfy { ($0.grid?.v.count ?? 0) == 88 * 74 })
+        XCTAssertTrue(m.frames.allSatisfy { ($0.grid?.v.count ?? 0) == 220 * 185 })
         XCTAssertGreaterThan(m.frames[6].grid?.v.max() ?? 0, 5, "the example has some real rain in it")
         let json = ##"{"src":"kma","at":"2026-11-08 16:50","proj":{"kind":"lcc","x0":-1,"y0":1,"x1":1,"y1":-1},"frames":[{"t":"2026-11-08 16:50","fc":false,"url":"/v1/radar/img?t=1"}],"scale":[{"rgb":"#00C8FF","mm":0.1}]}"##
         let d = try JSONDecoder().decode(RadarMap.self, from: Data(json.utf8))
