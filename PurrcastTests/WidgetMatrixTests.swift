@@ -147,6 +147,20 @@ final class WidgetMatrixTests: XCTestCase {
                                 let gap = Double(f.minX - edge)
                                 if gap < worst { worst = gap; worstLine = line }
                             }
+                            // a line cut short: its words at full size, shrunk as far as the list allows, still wider than it got
+                            let px = surface == "watch" ? 12 * min(1, max(0.82, size.width / 208)) : 9
+                            let minScale: CGFloat = surface == "watch" ? 0.7 : 0.8
+                            var cut: [String] = []
+                            for (line, words) in [("hilo", L("최고 %@ 최저 %@", snap.deg(max(s.hi, s.temp)), snap.deg(min(s.lo, s.temp)))),
+                                                  ("feels", L("체감 %@", snap.deg(s.feels)))] {
+                                guard let f = fr[line] else { continue }
+                                var ideal: CGFloat = 0
+                                Probe.sink = { n, r in if n == "ideal" { ideal = r.width } }
+                                _ = ImageRenderer(content: Text(words).font(.px(px)).fixedSize().probe("ideal").coordinateSpace(name: "probe")).uiImage
+                                Probe.sink = nil
+                                if ideal * minScale > f.width + 0.5 { cut.append(line) }
+                            }
+                            if !cut.isEmpty { worst = min(worst, -99); worstLine = "cut:" + cut.joined(separator: ",") }
                             let name = "\(lang.rawValue)-\(unitF ? "F" : "C")-\(key)-\(temp)-\(ch.rawValue)-\(surface)"
                             report.append(["name": name, "lang": lang.rawValue, "unit": unitF ? "F" : "C", "surface": surface, "char": ch.rawValue,
                                            "gap": worst.isFinite ? (worst * 10).rounded() / 10 : 999, "line": worstLine])

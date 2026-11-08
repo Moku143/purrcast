@@ -63,7 +63,7 @@ struct WatchNow: View {
                         case "feels":
                             Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels")
                         default:
-                            if !snap.showsDashes { HiLoLine(snap: snap, size: 12 * k, twoLines: true).probe("hilo") }   // clear of the character
+                            if !snap.showsDashes { HiLoLine(snap: snap, size: 12 * k).probe("hilo") }   // one line: shrinks a little when long
                         }
                     }
                 }

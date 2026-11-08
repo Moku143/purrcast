@@ -277,30 +277,17 @@ struct ChanceLine: View {
     }
 }
 
-/// The day's high and low in words, "최고 15° 최저 14°" — or on two lines where the list is narrow beside the character
-/// (the watch). Widened by the temperature now: the day has reached it.
+/// The day's high and low in words, "최고 15° 최저 14°", on one line (the list around it keeps it clear of the
+/// character; a long one shrinks a little). Widened by the temperature now: the day has reached it.
 struct HiLoLine: View {
     let snap: WeatherSnapshot
     var size: CGFloat = 9
-    var twoLines = false
     var body: some View {
         let s = snap.scene
         let hi = snap.deg(max(s.hi, s.temp)), lo = snap.deg(min(s.lo, s.temp))
-        Group {
-            if twoLines {
-                // the same short words, broken after the high ("최고 15°" / "최저 14°", "Maks 15°" / "Min 14°")
-                let full = L("최고 %@ 최저 %@", hi, lo)
-                let cut = full.range(of: hi)?.upperBound ?? full.endIndex
-                VStack(alignment: .trailing, spacing: 1) {
-                    Text(String(full[..<cut]))
-                    Text(String(full[cut...]).trimmingCharacters(in: .whitespaces))
-                }
-            } else {
-                Text(L("최고 %@ 최저 %@", hi, lo))
-            }
-        }
-        .font(.px(size))
-        .accessibilityElement(children: .ignore).accessibilityLabel(L("최고 %@ 최저 %@", hi, lo))
+        Text(L("최고 %@ 최저 %@", hi, lo))
+            .font(.px(size))
+            .accessibilityLabel(L("최고 %@ 최저 %@", hi, lo))
     }
 }
 
