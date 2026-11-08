@@ -49,9 +49,10 @@ final class WidgetMatrixTests: XCTestCase {
                             characterName: "", placeShort: "서울", saved: Date())
         }
         func bg(_ s: WeatherScene) -> some View { WidgetBackground(level: Rules.clamp(s.level), night: s.isNight, scene: s) }
-        defer { WatchHiLo.feelsLast = false }
-        for (name, last) in [("watch-feels-above", false), ("watch-feels-below", true)] {
-        WatchHiLo.feelsLast = last
+        let usualWatch = WatchHiLo.order
+        defer { WatchHiLo.order = usualWatch }
+        for (name, order) in [("watch-sun-second", ["chance", "sun", "feels", "hilo"]), ("watch-feels-second", ["chance", "feels", "sun", "hilo"])] {
+        WatchHiLo.order = order
         let sheet = VStack(alignment: .leading, spacing: 16) {
             ForEach(Array(snaps.enumerated()), id: \.offset) { _, snap in
                 HStack(alignment: .top, spacing: 16) {

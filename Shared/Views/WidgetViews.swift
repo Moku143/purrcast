@@ -304,8 +304,9 @@ struct HiLoLine: View {
     }
 }
 
-/// The watch's list, the looks on offer: 체감 above the thermometers (false) or at the very bottom (true)
-enum WatchHiLo { static var feelsLast = false }
+/// The watch's list, top to bottom (the looks on offer): "chance" 강수확률 · "sun" sunset / sunrise · "feels" 체감 ·
+/// "hilo" 최고 · 최저 behind the thermometers
+enum WatchHiLo { static var order = ["chance", "feels", "sun", "hilo"] }
 
 
 /// The next five days for the medium widget, like the app's 10-day card.

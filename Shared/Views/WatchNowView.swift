@@ -55,7 +55,7 @@ struct WatchNow: View {
                 VStack(alignment: .trailing, spacing: 1.2 * k) {
                     // as the widgets: the rain chance and the sun with their icons, then 체감, and 최고 · 최저 behind the
                     // thermometers (the words do not fit beside the character here)
-                    ForEach(WatchHiLo.feelsLast ? ["chance", "sun", "hilo", "feels"] : ["chance", "sun", "feels", "hilo"], id: \.self) { item in
+                    ForEach(WatchHiLo.order, id: \.self) { item in
                         switch item {
                         case "sun":
                             if let t = sunsetTile(s, clock12: snap.clock12) {
