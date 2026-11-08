@@ -284,19 +284,18 @@ private struct SmallFace: View {
 }
 
 /// The sunset (sunrise at night) line of the lists: clearly smaller than the other lines (☂, 체감, 최고 · 최저 share one
-/// size) — two sizes down on the widgets (9 → 7), the same share on the watch (12 → 9.5) — so it reads as the quiet
-/// one. `size` is the list's text size.
+/// size) — 70 % of their drawn size (the widgets' 10 → 7, the watch's 13 → 9.1) — so it reads as the quiet one.
+/// `size` is the list's text size (as passed to `.px`, which draws 9–13 a notch bigger).
 struct SunLine: View {
     let icon: String
     let time: String
     var size: CGFloat = 9
     var body: some View {
-        let s = (size * 7 / 9 * 2).rounded() / 2
+        let s = Font.pxDrawn(size) * 0.7
         HStack(spacing: iconGap(s)) {
-            PixelIcon(name: icon, size: s + 2).probe("sunsetIcon")
-            Text(time).font(.px(s)).probe("sunsetText")
+            PixelIcon(name: icon, size: (s + 2).rounded()).probe("sunsetIcon")
+            Text(time).font(.pxExact(s)).probe("sunsetText")
         }
-        .offset(x: size / 18)      // its smaller digits end half a point short of the other lines: onto the edge
     }
 }
 
@@ -362,8 +361,9 @@ struct HiLoLine: View {
                     PixelIcon(name: "thermo_hot", size: icon)
                     Text(hi).padding(.trailing, size / 2)
                     PixelIcon(name: "thermo_cold", size: icon)
-                    Text(lo)
+                    Text(lo).probe("hiloEnd")
                 }
+                .fixedSize()      // its own width, no more: the last number ends on the list's right edge
             } else {
                 Text(L("최고 %@ 최저 %@", hi, lo))
             }

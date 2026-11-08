@@ -260,8 +260,11 @@ final class WidgetMatrixTests: XCTestCase {
                             }
                             if !cut.isEmpty { worst = min(worst, -99); worstLine = "cut:" + cut.joined(separator: ",") }
                             let name = "\(lang.rawValue)-\(unitF ? "F" : "C")-\(key)-\(temp)-\(ch.rawValue)-\(surface)"
+                            // each line's layout right edge, from the surface's right edge (one value when they line up)
+                            var rights: [String: Double] = [:]
+                            for line in lines + ["temp", "icon", "hiloEnd"] { if let f = fr[line] { rights[line] = Double(((size.width - f.maxX) * 10).rounded() / 10) } }
                             report.append(["name": name, "lang": lang.rawValue, "unit": unitF ? "F" : "C", "surface": surface, "char": ch.rawValue,
-                                           "gap": worst.isFinite ? (worst * 10).rounded() / 10 : 999, "line": worstLine])
+                                           "gap": worst.isFinite ? (worst * 10).rounded() / 10 : 999, "line": worstLine, "rights": rights])
                             if worst.isFinite, let png = img?.pngData() {
                                 closest.append((worst, name, png))
                                 closest.sort { $0.gap < $1.gap }
