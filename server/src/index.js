@@ -24,6 +24,7 @@ import { nearestAsos, asosUrl, parseAsos, weatherKitHistoryUrl, parseWeatherKitH
 import { local, pad2, dayKey } from './time.js';
 import { normLang } from './i18n.js';
 import { hasAPNs, readDevice, saveDevice, runActivities } from './push.js';
+import { radarFrames, obsUrl, qpfUrl, imagePath } from './providers/radar.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' };
 
@@ -36,7 +37,7 @@ export default {
       if (!(await env.IP_LIMIT.limit({ key: `ip:${ip}` })).success) return json({ error: 'slow down' }, 429, { 'retry-after': '60' });
     }
     if (url.pathname === '/health') {
-      const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, airkorea: !!env.AIRKOREA_SERVICE_KEY, openweather: !!env.OPENWEATHER_KEY, weatherkit: hasWeatherKit(env), freeDay: !!env.FREE_DAY, apns: hasAPNs(env), devices: !!env.DEVICES, holidays: !!env.HOLIDAYS, time: new Date().toISOString() };
+      const out = { ok: true, kma: !!env.KMA_SERVICE_KEY, radar: !!env.KMA_APIHUB_KEY, airkorea: !!env.AIRKOREA_SERVICE_KEY, openweather: !!env.OPENWEATHER_KEY, weatherkit: hasWeatherKit(env), freeDay: !!env.FREE_DAY, apns: hasAPNs(env), devices: !!env.DEVICES, holidays: !!env.HOLIDAYS, time: new Date().toISOString() };
       // first-deploy check (can we reach every source?): only while DEEP_CHECK is "on" — each call spends upstream quota
       if (url.searchParams.get('deep') === '1' && env.DEEP_CHECK === 'on') out.check = await deepCheck(env);
       return json(out);
@@ -48,6 +49,13 @@ export default {
         return json(out, 200, { 'cache-control': 'public, max-age=900' });
       } catch (e) { return json({ error: String(e.message || e) }, e.status || 502); }
     }
+    // 비 지도 (Plus, Korea): the frame list, and each frame's picture fetched from 기상청 API허브 (the key stays here)
+    if (url.pathname === '/v1/radar') {
+      if ((url.searchParams.get('region') || 'kr') !== 'kr') return json({ error: 'Korea only' }, 404);
+      if (!env.KMA_APIHUB_KEY) return json({ error: 'no radar key' }, 503);
+      return json(radarFrames(new Date()), 200, { 'cache-control': 'public, max-age=120' });
+    }
+    if (url.pathname === '/v1/radar/img') return radarImage(url.searchParams, env);
     if (url.pathname === '/v1/holidays') {
       const out = await holidaysAnswer(url.searchParams, env);
       return new Response(out.body, { status: out.status, headers: { ...JSON_HEADERS, 'cache-control': out.status === 200 ? 'public, max-age=86400' : 'no-store' } });
@@ -80,6 +88,58 @@ export default {
     console.log('activities:', JSON.stringify(out));
   },
 };
+
+// the pictures of the last frames, in this isolate (workers.dev has no shared cache); a frame's picture never changes
+const RADAR_IMG = new Map();
+const RADAR_IMG_MAX = 60;
+
+/** GET /v1/radar/img?k=obs&tm=YYYYMMDDHHMM | k=qpf&tm=…&ef=10…60 — one radar picture. `debug=1`: the API's own
+ *  answer instead (the key blanked), for checking its format. */
+export async function radarImage(sp, env, { fetcher = fetch, timeout = 8000 } = {}) {
+  const k = sp.get('k'), tm = sp.get('tm') || '', ef = sp.get('ef') || '';
+  if (!/^\d{12}$/.test(tm) || !['obs', 'qpf'].includes(k) || (k === 'qpf' && !/^(10|20|30|40|50|60)$/.test(ef))) return json({ error: 'bad frame' }, 400);
+  const key = env.KMA_APIHUB_KEY;
+  if (!key) return json({ error: 'no radar key' }, 503);
+  const id = `${k}|${tm}|${ef}`;
+  const debug = sp.get('debug') === '1';
+  const hit = !debug && RADAR_IMG.get(id);
+  if (hit) return picture(hit.bytes, hit.type);
+  const blank = (s) => s.split(key).join('***');
+  const get = async (u) => {
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), timeout);
+    try { return await fetcher(u, { signal: ac.signal }); } finally { clearTimeout(timer); }
+  };
+  try {
+    const r = await get(k === 'obs' ? obsUrl(key, tm) : qpfUrl(key, tm, +ef));
+    const type = r.headers.get('content-type') || '';
+    let bytes, imgType;
+    if (type.startsWith('image/')) {
+      // the API answered with the picture itself
+      bytes = new Uint8Array(await r.arrayBuffer()); imgType = type;
+      if (debug) return json({ status: r.status, type, bytes: bytes.length });
+    } else {
+      const text = await r.text();
+      let data; try { data = JSON.parse(text); } catch { data = [text]; }
+      const src = r.ok ? imagePath(data) : null;
+      if (debug) return json({ status: r.status, type, answer: blank(text).slice(0, 4000), picture: src && blank(src) });
+      if (!src) return json({ error: 'no picture for this frame yet' }, 404, { 'cache-control': 'public, max-age=60' });
+      const ir = await get(src);
+      if (!ir.ok) return json({ error: `picture ${ir.status}` }, 404, { 'cache-control': 'public, max-age=60' });
+      bytes = new Uint8Array(await ir.arrayBuffer()); imgType = ir.headers.get('content-type') || 'image/png';
+    }
+    if (bytes.length < 100) return json({ error: 'empty picture' }, 404, { 'cache-control': 'public, max-age=60' });
+    if (RADAR_IMG.size >= RADAR_IMG_MAX) RADAR_IMG.delete(RADAR_IMG.keys().next().value);
+    RADAR_IMG.set(id, { bytes, type: imgType });
+    return picture(bytes, imgType);
+  } catch (e) {
+    return json({ error: blank(String(e.message || e)) }, 502);
+  }
+}
+
+function picture(bytes, type) {
+  return new Response(bytes, { headers: { 'content-type': type, 'cache-control': 'public, max-age=86400, immutable', 'access-control-allow-origin': '*' } });
+}
 
 /** GET /v1/holidays?cc=KR — one country's public holidays for the 날씨 달력 (substitute days included), as
  *  { cc, lang, made, days: { "2026-10-05": { "": "개천절 대체공휴일", en: "…" } } }. HOLIDAYS (KV, bound by the Server

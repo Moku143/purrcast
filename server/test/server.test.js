@@ -1253,3 +1253,53 @@ test('holidays: one country from KV, none known → no days, a bad code → 400'
   assert.equal(r.status, 200);
   assert.match(r.headers.get('cache-control'), /max-age=86400/);
 });
+
+// 비 지도
+import { obsTimes, addMinutes, showStamp, imagePath, radarFrames, obsUrl, kstStamp } from '../src/providers/radar.js';
+import { radarImage } from '../src/index.js';
+
+test('radar: the last hour on 10-minute steps (8 minutes behind), the next hour forecast from the newest', () => {
+  const now = new Date('2026-11-08T07:57:00Z');          // 16:57 KST
+  assert.deepEqual(obsTimes(now), ['202611081540', '202611081550', '202611081600', '202611081610', '202611081620', '202611081630', '202611081640']);
+  assert.equal(addMinutes('202611082350', 20), '202611090010');
+  assert.equal(showStamp('202611081640'), '2026-11-08 16:40');
+  assert.equal(kstStamp(new Date('2026-12-31T15:05:00Z')), '202701010005');
+  const r = radarFrames(now);
+  assert.equal(r.at, '2026-11-08 16:40');
+  assert.equal(r.frames.length, 13);
+  assert.equal(r.frames.filter((f) => f.fc).length, 6);
+  assert.equal(r.frames[7].url, '/v1/radar/img?k=qpf&tm=202611081640&ef=10');
+  assert.equal(r.frames[12].t, '2026-11-08 17:40');
+  assert.equal(r.proj.kind, 'lcc');
+  assert.ok(obsUrl('K', '202611081640').includes('nph-rdr_cmp1_imgp') && obsUrl('K', '202611081640').includes('authKey=K'));
+});
+
+test('radar: the picture is found in any shape of answer', () => {
+  assert.equal(imagePath({ result: { img: '/data/rdr/img/RDR_202611081640.png', proj: 'LCC' } }), 'https://apihub.kma.go.kr/data/rdr/img/RDR_202611081640.png');
+  assert.equal(imagePath([{ url: 'https://x.kma.go.kr/a.gif?x=1' }]), 'https://x.kma.go.kr/a.gif?x=1');
+  assert.equal(imagePath({ msg: 'no data' }), null);
+});
+
+test('radar: /v1/radar/img passes the picture on, keeps the key out of errors, refuses odd frames', async () => {
+  const env = { KMA_APIHUB_KEY: 'SECRET' };
+  const png = new Uint8Array(400).fill(7);
+  const calls = [];
+  const fetcher = async (u) => {
+    calls.push(u);
+    if (u.includes('nph-rdr_cmp1_imgp')) return new Response(JSON.stringify({ img: '/rdr/x.png' }), { headers: { 'content-type': 'application/json' } });
+    return new Response(png, { headers: { 'content-type': 'image/png' } });
+  };
+  const sp = (q) => new URLSearchParams(q);
+  const r = await radarImage(sp('k=obs&tm=202611081640'), env, { fetcher });
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get('content-type'), 'image/png');
+  assert.equal((await r.arrayBuffer()).byteLength, 400);
+  const again = await radarImage(sp('k=obs&tm=202611081640'), env, { fetcher });
+  assert.equal(again.status, 200);
+  assert.equal(calls.length, 2, 'the second ask comes from memory');
+  assert.equal((await radarImage(sp('k=qpf&tm=202611081640&ef=15'), env, { fetcher })).status, 400);
+  assert.equal((await radarImage(sp('k=obs&tm=2026'), env, { fetcher })).status, 400);
+  const bad = await radarImage(sp('k=obs&tm=202611081650'), env, { fetcher: async () => { throw new Error('boom at authKey=SECRET'); } });
+  assert.equal(bad.status, 502);
+  assert.ok(!(await bad.text()).includes('SECRET'));
+});

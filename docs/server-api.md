@@ -216,6 +216,29 @@ items: [[key, value, unit]] }` with `key` pm10 · pm25 · o3 · no2 · so2 · co
 `yday` the same hour yesterday. Elsewhere: OpenWeather's components in ㎍/㎥, `main` the worse PM, `yday` from its
 history 24 hours ago.
 
+## 비 지도 (Plus, Korea) — `GET /v1/radar?region=kr`
+
+The last hour of the 기상청 radar composite (HSR, every 10 minutes, 8 minutes behind) and the next hour of its
+초단기 강수예측 (MAPLE, +10 … +60 minutes from the newest observation). No upstream call here: the frames name their
+pictures on this server, which fetches each from 기상청 API허브 (`KMA_APIHUB_KEY`, its own authKey) when asked.
+
+```json
+{ "src": "kma", "at": "2026-11-08 16:40",
+  "proj": { "kind": "lcc", "lat1": 30, "lat2": 60, "lat0": 0, "lon0": 126, "fe": 0, "fn": 0, "a": 6378137, "f": 0.00335,
+            "x0": -384032.28, "y0": 4878817.50, "x1": 758967.72, "y1": 3778150.83 },
+  "frames": [ { "t": "2026-11-08 15:40", "fc": false, "url": "/v1/radar/img?k=obs&tm=202611081540" },
+              { "t": "2026-11-08 16:50", "fc": true, "url": "/v1/radar/img?k=qpf&tm=202611081640&ef=10" } ],
+  "scale": [] }
+```
+
+`proj`: where a picture's pixels are — LCC in metres, `x0,y0` its top-left corner and `x1,y1` its bottom-right.
+`scale`: the source's colours and the rain they stand for (`[{ rgb, mm }]`, mm/h lower edges) once known; empty, the
+app counts every coloured pixel as rain. No key: 503.
+
+`GET /v1/radar/img?k=obs&tm=YYYYMMDDHHMM` · `?k=qpf&tm=…&ef=10|20|…|60` — one picture (PNG as 기상청 gives it), kept
+in memory and cached a day by the phone (a frame never changes). Not out yet: 404. `debug=1`: the API's own answer
+(key blanked).
+
 ## 날씨 기록 (Plus) — `GET /v1/history?lat=&lon=&region=&tz=&from=YYYY-MM-DD&to=YYYY-MM-DD`
 
 The weather calendar's missing days: what each past day's weather actually was. The app keeps its own day lines

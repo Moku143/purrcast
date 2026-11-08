@@ -56,6 +56,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APNS_KEY: ${{ secrets.APNS_KEY }}
           APNS_KEY_ID: ${{ secrets.APNS_KEY_ID }}
+          KMA_APIHUB_KEY: ${{ secrets.KMA_APIHUB_KEY }}
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
             echo "::notice::No Cloudflare secrets yet — server not deployed. See server/README.md."
@@ -119,6 +120,8 @@ jobs:
           # APNs (Live Activities): the key's .p8 text and its id
           if [ -n "$APNS_KEY" ]; then printf '%s' "$APNS_KEY" | npx --yes wrangler@4 secret put APNS_KEY; fi
           if [ -n "$APNS_KEY_ID" ]; then printf '%s' "$APNS_KEY_ID" | npx --yes wrangler@4 secret put APNS_KEY_ID; fi
+          # 비 지도: 기상청 API허브 (its own authKey, not the data.go.kr one)
+          if [ -n "$KMA_APIHUB_KEY" ]; then printf '%s' "$KMA_APIHUB_KEY" | npx --yes wrangler@4 secret put KMA_APIHUB_KEY; fi
           url=$(grep -o 'https://[a-z0-9.-]*workers.dev' deploy.txt | head -1)
           echo "Deployed: ${url:-?}" >> "$GITHUB_STEP_SUMMARY"
           echo "$url" > ../url.txt
