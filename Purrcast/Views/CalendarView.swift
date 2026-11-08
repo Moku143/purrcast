@@ -44,10 +44,10 @@ enum DayLogText {
     /// The 달력's palette, as the user picked it — deliberately darker than the 4.5:1 floor:
     /// Sunday/holiday red #C81E1E (5.7:1 on white), Saturday blue #1D4ED8 (6.7:1)
     static func weekendInk(_ weekday: Int) -> Color? {
-        weekday == 1 ? Color(hex: "#C81E1E") : weekday == 7 ? Color(hex: "#1D4ED8") : nil
+        weekday == 1 ? Color(light: 0xC81E1E, dark: 0xFF7A7A) : weekday == 7 ? Color(light: 0x1D4ED8, dark: 0x86A8FF) : nil
     }
     /// Future weekday numbers, the weekday headers and the low temperatures (9.2:1); past numbers keep UI.ink
-    static let calSub = Color(hex: "#3D4763")
+    static let calSub = Color(light: 0x3D4763, dark: 0xB4BBCF)
     static func days(_ n: Int) -> String { n == 1 ? L("하루") : L("%d일", n) }
     static func mm(_ v: Double, snow: Bool) -> String {
         let n = v >= 10 ? String(Int(v.rounded())) : (v == v.rounded() ? String(Int(v)) : String(format: "%.1f", v))
@@ -118,7 +118,7 @@ struct CalendarPreview: View {
                     let weekend = DayLogText.weekendInk((cal.firstWeekday - 1 + i % 7) % 7 + 1)
                     VStack(spacing: cell * 0.06) {
                         Text("\(i + 3)").font(.ui(cell * 0.3, isToday ? .bold : .regular))
-                            .foregroundStyle(isToday ? Color.white : (weekend ?? (future ? DayLogText.calSub : UI.ink)))
+                            .foregroundStyle(isToday ? UI.onInk : (weekend ?? (future ? DayLogText.calSub : UI.ink)))
                             .frame(width: cell * 0.62, height: cell * 0.62)
                             .background(Circle().fill(isToday ? UI.ink : Color.clear))
                         if !future {
@@ -336,7 +336,7 @@ struct CalendarSheet: View {
             Button { Haptic.soft(); turnTo(thisMonth, from: m) } label: {
                 Text(L("오늘")).font(.ui(13, .semibold)).foregroundStyle(m == thisMonth ? UI.faint : UI.ink)
                     .lineLimit(1).fixedSize()
-                    .padding(.horizontal, 11).frame(height: 38).background(Color.white, in: Capsule())
+                    .padding(.horizontal, 11).frame(height: 38).background(UI.row, in: Capsule())
             }
             .buttonStyle(.press(0.94)).disabled(m == thisMonth).accessibilityIdentifier("cal-today")
             Spacer(minLength: 0)
@@ -361,7 +361,7 @@ struct CalendarSheet: View {
                 }
                 arrow("chevron.right", enabled: m < last, label: L("다음")) { go(m, 1) }
             }
-            .padding(.horizontal, 2).frame(height: 48).background(Color.white, in: Capsule())
+            .padding(.horizontal, 2).frame(height: 48).background(UI.row, in: Capsule())
             Spacer(minLength: 0)
             // the month as the weather, or as what was worn: with their names where they fit
             ViewThatFits(in: .horizontal) {
@@ -382,7 +382,7 @@ struct CalendarSheet: View {
                 if icons { Image(model.shownCharacter.faceImage).resizable().interpolation(.none).scaledToFit().frame(width: 15, height: 15) }
             } action: { outfits = true }
         }
-        .padding(3).background(Color.white, in: Capsule())
+        .padding(3).background(UI.row, in: Capsule())
         .fixedSize()
     }
 
@@ -393,7 +393,7 @@ struct CalendarSheet: View {
                 if let text { Text(text).font(.ui(12, on ? .semibold : .regular)).foregroundStyle(on ? UI.ink : UI.sub).lineLimit(1).fixedSize() }
             }
             .padding(.horizontal, text == nil ? 9 : 7).frame(height: 32)
-            .background(on ? Color(hex: "#E9ECF3") : Color.clear, in: Capsule())
+            .background(on ? UI.field : Color.clear, in: Capsule())
         }
         .buttonStyle(.press(0.94)).accessibilityIdentifier(id)
         .accessibilityLabel(Text(id == "cal-mode-weather" ? L("날씨") : L("옷차림")))
@@ -491,13 +491,13 @@ struct CalendarSheet: View {
                 if let v = r.vsLast {
                     let shown = model.unitF ? Int((Double(abs(v)) * 1.8).rounded()) : abs(v)
                     Text(abs(v) < 1 ? L("지난달과 비슷해요") : v > 0 ? L("지난달보다 평균 %d° 높아요", shown) : L("지난달보다 평균 %d° 낮아요", shown))
-                        .font(.ui(13, .semibold)).foregroundStyle(v >= 1 ? Color(hex: "#E0612F") : v <= -1 ? Color(hex: "#3F6FD8") : UI.ink)
+                        .font(.ui(13, .semibold)).foregroundStyle(v >= 1 ? Color(light: 0xE0612F, dark: 0xFF8A5C) : v <= -1 ? Color(light: 0x3F6FD8, dark: 0x86A8FF) : UI.ink)
                 }
                 Text(L("기록 %d일", r.days)).font(.ui(11)).foregroundStyle(UI.sub)
             }
         }
         .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
+        .background(UI.row, in: RoundedRectangle(cornerRadius: 16))
     }
 
     private func stat(_ icon: String, _ title: String, _ value: String) -> some View {
@@ -543,7 +543,7 @@ struct CalendarSheet: View {
             }
         }
         .padding(.horizontal, 6).padding(.vertical, 14)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
+        .background(UI.row, in: RoundedRectangle(cornerRadius: 20))
     }
 
     private var cellHeight: CGFloat { outfits ? 96 : 88 }
@@ -589,7 +589,7 @@ struct CalendarSheet: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16).padding(.vertical, 12)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
+        .background(UI.row, in: RoundedRectangle(cornerRadius: 20))
         .accessibilityIdentifier("cal-stays")
         .onAppear {
             #if DEBUG
@@ -622,7 +622,7 @@ struct CalendarSheet: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16).padding(.vertical, 12)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
+        .background(UI.row, in: RoundedRectangle(cornerRadius: 20))
         .accessibilityIdentifier("cal-holidays")
     }
 
@@ -636,7 +636,7 @@ struct CalendarSheet: View {
             // would read as the next week's date. A future day is told by having no weather, not by fading.
             VStack(spacing: 3) {
                 Text(String(Int(k.suffix(2)) ?? 0)).font(.ui(14, isToday ? .bold : .regular))
-                    .foregroundStyle(isToday ? Color.white : (weekend ?? (future ? DayLogText.calSub : UI.ink)))
+                    .foregroundStyle(isToday ? UI.onInk : (weekend ?? (future ? DayLogText.calSub : UI.ink)))
                     .frame(width: 28, height: 28)
                     .background(Circle().fill(isToday ? UI.ink : Color.clear))
                 if let h = holiday {
@@ -709,10 +709,10 @@ struct MonthPicker: View {
                     let on = k == selected, open = k >= first && k <= last
                     Button { Haptic.select(); pick(k) } label: {
                         Text(DayLogText.monthShort(k)).font(.ui(14, on ? .bold : .regular))
-                            .foregroundStyle(on ? Color.white : (open ? UI.ink : UI.faint))
+                            .foregroundStyle(on ? UI.onInk : (open ? UI.ink : UI.faint))
                             .lineLimit(1).minimumScaleFactor(0.7)
                             .frame(maxWidth: .infinity).frame(height: 40)
-                            .background(on ? UI.ink : Color(hex: "#F2F4F8"), in: Capsule())
+                            .background(on ? UI.ink : UI.field, in: Capsule())
                     }
                     .buttonStyle(.press(0.94)).disabled(!open)
                     .accessibilityIdentifier("pick-\(k)")
@@ -721,13 +721,13 @@ struct MonthPicker: View {
         }
         .padding(16)
         .frame(width: 300)
-        .background(Color.white)
+        .background(UI.row)
     }
 
     private func yearArrow(_ name: String, enabled: Bool, label: String, _ action: @escaping () -> Void) -> some View {
         Button { Haptic.soft(); withAnimation(Motion.snappy, action) } label: {
             Image(systemName: name).font(.system(size: 14, weight: .bold)).frame(width: 40, height: 36)
-                .background(Color(hex: "#F2F4F8"), in: Capsule())
+                .background(UI.field, in: Capsule())
         }
         .foregroundStyle(enabled ? UI.ink : UI.faint).disabled(!enabled)
         .buttonStyle(.press(0.92)).accessibilityLabel(Text(label))
@@ -780,7 +780,7 @@ struct ShareCard: View {
                 ForEach(1...count, id: \.self) { d in
                     if d <= shown {
                         ZStack {
-                            RoundedRectangle(cornerRadius: 6).fill(byDay[d].map { Color(hex: Rules.background[Rules.clamp($0.level)]) } ?? Color(hex: "#EEF0F4"))
+                            RoundedRectangle(cornerRadius: 6).fill(byDay[d].map { Color(hex: Rules.background[Rules.clamp($0.level)]) } ?? UI.field)
                             if let r = byDay[d] { PixelIcon(name: r.icon, size: 18) }
                         }
                         .frame(width: 30, height: 30)
@@ -791,6 +791,7 @@ struct ShareCard: View {
         .padding(22)
         .frame(width: 340)
         .background(Color(hex: "#FBF7F1"))
+        .environment(\.colorScheme, .light)       // a picture to share: always on its cream paper
     }
 
     private func line(_ t: String, _ v: String) -> some View {

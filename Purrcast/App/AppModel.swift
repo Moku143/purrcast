@@ -43,6 +43,8 @@ final class AppModel: ObservableObject {
     @Published var airMapFailed = false     // no map for this place (no source there, or the server is unreachable): the card hides
     private var airMapKey = ""
     @Published var pixelFont: Bool { didSet { FontPref.pixel = pixelFont; persist() } }
+    /// 설정 → 화면 → 화면 모드
+    @Published var appearance: Appearance { didSet { persist(); appearance.apply() } }
     @Published var useLocation: Bool { didSet { persist(); if useLocation { location.ask() }; Task { await refresh(force: true) } } }
     @Published var notifyRain: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyRain && !oldValue) } }
     @Published var notifyMorning: Bool { didSet { persist(); notificationsChanged(turnedOn: notifyMorning && !oldValue) } }
@@ -136,6 +138,7 @@ final class AppModel: ObservableObject {
         wind = arg("-wind").flatMap(WindUnit.init(rawValue:)) ?? (testing ? .ms : WindUnit(rawValue: d.string(forKey: "wind") ?? "") ?? .ms)
         debugNotice = arg("-notice")      // screenshots: stale · fail · loading (the notices the home screen can show)
         pixelFont = testing ? !args.contains("-plainFont") : (d.object(forKey: "pixelFont") as? Bool ?? true)   // screenshots: -plainFont for 일반 글씨
+        appearance = arg("-appearance").flatMap(Appearance.init(rawValue:)) ?? (testing ? .light : Appearance(rawValue: d.string(forKey: "appearance") ?? "") ?? .auto)
         useLocation = testing ? false : (d.object(forKey: "useLocation") as? Bool ?? true)
         notifyRain = d.object(forKey: "notifyRain") as? Bool ?? true
         notifyMorning = d.object(forKey: "notifyMorning") as? Bool ?? true
@@ -408,7 +411,7 @@ final class AppModel: ObservableObject {
         d.set(plus && !debugPlus, forKey: "plus")
         d.set(character.rawValue, forKey: "character"); d.set(names, forKey: "names")
         d.set(unitF, forKey: "unitF"); d.set(clock12, forKey: "clock12"); d.set(wind.rawValue, forKey: "wind")
-        d.set(pixelFont, forKey: "pixelFont"); d.set(useLocation, forKey: "useLocation")
+        d.set(pixelFont, forKey: "pixelFont"); d.set(appearance.rawValue, forKey: "appearance"); d.set(useLocation, forKey: "useLocation")
         d.set(notifyRain, forKey: "notifyRain"); d.set(notifyMorning, forKey: "notifyMorning"); d.set(notifyChange, forKey: "notifyChange")
         d.set(notifyAlert, forKey: "notifyAlert"); d.set(notifyMonthly, forKey: "notifyMonthly"); d.set(homeOrder, forKey: "homeOrder"); d.set(morningTime, forKey: "morningTime"); d.set(voiceChoice, forKey: "voiceChoice")
         d.set(onboarded, forKey: "onboarded")

@@ -15,7 +15,7 @@ final class RadarFrames: ObservableObject {
         let se = MKMapPoint(CLLocationCoordinate2D(latitude: south, longitude: east))
         return MKMapRect(x: nw.x, y: nw.y, width: se.x - nw.x, height: se.y - nw.y)
     }
-    nonisolated static let width = 440
+    nonisolated static let width = 640
 
     @Published private(set) var images: [CGImage?] = []
     @Published private(set) var ready = false
@@ -50,7 +50,7 @@ final class RadarFrames: ObservableObject {
                 sources = got
             }
             // where every map pixel falls in the source (the same for every frame of one size)
-            var lookups: [String: [Int32]] = [:]
+            var lookups: [String: [Float]] = [:]
             return sources.map { src in
                 guard let src else { return (nil, []) }
                 let key = "\(src.cols)x\(src.rows)"
@@ -81,53 +81,95 @@ final class RadarFrames: ObservableObject {
     }
 
 
-    /// For each map pixel, the source pixel under it (-1: outside the source)
-    nonisolated static func lookup(_ proj: RadarMap.Proj, cols: Int, rows: Int, w: Int, h: Int, box: MKMapRect) -> [Int32] {
-        var lut = [Int32](repeating: -1, count: w * h)
+    /// For each map pixel, where it falls in the source, in source pixels (x, y; -1: outside the source)
+    nonisolated static func lookup(_ proj: RadarMap.Proj, cols: Int, rows: Int, w: Int, h: Int, box: MKMapRect) -> [Float] {
+        var lut = [Float](repeating: -1, count: w * h * 2)
         for j in 0..<h {
             for i in 0..<w {
                 let p = MKMapPoint(x: box.minX + (Double(i) + 0.5) / Double(w) * box.width, y: box.minY + (Double(j) + 0.5) / Double(h) * box.height)
                 let c = p.coordinate
                 let (u, v) = proj.unit(lat: c.latitude, lon: c.longitude)
-                let x = Int(u * Double(cols)), y = Int(v * Double(rows))
-                if x >= 0, y >= 0, x < cols, y < rows { lut[j * w + i] = Int32(y * cols + x) }
+                let x = u * Double(cols) - 0.5, y = v * Double(rows) - 0.5
+                if x >= -0.5, y >= -0.5, x <= Double(cols) - 0.5, y <= Double(rows) - 0.5 {
+                    lut[(j * w + i) * 2] = Float(max(0, min(Double(cols - 1), x)))
+                    lut[(j * w + i) * 2 + 1] = Float(max(0, min(Double(rows - 1), y)))
+                }
             }
         }
         return lut
     }
 
-    /// The frame in the app's colours (light rain lighter), and its levels
-    nonisolated static func draw(_ s: RadarSource, lut: [Int32], w: Int, h: Int) -> (CGImage?, [UInt8]) {
-        let cols: [(UInt8, UInt8, UInt8)] = RadarMap.colors.map { hex in
+    /// The frame as a soft field like the air map: the source read smoothly (bilinear), softened a little more,
+    /// each level's colour turning into the next near its edge and light rain fading out at its rim; and the
+    /// levels as the source has them, for reading the rain at a place
+    nonisolated static func draw(_ s: RadarSource, lut: [Float], w: Int, h: Int) -> (CGImage?, [UInt8]) {
+        let cols: [(Double, Double, Double)] = RadarMap.colors.map { hex in
             let v = Int(hex.dropFirst(), radix: 16) ?? 0
-            return (UInt8(v >> 16 & 255), UInt8(v >> 8 & 255), UInt8(v & 255))
+            return (Double(v >> 16 & 255), Double(v >> 8 & 255), Double(v & 255))
         }
-        var px = [UInt8](repeating: 0, count: w * h * 4), lv = [UInt8](repeating: 0, count: w * h)
+        var field = [Float](repeating: 0, count: w * h), lv = [UInt8](repeating: 0, count: w * h)
         for i in 0..<(w * h) {
-            let k = lut[i]
-            guard k >= 0 else { continue }
-            let l = Int(s.lv[Int(k)])
-            guard l > 0 else { continue }
-            lv[i] = UInt8(l)
-            let c = cols[min(l, cols.count) - 1], a = l == 1 ? 0.66 : 0.86
-            px[i * 4] = UInt8(Double(c.0) * a); px[i * 4 + 1] = UInt8(Double(c.1) * a); px[i * 4 + 2] = UInt8(Double(c.2) * a)
-            px[i * 4 + 3] = UInt8(255 * a)
+            let x = lut[i * 2], y = lut[i * 2 + 1]
+            guard x >= 0 else { continue }
+            let v = s.sample(x, y)
+            field[i] = v
+            if v >= 1 { lv[i] = UInt8(min(5, Int(v))) }
+        }
+        field = blur(blur(field, w: w, h: h, r: 2), w: w, h: h, r: 2)
+        var px = [UInt8](repeating: 0, count: w * h * 4)
+        for i in 0..<(w * h) {
+            let v = Double(field[i])
+            guard v > 0.35 else { continue }
+            let k = max(1, min(5, Int(v))), f = v - Double(k)
+            let t = k < 5 ? smooth((f - 0.55) / 0.45) : 0
+            let a = cols[k - 1], b = cols[min(4, k)]
+            // light rain see-through, heavier rain stronger; the rim of the rain fading out
+            let alpha = (0.6 + 0.24 * max(0, min(1, v - 1))) * smooth((v - 0.35) / 0.65)
+            px[i * 4] = UInt8((a.0 + (b.0 - a.0) * t) * alpha)
+            px[i * 4 + 1] = UInt8((a.1 + (b.1 - a.1) * t) * alpha)
+            px[i * 4 + 2] = UInt8((a.2 + (b.2 - a.2) * t) * alpha)
+            px[i * 4 + 3] = UInt8(255 * alpha)
         }
         guard let ctx = CGContext(data: &px, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
                                   space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return (nil, lv) }
         return (ctx.makeImage(), lv)
     }
+
+    nonisolated static func smooth(_ x: Double) -> Double { let c = max(0, min(1, x)); return c * c * (3 - 2 * c) }
+
+    /// A box blur of radius `r` across, then down
+    nonisolated static func blur(_ a: [Float], w: Int, h: Int, r: Int) -> [Float] {
+        var tmp = [Float](repeating: 0, count: w * h), out = [Float](repeating: 0, count: w * h)
+        let n = Float(2 * r + 1)
+        for j in 0..<h {
+            var sum: Float = 0
+            for k in -r...r { sum += a[j * w + max(0, min(w - 1, k))] }
+            for i in 0..<w {
+                tmp[j * w + i] = sum / n
+                sum += a[j * w + min(w - 1, i + r + 1)] - a[j * w + max(0, i - r)]
+            }
+        }
+        for i in 0..<w {
+            var sum: Float = 0
+            for k in -r...r { sum += tmp[max(0, min(h - 1, k)) * w + i] }
+            for j in 0..<h {
+                out[j * w + i] = sum / n
+                sum += tmp[min(h - 1, j + r + 1) * w + i] - tmp[max(0, j - r) * w + i]
+            }
+        }
+        return out
+    }
 }
 
 
-/// One frame's rain levels in its own pixels
+/// One frame's rain in its own pixels, as a smooth level (0 none, 1 weak … 5 very heavy, fractions between)
 struct RadarSource: Sendable {
     let cols: Int, rows: Int
-    let lv: [UInt8]
+    let v: [Float]
 
     init(grid g: RadarMap.Grid) {
         cols = g.cols; rows = g.rows
-        lv = g.v.map { UInt8(RadarMap.level($0)) }
+        v = g.v.map { Float(RadarMap.position($0)) }
     }
 
     /// A picture: each pixel's colour read back to a rain rate through the source's scale (nearest colour; clear
@@ -139,18 +181,19 @@ struct RadarSource: Sendable {
         guard let ctx = CGContext(data: &px, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
                                   space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
         ctx.draw(img, in: CGRect(x: 0, y: 0, width: w, height: h))
-        let steps: [(Int, Int, Int, UInt8)] = scale.compactMap { s in
+        // each colour's rain a little above its step's lower edge, so a step reads as its own level
+        let steps: [(Int, Int, Int, Float)] = scale.compactMap { s in
             let hex = s.rgb.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
             guard hex.count == 6, let v = Int(hex, radix: 16) else { return nil }
-            return (v >> 16 & 255, v >> 8 & 255, v & 255, UInt8(RadarMap.level(s.mm)))
+            return (v >> 16 & 255, v >> 8 & 255, v & 255, Float(RadarMap.position(s.mm) + 0.3))
         }
-        var out = [UInt8](repeating: 0, count: w * h)
+        var out = [Float](repeating: 0, count: w * h)
         for i in 0..<(w * h) {
             let a = Int(px[i * 4 + 3])
             guard a > 40 else { continue }
             let r = Int(px[i * 4]) * 255 / a, g = Int(px[i * 4 + 1]) * 255 / a, b = Int(px[i * 4 + 2]) * 255 / a
             if r > 235 && g > 235 && b > 235 { continue }
-            if steps.isEmpty { out[i] = 2; continue }
+            if steps.isEmpty { out[i] = 2.3; continue }
             var best = 0, bestD = Int.max
             for (k, s) in steps.enumerated() {
                 let d = (s.0 - r) * (s.0 - r) + (s.1 - g) * (s.1 - g) + (s.2 - b) * (s.2 - b)
@@ -158,7 +201,17 @@ struct RadarSource: Sendable {
             }
             out[i] = bestD < 60 * 60 * 3 ? steps[best].3 : 0
         }
-        cols = w; rows = h; lv = out
+        cols = w; rows = h; v = out
+    }
+
+    /// The level at (x, y) in source pixels, read between the four pixels around it
+    func sample(_ x: Float, _ y: Float) -> Float {
+        let x0 = min(cols - 1, Int(x)), y0 = min(rows - 1, Int(y))
+        let x1 = min(cols - 1, x0 + 1), y1 = min(rows - 1, y0 + 1)
+        let fx = x - Float(x0), fy = y - Float(y0)
+        let top = v[y0 * cols + x0] * (1 - fx) + v[y0 * cols + x1] * fx
+        let bottom = v[y1 * cols + x0] * (1 - fx) + v[y1 * cols + x1] * fx
+        return top * (1 - fy) + bottom * fy
     }
 }
 
@@ -202,7 +255,7 @@ final class RadarRenderer: MKOverlayRenderer {
         guard let o = overlay as? RadarOverlay, let img = o.image else { return }
         let r = rect(for: o.boundingMapRect)
         context.saveGState()
-        context.interpolationQuality = .none          // square radar pixels, as the app's pixel art
+        context.interpolationQuality = .high          // a soft field, as the air map
         context.translateBy(x: r.minX, y: r.maxY)
         context.scaleBy(x: 1, y: -1)
         context.draw(img, in: CGRect(x: 0, y: 0, width: r.width, height: r.height))
@@ -357,7 +410,7 @@ struct RadarSheet: View {
                     Text(RadarText.time(f.t, clock12: model.clock12) + " · " + (f.fc ? L("예측") : L("관측")))
                         .font(.px(12)).foregroundStyle(f.fc ? Color.white : UI.ink)
                         .padding(.horizontal, 10).padding(.vertical, 6)
-                        .background(Capsule().fill(f.fc ? Color(hex: "#3D6BFF") : Color.white.opacity(0.92)))
+                        .background(Capsule().fill(f.fc ? Color(hex: "#3D6BFF") : UI.row.opacity(0.92)))
                         .padding(12)
                 }
                 if !frames.ready || m == nil {
@@ -415,7 +468,7 @@ struct RadarSheet: View {
             Text(L("기상청 레이더 · 초단기 강수예측 (공공누리 제1유형)")).font(.ui(10.5)).foregroundStyle(UI.faint)
         }
         .padding(16)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(UI.row, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .padding(.horizontal, 12).padding(.top, 10).padding(.bottom, 24)
     }
 
@@ -430,7 +483,7 @@ struct RadarSheet: View {
                     ForEach(0..<n, id: \.self) { i in
                         Circle()
                             .strokeBorder(m.frames[i].fc ? Color(hex: "#3D6BFF") : UI.ink, lineWidth: 2)
-                            .background(Circle().fill(m.frames[i].fc ? Color.white : UI.ink))
+                            .background(Circle().fill(m.frames[i].fc ? UI.row : UI.ink))
                             .frame(width: i == index ? 16 : 8, height: i == index ? 16 : 8)
                             .position(x: 8 + CGFloat(i) * step, y: 12)
                     }

@@ -880,3 +880,7 @@
 "강수량 · 강수확률" = "Cantidad · Probabilidad";
 "풍속 (%@) · 부는 방향" = "Velocidad (%@) · Hacia dónde";
 "체감온도에 맞는 옷" = "Ropa según la sensación térmica";
+"화면 모드" = "Apariencia";
+"자동" = "Auto";
+"라이트" = "Claro";
+"다크" = "Oscuro";

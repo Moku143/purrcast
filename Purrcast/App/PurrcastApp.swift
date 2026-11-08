@@ -42,7 +42,7 @@ struct PurrcastApp: App {
             root()
                 .environmentObject(model)
                 .environmentObject(purchases)
-                .preferredColorScheme(.light)
+                .onAppear { model.appearance.apply() }      // 화면 모드: every window, sheets included
                 .dynamicTypeSize(.large)        // the pixel layout is drawn to the point; the system text-size setting does not resize it
                 .task {
                     #if DEBUG
@@ -108,7 +108,7 @@ struct RootView: View {
             if model.onboarded {
                 HomeView(route: $route, day: $day).id(model.language).transition(.opacity)   // a new language rebuilds the page
             } else {
-                OnboardingView().transition(.move(edge: .leading).combined(with: .opacity))
+                OnboardingView().environment(\.colorScheme, .light).transition(.move(edge: .leading).combined(with: .opacity))
             }
         }
         .animation(Motion.gentle, value: model.onboarded)

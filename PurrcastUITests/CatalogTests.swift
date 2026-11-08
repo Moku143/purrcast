@@ -72,6 +72,7 @@ final class CatalogTests: XCTestCase {
         case "g": partG()
         case "h": partH()
         case "r": radarShots()
+        case "k": darkShots()
         default: partB()
         }
     }
@@ -97,6 +98,28 @@ final class CatalogTests: XCTestCase {
         steps("radar.play", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "radar"], wait: 4) { app, take in
             let play = app.buttons["radar-play"].firstMatch
             if play.waitForExistence(timeout: 3) { play.tap(); sleep(2); take() }
+        }
+    }
+
+    // MARK: 다크 모드 — the same screens in dark (설정 → 화면 → 화면 모드), and the setting itself in light
+
+    private func darkShots() {
+        let d = ["-appearance", "dark"]
+        seq("dark.home", ["-scene", "maybe", "-plus", "-char", "cat"] + d, swipes: 3, wait: 3)
+        seq("dark.home-free", ["-scene", "spring_dust", "-char", "cat"] + d, swipes: 1, wait: 3)
+        seq("dark.night", ["-scene", "summer_night", "-plus", "-char", "cat"] + d, wait: 3)
+        seq("dark.settings", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "settings"] + d, swipes: 2, wait: 3)
+        seq("dark.places", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "places"] + d, wait: 3)
+        seq("dark.calendar", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "calendar"] + d, swipes: 1, wait: 3)
+        seq("dark.day", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "day"] + d, swipes: 1, wait: 3)
+        seq("dark.radar", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "radar"] + d, wait: 4)
+        seq("dark.air", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "air"] + d, wait: 4)
+        seq("dark.character", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "character"] + d, wait: 3)
+        seq("dark.paywall", ["-scene", "maybe", "-char", "cat", "-open", "paywall"] + d, wait: 3)
+        steps("light.settings-mode", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "settings"], wait: 3) { app, take in
+            let row = app.staticTexts["화면 모드"].firstMatch
+            for _ in 0..<5 where !(row.exists && row.isHittable) { app.swipeUp(); sleep(1) }
+            take()
         }
     }
 

@@ -22,6 +22,8 @@ struct HomeView: View {
     /// What the sky is made of; when it changes the whole sky cross-fades
     private func skyKey(_ s: WeatherScene) -> String { "\(s.time)|\(s.cover)|\(s.precip)|\(s.thunder)|\(s.aux)|\(s.clouds ?? -1)|\(s.fog)|\(s.gloom)" }
 
+    @Environment(\.colorScheme) private var scheme
+
     var body: some View {
         // the page is laid out at exactly the screen's width: no child can push it wider than the glass, whatever the
         // device, its text-size setting or the OS version does
@@ -32,7 +34,7 @@ struct HomeView: View {
 
     /// The next six hours and the hourly cards alone (the store pictures)
     private func focused(width: CGFloat) -> some View {
-        let s = model.scene, ink = Ink(night: s.isNight)
+        let s = model.scene, ink = Ink(night: night(s))
         return VStack(spacing: 12) {
             if let head = nextHour(s) { nextHourCard(s, head: head, ink: ink) }
             hourlyCard(s, ink: ink)
@@ -45,11 +47,11 @@ struct HomeView: View {
 
     private func page(width: CGFloat, topInset: CGFloat) -> some View {
         let s = model.scene
-        let ink = Ink(night: s.isNight)
+        let ink = Ink(night: night(s))
         let lv = Rules.clamp(s.level)
         return ZStack(alignment: .top) {
-            background(level: lv, night: s.isNight).ignoresSafeArea()
-                .animation(Motion.fade, value: lv).animation(Motion.fade, value: s.isNight)
+            background(level: lv, night: night(s)).ignoresSafeArea()
+                .animation(Motion.fade, value: lv).animation(Motion.fade, value: night(s))
             SkyTint(scene: s).ignoresSafeArea()
                 .id("tint" + skyKey(s)).transition(.opacity)
             if model.hasData {
@@ -131,6 +133,9 @@ struct HomeView: View {
     }
 
     // MARK: hero
+
+    /// The night colours: at night, and all day in dark mode (the sky keeps its outfit colour, deepened to navy)
+    private func night(_ s: WeatherScene) -> Bool { s.isNight || scheme == .dark }
 
     private func background(level: Int, night: Bool) -> some View {
         SkyBase(level: level, night: night)

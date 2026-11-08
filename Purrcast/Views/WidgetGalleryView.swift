@@ -47,7 +47,7 @@ struct WidgetGalleryView: View {
                     }
                 }
                 .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.white, in: RoundedRectangle(cornerRadius: 18))
+                .background(UI.row, in: RoundedRectangle(cornerRadius: 18))
                 Text(L("잠금 화면을 길게 눌러 ‘사용자화’ → 잠금 화면 → 위젯 칸에서 %@를 골라요. 시계 위 한 줄은 시계 위 날짜를 눌러 %@를 골라요.", Brand.name, Brand.name)).font(.ui(12)).foregroundStyle(UI.sub)
             }
             .padding(16)

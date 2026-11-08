@@ -1,16 +1,61 @@
 import SwiftUI
+import UIKit
 
-/// Colours for the light sheets (settings, places, character, paywall), from the canvas.
+/// Colours for the sheets (settings, places, character, paywall), from the canvas — each with its dark-mode twin
+/// (설정 → 화면 → 화면 모드).
 enum UI {
-    static let bg = Color(hex: "#F2F4F8")
-    static let row = Color.white
-    static let ink = Color(hex: "#1A2440")
-    static let sub = Color(hex: "#6B7591")
-    static let faint = Color(hex: "#A3AABD")
-    static let line = Color(hex: "#1E2A44").opacity(0.08)
+    static let bg = Color(light: 0xF2F4F8, dark: 0x0E121D)
+    static let row = Color(light: 0xFFFFFF, dark: 0x1A1F2C)
+    static let ink = Color(light: 0x1A2440, dark: 0xEDF0F8)
+    static let sub = Color(light: 0x6B7591, dark: 0x9EA7BF)
+    static let faint = Color(light: 0xA3AABD, dark: 0x5F6880)
+    static let line = Color(light: 0x1E2A44, 0.08, dark: 0xFFFFFF, 0.09)
     static let accent = Color(hex: "#EE7A3B")
-    static let accentSoft = Color(hex: "#FFE9DC")
+    static let accentSoft = Color(light: 0xFFE9DC, dark: 0x3A2517)
     static let plus = Color(hex: "#EE7A3B")
+    /// The accent as text: darker on the light sheet (4.5:1), lighter on the dark one
+    static let accentText = Color(light: 0xBD4D10, dark: 0xFF9F66)
+    /// Text on an ink-filled shape (today's date, a chosen chip)
+    static let onInk = Color(light: 0xFFFFFF, dark: 0x12172A)
+    /// Search fields, grey chips and the empty days of the calendar
+    static let field = Color(light: 0xE6E9F0, dark: 0x262C3C)
+    /// The warm (Plus) panels: their top and bottom and edge, and the plain warm fill
+    static let warmTop = Color(light: 0xFFE3CC, dark: 0x3B2A1D)
+    static let warmBottom = Color(light: 0xFFF4EA, dark: 0x271F19)
+    static let warmLine = Color(light: 0xFFD1AE, dark: 0x5B3B24)
+    static let warm = Color(light: 0xFFF4E8, dark: 0x2A2019)
+    /// Body text a notch darker than `sub` (notes, licences), and the grey of hints
+    static let body = Color(light: 0x33405E, dark: 0xC3C9DA)
+    static let muted = Color(light: 0x5F6983, dark: 0xA2AAC0)
+    static let hint = Color(light: 0x8A93AA, dark: 0x7C859D)
+    /// The warm panel's brown words
+    static let warmInk = Color(light: 0x6B4A33, dark: 0xE6C6AC)
+    /// A card's shadow: barely there on the dark sheet
+    static let shadow = Color(light: 0x1E2A44, 1, dark: 0x000000, 1)
+}
+
+/// 설정 → 화면 → 화면 모드: follow the phone, or always light or dark
+enum Appearance: String, CaseIterable {
+    case auto, light, dark
+    var title: String { switch self { case .auto: return L("자동"); case .light: return L("라이트"); case .dark: return L("다크") } }
+    var style: UIUserInterfaceStyle { switch self { case .auto: return .unspecified; case .light: return .light; case .dark: return .dark } }
+    /// Every window of the app in this mode (sheets included)
+    @MainActor func apply() {
+        for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+            for w in scene.windows { w.overrideUserInterfaceStyle = style }
+        }
+    }
+}
+
+extension Color {
+    /// One colour for light mode and another for dark (hex as 0xRRGGBB, with an opacity each)
+    init(light: UInt32, _ la: Double = 1, dark: UInt32, _ da: Double = 1) {
+        func ui(_ v: UInt32, _ a: Double) -> UIColor {
+            UIColor(red: CGFloat(v >> 16 & 255) / 255, green: CGFloat(v >> 8 & 255) / 255, blue: CGFloat(v & 255) / 255, alpha: a)
+        }
+        let l = ui(light, la), d = ui(dark, da)
+        self.init(uiColor: UIColor { $0.userInterfaceStyle == .dark ? d : l })
+    }
 }
 
 extension View {
@@ -30,7 +75,7 @@ struct SheetHeader: View {
         HStack(alignment: .firstTextBaseline) {
             Text(title).font(.px(24)).foregroundStyle(UI.ink)
             Spacer()
-            Button { Haptic.soft(); action() } label: { Text(trailing).tapArea() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(hex: "#BD4D10"))  // darker than the accent for this text only: 4.5:1 on the sheet
+            Button { Haptic.soft(); action() } label: { Text(trailing).tapArea() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accentText)  // darker than the accent for this text only: 4.5:1 on the sheet
                 .buttonStyle(.press(0.94)).accessibilityIdentifier("sheet-close")
         }
         .padding(.horizontal, 20).padding(.top, 22).padding(.bottom, 10)
@@ -122,7 +167,7 @@ struct GreyTag: View {
     var body: some View {
         Text(text).font(.ui(11, .bold)).foregroundStyle(UI.sub)
             .padding(.horizontal, 8).padding(.vertical, 4)
-            .background(Color(hex: "#ECEFF5")).clipShape(Capsule())
+            .background(UI.field).clipShape(Capsule())
     }
 }
 
@@ -142,7 +187,7 @@ struct Pills<T: Hashable>: View {
                         .background {
                             // the white pill slides between options
                             if value == o.0 {
-                                RoundedRectangle(cornerRadius: 8).fill(Color.white)
+                                RoundedRectangle(cornerRadius: 8).fill(UI.row)
                                     .shadow(color: .black.opacity(0.08), radius: 2, y: 1)
                                     .matchedGeometryEffect(id: "pill", in: ns)
                             }
@@ -150,7 +195,7 @@ struct Pills<T: Hashable>: View {
                 }.buttonStyle(.plain)
             }
         }
-        .padding(3).background(UI.bg).clipShape(RoundedRectangle(cornerRadius: 10))
+        .padding(3).background(UI.field.opacity(0.6)).clipShape(RoundedRectangle(cornerRadius: 10))
     }
 }
 

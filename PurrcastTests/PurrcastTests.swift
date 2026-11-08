@@ -1504,6 +1504,12 @@ final class PurrcastTests: XCTestCase {
         let (u, v) = p.unit(lat: 38, lon: 126)
         XCTAssertEqual(u, 0.4, accuracy: 1e-9); XCTAssertEqual(v, 500_000.0 / 1_200_000, accuracy: 1e-9)
         XCTAssertEqual([0, 0.05, 0.5, 3, 7, 20, 60].map(RadarMap.level), [0, 0, 1, 2, 3, 4, 5])
+        // the smooth level the map is drawn from lands on the same level as the steps
+        for mm in [0.1, 0.5, 1, 3, 5, 7, 10, 20, 30, 60, 200] { XCTAssertEqual(Int(RadarMap.position(mm)), RadarMap.level(mm), "\(mm)") }
+        XCTAssertLessThan(RadarMap.position(0.05), 1); XCTAssertEqual(RadarMap.position(0), 0)
+        // a soft field: one rain pixel spreads to its neighbours, fainter
+        let b = RadarFrames.blur([0, 0, 0, 0, 9, 0, 0, 0, 0], w: 3, h: 3, r: 1)
+        XCTAssertEqual(b[4], 1, accuracy: 1e-5); XCTAssertGreaterThan(b[0], 0)
         let m = RadarMap.sample(lat: 37.57, lon: 126.98, now: Date(timeIntervalSince1970: 1_794_041_400))
         XCTAssertEqual(m.frames.count, 13)
         XCTAssertEqual(m.frames.filter(\.fc).count, 6)

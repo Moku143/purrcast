@@ -71,7 +71,7 @@ struct PaywallView: View {
                         VStack(alignment: .leading, spacing: 10) {
                             featureArt(f.art)
                             Text(f.title).font(.ui(17, .bold)).foregroundStyle(UI.ink).padding(.horizontal, 4)
-                            Text(f.note).font(.ui(13)).lineSpacing(3).foregroundStyle(Color(hex: "#33405E")).padding(.horizontal, 4)
+                            Text(f.note).font(.ui(13)).lineSpacing(3).foregroundStyle(UI.body).padding(.horizontal, 4)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .tag(i)
@@ -127,6 +127,7 @@ struct PaywallView: View {
         }
         .background(LinearGradient(stops: [.init(color: Color(hex: "#FFE8A3"), location: 0), .init(color: Color(hex: "#FFF6EC"), location: 0.4), .init(color: Color(hex: "#F6F7FB"), location: 1)],
                                    startPoint: .top, endPoint: .bottom).ignoresSafeArea())
+        .environment(\.colorScheme, .light)       // the Plus page keeps its warm daylight look in dark mode too
         .alert(purchases.message ?? "", isPresented: Binding(get: { purchases.message != nil }, set: { if !$0 { purchases.message = nil } })) {
             Button(L("확인"), role: .cancel) {}
         }
@@ -200,7 +201,7 @@ struct PaywallView: View {
         switch key {
         case "fresh": return .white
         case "rain": return Color(hex: "#EEF4FF")
-        case "watch": return Color(hex: "#E9ECF3")
+        case "watch": return UI.field
         default: return Color(hex: "#F4F6FA")
         }
     }
@@ -238,7 +239,7 @@ struct PaywallView: View {
                 if i < labels.count - 1 { Spacer() }
             }
         }
-        .font(.ui(10.5)).foregroundStyle(Color(hex: "#8A93AA"))
+        .font(.ui(10.5)).foregroundStyle(UI.hint)
     }
 
     private func timeline(label: String, color: Color, track: Color, dots: [CGFloat]) -> some View {
@@ -276,12 +277,12 @@ struct PaywallView: View {
                     ForEach(Array(mm.enumerated()), id: \.offset) { i, v in
                         VStack(spacing: 4) {
                             RoundedRectangle(cornerRadius: 3).fill(v > 0 ? Color(hex: "#1F5BD0") : Color(hex: "#DDE2EC")).frame(height: max(3, v * 24))
-                            Text(hours[i]).font(.px(9)).foregroundStyle(Color(hex: "#8A93AA"))
+                            Text(hours[i]).font(.px(9)).foregroundStyle(UI.hint)
                         }
                     }
                 }.frame(height: 76, alignment: .bottom)
             }
-            .padding(12).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(12).background(UI.row).clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .padding(.horizontal, 18)
     }
@@ -292,7 +293,7 @@ struct PaywallView: View {
                 PixelIcon(name: "umbrella_closed", size: 14)
                 Text(L("%@쯤 비 예보", "15:50")).font(.px(11)).foregroundStyle(UI.ink)
             }
-            .padding(.horizontal, 10).padding(.vertical, 6).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 10))
+            .padding(.horizontal, 10).padding(.vertical, 6).background(UI.row).clipShape(RoundedRectangle(cornerRadius: 10))
             .padding(.leading, 18).padding(.top, 16)
             VStack(spacing: 6) {
                 Spacer()
@@ -353,7 +354,7 @@ struct PaywallView: View {
                 .padding(.horizontal, 10).frame(width: 220, height: 64)
                 .background(LinearGradient(colors: [Color(hex: Rules.background[r.2]), r.3 ? Color(hex: "#2B3566") : .white], startPoint: .topLeading, endPoint: .bottomTrailing))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
-                .shadow(color: Color(hex: "#1E2A44").opacity(0.12), radius: 7, y: 6)
+                .shadow(color: UI.shadow.opacity(0.12), radius: 7, y: 6)
                 .offset(x: CGFloat(i - 1) * 16, y: r.4)
             }
         }
@@ -368,7 +369,7 @@ struct PaywallView: View {
                     .background(i == 0 ? Color(hex: "#D9EFCF") : Color.white)
                     .overlay(RoundedRectangle(cornerRadius: 16).stroke(i == 0 ? UI.accent : Color.white, lineWidth: 3))
                     .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .shadow(color: Color(hex: "#1E2A44").opacity(i == 0 ? 0 : 0.06), radius: 5, y: 2)
+                    .shadow(color: UI.shadow.opacity(i == 0 ? 0 : 0.06), radius: 5, y: 2)
             }
         }
     }

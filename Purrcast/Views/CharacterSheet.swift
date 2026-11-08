@@ -61,11 +61,11 @@ struct CharacterSheet: View {
                 .frame(height: 30).padding(.horizontal, 6).padding(.top, 6).padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity).frame(height: 170)
-        .background(selected ? Color(hex: Rules.background[level]) : Color.white)
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(selected ? UI.accent : Color.white, lineWidth: 3))
+        .background(selected ? Color(hex: Rules.background[level]) : UI.row)
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(selected ? UI.accent : UI.row, lineWidth: 3))
         .overlay(alignment: .topTrailing) { badge(selected: selected, locked: locked) }
         .clipShape(RoundedRectangle(cornerRadius: 18))
-        .shadow(color: Color(hex: "#1E2A44").opacity(selected ? 0 : 0.06), radius: 6, y: 2)
+        .shadow(color: UI.shadow.opacity(selected ? 0 : 0.06), radius: 6, y: 2)
         .animation(Motion.snappy, value: selected)
     }
 
@@ -85,7 +85,7 @@ struct CharacterSheet: View {
             HStack(spacing: 4) {
                 TextField(L("이름"), text: $draft).font(.px(15)).foregroundStyle(UI.ink).multilineTextAlignment(.center)
                     .focused($nameFocused).submitLabel(.done).onSubmit { saveName() }
-                    .frame(width: 104, height: 30).background(Color.white)
+                    .frame(width: 104, height: 30).background(UI.row)
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(UI.accent, lineWidth: 2))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .accessibilityIdentifier("name-field")
@@ -118,12 +118,12 @@ struct CharacterSheet: View {
             Text("?").font(.px(28)).foregroundStyle(UI.ink.opacity(0.28))
                 .frame(width: 76, height: 76).background(UI.ink.opacity(0.09)).clipShape(Circle())
             VStack(spacing: 4) {
-                Text(L("곧 와요")).font(.ui(12, .semibold)).foregroundStyle(Color(hex: "#5F6983"))
-                Text(L("추후 업데이트로 추가 예정")).font(.ui(10.5)).foregroundStyle(Color(hex: "#5F6983"))
+                Text(L("곧 와요")).font(.ui(12, .semibold)).foregroundStyle(UI.muted)
+                Text(L("추후 업데이트로 추가 예정")).font(.ui(10.5)).foregroundStyle(UI.muted)
             }
         }
         .frame(maxWidth: .infinity).frame(height: 170)
-        .background(Color(hex: "#E8EBF2"))
+        .background(UI.field)
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(style: StrokeStyle(lineWidth: 2, dash: [6, 4])).foregroundStyle(UI.ink.opacity(0.15)))
         .overlay(alignment: .topTrailing) { if !model.plus { PlusTag().padding(8) } }
         .clipShape(RoundedRectangle(cornerRadius: 18))
@@ -177,8 +177,8 @@ struct CharacterSheet: View {
                 if let t = purchases.trialText(Purchases.yearly) { PlusTag(text: t) }
             }
             .padding(.horizontal, 16).frame(height: 56)
-            .background(LinearGradient(colors: [Color(hex: "#FFE3CC"), Color(hex: "#FFF4EA")], startPoint: .topLeading, endPoint: .bottomTrailing))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#FFD1AE"), lineWidth: 1))
+            .background(LinearGradient(colors: [UI.warmTop, UI.warmBottom], startPoint: .topLeading, endPoint: .bottomTrailing))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(UI.warmLine, lineWidth: 1))
             .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.press(0.98)).padding(.horizontal, 20).padding(.top, 16)

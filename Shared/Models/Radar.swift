@@ -80,6 +80,15 @@ struct RadarMap: Decodable, Equatable {
     static func level(_ mm: Double) -> Int {
         mm < 0.1 ? 0 : mm < 1 ? 1 : mm < 5 ? 2 : mm < 10 ? 3 : mm < 30 ? 4 : 5
     }
+    /// The level as a smooth number for drawing: 1 at 0.1 mm/h, 2 at 1, 3 at 5, 4 at 10, 5 at 30 (even steps on a
+    /// log scale between), below 0.1 down toward 0 (the rim of the rain fades), at most 5.9
+    static func position(_ mm: Double) -> Double {
+        guard mm > 0.01 else { return 0 }
+        let edges = [0.1, 1, 5, 10, 30]
+        if mm < edges[0] { return log10(mm / 0.01) }
+        for k in 0..<4 where mm < edges[k + 1] { return Double(k + 1) + log(mm / edges[k]) / log(edges[k + 1] / edges[k]) }
+        return min(5.9, 5 + log(mm / 30) / log(3))
+    }
     /// The app's colours per level (1…5), and the legend's words
     static let colors = ["#6FB2FF", "#2B74F2", "#13A84E", "#F2B705", "#E8292A"]
     static let words = ["약한 비", "비", "다소 강한 비", "강한 비", "매우 강한 비"]

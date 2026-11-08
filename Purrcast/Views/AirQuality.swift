@@ -154,7 +154,7 @@ struct AirQualitySheet: View {
                                 }
                             }
                             .padding(.horizontal, 16)
-                            .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
+                            .background(UI.row, in: RoundedRectangle(cornerRadius: 16))
                         }
                     }
                     Text(AirText.sourceLine(m, model: model)).font(.ui(11)).foregroundStyle(UI.sub).padding(.top, 4)
@@ -179,7 +179,7 @@ struct AirQualitySheet: View {
 private extension View {
     func sheetCard() -> some View {
         padding(16).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
+            .background(UI.row, in: RoundedRectangle(cornerRadius: 16))
     }
 }
 

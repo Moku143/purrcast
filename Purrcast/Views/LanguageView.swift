@@ -13,10 +13,10 @@ struct BackToSettings: View {
             } label: {
                 HStack(spacing: 4) { Image(systemName: "chevron.left").font(.ui(13, .bold)); Text(L("설정")) }
             }
-            .font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(hex: "#BD4D10")).buttonStyle(.press(0.94))
+            .font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accentText).buttonStyle(.press(0.94))
             .accessibilityIdentifier("back-settings")
             Spacer()
-            Button { Haptic.soft(); dismiss() } label: { Text(L("완료")).tapArea() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(hex: "#BD4D10"))  // darker than the accent for this text only, like SheetHeader
+            Button { Haptic.soft(); dismiss() } label: { Text(L("완료")).tapArea() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accentText)  // darker than the accent for this text only, like SheetHeader
                 .buttonStyle(.press(0.94)).accessibilityIdentifier("sheet-close")
         }
         .padding(.horizontal, 20).padding(.top, 22).padding(.bottom, 14)
@@ -57,7 +57,7 @@ struct LanguageView: View {
                             Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(UI.faint) }
                         }
                     }
-                    .padding(.horizontal, 12).padding(.vertical, 10).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal, 12).padding(.vertical, 10).background(UI.row).clipShape(RoundedRectangle(cornerRadius: 12))
                     RowGroup {
                         if query.isEmpty { option("", title: L("기기 설정"), subtitle: Lang.deviceLanguage.nativeName) }
                         ForEach(Array(shown.enumerated()), id: \.element) { i, l in
@@ -117,27 +117,27 @@ struct LicensesView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Purrcast Pixel Medium").font(.ui(15, .bold))
                         Text(L("MGalmuri10 기반 · SIL OFL 1.1")).font(.ui(12.5)).foregroundStyle(UI.sub)
-                        Text(Self.text("FONT-NOTICE")).font(.system(size: 12, design: .monospaced)).foregroundStyle(Color(hex: "#33405E"))
+                        Text(Self.text("FONT-NOTICE")).font(.system(size: 12, design: .monospaced)).foregroundStyle(UI.body)
                             .padding(.top, 4)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 16).padding(.vertical, 14)
-                    .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 14))
-                    Text(Self.text("OFL")).font(.system(size: 11, design: .monospaced)).foregroundStyle(Color(hex: "#33405E"))
+                    .background(UI.row).clipShape(RoundedRectangle(cornerRadius: 14))
+                    Text(Self.text("OFL")).font(.system(size: 11, design: .monospaced)).foregroundStyle(UI.body)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16).padding(.vertical, 14)
-                        .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 14))
+                        .background(UI.row).clipShape(RoundedRectangle(cornerRadius: 14))
                     // the 날씨 달력's holidays (Holidays.json is made from the package)
                     VStack(alignment: .leading, spacing: 8) {
                         Text("holidays").font(.ui(15, .bold))
                         Text("MIT").font(.ui(12.5)).foregroundStyle(UI.sub)
-                        Text(Self.text("HOLIDAYS-LICENSE")).font(.system(size: 11, design: .monospaced)).foregroundStyle(Color(hex: "#33405E"))
+                        Text(Self.text("HOLIDAYS-LICENSE")).font(.system(size: 11, design: .monospaced)).foregroundStyle(UI.body)
                             .textSelection(.enabled).padding(.top, 4)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 16).padding(.vertical, 14)
-                    .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 14))
+                    .background(UI.row).clipShape(RoundedRectangle(cornerRadius: 14))
                 }
                 .foregroundStyle(UI.ink)
                 .padding(.horizontal, 16).padding(.bottom, 30)

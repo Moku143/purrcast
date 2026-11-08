@@ -9,6 +9,7 @@ import SwiftUI
 struct DayDetailView: View {
     @EnvironmentObject var model: AppModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var scheme
     @State var start: Int
     /// The tab the sheet opens on (the store screenshots open 미세먼지)
     var startMetric: DayMetric = .temp
@@ -56,10 +57,11 @@ struct DayDetailView: View {
 
     private func sheet(_ s: WeatherScene, index: Int) -> some View {
         let hourly = DayHourly.make(scene: s, index: index)
-        let ink = Ink(night: s.isNight)
+        let night = s.isNight || scheme == .dark      // dark mode: the night colours all day
+        let ink = Ink(night: night)
         var sel = picked ?? (index == 0 ? (hourly?.now ?? 12) : 12)
         if metric == .dust, let last = hourly?.dustLast { sel = min(sel, last) }   // no readings past the newest hour yet
-        var ctx = DayCtx(scene: s, index: index, day: s.days[index], hourly: hourly, ink: ink, night: s.isNight, sel: sel, metric: metric, scrub: scrubbing, fine: fine)
+        var ctx = DayCtx(scene: s, index: index, day: s.days[index], hourly: hourly, ink: ink, night: night, sel: sel, metric: metric, scrub: scrubbing, fine: fine)
         ctx.past = past != nil
         return GeometryReader { g in ScrollView(showsIndicators: false) {
             VStack(spacing: 12) {
@@ -92,11 +94,12 @@ struct DayDetailView: View {
 
     /// Day: the outfit colour fading into #EEF1F7 over the first 420 pt · night: navy all the way down
     private func sheetBackground(_ s: WeatherScene) -> some View {
-        let top = s.isNight ? Color(hex: "#1A2046") : Color(hex: Rules.background[Rules.clamp(s.level)])
-        let bottom = s.isNight ? Color(hex: "#0D1126") : Color(hex: "#EEF1F7")
+        let night = s.isNight || scheme == .dark
+        let top = night ? Color(hex: "#1A2046") : Color(hex: Rules.background[Rules.clamp(s.level)])
+        let bottom = night ? Color(hex: "#0D1126") : Color(hex: "#EEF1F7")
         return GeometryReader { g in
             LinearGradient(colors: [top, bottom], startPoint: .top,
-                           endPoint: UnitPoint(x: 0.5, y: s.isNight ? 1 : min(1, 420 / max(1, g.size.height))))
+                           endPoint: UnitPoint(x: 0.5, y: night ? 1 : min(1, 420 / max(1, g.size.height))))
         }
     }
 

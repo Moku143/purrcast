@@ -880,3 +880,7 @@
 "강수량 · 강수확률" = "Amount · Chance";
 "풍속 (%@) · 부는 방향" = "Speed (%@) · Blowing to";
 "체감온도에 맞는 옷" = "Dressed for the feels-like";
+"화면 모드" = "Appearance";
+"자동" = "Auto";
+"라이트" = "Light";
+"다크" = "Dark";

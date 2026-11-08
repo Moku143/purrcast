@@ -37,11 +37,11 @@ struct PlacesView: View {
     private var searchBox: some View {
         Button { Haptic.soft(); searching = true; focused = true } label: {
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").font(.system(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#8A93AA"))
-                Text(L("도시 · 동네 찾기")).font(.system(size: 15)).foregroundStyle(Color(hex: "#5F6983"))
+                Image(systemName: "magnifyingglass").font(.system(size: 14, weight: .semibold)).foregroundStyle(UI.hint)
+                Text(L("도시 · 동네 찾기")).font(.system(size: 15)).foregroundStyle(UI.muted)
                 Spacer()
             }
-            .padding(.horizontal, 12).frame(height: 42).background(Color(hex: "#E3E7EF")).clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 12).frame(height: 42).background(UI.field).clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain).padding(.horizontal, 16).padding(.bottom, 10).accessibilityIdentifier("search")
     }
@@ -50,17 +50,17 @@ struct PlacesView: View {
     private var searchBar: some View {
         HStack(spacing: 10) {
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").font(.system(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#8A93AA"))
+                Image(systemName: "magnifyingglass").font(.system(size: 14, weight: .semibold)).foregroundStyle(UI.hint)
                 TextField(L("도시 · 동네 찾기"), text: $query).font(.system(size: 15)).focused($focused)
                     .submitLabel(.search).accessibilityIdentifier("search-field")
                 if !query.isEmpty {
                     Button { query = "" } label: {
                         Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).foregroundStyle(.white)
-                            .frame(width: 18, height: 18).background(Color(hex: "#B9C0CF")).clipShape(Circle())
+                            .frame(width: 18, height: 18).background(Color(light: 0xB9C0CF, dark: 0x4A5268)).clipShape(Circle())
                     }.buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 12).frame(height: 42).background(Color(hex: "#E3E7EF")).clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 12).frame(height: 42).background(UI.field).clipShape(RoundedRectangle(cornerRadius: 12))
             Button(L("취소")) { endSearch() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accent)
         }
         .padding(.horizontal, 16).padding(.top, 22).padding(.bottom, 12)
@@ -105,7 +105,7 @@ struct PlacesView: View {
         if model.canAddPlace {
             Button { Haptic.soft(); searching = true; focused = true } label: {
                 Text(L("+ 지역 추가")).font(.system(size: 15, weight: .bold)).foregroundStyle(UI.accent)
-                    .frame(maxWidth: .infinity).frame(height: 50).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 20))
+                    .frame(maxWidth: .infinity).frame(height: 50).background(UI.row).clipShape(RoundedRectangle(cornerRadius: 20))
             }.buttonStyle(.press(0.98)).accessibilityIdentifier("add-place")
         } else {
             Button { Haptic.soft(); showPaywall = true } label: {
@@ -236,7 +236,7 @@ struct PlacesView: View {
         let r: CGFloat = item.first ? 14 : 0, b: CGFloat = item.last ? 14 : 0
         let shape = UnevenRoundedRectangle(topLeadingRadius: r, bottomLeadingRadius: b, bottomTrailingRadius: b, topTrailingRadius: r)
         return content()
-            .background(Color.white)
+            .background(UI.row)
             .clipShape(shape)
             .overlay(alignment: .top) {
                 if !item.first { Rectangle().fill(UI.line).frame(height: 1).padding(.leading, 16) }
@@ -284,13 +284,13 @@ struct PlacesView: View {
     }
 
     private var minuteChip: some View {
-        Text(L("분 단위 비")).font(.ui(11, .bold)).foregroundStyle(Color(hex: "#1F7A3A"))
-            .padding(.horizontal, 8).padding(.vertical, 4).background(Color(hex: "#DDF3E3")).clipShape(Capsule())
+        Text(L("분 단위 비")).font(.ui(11, .bold)).foregroundStyle(Color(light: 0x1F7A3A, dark: 0x86DBA0))
+            .padding(.horizontal, 8).padding(.vertical, 4).background(Color(light: 0xDDF3E3, dark: 0x1D3527)).clipShape(Capsule())
     }
 
     private var plusBadge: some View {
         Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(UI.accent)
-            .frame(width: 28, height: 28).background(Color(hex: "#FFF1E6")).clipShape(Circle())
+            .frame(width: 28, height: 28).background(UI.accentSoft).clipShape(Circle())
     }
 
     /// "추가됨", the + to add, or for a country a chevron (tapping lists its regions).
@@ -300,7 +300,7 @@ struct PlacesView: View {
                 Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(UI.faint)
             }
         } else if added {
-            Text(L("추가됨")).font(.ui(12, .bold)).foregroundStyle(Color(hex: "#8A93AA"))
+            Text(L("추가됨")).font(.ui(12, .bold)).foregroundStyle(UI.hint)
         } else {
             plusBadge
         }
@@ -374,11 +374,11 @@ private struct PlaceCard: View {
         .foregroundStyle(ink)
         .padding(.horizontal, 12).padding(.vertical, 10)
         .frame(minHeight: 104)
-        .background(LinearGradient(colors: [Color(hex: Rules.background[level]), night ? Color(hex: "#2B3566") : Color.white],
+        .background(LinearGradient(colors: [Color(hex: Rules.background[level]), night ? Color(hex: "#2B3566") : UI.row],
                                    startPoint: .topLeading, endPoint: .bottomTrailing))
         .overlay(RoundedRectangle(cornerRadius: 20).stroke(current ? UI.accent : Color.clear, lineWidth: 2))
         .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: Color(hex: "#1E2A44").opacity(0.10), radius: 8, y: 6)
+        .shadow(color: UI.shadow.opacity(0.10), radius: 8, y: 6)
         .animation(Motion.snappy, value: current)
     }
 

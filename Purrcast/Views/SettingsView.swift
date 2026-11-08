@@ -76,14 +76,14 @@ struct SettingsView: View {
                     PixelIcon(name: "sparkle", size: 26)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(Brand.plus + trialSuffix).font(.ui(15, .bold)).foregroundStyle(UI.ink)
-                        Text(plusPitch).font(.ui(12)).foregroundStyle(Color(hex: "#6B4A33"))
+                        Text(plusPitch).font(.ui(12)).foregroundStyle(UI.warmInk)
                     }
                     Spacer()
                     RowChevron()
                 }
                 .padding(.horizontal, 16).padding(.vertical, 14)
-                .background(LinearGradient(colors: [Color(hex: "#FFE3CC"), Color(hex: "#FFF4EA")], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#FFD1AE"), lineWidth: 1))
+                .background(LinearGradient(colors: [UI.warmTop, UI.warmBottom], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(UI.warmLine, lineWidth: 1))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
             }
             .buttonStyle(.press(0.98)).padding(.horizontal, 16).padding(.top, 6)
@@ -178,6 +178,9 @@ struct SettingsView: View {
             SectionLabel(text: L("화면"))
             RowGroup {
                 SettingRow(title: L("글씨")) { Pills(options: [(true, L("픽셀")), (false, L("일반"))], value: $model.pixelFont) }
+                RowDivider()
+                SettingRow(title: L("화면 모드")) { Pills(options: Appearance.allCases.map { ($0, $0.title) }, value: $model.appearance) }
+                    .accessibilityIdentifier("appearance")
                 RowDivider()
                 Button { go(.character) } label: {
                     SettingRow(icon: "heart", title: L("캐릭터"), subtitle: Voice.choices.isEmpty ? nil : L("이름 · 말투")) {
@@ -336,9 +339,9 @@ struct SourcesView: View {
             } label: {
                 HStack(spacing: 4) { Image(systemName: "chevron.left").font(.ui(13, .bold)); Text(L("설정")) }
             }
-            .font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(hex: "#BD4D10")).buttonStyle(.press(0.94))
+            .font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accentText).buttonStyle(.press(0.94))
             Spacer()
-            Button { Haptic.soft(); dismiss() } label: { Text(L("완료")).tapArea() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(hex: "#BD4D10"))  // darker than the accent for this text only, like SheetHeader
+            Button { Haptic.soft(); dismiss() } label: { Text(L("완료")).tapArea() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(UI.accentText)  // darker than the accent for this text only, like SheetHeader
                 .buttonStyle(.press(0.94)).accessibilityIdentifier("sheet-close")
         }
         .padding(.horizontal, 20).padding(.top, 22).padding(.bottom, 14)
@@ -361,8 +364,8 @@ struct SourcesView: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(hex: "#FFF4E8"))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(hex: "#FFD9B8"), lineWidth: 1))
+        .background(UI.warm)
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(UI.warmLine, lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
@@ -438,9 +441,9 @@ struct SourcesView: View {
             .foregroundStyle(UI.ink)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 16).padding(.vertical, 14)
-            .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 14))
+            .background(UI.row).clipShape(RoundedRectangle(cornerRadius: 14))
     }
-    private func line(_ t: String) -> some View { Text(t).font(.ui(12.5)).lineSpacing(3).foregroundStyle(Color(hex: "#33405E")) }
+    private func line(_ t: String) -> some View { Text(t).font(.ui(12.5)).lineSpacing(3).foregroundStyle(UI.body) }
     private func link(_ t: String, _ url: URL) -> some View {
         Link(destination: url) { Text(t).font(.ui(12.5, .semibold)).underline().foregroundStyle(UI.accent) }
     }
