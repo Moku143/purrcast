@@ -75,6 +75,46 @@ final class WidgetMatrixTests: XCTestCase {
         }
     }
 
+    /// Drafts of the hourly 2×4 with the 2×2's list (☂ · sun · 체감 · 최고 최저): the weather icon top right (A) or
+    /// beside the place (B), on the biggest, the 6.1" and the smallest (SE) iPhone, in Korean and English.
+    func testHoursLooks() throws {
+        guard ProcessInfo.processInfo.environment["MATRIX"] == "1" else { throw XCTSkip("run by the Widget matrix workflow") }
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "matrix", withExtension: "json"))
+        let cases = try JSONDecoder().decode([Case].self, from: Data(contentsOf: url))
+        let c = try XCTUnwrap(cases.first { $0.key == "day-partly-none-later-rain5" })
+        let cold = try XCTUnwrap(cases.first { $0.key == "day-clear-none-frost" })
+        defer { Lang.current = .ko; HoursStack.iconBesidePlace = false }
+        let sizes: [CGSize] = [CGSize(width: 364, height: 170), CGSize(width: 338, height: 158), CGSize(width: 321, height: 148)]
+        for (mode, beside) in [("A", false), ("B", true)] {
+            HoursStack.iconBesidePlace = beside
+            var rows: [UIImage] = []
+            for lang in [Lang.ko, .en] {
+                Lang.current = lang
+                for k in [c, cold] {
+                    let snap = WeatherSnapshot(scene: k.scene, character: PurrCharacter(rawValue: k.char) ?? .cat, plus: true, characterName: "",
+                                               placeShort: "서울", saved: Date(), clock12: lang.isLatinLike)
+                    let bg = WidgetBackground(level: Rules.clamp(snap.scene.level), night: snap.scene.isNight, scene: snap.scene)
+                    let r = ImageRenderer(content: HStack(alignment: .top, spacing: 12) {
+                        ForEach(Array(sizes.enumerated()), id: \.offset) { _, z in
+                            HoursWidgetView(snap: snap).padding(16).frame(width: z.width, height: z.height).background(bg)
+                                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        }
+                    })
+                    r.scale = 2
+                    if let img = r.uiImage { rows.append(img) }
+                }
+            }
+            let sheet = VStack(alignment: .leading, spacing: 12) { ForEach(Array(rows.enumerated()), id: \.offset) { _, img in Image(uiImage: img) } }
+                .padding(16).background(Color(hex: "#DDE3EE"))
+            let r = ImageRenderer(content: sheet)
+            r.scale = 2
+            let png = try XCTUnwrap(r.uiImage?.pngData())
+            let a = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")
+            a.name = "hours-\(mode)"; a.lifetime = .keepAlways
+            add(a)
+        }
+    }
+
     /// The bottom-right list never touches the character: every language, °C and °F, the coldest and the hottest
     /// numbers, every character, on the small widget, the hourly medium widget and the watch. Each line's left edge
     /// (from the views' probes) against the sprite's rightmost drawn pixel in that line's band; a line that would
@@ -122,7 +162,7 @@ final class WidgetMatrixTests: XCTestCase {
                             ("small", CGSize(width: 170, height: 170), AnyView(SmallWidgetView(snap: snap).padding(16).frame(width: 170, height: 170).background(bgv)),
                              ["chance", "sunsetIcon", "feels", "hilo"]),
                             ("hours", CGSize(width: 364, height: 170), AnyView(HoursWidgetView(snap: snap).padding(16).frame(width: 364, height: 170).background(bgv)),
-                             ["cond", "feels", "hilo"]),
+                             ["chance", "sunsetIcon", "feels", "hilo"]),
                             ("watch", CGSize(width: 198, height: 242), AnyView(WatchAppScreen(snap: snap).frame(width: 198, height: 242)),
                              ["chance", "sunsetIcon", "feels", "hilo"]),
                         ]
