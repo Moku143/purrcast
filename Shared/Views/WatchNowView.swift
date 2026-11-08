@@ -68,6 +68,8 @@ struct WatchNow: View {
                     }
                 }
                 .lineLimit(1).minimumScaleFactor(0.7)
+                // no wider than the room right of the character: a long word ("Ощущается") shrinks instead of touching it
+                .frame(maxWidth: max(56, g.size.width - 20 - (16.5 + catW + 6) - 3), alignment: .trailing)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                 .padding(.trailing, 20).padding(.bottom, 23.5)
             }

@@ -61,7 +61,7 @@
 "최저 %@" = "Terendah %@";
 "최고 %@" = "Tertinggi %@";
 "최고 %@ · 최저 %@" = "Tertinggi %@ · Terendah %@";
-"최고 %@ 최저 %@" = "Tertinggi %@ Terendah %@";
+"최고 %@ 최저 %@" = "Maks %@ Min %@";
 "바람 없어요" = "Tenang";
 "바람 약해요" = "Angin lemah";
 "산들바람" = "Angin sepoi";

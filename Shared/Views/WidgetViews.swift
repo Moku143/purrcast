@@ -136,6 +136,8 @@ struct HoursWidgetView: View {
                 }
                 .lineLimit(1).minimumScaleFactor(0.8)
                 .halo(ink)
+                // no wider than the room right of the character: a long word shrinks a little instead of running under it
+                .frame(maxWidth: max(60, g.size.width * 0.365 - catW / 2 - 18), alignment: .trailing)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.trailing, 14).padding(.top, panelTop - 46.5)
                 ZStack(alignment: .bottom) {
@@ -239,7 +241,7 @@ private struct SmallFace: View {
                     case "chance":
                         if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
                     case "feels":
-                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
+                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels").frame(maxWidth: 74, alignment: .trailing)
                     default:
                         if !snap.showsDashes { HiLoLine(snap: snap).probe("hilo").frame(maxWidth: 80, alignment: .trailing) }
                     }
@@ -286,7 +288,13 @@ struct HiLoLine: View {
         let hi = snap.deg(max(s.hi, s.temp)), lo = snap.deg(min(s.lo, s.temp))
         Group {
             if twoLines {
-                VStack(alignment: .trailing, spacing: 1) { Text(L("최고 %@", hi)); Text(L("최저 %@", lo)) }
+                // the same short words, broken after the high ("최고 15°" / "최저 14°", "Maks 15°" / "Min 14°")
+                let full = L("최고 %@ 최저 %@", hi, lo)
+                let cut = full.range(of: hi)?.upperBound ?? full.endIndex
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(String(full[..<cut]))
+                    Text(String(full[cut...]).trimmingCharacters(in: .whitespaces))
+                }
             } else {
                 Text(L("최고 %@ 최저 %@", hi, lo))
             }
