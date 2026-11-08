@@ -23,8 +23,8 @@ Purrcast menampilkan cuaca lewat hewan piksel: ia berganti pakaian sesuai suhu t
 • Payung: sedang hujan, nanti hujan (disimpan di tas), mungkin
 • Hujan di depan: "Hujan pukul 15–17", dan payung masuk tas
 • Langit hidup: awan bergerak, hujan dan salju turun, bintang berkelip, petir menyambar
-• Prakiraan per jam dan 10 hari, dengan grafik tiap hari: suhu, terasa, hujan, angin, UV, kelembapan, udara
-• Kualitas udara dan prakiraan berdampingan (Cuaca Apple dan MET Norway; di Korea juga KMA)
+• Prakiraan per jam dan 10 hari, dengan grafik tiap hari: suhu, terasa, hujan, angin, UV, kelembapan
+• Prakiraan berdampingan (Cuaca Apple dan MET Norway; di Korea juga KMA)
 • Widget Layar Utama dan Layar Kunci
 • Di atas jam Layar Kunci: karakter berpakaian dan suhu, lokasi, hujan, UV, matahari terbit dan terbenam, angin
 • Minggu ini: cuaca dan pakaian tujuh hari terakhir

@@ -23,8 +23,8 @@ Purrcast shows the weather through a pixel pet: it changes clothes with the feel
 • Umbrella states: raining now, rain later (packed in the bag), maybe
 • Rain ahead: "Rain 3–5 PM" — and the umbrella goes in the bag
 • Living sky: clouds drift, rain and snow fall, stars twinkle, lightning flashes
-• Hourly and 10-day forecast, with detailed charts for each day: temperature, feels-like, rain, wind, UV, humidity, air
-• Air quality and forecasts side by side (Apple Weather and MET Norway; in Korea, KMA too)
+• Hourly and 10-day forecast, with detailed charts for each day: temperature, feels-like, rain, wind, UV, humidity
+• Forecasts side by side (Apple Weather and MET Norway; in Korea, KMA too)
 • Home Screen and Lock Screen widgets
 • Above the Lock Screen clock: the dressed character and the temperature, the place, rain, UV, sunrise and sunset, wind
 • This week: the last seven days' weather and outfits

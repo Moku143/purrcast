@@ -23,8 +23,8 @@ Schnurrwetter zeigt das Wetter mit einem Pixel-Haustier: Es zieht sich nach der 
 • Schirm: Es regnet, es wird regnen (in der Tasche), vielleicht
 • Regen im Voraus: „Regen 15–17 Uhr“ – und der Schirm kommt in die Tasche
 • Lebendiger Himmel: Wolken ziehen, Regen und Schnee fallen, Sterne funkeln, Blitze zucken
-• Stündliche und 10-Tage-Vorhersage, mit Diagrammen für jeden Tag: Temperatur, gefühlt, Regen, Wind, UV, Luftfeuchtigkeit, Luft
-• Luftqualität und Vorhersagen im Vergleich (Apple Wetter und MET Norway; in Korea auch KMA)
+• Stündliche und 10-Tage-Vorhersage, mit Diagrammen für jeden Tag: Temperatur, gefühlt, Regen, Wind, UV, Luftfeuchtigkeit
+• Vorhersagen im Vergleich (Apple Wetter und MET Norway; in Korea auch KMA)
 • Widgets für Home- und Sperrbildschirm
 • Über der Uhr auf dem Sperrbildschirm: die angezogene Figur und die Temperatur, der Ort, Regen, UV, Sonnenauf- und -untergang, Wind
 • Diese Woche: Wetter und Outfits der letzten sieben Tage
