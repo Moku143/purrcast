@@ -227,8 +227,8 @@ private struct SmallFace: View {
             .frame(width: 80, height: 118, alignment: .bottom)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             .padding(.leading, 13).padding(.bottom, 8)
-            // close together at the bottom right, in the order on offer (SmallStack): the rain chance and the sun with
-            // their pixel icons, 체감 and 최고 · 최저 in words
+            // close together at the bottom right (SmallStack): the rain chance and the sun with their pixel icons, then
+            // 체감 and 최고 · 최저 in words at the bottom
             VStack(alignment: .trailing, spacing: 0.9) {
                 ForEach(SmallStack.order, id: \.self) { item in
                     switch item {
@@ -241,7 +241,7 @@ private struct SmallFace: View {
                     case "feels":
                         Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
                     default:
-                        if !snap.showsDashes { HiLoLine(snap: snap).frame(maxWidth: 82, alignment: .trailing).probe("hilo") }
+                        if !snap.showsDashes { HiLoLine(snap: snap).frame(maxWidth: 80, alignment: .trailing).probe("hilo") }
                     }
                 }
             }
@@ -253,19 +253,18 @@ private struct SmallFace: View {
     }
 }
 
-/// The order of the small widget's and the watch's list at the bottom right, top to bottom (the looks on offer):
-/// "chance" 강수확률 · "sun" sunset / sunrise · "feels" 체감 · "hilo" 최고 · 최저
-enum SmallStack { static var order = ["chance", "sun", "feels", "hilo"] }
+/// The small widget's and the watch's list at the bottom right, top to bottom: 강수확률, the sunset (sunrise at night),
+/// 체감, and 최고 · 최저 at the very bottom — the two with pixel icons above the two in words
+enum SmallStack { static let order = ["chance", "sun", "feels", "hilo"] }
 
 /// The chance of rain in the next hours (강수확률; 강수 alone is the amount, in mm): a pixel icon before the percentage,
-/// as the thermometers stand before the high and the low.
+/// as the sunset row has its icon.
 struct ChanceLine: View {
     let chance: Int
     var size: CGFloat = 9
     var icon: CGFloat = 11
-    /// The look being chosen: "raindrop", "umbrella", or "auto" (the umbrella from 50 %, the raindrop below)
-    static var look = "raindrop"
-    static func iconName(_ chance: Int) -> String { look == "auto" ? (chance >= 50 ? "umbrella" : "raindrop") : look }
+    /// The umbrella from 50 % (as the watch's corner), the raindrop below
+    static func iconName(_ chance: Int) -> String { chance >= 50 ? "umbrella" : "raindrop" }
     var body: some View {
         HStack(spacing: 1) {
             PixelIcon(name: Self.iconName(chance), size: icon)
@@ -276,27 +275,20 @@ struct ChanceLine: View {
     }
 }
 
-/// The day's high and low in the widgets' pixel look: the kit's hot thermometer before the high, the cold one
-/// before the low (as the sunset row has its icon). Widened by the temperature now: the day has reached it.
+/// The day's high and low in words, "최고 15° 최저 14°" — or on two lines where the list is narrow beside the character
+/// (the watch). Widened by the temperature now: the day has reached it.
 struct HiLoLine: View {
-    /// In words ("최고 15° 최저 14°") or behind the thermometers
-    static var words = true
     let snap: WeatherSnapshot
     var size: CGFloat = 9
-    var icon: CGFloat = 11
+    var twoLines = false
     var body: some View {
         let s = snap.scene
         let hi = snap.deg(max(s.hi, s.temp)), lo = snap.deg(min(s.lo, s.temp))
         Group {
-            if Self.words {
-                Text(L("최고 %@ 최저 %@", hi, lo))
+            if twoLines {
+                VStack(alignment: .trailing, spacing: 1) { Text(L("최고 %@", hi)); Text(L("최저 %@", lo)) }
             } else {
-                HStack(spacing: 1) {
-                    PixelIcon(name: "thermo_hot", size: icon)
-                    Text(hi).padding(.trailing, size / 3)
-                    PixelIcon(name: "thermo_cold", size: icon)
-                    Text(lo)
-                }
+                Text(L("최고 %@ 최저 %@", hi, lo))
             }
         }
         .font(.px(size))
