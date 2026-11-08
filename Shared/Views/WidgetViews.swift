@@ -226,11 +226,10 @@ private struct SmallFace: View {
             // close together, down by the rain chance; the sunset row a little higher
             VStack(alignment: .trailing, spacing: 0.9) {
                 if let t = sunsetTile(s, clock12: snap.clock12) { HStack(spacing: 2) { PixelIcon(name: "sunset", size: 11).probe("sunsetIcon"); Text(t).font(.px(9)).probe("sunsetText") }.padding(.bottom, 2) }
+                // the rain chance, then how it feels, then the day's high and low at the bottom
+                if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
                 Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
-                if !snap.showsDashes {
-                    ChanceLine(chance: chanceNow(s)).probe("chance")
-                    HiLoLine(snap: snap).probe("hilo")
-                }
+                if !snap.showsDashes { HiLoLine(snap: snap).probe("hilo") }
             }
             .lineLimit(1).minimumScaleFactor(0.8)
             .halo(ink)
@@ -240,24 +239,19 @@ private struct SmallFace: View {
     }
 }
 
-/// The chance of rain in the next hours (강수확률; 강수 alone is the amount, in mm): the kit's raindrop before the
-/// percentage, as the thermometers stand before the high and the low — or written out, the other look on offer.
+/// The chance of rain in the next hours (강수확률; 강수 alone is the amount, in mm): a pixel icon before the percentage,
+/// as the thermometers stand before the high and the low.
 struct ChanceLine: View {
     let chance: Int
     var size: CGFloat = 9
     var icon: CGFloat = 11
-    /// The look being chosen: false the raindrop and "90%", true "강수확률 90%"
-    static var word = false
+    /// The look being chosen: "raindrop", "umbrella", or "auto" (the umbrella from 50 %, the raindrop below)
+    static var look = "raindrop"
+    static func iconName(_ chance: Int) -> String { look == "auto" ? (chance >= 50 ? "umbrella" : "raindrop") : look }
     var body: some View {
-        Group {
-            if Self.word {
-                Text(L("강수확률 %d%%", chance))
-            } else {
-                HStack(spacing: 1) {
-                    PixelIcon(name: "raindrop", size: icon)
-                    Text("\(chance)%")
-                }
-            }
+        HStack(spacing: 1) {
+            PixelIcon(name: Self.iconName(chance), size: icon)
+            Text("\(chance)%")
         }
         .font(.px(size))
         .accessibilityElement(children: .ignore).accessibilityLabel(L("강수확률 %d%%", chance))

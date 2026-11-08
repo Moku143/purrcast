@@ -49,10 +49,10 @@ final class WidgetMatrixTests: XCTestCase {
                             characterName: "", placeShort: "서울", saved: Date())
         }
         func bg(_ s: WeatherScene) -> some View { WidgetBackground(level: Rules.clamp(s.level), night: s.isNight, scene: s) }
-        defer { ChanceLine.word = false }
-        // each look of the rain chance: the raindrop, then "강수확률" written out
-        for (name, word) in [("hilo-everywhere", false), ("hilo-everywhere-word", true)] {
-        ChanceLine.word = word
+        defer { ChanceLine.look = "raindrop" }
+        // each look of the rain chance: the raindrop, the umbrella, or the umbrella from 50 %
+        for (name, look) in [("chance-drop", "raindrop"), ("chance-umbrella", "umbrella"), ("chance-auto", "auto")] {
+        ChanceLine.look = look
         let sheet = VStack(alignment: .leading, spacing: 16) {
             ForEach(Array(snaps.enumerated()), id: \.offset) { _, snap in
                 HStack(alignment: .top, spacing: 16) {

@@ -245,7 +245,7 @@ struct WatchSummary: View {
                     Text(snap.deg(s.lo))
                     if f.chance >= 10 {
                         Text(" · ")
-                        if ChanceLine.word { Text(L("강수확률 %d%%", f.chance)) } else { PixelIcon(name: "raindrop", size: 12); Text("\(f.chance)%") }
+                        PixelIcon(name: ChanceLine.iconName(f.chance), size: 12); Text("\(f.chance)%")
                     }
                 }
                 .font(.system(size: 12, weight: .semibold))
