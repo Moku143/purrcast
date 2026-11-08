@@ -158,49 +158,6 @@ final class WidgetMatrixTests: XCTestCase {
         add(a)
     }
 
-    /// The list's looks side by side on the 6.1" 2×2 and the watch (Korean, rain and cold): the icon lines' sizes
-    /// against 체감 · 최고 최저 — now (☂ full, sun 70 %), both icon lines a little smaller (85 %), all one size.
-    func testListSizesLooks() throws {
-        guard ProcessInfo.processInfo.environment["MATRIX"] == "1" else { throw XCTSkip("run by the Widget matrix workflow") }
-        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "matrix", withExtension: "json"))
-        let cases = try JSONDecoder().decode([Case].self, from: Data(contentsOf: url))
-        let c = try XCTUnwrap(cases.first { $0.key == "day-overcast-rain" })
-        let cold = try XCTUnwrap(cases.first { $0.key == "day-clear-none-frost" })
-        let keep = (ListLook.chance, ListLook.sun)
-        defer { Lang.current = .ko; ListLook.chance = keep.0; ListLook.sun = keep.1 }
-        Lang.current = .ko
-        var cols: [UIImage] = []
-        for (ch, sun) in [(CGFloat(1), CGFloat(0.7)), (0.85, 0.85), (1, 1)] {
-            ListLook.chance = ch; ListLook.sun = sun
-            var cells: [UIImage] = []
-            for k in [c, cold] {
-                var s = k.scene
-                if k.key == "day-clear-none-frost" { s.temp = -13; s.hi = -13; s.lo = -14; s.feels = -18 }
-                let snap = WeatherSnapshot(scene: s, character: PurrCharacter(rawValue: k.char) ?? .cat, plus: true, characterName: "",
-                                           placeShort: "성읍리", saved: Date(), clock12: false)
-                let r = ImageRenderer(content: HStack(alignment: .top, spacing: 12) {
-                    SmallWidgetView(snap: snap).padding(16).frame(width: 158, height: 158)
-                        .background(WidgetBackground(level: Rules.clamp(s.level), night: s.isNight, scene: s))
-                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    WatchAppScreen(snap: snap).frame(width: 198, height: 242).clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
-                })
-                r.scale = 2
-                if let img = r.uiImage { cells.append(img) }
-            }
-            let col = ImageRenderer(content: VStack(alignment: .leading, spacing: 12) { ForEach(Array(cells.enumerated()), id: \.offset) { _, i in Image(uiImage: i) } })
-            col.scale = 2
-            if let img = col.uiImage { cols.append(img) }
-        }
-        let sheet = HStack(alignment: .top, spacing: 36) { ForEach(Array(cols.enumerated()), id: \.offset) { _, img in Image(uiImage: img) } }
-            .padding(16).background(Color(hex: "#DDE3EE"))
-        let r = ImageRenderer(content: sheet)
-        r.scale = 2
-        let png = try XCTUnwrap(r.uiImage?.pngData())
-        let a = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")
-        a.name = "list-size-looks"; a.lifetime = .keepAlways
-        add(a)
-    }
-
     /// The bottom-right list never touches the character: every language, °C and °F, the coldest and the hottest
     /// numbers, every character, on the small widget, the hourly medium widget and the watch. Each line's left edge
     /// (from the views' probes) against the sprite's rightmost drawn pixel in that line's band; a line that would

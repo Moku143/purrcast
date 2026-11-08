@@ -62,7 +62,7 @@ struct WatchNow: View {
                         switch item {
                         case "sun":
                             if let t = sunsetTile(s, clock12: snap.clock12) {
-                                SunLine(icon: sunTileIcon(s), time: t, size: 12 * k)
+                                SunLine(icon: sunTileIcon(s), time: t, size: 12 * k, iconSize: 14 * k)
                                     .capWidth(narrow)
                             }
                         case "chance":
