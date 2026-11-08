@@ -361,7 +361,8 @@ private struct PlaceCard: View {
     let level: Int
     let current: Bool
 
-    private var night: Bool { scene?.time == "night" }
+    @Environment(\.colorScheme) private var scheme
+    private var night: Bool { scene?.time == "night" || scheme == .dark }
     private var ink: Color { night ? Color(hex: "#F3F5FF") : UI.ink }
 
     var body: some View {
@@ -374,7 +375,7 @@ private struct PlaceCard: View {
         .foregroundStyle(ink)
         .padding(.horizontal, 12).padding(.vertical, 10)
         .frame(minHeight: 104)
-        .background(LinearGradient(colors: [Color(hex: Rules.background[level]), night ? Color(hex: "#2B3566") : UI.row],
+        .background(LinearGradient(colors: [UI.outfit(level, dark: scheme == .dark), night ? Color(hex: "#2B3566") : UI.row],
                                    startPoint: .topLeading, endPoint: .bottomTrailing))
         .overlay(RoundedRectangle(cornerRadius: 20).stroke(current ? UI.accent : Color.clear, lineWidth: 2))
         .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -403,7 +404,7 @@ private struct PlaceCard: View {
             }
             Text(subtitle).font(.ui(12)).opacity(0.8)
             if let b = scene?.bubble {
-                Text(b.text).font(.ui(11, .bold)).foregroundStyle(UI.ink)
+                Text(b.text).font(.ui(11, .bold)).foregroundStyle(Color(hex: "#1A2440"))     // on its white tag in both modes
                     .padding(.horizontal, 8).padding(.vertical, 4)
                     .background(Color.white.opacity(0.85)).clipShape(Capsule())
                     .padding(.top, 2)

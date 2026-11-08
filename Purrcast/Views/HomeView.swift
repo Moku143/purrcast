@@ -248,6 +248,7 @@ struct HomeView: View {
                 .frame(width: skyWidth, height: heroH + topInset, alignment: .top)
                 .clipped()
                 .mask(LinearGradient(stops: [.init(color: .black, location: 0.7), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
+                .opacity(scheme == .dark && !s.isNight ? 0.55 : 1)     // dark mode: the day's sun and white clouds quieter
                 .offset(x: -sidePad, y: -topInset)
                 .id("sky" + skyKey(s)).transition(.opacity)
         }

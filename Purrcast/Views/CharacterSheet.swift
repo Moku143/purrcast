@@ -8,6 +8,7 @@ struct CharacterSheet: View {
     @EnvironmentObject var purchases: Purchases
     @Binding var route: Route?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var scheme
     @State private var editing: PurrCharacter?
     @State private var draft = ""
     @FocusState private var nameFocused: Bool
@@ -61,7 +62,7 @@ struct CharacterSheet: View {
                 .frame(height: 30).padding(.horizontal, 6).padding(.top, 6).padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity).frame(height: 170)
-        .background(selected ? Color(hex: Rules.background[level]) : UI.row)
+        .background(selected ? UI.outfit(level, dark: scheme == .dark) : UI.row)
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(selected ? UI.accent : UI.row, lineWidth: 3))
         .overlay(alignment: .topTrailing) { badge(selected: selected, locked: locked) }
         .clipShape(RoundedRectangle(cornerRadius: 18))

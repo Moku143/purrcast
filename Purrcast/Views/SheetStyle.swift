@@ -34,6 +34,15 @@ enum UI {
     static let shadow = Color(light: 0x1E2A44, 1, dark: 0x000000, 1)
 }
 
+extension UI {
+    /// A card in the outfit's colour (the chosen character, a place): as it is in light mode, deepened toward the
+    /// night's navy in dark mode so the light words on it read
+    static func outfit(_ level: Int, dark: Bool) -> Color {
+        let bg = Rules.background[Rules.clamp(level)]
+        return dark ? Color.mix(bg, "#0B0F24", 0.62) : Color(hex: bg)
+    }
+}
+
 /// 설정 → 화면 → 화면 모드: follow the phone, or always light or dark
 enum Appearance: String, CaseIterable {
     case auto, light, dark
