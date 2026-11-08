@@ -24,7 +24,7 @@ struct WatchNow: View {
             // the list's room right of the character (beside its coat, hood or umbrella)
             let narrow = max(56, g.size.width - 20 - (16.5 + catW + 6) - 3)
             // the thermometer line, at the bottom beside the coat's hem, has a little more (the clearance test checks it)
-            let hiloRoom = max(64, g.size.width - 20 - (16.5 + catW * 0.84))
+            let hiloRoom = max(64, g.size.width - 20 - (16.5 + catW * 0.95))
             ZStack(alignment: .topLeading) {
                 WidgetBackground(level: lv, night: s.isNight, scene: s, animate: !dimmed)
                 HStack(spacing: 4) {
