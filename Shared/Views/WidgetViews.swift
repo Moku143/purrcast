@@ -108,8 +108,9 @@ struct MediumWidgetView: View {
 }
 
 /// Medium, hourly (2×4): place and temperature top left, the weather icon top right; the character standing on the
-/// hours panel with its bubble, and beside it the weather, feels-like and today's range down to its feet; the next
-/// six hours on the panel — time, sky, temperature and rain.
+/// hours panel with its bubble, and beside it the 2×2's list (☂ · sun · 체감 · 최고 최저, all one size) down to its
+/// feet; the next six hours on the panel — time, sky, temperature and rain. On the small phones (SE, mini: under
+/// 157 pt tall) the icon goes, so the list keeps clear of the top, and the temperature is a size down, clear of the panel.
 struct HoursWidgetView: View {
     let snap: WeatherSnapshot
     var body: some View {
@@ -119,27 +120,23 @@ struct HoursWidgetView: View {
         GeometryReader { g in
             let catW: CGFloat = 40, catH = catW * Sprite.height / Sprite.width
             let panelH: CGFloat = 70, panelTop = g.size.height - 8 - panelH
+            let small = g.size.height < 157
             ZStack(alignment: .topLeading) {
                 VStack(alignment: .leading, spacing: 0) {
-                    HStack(spacing: 4) {
-                        Text(snap.placeShort).font(.px(11)).lineLimit(1).minimumScaleFactor(0.7).probe("place")
-                        if HoursStack.iconBesidePlace { PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16).probe("icon") }
-                    }
-                    Text(snap.deg(s.temp)).font(.px(44)).lineLimit(1).probe("temp").padding(.top, 4)
+                    Text(snap.placeShort).font(.px(11)).lineLimit(1).minimumScaleFactor(0.7).probe("place")
+                    Text(snap.deg(s.temp)).font(.px(small ? 36 : 44)).lineLimit(1).probe("temp").padding(.top, 4)
                 }
                 .halo(ink)
                 .padding(.leading, 14).padding(.top, 10)
-                if !HoursStack.iconBesidePlace {
+                if !small {
                     PixelIcon(name: s.hours.first?.icon ?? "cloud", size: 16).probe("icon")
                         .frame(maxWidth: .infinity, alignment: .trailing)
                         .padding(.trailing, 14).padding(.top, 10)
                 }
-                // the 2×2's list (HoursStack), every line right-aligned, standing on the panel beside the character
+                // the 2×2's list (SmallStack), every line right-aligned, standing on the panel beside the character
                 VStack(alignment: .trailing, spacing: 0.9) {
-                    ForEach(HoursStack.order, id: \.self) { item in
+                    ForEach(SmallStack.order, id: \.self) { item in
                         switch item {
-                        case "cond":
-                            Text(Compact.condWord(s)).font(.px(11)).probe("cond")
                         case "sun":
                             if let t = sunsetTile(s, clock12: snap.clock12) {
                                 HStack(spacing: iconGap(9)) { PixelIcon(name: sunTileIcon(s), size: 11).probe("sunsetIcon"); Text(t).font(.px(9)) }
@@ -147,7 +144,7 @@ struct HoursWidgetView: View {
                         case "chance":
                             if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
                         case "feels":
-                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(feelsSize(9))).probe("feels")
+                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
                         default:
                             if !snap.showsDashes { HiLoLine(snap: snap).probe("hilo") }
                         }
@@ -300,13 +297,6 @@ extension View { func capWidth(_ w: CGFloat) -> some View { CapWidth(max: w) { s
 /// The small widget's and the watch's list at the bottom right, top to bottom: 강수확률, the sunset (sunrise at night),
 /// 체감, and 최고 · 최저 at the very bottom — the two with pixel icons above the two in words
 enum SmallStack { static let order = ["chance", "sun", "feels", "hilo"] }
-
-/// The hourly 2×4's list beside the character, top to bottom: the 2×2's order. `iconBesidePlace` moves the weather
-/// icon from the top right to beside the place name.
-enum HoursStack {
-    static var order = SmallStack.order
-    static var iconBesidePlace = false
-}
 
 /// The chance of rain in the next hours (강수확률; 강수 alone is the amount, in mm): a pixel icon before the percentage,
 /// as the sunset row has its icon.
