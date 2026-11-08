@@ -241,7 +241,7 @@ private struct SmallFace: View {
                     case "feels":
                         Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels")
                     default:
-                        if !snap.showsDashes { HiLoLine(snap: snap).frame(maxWidth: 80, alignment: .trailing).probe("hilo") }
+                        if !snap.showsDashes { HiLoLine(snap: snap).probe("hilo").frame(maxWidth: 80, alignment: .trailing) }
                     }
                 }
             }

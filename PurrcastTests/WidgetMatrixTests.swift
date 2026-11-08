@@ -76,6 +76,100 @@ final class WidgetMatrixTests: XCTestCase {
         }
     }
 
+    /// The bottom-right list never touches the character: every language, °C and °F, the coldest and the hottest
+    /// numbers, every character, on the small widget, the hourly medium widget and the watch. Each line's left edge
+    /// (from the views' probes) against the sprite's rightmost drawn pixel in that line's band; a line that would
+    /// need more than the 0.8 shrink is cut off and counts too. The closest cases come out as pictures.
+    func testListClearsTheCharacter() throws {
+        guard ProcessInfo.processInfo.environment["MATRIX"] == "1" else { throw XCTSkip("run by the Widget matrix workflow") }
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "matrix", withExtension: "json"))
+        let cases = try JSONDecoder().decode([Case].self, from: Data(contentsOf: url))
+        defer { Lang.current = .ko }
+        // (case, temp, hi, lo, feels) in °C: the coldest and the hottest the list will meet
+        let runs: [(String, Int, Int, Int, Int)] = [
+            ("day-clear-none-frost", -22, -18, -27, -31), ("day-overcast-rain", -3, -1, -9, -8), ("night-clear-none", -22, -18, -27, -31),
+            ("day-clear-none-heat", 40, 43, 31, 46), ("day-overcast-rain", 33, 36, 29, 38),
+        ]
+        // the sprite's drawn pixels, per asset: for each of its rows, the rightmost opaque column (−1: none)
+        var masks: [String: (w: Int, h: Int, right: [Int])] = [:]
+        func mask(_ name: String) -> (w: Int, h: Int, right: [Int])? {
+            if let m = masks[name] { return m }
+            guard let img = UIImage(named: name)?.cgImage else { return nil }
+            let w = img.width, h = img.height
+            var px = [UInt8](repeating: 0, count: w * h * 4)
+            guard let ctx = CGContext(data: &px, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4, space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+            ctx.draw(img, in: CGRect(x: 0, y: 0, width: w, height: h))
+            var right = [Int](repeating: -1, count: h)
+            for y in 0..<h { for x in stride(from: w - 1, through: 0, by: -1) where px[(y * w + x) * 4 + 3] > 40 { right[y] = x; break } }
+            let m = (w, h, right); masks[name] = m
+            return m
+        }
+        var report: [[String: Any]] = [], closest: [(gap: Double, name: String, png: Data)] = []
+        for lang in Lang.allCases {
+            Lang.current = lang
+            for unitF in [false, true] {
+                for (key, temp, hi, lo, feels) in runs {
+                    guard let c = cases.first(where: { $0.key == key }) else { continue }
+                    for ch in PurrCharacter.allCases {
+                        var s = c.scene
+                        s.temp = temp; s.hi = hi; s.lo = lo; s.feels = feels
+                        if !s.hours.isEmpty { s.hours[0].chance = 100 }      // "☂100%", the widest the chance gets
+                        let snap = WeatherSnapshot(scene: s, character: ch, plus: true, characterName: "", placeShort: "서울", saved: Date(),
+                                                   unitF: unitF, clock12: lang.isLatinLike)
+                        let lv = Rules.clamp(s.level), rain = RainState(rawValue: s.rain) ?? .none
+                        let bgv = WidgetBackground(level: lv, night: s.isNight, scene: s)
+                        let surfaces: [(String, CGSize, AnyView, [String])] = [
+                            ("small", CGSize(width: 170, height: 170), AnyView(SmallWidgetView(snap: snap).padding(16).frame(width: 170, height: 170).background(bgv)),
+                             ["chance", "sunsetIcon", "feels", "hilo"]),
+                            ("hours", CGSize(width: 364, height: 170), AnyView(HoursWidgetView(snap: snap).padding(16).frame(width: 364, height: 170).background(bgv)),
+                             ["cond", "feels", "hilo"]),
+                            ("watch", CGSize(width: 198, height: 242), AnyView(WatchAppScreen(snap: snap).frame(width: 198, height: 242)),
+                             ["chance", "sunsetIcon", "feels", "hilo"]),
+                        ]
+                        for (surface, size, view, lines) in surfaces {
+                            var fr: [String: CGRect] = [:]
+                            Probe.sink = { n, r in fr[n] = r }
+                            let r = ImageRenderer(content: view.frame(width: size.width, height: size.height).coordinateSpace(name: "probe"))
+                            r.scale = 2
+                            let img = r.uiImage
+                            Probe.sink = nil
+                            guard let cat = fr["cat"], let m = mask(ch.stand(level: lv, rain: rain)) else { continue }
+                            var worst = Double.infinity, worstLine = ""
+                            for line in lines {
+                                guard let f = fr[line] else { continue }
+                                // the sprite's rightmost pixel within this line's height
+                                var edge = -CGFloat.infinity
+                                let y0 = max(0, Int(((f.minY - cat.minY) / cat.height * CGFloat(m.h)).rounded(.down)))
+                                let y1 = min(m.h - 1, Int(((f.maxY - cat.minY) / cat.height * CGFloat(m.h)).rounded(.up)))
+                                if y0 <= y1 { for y in y0...y1 where m.right[y] >= 0 { edge = max(edge, cat.minX + CGFloat(m.right[y] + 1) / CGFloat(m.w) * cat.width) } }
+                                guard edge > -.infinity else { continue }
+                                let gap = Double(f.minX - edge)
+                                if gap < worst { worst = gap; worstLine = line }
+                            }
+                            let name = "\(lang.rawValue)-\(unitF ? "F" : "C")-\(key)-\(temp)-\(ch.rawValue)-\(surface)"
+                            report.append(["name": name, "lang": lang.rawValue, "unit": unitF ? "F" : "C", "surface": surface, "char": ch.rawValue,
+                                           "gap": worst.isFinite ? (worst * 10).rounded() / 10 : 999, "line": worstLine])
+                            if worst.isFinite, let png = img?.pngData() {
+                                closest.append((worst, name, png))
+                                closest.sort { $0.gap < $1.gap }
+                                if closest.count > 16 { closest.removeLast() }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        let j = XCTAttachment(data: try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted]), uniformTypeIdentifier: "public.json")
+        j.name = "clearance-report"; j.lifetime = .keepAlways
+        add(j)
+        for (i, c) in closest.enumerated() {
+            let a = XCTAttachment(data: c.png, uniformTypeIdentifier: "public.png")
+            a.name = String(format: "clear-%02d_%@", i, c.name); a.lifetime = .keepAlways
+            add(a)
+        }
+    }
+
     /// The design canvas's kit, for one weather (rain, umbrella open, a bubble): each surface's sky alone, the
     /// pieces that stay pictures (bubbles, lock-screen gauges), the whole surface for checking, and where every
     /// part lands (frames in points, from the views' own probes) with its words — so the canvas can rebuild the
