@@ -215,13 +215,21 @@ struct SmallWidgetView: View {
 }
 
 /// The 2×2 face, measured from the widget's edges (170 × 170 on the board; anchored to the edges, so smaller
-/// widgets keep the same margins).
+/// widgets keep the same margins). On the 6.1" phones (158) the list's widest lines get a little less room; on the
+/// SE (148, under 152) the character is drawn smaller in proportion and 최고 · 최저 sits behind the thermometers,
+/// as on the watch, so the list keeps clear of the character there too.
 private struct SmallFace: View {
     let snap: WeatherSnapshot
     var body: some View {
+        GeometryReader { g in face(side: min(g.size.width, g.size.height)) }
+    }
+
+    private func face(side: CGFloat) -> some View {
         let s = snap.scene, ink = Ink(night: s.isNight), lv = Rules.clamp(s.level)
         let rain = RainState(rawValue: s.rain) ?? .none
-        ZStack(alignment: .topLeading) {
+        let tiny = side < 152, k: CGFloat = tiny ? side / 170 : 1
+        let less = max(0, 170 - side) * 0.25      // the wide lines' caps, a touch narrower on smaller widgets
+        return ZStack(alignment: .topLeading) {
             HStack(spacing: 4) {
                 Text(snap.placeShort).font(.px(11)).lineLimit(1).minimumScaleFactor(0.7).probe("place")
                 Spacer(minLength: 0)
@@ -233,19 +241,19 @@ private struct SmallFace: View {
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.top, 44).padding(.trailing, 6)
             ZStack(alignment: .bottom) {
-                CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72, animate: false).probe("cat")
-                    .frame(width: 72, height: 84, alignment: .bottom)
+                CharacterSprite(character: snap.shownCharacter, level: lv, rain: rain, width: 72 * k, animate: false).probe("cat")
+                    .frame(width: 72 * k, height: 84 * k, alignment: .bottom)
                 if let b = s.bubble {
                     // a word ("비", "한파", "폭염") fits above the head; longer names show just the icon here
                     BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Compact.bubbleWord(s, max: 5), fontSize: 9).fixedSize().probe("bubble")
-                        .scaleEffect(0.66, anchor: .bottom)      // small enough that a warning name clears "-12°"
-                        .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 84))
-                        .offset(x: bubbleShiftX(snap.shownCharacter, rain, level: lv, spriteWidth: 72))
+                        .scaleEffect(0.66 * k, anchor: .bottom)      // small enough that a warning name clears "-12°"
+                        .padding(.bottom, bubbleBottom(snap.shownCharacter, rain, level: lv, spriteHeight: 84 * k))
+                        .offset(x: bubbleShiftX(snap.shownCharacter, rain, level: lv, spriteWidth: 72 * k))
                 }
             }
-            .frame(width: 80, height: 118, alignment: .bottom)
+            .frame(width: 80 * k, height: 118 * k, alignment: .bottom)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-            .padding(.leading, 13).padding(.bottom, 8)
+            .padding(.leading, 13 * k).padding(.bottom, 8 * k)
             // close together at the bottom right (SmallStack): the rain chance and the sun with their pixel icons, then
             // 체감 and 최고 · 최저 in words at the bottom
             VStack(alignment: .trailing, spacing: 0.9) {      // every line right-aligned
@@ -258,9 +266,9 @@ private struct SmallFace: View {
                     case "chance":
                         if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
                     case "feels":
-                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(feelsSize(9))).probe("feels").capWidth(74)
+                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(feelsSize(9))).probe("feels").capWidth(74 - less)
                     default:
-                        if !snap.showsDashes { HiLoLine(snap: snap).probe("hilo").capWidth(80) }
+                        if !snap.showsDashes { HiLoLine(snap: snap, thermo: tiny).probe("hilo").capWidth(80 - less) }
                     }
                 }
             }
