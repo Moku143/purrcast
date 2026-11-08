@@ -54,6 +54,45 @@ final class LiveActivities {
          "plan": "plus", "start": start, "rain": rain, "alert": alert]
     }
 
+    /// The last registration the server took (its JSON), kept so an activity's own token can follow it even when the
+    /// system wakes the app in the background just for that token (no model yet)
+    private var savedBody: Data? {
+        get { UserDefaults.standard.data(forKey: "la.body") }
+        set { UserDefaults.standard.set(newValue, forKey: "la.body") }
+    }
+    private var activitiesWatched = false
+
+    /// Call from the app's init (it runs on a background launch too): each alert the server starts on this phone
+    /// hands out its own push token, and that goes to the server, which then keeps the alert in step with the
+    /// forecast (the rain's end moving, the amount) and takes it away when the rain is over.
+    func watchActivities() {
+        guard !activitiesWatched, WeatherSource.serverURL != nil else { return }
+        activitiesWatched = true
+        Task { [weak self] in
+            for a in Activity<RainActivityAttributes>.activities { self?.follow(a) }
+            for await a in Activity<RainActivityAttributes>.activityUpdates { self?.follow(a) }
+        }
+    }
+
+    private func follow(_ a: Activity<RainActivityAttributes>) {
+        Task { [weak self] in
+            for await data in a.pushTokenUpdates {
+                await self?.sendActivityToken(data.map { String(format: "%02x", $0) }.joined())
+            }
+        }
+    }
+
+    private func sendActivityToken(_ hex: String) async {
+        guard let base = WeatherSource.serverURL, let saved = savedBody,
+              var body = (try? JSONSerialization.jsonObject(with: saved)) as? [String: Any] else { return }
+        body["act"] = hex
+        guard let data = try? JSONSerialization.data(withJSONObject: body, options: [.sortedKeys]) else { return }
+        var req = URLRequest(url: base.appendingPathComponent("v1/devices"))
+        req.httpMethod = "POST"; req.httpBody = data
+        req.setValue("application/json", forHTTPHeaderField: "content-type")
+        _ = try? await session.data(for: req)
+    }
+
     /// Call once at launch: follow the tokens ActivityKit hands out and register each new one.
     func watch(_ model: AppModel) {
         guard !watching, WeatherSource.serverURL != nil else { return }
@@ -88,7 +127,7 @@ final class LiveActivities {
         req.httpMethod = "POST"; req.httpBody = data
         req.setValue("application/json", forHTTPHeaderField: "content-type")
         guard let (out, resp) = try? await session.data(for: req), (resp as? HTTPURLResponse)?.statusCode == 200 else { return }
-        lastSent = key; lastSentAt = Date(); forgotten = false
+        lastSent = key; lastSentAt = Date(); forgotten = false; savedBody = data
         if let j = try? JSONSerialization.jsonObject(with: out) as? [String: Any], let ok = j["push"] as? Bool {
             let was = pushOK
             pushOK = ok

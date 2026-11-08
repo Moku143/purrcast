@@ -12,6 +12,7 @@ struct PurrcastApp: App {
         // before launch ends, so the tap that opened the app reaches it too
         UNUserNotificationCenter.current().delegate = NotificationRouter.shared
         NightRefresh.register()
+        LiveActivities.shared.watchActivities()     // an alert's own token, even when woken just for it
     }
 
     /// -narrow (debug): the page in a 320 × 693-pt box — the width of a 6.1-inch phone with Display Zoom on — so the

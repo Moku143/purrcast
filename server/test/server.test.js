@@ -959,7 +959,7 @@ test('Abroad: scene.dust from OpenWeather with Apple or MET weather', async () =
 });
 
 // ---- Live Activities (push.js) ----
-import { rainActivity, activityBody, readDevice, saveDevice, runActivities, apnsToken, resetApnsToken, DISMISS_AFTER, alertEvents } from '../src/push.js';
+import { rainActivity, liveStep, activityBody, readDevice, saveDevice, runActivities, apnsToken, resetApnsToken, DISMISS_AFTER, alertEvents } from '../src/push.js';
 
 test('Rain alert (Live Activity): rain within the hour → start text; falling now → until-when text; snow in cm; nothing when dry', () => {
   const now = at(13, 40);
@@ -1206,6 +1206,38 @@ test('raining now by the nowcast, dry by the last hour\'s observation: umbrella 
   assert.equal(wet.rain, 'umbrella');
   const none = buildScene({ points: points.map((p) => ({ ...p, mm: 0, type: 'none', pop: 0 })), now: dry, updated: at(21, 30) }, { ...SEOUL, plan: 'plus', now: at(22, 8) });
   assert.equal(none.rain, 'none');
+});
+
+test('The alert on the phone follows the forecast: updated when the rain\'s end moves, rain now instead of a second alert, ended when the rain is over; a short alert ends after its minutes', async () => {
+  const pts = (spec) => spec.map(([hh, mm]) => ({ t: at(hh), mm, type: mm > 0 ? 'rain' : 'none' }));
+  const base = { lang: 'ko', tz: TZ, rain: true, alert: true, act: 'ab'.repeat(32) };
+  // rain until 1시 when it started; now the forecast has it until 4시
+  const first = rainActivity({ points: pts([[13, 1], [14, 0]]) }, { now: at(13, 10), tz: TZ });
+  const live = { key: 'p:x:now', kind: 'rain', at: at(13, 10).getTime(), state: first.state };
+  const moved = liveStep({ ...base, live }, { f: { points: pts([[13, 1], [14, 1], [15, 1], [16, 0]]) } }, { now: at(13, 40) });
+  assert.equal(moved.event, 'update'); assert.equal(moved.state.endHour, 16);
+  assert.equal(liveStep({ ...base, live }, { f: { points: pts([[13, 1], [14, 0]]) } }, { now: at(13, 40) }), null, 'the same words: nothing sent');
+  assert.equal(liveStep({ ...base, live }, { f: { points: pts([[13, 0], [14, 0], [15, 0]]) } }, { now: at(14, 10) }).event, 'end');
+  assert.equal(liveStep({ ...base, live, act: null }, { f: { points: pts([[13, 0]]) } }, { now: at(14, 10) }), null, 'no token yet: nothing to send to');
+  const short = { key: 'w:호우주의보', kind: 'short', at: at(13, 0).getTime(), state: first.state };
+  assert.equal(liveStep({ ...base, live: short }, {}, { now: at(13, 3) }), null);
+  assert.equal(liveStep({ ...base, live: short }, {}, { now: at(13, 30) }).event, 'end');
+
+  // the pass: "rain soon" starts an alert; the phone sends its token; "rain now" updates it (no second start); dry: ended
+  const kv = new Map();
+  const store = { get: async (k) => (kv.has(k) ? JSON.parse(kv.get(k)) : null), put: async (k, v) => { kv.set(k, v); }, delete: async () => {},
+    list: async () => ({ keys: [...kv.keys()].map((name) => ({ name })), list_complete: true }) };
+  await saveDevice(store, readDevice({ id: 'L1', lat: 37.49, lon: 126.84, tz: TZ, region: 'kr', lang: 'ko', name: '오류동', plan: 'plus', start: 'cd'.repeat(32), rain: true, alert: true }), at(12, 0));
+  const env = { DEVICES: store, APNS_KEY: (await testP8()).pem, APNS_KEY_ID: 'KEY1234567', APPLE_TEAM_ID: 'TEAM123456' };
+  resetApnsToken();
+  const got = [];
+  const fetcher = async (url, init) => { const b = JSON.parse(init.body).aps; got.push(`${url.endsWith('cd'.repeat(32)) ? 'start' : 'act'}:${b.event}:${b['content-state'].title}`); return { ok: true, status: 200, json: async () => ({}) }; };
+  const raw = (spec) => async () => ({ scene: {}, f: { points: pts(spec) } });
+  await runActivities(env, { forecastRaw: raw([[13, 0], [14, 1.2], [15, 0]]), fetcher, now: at(13, 10) });
+  await saveDevice(store, readDevice({ id: 'L1', lat: 37.49, lon: 126.84, act: 'ef'.repeat(32) }), at(13, 11));   // the phone's token for it
+  await runActivities(env, { forecastRaw: raw([[14, 1.2], [15, 1.2], [16, 0]]), fetcher, now: at(14, 10) });
+  await runActivities(env, { forecastRaw: raw([[15, 0], [16, 0]]), fetcher, now: at(15, 10) });
+  assert.deepEqual(got, ['start:start:14시쯤 비 예보', 'act:update:지금 비 · 1.2mm', 'act:end:지금 비 · 1.2mm']);
 });
 
 test('every added language: a whole scene in it, no Korean left in the words', () => {

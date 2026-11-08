@@ -236,6 +236,25 @@ export function alertEvents(raw, dev, { now }) {
   return out.sort((a, b) => a.rank - b.rank);
 }
 
+/** What a rain alert's content says, for telling whether a newer forecast changed it */
+const said = (s) => s && [s.title, s.sub, s.icon, s.falling, s.mm, s.endHour].join('|');
+
+/**
+ * The alert on the phone now (`dev.live`: the newest one started, { key, kind: 'rain' | 'short', at, state }) once the
+ * phone has sent its own token (`dev.act`): a rain alert follows the forecast — updated when its words change (the
+ * rain's end moving, the amount, rain now instead of soon) and ended when the rain is over; a short alert (a warning,
+ * 미세먼지) is ended once its few minutes are up. Returns { event: 'update' | 'end', state, end? } or null.
+ */
+export function liveStep(dev, raw, { now }) {
+  const live = dev.live;
+  if (!live || !dev.act) return null;
+  const t = now.getTime();
+  if (live.kind !== 'rain') return t - live.at >= DISMISS_AFTER * 1000 ? { event: 'end', state: live.state } : null;
+  const act = dev.rain === false ? null : rainActivity(raw?.f || {}, { now, tz: dev.tz || 'Asia/Seoul', lang: dev.lang || 'ko' });
+  if (!act || act.end <= t) return { event: 'end', state: live.state };
+  return said(act.state) === said(live.state) ? null : { event: 'update', state: act.state, end: act.end };
+}
+
 /**
  * The half-hourly pass: every Plus device with a push-to-start token gets its place's forecast (shared per ~1 km
  * cell); of what is worth an alert there, the most urgent one it has not been told yet is pushed — one per pass.
@@ -276,10 +295,33 @@ export async function runActivities(env, { forecastRaw, fetcher = fetch, now = n
         let dustG = dev.dustG ?? 0;
         if (g != null && (g < dustG || !quiet)) dustG = g;
         let changed = dustG !== (dev.dustG ?? 0) || Object.keys(sent).length !== Object.keys(dev.sent || {}).length;
-        if (next) {
+        // the alert already on the phone: kept in step with the forecast, or taken away
+        let live = dev.live || null, act = dev.act || null;
+        const step = liveStep(dev, raw, { now });
+        // rain now after "rain soon": the alert on the phone says so (an update), no second alert
+        const nextRain = next && next.key.startsWith('p:') ? next : null;
+        if (step?.event === 'update' || (nextRain && live?.kind === 'rain' && act && step?.event !== 'end')) {
+          const st = step?.state || nextRain.state;
+          const body = activityBody('update', { state: st, now, end: step?.end ?? nextRain.state.end * 1000 });
+          const r = await sendLiveActivity(env, act, body, { fetcher, now });
+          if (r.ok) { live = { ...live, state: st }; if (nextRain) sent[nextRain.key] = t + nextRain.keep; changed = true; }
+          else if (r.dead) { live = null; act = null; changed = true; }
+        } else if (step?.event === 'end') {
+          await sendLiveActivity(env, act, activityBody('end', { state: step.state, now }), { fetcher, now });
+          live = null; act = null; changed = true;
+        }
+        const pending = events.find((e) => !sent[e.key]);
+        if (pending) {
+          const next = pending;
+          // a new alert: the one before it goes first, so they never pile up
+          if (live && act) await sendLiveActivity(env, act, activityBody('end', { state: live.state, now }), { fetcher, now });
           const body = activityBody('start', { state: next.state, place: dev.name || '', char: dev.char, level: raw.scene?.level, now });
           const r = await sendLiveActivity(env, dev.start, body, { fetcher, now });
-          if (r.ok) { out.started++; sent[next.key] = t + next.keep; changed = true; }
+          if (r.ok) {
+            out.started++; sent[next.key] = t + next.keep; changed = true;
+            // its own token comes from the phone (woken for it); the old one belonged to the alert just ended
+            live = { key: next.key, kind: next.key.startsWith('p:') ? 'rain' : 'short', at: t, state: next.state }; act = null;
+          }
           else {
             out.errors++; console.log('APNs start failed:', r.status, r.reason);
             if (r.dead) { dev.start = null; changed = true; }
@@ -288,7 +330,11 @@ export async function runActivities(env, { forecastRaw, fetcher = fetch, now = n
         } else out.skipped++;
         if (changed) {
           const { key, until, ...rest } = dev;   // the old single-rain memory is replaced by `sent`
-          await store.put(k.name, JSON.stringify({ ...rest, sent, dustG }), { expirationTtl: DEV_TTL });
+          // the phone may have sent a new alert's token while this pass ran: that one wins
+          let latest = null;
+          try { latest = await store.get(k.name, 'json'); } catch { /* keep ours */ }
+          if (latest?.act && latest.act !== dev.act) act = latest.act;
+          await store.put(k.name, JSON.stringify({ ...rest, sent, dustG, live, act }), { expirationTtl: DEV_TTL });
         }
       } catch (e) { out.errors++; console.log('activity failed:', e.message); }
     }
