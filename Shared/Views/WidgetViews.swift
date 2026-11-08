@@ -239,7 +239,7 @@ private struct SmallFace: View {
             .padding(.leading, 13 * k).padding(.bottom, 8 * k)
             // close together at the bottom right (SmallStack): the rain chance and the sun with their pixel icons, then
             // 체감 and 최고 · 최저 in words at the bottom, every line one size
-            UniformList(snap: snap, thermo: tiny, room: 80 - less, feelsRoom: 74 - less)
+            UniformList(snap: snap, thermo: tiny, room: 80 - less, feelsRoom: 70 - less)      // 체감 sits higher now, beside the hood
                 .halo(ink)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             .padding(.trailing, SmallStack.edge - 0.5).padding(.bottom, 9)
