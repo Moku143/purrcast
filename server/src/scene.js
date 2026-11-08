@@ -39,7 +39,12 @@ export function buildScene(f, o) {
   const cur = { ...pts[ci] };
   if (f.now) {   // an observation beats the forecast for "now" (Plus, KMA 실황)
     for (const k of ['temp', 'rh', 'wind', 'dir']) if (f.now[k] != null) cur[k] = f.now[k];
-    if (f.now.mm != null) { cur.mm = f.now.mm; cur.type = f.now.type ?? cur.type; }
+    // rain: the observation is the hour just past (RN1) and the moment on the hour (PTY). It says rain is falling;
+    // it cannot dry an hour the nowcast (초단기예보, issued since) has rain in — the rain-soon card and the push
+    // already call that hour wet, and so does the character (umbrella up)
+    const obsWet = f.now.mm >= 0.1 || (f.now.type != null && f.now.type !== 'none');
+    const fcWet = cur.t <= nowT && (cur.mm >= 0.1 || cur.type !== 'none');   // the forecast hour this is (not one still ahead)
+    if (f.now.mm != null && (obsWet || !fcWet)) { cur.mm = f.now.mm; cur.type = f.now.type ?? cur.type; }
   }
   const ahead = pts.slice(ci + 1).filter((p) => p.t - nowT < 13 * 3600000);
   const next12 = [cur, ...ahead].slice(0, 13);
