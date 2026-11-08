@@ -291,9 +291,10 @@ struct SunLine: View {
     let time: String
     var size: CGFloat = 9
     var body: some View {
-        let s = Font.pxDrawn(size) * 0.7
+        let s = Font.pxDrawn(size) * ListLook.sun
+        let k = ListLook.sun
         HStack(spacing: iconGap(s)) {
-            PixelIcon(name: icon, size: (s + 2).rounded()).probe("sunsetIcon")
+            PixelIcon(name: icon, size: (size * 11 / 9 * k).rounded()).probe("sunsetIcon")      // as ☂'s icon at the same share
             Text(time).font(.pxExact(s)).probe("sunsetText")
         }
     }
@@ -319,6 +320,12 @@ extension View { func capWidth(_ w: CGFloat) -> some View { CapWidth(max: w) { s
 
 /// The small widget's and the watch's list at the bottom right, top to bottom: 강수확률, the sunset (sunrise at night),
 /// 체감, and 최고 · 최저 at the very bottom — the two with pixel icons above the two in words
+/// How big the two icon lines are against the list's text size (1 = the same as 체감 and 최고 · 최저)
+enum ListLook {
+    static var chance: CGFloat = 1
+    static var sun: CGFloat = 0.7
+}
+
 enum SmallStack {
     static let order = ["chance", "sun", "feels", "hilo"]
     /// The one right edge of the 2×2 (from the widget's edge to the ink): the weather icon, the big temperature and
@@ -336,11 +343,12 @@ struct ChanceLine: View {
     /// The umbrella from 50 % (as the watch's corner), the raindrop below
     static func iconName(_ chance: Int) -> String { chance >= 50 ? "umbrella" : "raindrop" }
     var body: some View {
-        HStack(spacing: iconGap(size)) {
-            PixelIcon(name: Self.iconName(chance), size: icon)
+        let k = ListLook.chance, t = Font.pxDrawn(size) * k
+        HStack(spacing: iconGap(size * k)) {
+            PixelIcon(name: Self.iconName(chance), size: (icon * k).rounded())
             Text("\(chance)%")
         }
-        .font(.px(size))
+        .font(k == 1 ? .px(size) : .pxExact(t))
         .accessibilityElement(children: .ignore).accessibilityLabel(L("강수확률 %d%%", chance))
     }
 }
