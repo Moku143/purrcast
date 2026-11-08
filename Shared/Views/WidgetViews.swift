@@ -283,14 +283,15 @@ private struct SmallFace: View {
     }
 }
 
-/// The sunset (sunrise at night) line of the lists: a size under the other lines (☂, 체감, 최고 · 최저 share one size),
-/// so it reads as the quiet one. `size` is the list's text size.
+/// The sunset (sunrise at night) line of the lists: clearly smaller than the other lines (☂, 체감, 최고 · 최저 share one
+/// size) — two sizes down on the widgets (9 → 7), the same share on the watch (12 → 9.5) — so it reads as the quiet
+/// one. `size` is the list's text size.
 struct SunLine: View {
     let icon: String
     let time: String
     var size: CGFloat = 9
     var body: some View {
-        let s = size - 1
+        let s = (size * 7 / 9 * 2).rounded() / 2
         HStack(spacing: iconGap(s)) {
             PixelIcon(name: icon, size: s + 2).probe("sunsetIcon")
             Text(time).font(.px(s)).probe("sunsetText")
