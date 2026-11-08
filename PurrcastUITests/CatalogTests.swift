@@ -82,6 +82,15 @@ final class CatalogTests: XCTestCase {
         seq("radar.sheet", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "radar"], wait: 4)
         seq("radar.card", ["-scene", "maybe", "-plus", "-char", "cat"], swipes: 1, wait: 4)
         seq("radar.card-free", ["-scene", "maybe", "-char", "cat"], swipes: 1, wait: 4)
+        // 시간별 · 10일: the switch through 날씨 · 비 · 바람 · 옷차림
+        steps("metric", ["-scene", "maybe", "-plus", "-char", "cat"], wait: 3) { app, take in
+            app.swipeUp(velocity: .slow); sleep(1)
+            take()
+            for m in ["rain", "wind", "outfit"] {
+                let b = app.buttons["metric-\(m)"].firstMatch
+                if b.waitForExistence(timeout: 2) { b.tap(); sleep(1); take() }
+            }
+        }
         steps("radar.play", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "radar"], wait: 4) { app, take in
             let play = app.buttons["radar-play"].firstMatch
             if play.waitForExistence(timeout: 3) { play.tap(); sleep(2); take() }

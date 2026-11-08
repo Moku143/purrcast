@@ -16,6 +16,8 @@ struct HomeView: View {
     @State private var scrolled = false
     /// The card being moved (long press, then drag)
     @State private var dragging: String?
+    /// What the 시간별 and 10일 cards show (the switch on 시간별; 10일 follows it)
+    @State private var metric = HomeMetric.weather
 
     /// What the sky is made of; when it changes the whole sky cross-fades
     private func skyKey(_ s: WeatherScene) -> String { "\(s.time)|\(s.cover)|\(s.precip)|\(s.thunder)|\(s.aux)|\(s.clouds ?? -1)|\(s.fog)|\(s.gloom)" }
@@ -422,21 +424,56 @@ struct HomeView: View {
     static func rainBarHeight(_ v: Double, steps: [Double]) -> Double { min(1, v / (steps.last ?? 1)) }
 
     private func hourlyCard(_ s: WeatherScene, ink: Ink) -> some View {
-        Card(ink: ink) {
-            HStack(alignment: .firstTextBaseline) { Text(L("시간별")).font(.px(13)); Spacer(); Text(s.anyChance || s.anyMM ? L("강수확률 · 강수량") : L("12시간 동안 비 소식 없음")).font(.ui(11)).foregroundStyle(ink.sub) }
+        let winds = HomeMetric.hourWinds(s)
+        return Card(ink: ink) {
+            HStack(alignment: .firstTextBaseline) { Text(L("시간별")).font(.px(13)); Spacer(); Text(hourlyNote(s)).font(.ui(11)).foregroundStyle(ink.sub).lineLimit(1) }
+            MetricSwitch(metric: $metric, ink: ink)
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 0) {
+                HStack(alignment: .top, spacing: 0) {
                     ForEach(Array(s.hours.enumerated()), id: \.offset) { i, h in
                         VStack(spacing: 7) {
                             Text(i == 0 ? h.label : model.hourLabel(h.label)).font(.px(i == 0 || !model.clock12 ? 12 : 10)).foregroundStyle(i == 0 ? ink.ink : ink.sub).lineLimit(1).minimumScaleFactor(0.6)
-                            PixelIcon(name: h.icon, size: 28)
-                            Text(deg(h.temp)).font(.px(15)).rolling(h.temp)
-                            if s.anyChance { Text(h.chance >= 10 ? "\(h.chance)%" : "–").font(.px(11)).foregroundStyle(h.chance >= 10 ? ink.blue : ink.faint).rolling(h.chance) }
-                            if s.anyMM { Text(h.mm > 0 ? mmText(h.mm, snow: s.isSnow) : " ").font(.px(11)).foregroundStyle(ink.blue) }
+                            hourCell(s, i, h, wind: winds[i], ink: ink)
                         }.frame(width: 50)
                     }
                 }
             }.padding(.horizontal, -8)
+            .animation(Motion.gentle, value: metric)
+        }
+    }
+
+    private func hourlyNote(_ s: WeatherScene) -> String {
+        switch metric {
+        case .weather: return s.anyChance || s.anyMM ? L("강수확률 · 강수량") : L("12시간 동안 비 소식 없음")
+        case .rain: return s.anyMM ? L("강수량 · 강수확률") : L("12시간 동안 비 소식 없음")
+        case .wind: return L("풍속 (%@) · 부는 방향", model.windUnit)
+        case .outfit: return L("체감온도에 맞는 옷")
+        }
+    }
+
+    @ViewBuilder private func hourCell(_ s: WeatherScene, _ i: Int, _ h: WeatherScene.HourRow, wind: HomeMetric.HourWind?, ink: Ink) -> some View {
+        switch metric {
+        case .weather:
+            PixelIcon(name: h.icon, size: 28)
+            Text(deg(h.temp)).font(.px(15)).rolling(h.temp)
+            if s.anyChance { Text(h.chance >= 10 ? "\(h.chance)%" : "–").font(.px(11)).foregroundStyle(h.chance >= 10 ? ink.blue : ink.faint).rolling(h.chance) }
+            if s.anyMM { Text(h.mm > 0 ? mmText(h.mm, snow: s.isSnow) : " ").font(.px(11)).foregroundStyle(ink.blue) }
+        case .rain:
+            PixelRainColumn(mm: h.mm, chance: h.chance, ink: ink).frame(height: 44)
+            Text(h.mm > 0 ? mmText(h.mm, snow: s.isSnow) : "–").font(.px(12)).foregroundStyle(h.mm > 0 ? ink.blue : ink.faint)
+            Text(h.chance >= 10 ? "\(h.chance)%" : "–").font(.px(11)).foregroundStyle(h.chance >= 10 ? ink.blue : ink.faint)
+        case .wind:
+            if let w = wind {
+                WindArrow(deg: w.dir, ink: ink).frame(width: 28, height: 28)
+                Text(model.windNumber(w.speed)).font(.px(15)).rolling(w.speed)
+                Text(model.windUnit).font(.ui(10)).foregroundStyle(ink.sub)
+            } else {
+                Text("–").font(.px(15)).foregroundStyle(ink.faint).frame(height: 28)
+            }
+        case .outfit:
+            let f = HomeMetric.hourFeels(s, i, wind: wind)
+            DayFigure(character: model.shownCharacter, level: Rules.level(feels: f), width: 34)
+            Text(deg(Int(f.rounded()))).font(.px(13)).foregroundStyle(ink.sub)
         }
     }
 
@@ -444,21 +481,43 @@ struct HomeView: View {
         let wmin = s.days.map { $0.lo }.min() ?? 0, wmax = s.days.map { $0.hi }.max() ?? 1
         let span = CGFloat(max(1, wmax - wmin))
         return Card(ink: ink) {
-            Text(L("10일")).font(.px(13))
+            HStack(alignment: .firstTextBaseline) {
+                Text(L("10일")).font(.px(13)); Spacer()
+                if metric != .weather { Text(L(metric.title)).font(.ui(11)).foregroundStyle(ink.sub) }
+            }
             VStack(spacing: 0) {
                 ForEach(Array(s.days.enumerated()), id: \.offset) { i, d in
                     Button { day = i } label: { HStack(spacing: 9) {
                         Text(d.name).font(.px(13)).lineLimit(1).minimumScaleFactor(0.6).frame(width: Lang.current.isLatinLike ? 52 : 34, alignment: .leading)   // "Today", "Aujourd'hui", "Сегодня" on one line
-                        PixelIcon(name: d.icon, size: 24)
-                        Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(11)).foregroundStyle(ink.blue).frame(width: 34, alignment: .leading)
-                        Text(deg(d.lo)).font(.px(13)).foregroundStyle(ink.sub).frame(width: 28, alignment: .trailing).rolling(d.lo)
-                        GeometryReader { g in
-                            ZStack(alignment: .leading) {
-                                Capsule().fill(ink.track).frame(height: 6)
-                                RangeBar(width: CGFloat(d.hi - d.lo) / span * g.size.width, offset: CGFloat(d.lo - wmin) / span * g.size.width, delay: 0.03 * Double(i))
-                            }.frame(height: g.size.height)
-                        }.frame(height: 6)
-                        Text(deg(d.hi)).font(.px(13)).frame(width: 28, alignment: .trailing).rolling(d.hi)
+                        switch metric {
+                        case .weather:
+                            PixelIcon(name: d.icon, size: 24)
+                            Text(d.chance >= 10 ? "\(d.chance)%" : "").font(.px(11)).foregroundStyle(ink.blue).frame(width: 34, alignment: .leading)
+                            Text(deg(d.lo)).font(.px(13)).foregroundStyle(ink.sub).frame(width: 28, alignment: .trailing).rolling(d.lo)
+                            GeometryReader { g in
+                                ZStack(alignment: .leading) {
+                                    Capsule().fill(ink.track).frame(height: 6)
+                                    RangeBar(width: CGFloat(d.hi - d.lo) / span * g.size.width, offset: CGFloat(d.lo - wmin) / span * g.size.width, delay: 0.03 * Double(i))
+                                }.frame(height: g.size.height)
+                            }.frame(height: 6)
+                            Text(deg(d.hi)).font(.px(13)).frame(width: 28, alignment: .trailing).rolling(d.hi)
+                        case .rain:
+                            let r = HomeMetric.dayRain(s, i)
+                            DayRainStrip(bins: r.bins, now: i == 0 ? HomeMetric.nowBin(s) : nil, ink: ink).frame(height: 22)
+                            Text(r.mm > 0 ? mmText((r.mm * 10).rounded() / 10, snow: DayRecord.isSnowIcon(d.icon)) : "–").font(.px(12)).foregroundStyle(r.mm > 0 ? ink.ink : ink.faint).frame(width: 46, alignment: .trailing)
+                            Text(d.chance >= 10 ? "\(d.chance)%" : "–").font(.px(12)).foregroundStyle(d.chance >= 10 ? ink.blue : ink.faint).frame(width: 36, alignment: .trailing)
+                        case .wind:
+                            let w = HomeMetric.dayWind(s, i)
+                            WindSpark(values: w.values, ink: ink).frame(height: 20)
+                            Text(w.values.isEmpty ? "–" : "\(model.windNumber(w.lo))~\(model.windNumber(w.hi))").font(.px(13)).frame(width: 52, alignment: .trailing)
+                            Text(model.windUnit).font(.ui(10)).foregroundStyle(ink.sub).frame(width: 30, alignment: .leading)
+                        case .outfit:
+                            let f = HomeMetric.dayFeels(s, i)
+                            DayFigure(character: model.shownCharacter, level: Rules.level(feels: f), width: 26)
+                            Text(L("체감 %@", deg(Int(f.rounded())))).font(.px(12)).foregroundStyle(ink.sub)
+                            Spacer(minLength: 0)
+                            Text("\(deg(d.lo))~\(deg(d.hi))").font(.px(12)).foregroundStyle(ink.faint)
+                        }
                         Image(systemName: "chevron.right").font(.ui(10, .bold)).foregroundStyle(ink.faint)
                     }
                     .frame(height: 42).contentShape(Rectangle()) }

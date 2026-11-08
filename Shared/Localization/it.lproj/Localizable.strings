@@ -876,3 +876,7 @@
 "기상청 레이더 · 초단기 강수예측 (공공누리 제1유형)" = "Radar KMA · nowcast (KOGL tipo 1)";
 "비 지도 시간" = "Ora della mappa della pioggia";
 "기상청 레이더로 지난 1시간 비구름과 다음 1시간 예측을 재생해요" = "Riproduce le nubi di pioggia dell'ultima ora e la previsione per l'ora successiva dal radar KMA";
+/* 시간별 · 10일 보기 */
+"강수량 · 강수확률" = "Quantità · Probabilità";
+"풍속 (%@) · 부는 방향" = "Velocità (%@) · Direzione";
+"체감온도에 맞는 옷" = "Vestiti per la temperatura percepita";
