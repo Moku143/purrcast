@@ -231,7 +231,7 @@ private struct SmallFace: View {
             .padding(.leading, 13).padding(.bottom, 8)
             // close together at the bottom right (SmallStack): the rain chance and the sun with their pixel icons, then
             // 체감 and 최고 · 최저 in words at the bottom
-            ListStack(spacing: 0.9) {
+            VStack(alignment: .trailing, spacing: 0.9) {      // every line right-aligned
                 ForEach(SmallStack.order, id: \.self) { item in
                     switch item {
                     case "sun":
@@ -258,40 +258,6 @@ private struct SmallFace: View {
 /// The gap between a pixel icon and its words, the same on every line: a quarter of the text size
 func iconGap(_ size: CGFloat) -> CGFloat { (size / 4).rounded() }
 
-/// How the bottom-right list stacks its lines (the looks on offer): "fixed" in its order, right-aligned · "sorted"
-/// the shortest line on top whatever the language or the numbers, right-aligned · "block" in its order, the lines'
-/// left edges lined up (the block itself at the right)
-enum ListLook { static var mode = "fixed" }
-
-/// The lines stacked shortest first, right-aligned: a longer line never sits above a shorter one, in any language
-struct ShortFirstStack: Layout {
-    var spacing: CGFloat = 1
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let p = ProposedViewSize(width: proposal.width, height: nil)
-        var width: CGFloat = 0, height: CGFloat = 0
-        for v in subviews {
-            let s: CGSize = v.sizeThatFits(p)
-            width = Swift.max(width, s.width)
-            height += s.height
-        }
-        if subviews.count > 1 { height += spacing * CGFloat(subviews.count - 1) }
-        return CGSize(width: width, height: height)
-    }
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let p = ProposedViewSize(width: bounds.width, height: nil)
-        var sized: [(index: Int, size: CGSize)] = []
-        for (i, v) in subviews.enumerated() { sized.append((i, v.sizeThatFits(p))) }
-        // the shortest first; equal lengths keep their order
-        sized.sort { a, b in a.size.width == b.size.width ? a.index < b.index : a.size.width < b.size.width }
-        var y: CGFloat = bounds.minY
-        for item in sized {
-            let at = CGPoint(x: bounds.maxX, y: y)
-            subviews[item.index].place(at: at, anchor: .topTrailing, proposal: ProposedViewSize(width: bounds.width, height: item.size.height))
-            y += item.size.height + spacing
-        }
-    }
-}
-
 /// A width cap that hugs its content: no wider than its words (or than `max`, where long words shrink) — unlike
 /// `.frame(maxWidth:)`, which takes the whole width it is offered, so the list's lines keep their own lengths
 struct CapWidth: Layout {
@@ -306,18 +272,6 @@ struct CapWidth: Layout {
 }
 extension View { func capWidth(_ w: CGFloat) -> some View { CapWidth(max: w) { self } } }
 
-/// The list in the look chosen (ListLook)
-struct ListStack<Content: View>: View {
-    var spacing: CGFloat
-    @ViewBuilder var content: Content
-    var body: some View {
-        switch ListLook.mode {
-        case "sorted": ShortFirstStack(spacing: spacing) { content }
-        case "block": VStack(alignment: .leading, spacing: spacing) { content }
-        default: VStack(alignment: .trailing, spacing: spacing) { content }
-        }
-    }
-}
 
 /// The small widget's and the watch's list at the bottom right, top to bottom: 강수확률, the sunset (sunrise at night),
 /// 체감, and 최고 · 최저 at the very bottom — the two with pixel icons above the two in words

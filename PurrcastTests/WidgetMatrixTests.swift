@@ -44,9 +44,8 @@ final class WidgetMatrixTests: XCTestCase {
         let cases = try JSONDecoder().decode([Case].self, from: Data(contentsOf: url))
         let c = try XCTUnwrap(cases.first { $0.key == "day-partly-none-later-rain5" })
         let cold = try XCTUnwrap(cases.first { $0.key == "day-clear-none-frost" })
-        defer { ListLook.mode = "fixed"; Lang.current = .ko }
-        for mode in ["fixed", "sorted", "block"] {
-            ListLook.mode = mode
+        defer { Lang.current = .ko }
+        for mode in ["final"] {
             var rows: [UIImage] = []
             for lang in [Lang.ko, .en, .ru, .de] {
                 Lang.current = lang

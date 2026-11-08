@@ -54,7 +54,7 @@ struct WatchNow: View {
                 .padding(.leading, 16.5).padding(.bottom, 14.5)
                 // sunset · feels · rain at the bottom right
                 // close together, down by the rain chance; the sunset row a little higher
-                ListStack(spacing: 1.2 * k) {
+                VStack(alignment: .trailing, spacing: 1.2 * k) {      // every line right-aligned
                     // as the widgets: the rain chance and the sun with their icons, then 체감, and 최고 · 최저 behind the
                     // thermometers (the words do not fit beside the character here)
                     ForEach(WatchHiLo.order, id: \.self) { item in
