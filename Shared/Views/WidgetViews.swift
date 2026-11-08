@@ -267,18 +267,27 @@ enum ListLook { static var mode = "fixed" }
 struct ShortFirstStack: Layout {
     var spacing: CGFloat = 1
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let sizes = subviews.map { $0.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil)) }
-        return CGSize(width: sizes.map(\.width).max() ?? 0,
-                      height: sizes.map(\.height).reduce(0, +) + spacing * CGFloat(max(0, sizes.count - 1)))
+        let p = ProposedViewSize(width: proposal.width, height: nil)
+        var width: CGFloat = 0, height: CGFloat = 0
+        for v in subviews {
+            let s: CGSize = v.sizeThatFits(p)
+            width = Swift.max(width, s.width)
+            height += s.height
+        }
+        if subviews.count > 1 { height += spacing * CGFloat(subviews.count - 1) }
+        return CGSize(width: width, height: height)
     }
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         let p = ProposedViewSize(width: bounds.width, height: nil)
-        let sized = subviews.enumerated().map { ($0.offset, $0.element, $0.element.sizeThatFits(p)) }
-            .sorted { $0.2.width == $1.2.width ? $0.0 < $1.0 : $0.2.width < $1.2.width }
-        var y = bounds.minY
-        for (_, v, s) in sized {
-            v.place(at: CGPoint(x: bounds.maxX, y: y), anchor: .topTrailing, proposal: ProposedViewSize(width: bounds.width, height: s.height))
-            y += s.height + spacing
+        var sized: [(index: Int, size: CGSize)] = []
+        for (i, v) in subviews.enumerated() { sized.append((i, v.sizeThatFits(p))) }
+        // the shortest first; equal lengths keep their order
+        sized.sort { a, b in a.size.width == b.size.width ? a.index < b.index : a.size.width < b.size.width }
+        var y: CGFloat = bounds.minY
+        for item in sized {
+            let at = CGPoint(x: bounds.maxX, y: y)
+            subviews[item.index].place(at: at, anchor: .topTrailing, proposal: ProposedViewSize(width: bounds.width, height: item.size.height))
+            y += item.size.height + spacing
         }
     }
 }
