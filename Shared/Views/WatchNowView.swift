@@ -55,9 +55,9 @@ struct WatchNow: View {
                 .padding(.leading, 16.5).padding(.bottom, 14.5)
                 // sunset · feels · rain at the bottom right
                 // close together, down by the rain chance; the sunset row a little higher
-                // as the widgets: the rain chance and the sun with their icons, then 체감, and 최고 · 최저 behind the
-                // thermometers (the words do not fit beside the character here); every line one size
-                UniformList(snap: snap, order: WatchHiLo.order, size: 12 * k, icon: 14 * k, thermo: true, spacing: 1.2 * k,
+                // as the widgets: the rain chance and the sun with their icons, then 체감 and 최고 · 최저 in words; every
+                // line one size (the whole list steps down when the words would reach the coat)
+                UniformList(snap: snap, order: WatchHiLo.order, size: 12 * k, icon: 14 * k, spacing: 1.2 * k,
                             room: hiloRoom, narrow: narrow, sunNudge: 0.65 * k)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                 .padding(.trailing, edge).padding(.bottom, 23.5)

@@ -246,16 +246,6 @@ final class WidgetMatrixTests: XCTestCase {
                                 Probe.sink = { n, r in if n == "ideal" { ideal = r.width } }
                                 _ = ImageRenderer(content: Text(words).font(.px(px)).fixedSize().probe("ideal").coordinateSpace(name: "probe")).uiImage
                                 Probe.sink = nil
-                                if surface == "watch" && line == "hilo" {     // the watch's thermometer line
-                                    Probe.sink = { n, r in if n == "ideal" { ideal = r.width } }
-                                    _ = ImageRenderer(content: HiLoLine(snap: snap, size: px, thermo: true, icon: px * 14 / 12).fixedSize().probe("ideal").coordinateSpace(name: "probe")).uiImage
-                                    Probe.sink = nil
-                                }
-                                if surface == "small-148" && line == "hilo" {     // the SE's 2×2: the thermometer line too
-                                    Probe.sink = { n, r in if n == "ideal" { ideal = r.width } }
-                                    _ = ImageRenderer(content: HiLoLine(snap: snap, thermo: true).fixedSize().probe("ideal").coordinateSpace(name: "probe")).uiImage
-                                    Probe.sink = nil
-                                }
                                 if ideal * minScale > f.width + 0.5 { cut.append(line) }
                             }
                             if !cut.isEmpty { worst = min(worst, -99); worstLine = "cut:" + cut.joined(separator: ",") }

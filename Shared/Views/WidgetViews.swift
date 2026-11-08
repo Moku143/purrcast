@@ -198,8 +198,8 @@ struct SmallWidgetView: View {
 
 /// The 2×2 face, measured from the widget's edges (170 × 170 on the board; anchored to the edges, so smaller
 /// widgets keep the same margins). On the 6.1" phones (158) the list's widest lines get a little less room; on the
-/// SE (148, under 152) the character is drawn smaller in proportion and 최고 · 최저 sits behind the thermometers,
-/// as on the watch, so the list keeps clear of the character there too.
+/// SE (148, under 152) the character is drawn smaller in proportion. The list steps down as one wherever its words
+/// would reach the character (UniformList).
 private struct SmallFace: View {
     let snap: WeatherSnapshot
     var body: some View {
@@ -239,7 +239,7 @@ private struct SmallFace: View {
             .padding(.leading, 13 * k).padding(.bottom, 8 * k)
             // close together at the bottom right (SmallStack): the rain chance and the sun with their pixel icons, then
             // 체감 and 최고 · 최저 in words at the bottom, every line one size
-            UniformList(snap: snap, thermo: tiny, room: 80 - less, feelsRoom: 70 - less)      // 체감 sits higher now, beside the hood
+            UniformList(snap: snap, room: 80 - less, feelsRoom: 74 - less)
                 .halo(ink)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             .padding(.trailing, SmallStack.edge - 0.5).padding(.bottom, 9)
@@ -337,7 +337,7 @@ extension View { func capWidth(_ w: CGFloat) -> some View { CapWidth(max: w) { s
 /// The small widget's and the watch's list at the bottom right, top to bottom: 강수확률, the sunset (sunrise at night),
 /// 체감, and 최고 · 최저 at the very bottom — the two with pixel icons above the two in words
 enum SmallStack {
-    static let order = ["chance", "feels", "sun", "hilo"]
+    static let order = ["chance", "sun", "feels", "hilo"]
     /// The one right edge of the 2×2 (from the widget's edge to the ink): the weather icon, the big temperature and
     /// every line of the list end on it. Near enough the edge that the bottom line keeps clear of the character's
     /// feet on the 6.1" phones' 158-pt widgets.
@@ -394,7 +394,7 @@ struct HiLoLine: View {
 
 /// The watch's list, top to bottom (the looks on offer): "chance" 강수확률 · "sun" sunset / sunrise · "feels" 체감 ·
 /// "hilo" 최고 · 최저 behind the thermometers
-enum WatchHiLo { static var order = ["chance", "feels", "sun", "hilo"] }
+enum WatchHiLo { static var order = ["chance", "sun", "feels", "hilo"] }
 
 
 /// The next five days for the medium widget, like the app's 10-day card.
