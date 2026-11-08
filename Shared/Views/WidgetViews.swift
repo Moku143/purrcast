@@ -241,7 +241,7 @@ private struct SmallFace: View {
                     case "chance":
                         if !snap.showsDashes { ChanceLine(chance: chanceNow(s)).probe("chance") }
                     case "feels":
-                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(9)).probe("feels").capWidth(74)
+                        Text(L("체감 %@", snap.deg(s.feels))).font(.px(feelsSize(9))).probe("feels").capWidth(74)
                     default:
                         if !snap.showsDashes { HiLoLine(snap: snap).probe("hilo").capWidth(80) }
                     }
@@ -254,6 +254,10 @@ private struct SmallFace: View {
         }
     }
 }
+
+/// 체감 a size up where the words are short (Korean, Japanese, Chinese: "체감 15°", "体感 15°"); the longer ones
+/// ("Ощущается 15°") keep the list's size, so they stay clear of the character
+func feelsSize(_ size: CGFloat) -> CGFloat { Lang.current.isCJK ? size + 1 : size }
 
 /// The gap between a pixel icon and its words, the same on every line: a quarter of the text size
 func iconGap(_ size: CGFloat) -> CGFloat { (size / 4).rounded() }

@@ -67,7 +67,7 @@ struct WatchNow: View {
                         case "chance":
                             if !snap.showsDashes { ChanceLine(chance: s.hours.prefix(6).map { $0.chance }.max() ?? 0, size: 12 * k, icon: 14 * k).probe("chance").capWidth(narrow) }
                         case "feels":
-                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(12 * k)).probe("feels").capWidth(narrow)   // a long word shrinks
+                            Text(L("체감 %@", snap.deg(s.feels))).font(.px(feelsSize(12) * k)).probe("feels").capWidth(narrow)   // a long word shrinks
                         default:
                             if !snap.showsDashes { HiLoLine(snap: snap, size: 12 * k, thermo: true, icon: 14 * k).probe("hilo").capWidth(hiloRoom) }
                         }

@@ -47,7 +47,7 @@ final class WidgetMatrixTests: XCTestCase {
         defer { Lang.current = .ko }
         for mode in ["final"] {
             var rows: [UIImage] = []
-            for lang in [Lang.ko, .en, .ru, .de] {
+            for lang in [Lang.ko, .ja, .en, .ru] {
                 Lang.current = lang
                 let snaps = [c, cold].map { k in
                     WeatherSnapshot(scene: k.scene, character: PurrCharacter(rawValue: k.char) ?? .cat, plus: true, characterName: "",
