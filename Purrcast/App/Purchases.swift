@@ -15,6 +15,12 @@ final class Purchases: ObservableObject {
     @Published private(set) var expires: Date?
     @Published private(set) var activeProduct: String?
     @Published private(set) var willRenew = true
+    /// This period is the free trial / comes from an offer code (쿠폰)
+    @Published private(set) var inTrial = false
+    @Published private(set) var onCoupon = false
+    /// An offer code redeemed while already subscribed (in the trial, say) waits for the next renewal: it starts
+    /// when this period ends, as long as auto-renew stays on (App Store: "11월 10일부터 1년 동안 무료 프로모션으로 갱신")
+    @Published private(set) var couponNext = false
     @Published private(set) var trialEligible = true
     @Published private(set) var loaded = false
     @Published var busy = false
@@ -137,20 +143,29 @@ final class Purchases: ObservableObject {
     }
 
     func refresh() async {
-        var on = false, until: Date?, which: String?
+        var on = false, until: Date?, which: String?, offer: Transaction.OfferType?
         for await result in Transaction.currentEntitlements {
             guard case .verified(let t) = result, Self.ids.contains(t.productID), t.revocationDate == nil else { continue }
             if let e = t.expirationDate, e < Date() { continue }
             on = true; which = t.productID
-            if let e = t.expirationDate, until == nil || e > until! { until = e }
+            if let e = t.expirationDate, until == nil || e > until! { until = e; offer = Self.offerType(t) }
         }
-        var renew = true
+        var renew = true, next = false
         if on, let id = which, let statuses = try? await product(id)?.subscription?.status {
             for s in statuses where s.state == .subscribed || s.state == .inGracePeriod || s.state == .inBillingRetryPeriod {
-                if case .verified(let info) = s.renewalInfo { renew = info.willAutoRenew }
+                if case .verified(let info) = s.renewalInfo {
+                    renew = info.willAutoRenew
+                    if let o = info.offerType, o == .code { next = true }
+                }
             }
         }
         active = on; expires = until; activeProduct = which; willRenew = renew
+        inTrial = on && offer == .introductory; onCoupon = on && offer == .code; couponNext = on && next
+    }
+
+    private static func offerType(_ t: Transaction) -> Transaction.OfferType? {
+        if #available(iOS 17.2, *) { return t.offer?.type }
+        return t.offerType
     }
 
     /// How long past the paid period's end the widgets and the watch keep Plus when it renews by itself: they cannot
@@ -167,14 +182,19 @@ final class Purchases: ObservableObject {
         return willRenew ? e.addingTimeInterval(widgetAllowance) : e
     }
 
-    /// "연간 · 2027년 10월 21일에 자동 갱신" / "월간 · 11월 21일에 끝나요"
+    /// "연간 · 2027년 10월 21일에 자동 갱신" / "월간 · 11월 21일에 끝나요" /
+    /// "연간 · 무료 체험 중 · 2026년 11월 10일부터 쿠폰 적용" / "연간 · 쿠폰 적용 중 · 2027년 11월 10일에 자동 갱신"
     var statusLine: String? {
         if !active, testActive { return L("테스트 Plus · 기간 제한 없음") }
         guard active else { return nil }
-        let kind = activeProduct == Self.monthly ? L("월간") : L("연간")
+        var kind = activeProduct == Self.monthly ? L("월간") : L("연간")
+        if inTrial { kind = L("%@ · 무료 체험 중", kind) } else if onCoupon { kind = L("%@ · 쿠폰 적용 중", kind) }
         guard let e = expires else { return kind }
         let f = DateFormatter(); f.locale = Lang.current.locale; f.dateFormat = L("yyyy년 M월 d일")
-        return willRenew ? L("%@ · %@에 자동 갱신", kind, f.string(from: e)) : L("%@ · %@에 끝나요", kind, f.string(from: e))
+        let day = f.string(from: e)
+        // a code waiting for the renewal: that day starts the coupon, it is not a charge
+        if willRenew, couponNext, !onCoupon { return L("%@ · %@부터 쿠폰 적용", kind, day) }
+        return willRenew ? L("%@ · %@에 자동 갱신", kind, day) : L("%@ · %@에 끝나요", kind, day)
     }
 
     /// true when the purchase went through

@@ -169,6 +169,9 @@
 "yyyy년 M월 d일" = "d MMM yyyy";
 "%@ · %@에 자동 갱신" = "%@ · Se renueva el %@";
 "%@ · %@에 끝나요" = "%@ · Termina el %@";
+"%@ · 무료 체험 중" = "%@ · Prueba gratis";
+"%@ · 쿠폰 적용 중" = "%@ · Código de oferta activo";
+"%@ · %@부터 쿠폰 적용" = "%@ · Código de oferta desde el %@";
 "지금은 결제할 수 없어요. 잠시 뒤 다시 해 주세요." = "Ahora no se puede comprar. Inténtalo de nuevo más tarde.";
 "결제를 확인하지 못했어요." = "No se pudo verificar la compra.";
 "승인을 기다리고 있어요. 승인되면 Plus가 켜져요." = "Esperando aprobación. Plus se activará en cuanto se apruebe.";
