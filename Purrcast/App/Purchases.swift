@@ -143,7 +143,7 @@ final class Purchases: ObservableObject {
     }
 
     func refresh() async {
-        var on = false, until: Date?, which: String?, offer: Transaction.OfferType?
+        var on = false, until: Date?, which: String?, offer: StoreKit.Transaction.OfferType?
         for await result in Transaction.currentEntitlements {
             guard case .verified(let t) = result, Self.ids.contains(t.productID), t.revocationDate == nil else { continue }
             if let e = t.expirationDate, e < Date() { continue }
@@ -163,7 +163,7 @@ final class Purchases: ObservableObject {
         inTrial = on && offer == .introductory; onCoupon = on && offer == .code; couponNext = on && next
     }
 
-    private static func offerType(_ t: Transaction) -> Transaction.OfferType? {
+    private static func offerType(_ t: StoreKit.Transaction) -> StoreKit.Transaction.OfferType? {
         if #available(iOS 17.2, *) { return t.offer?.type }
         return t.offerType
     }
