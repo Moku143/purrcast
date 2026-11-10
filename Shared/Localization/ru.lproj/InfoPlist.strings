@@ -1,3 +1,4 @@
 /* The app keeps its English name in this language */
 "CFBundleDisplayName" = "Мурпогода";
 "NSLocationWhenInUseUsageDescription" = "Нужно, чтобы показывать погоду там, где вы находитесь.";
+"NSUserTrackingUsageDescription" = "Используется только для показа рекламы, которая может вас заинтересовать. Без разрешения приложение работает так же.";

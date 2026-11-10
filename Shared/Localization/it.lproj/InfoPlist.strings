@@ -1,3 +1,4 @@
 /* The app keeps its English name in this language */
 "CFBundleDisplayName" = "Fusa Meteo";
 "NSLocationWhenInUseUsageDescription" = "Serve a mostrare il meteo dove ti trovi.";
+"NSUserTrackingUsageDescription" = "Serve solo a mostrarti annunci che potrebbero interessarti. L’app funziona allo stesso modo se non lo consenti.";

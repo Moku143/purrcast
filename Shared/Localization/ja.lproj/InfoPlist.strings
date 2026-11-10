@@ -1,3 +1,4 @@
 /* 日本語の iPhone · Apple Watch で表示される名前 */
 "CFBundleDisplayName" = "ゴロゴロ天気";
 "NSLocationWhenInUseUsageDescription" = "現在地の天気を表示するために使います。";
+"NSUserTrackingUsageDescription" = "興味のありそうな広告を表示するためだけに使います。許可しなくてもアプリは同じように使えます。";

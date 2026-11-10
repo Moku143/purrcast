@@ -1,3 +1,4 @@
 /* The app keeps its English name in this language */
 "CFBundleDisplayName" = "呼嚕天氣";
 "NSLocationWhenInUseUsageDescription" = "用於顯示你所在位置的天氣。";
+"NSUserTrackingUsageDescription" = "僅用於顯示你可能感興趣的廣告。不允許也能照常使用 App。";
