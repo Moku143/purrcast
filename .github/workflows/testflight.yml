@@ -98,6 +98,11 @@ jobs:
               app.purrcast.ios.watchkitapp.widgets) echo Config/PurrcastWatchWidgets.entitlements ;;
             esac
           }
+          # embedded frameworks (Google's ad SDK): the unsigned archive copied them with their headers stripped,
+          # which breaks the vendor's signature — sign them again first, so the export can sign them for the store
+          find "$A" -depth -name '*.framework' | while read -r f; do
+            codesign --force --sign - --timestamp=none "$f" && echo "signed $(basename "$f")"
+          done
           find "$A" -depth \( -name '*.appex' -o -name '*.app' \) | while read -r b; do
             e=$(ent "$b"); [ -n "$e" ] || { echo "::warning::no entitlements for $b"; continue; }
             codesign --force --sign - --entitlements "$e" --timestamp=none --generate-entitlement-der "$b" && echo "signed $(basename "$b") with $e"
