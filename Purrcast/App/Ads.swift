@@ -155,11 +155,21 @@ final class Ads: ObservableObject {
             params.debugSettings = d
         }
         #endif
-        let asked: Bool = await withCheckedContinuation { done in
-            ConsentInformation.shared.requestConsentInfoUpdate(with: params) { error in done.resume(returning: error == nil) }
+        let failed: String? = await withCheckedContinuation { done in
+            ConsentInformation.shared.requestConsentInfoUpdate(with: params) { error in done.resume(returning: error?.localizedDescription) }
         }
-        if asked { try? await ConsentForm.loadAndPresentIfRequired(from: nil) }
+        var problem = failed.map { "update: " + $0 } ?? ""
+        if failed == nil {
+            do { try await ConsentForm.loadAndPresentIfRequired(from: nil) } catch { problem = "form: \(error.localizedDescription)" }
+        }
+        #if DEBUG
+        let c = ConsentInformation.shared
+        consentNote = "consent \(c.consentStatus.rawValue) · form \(c.formStatus.rawValue) · ads \(c.canRequestAds) \(problem)"
+        #endif
     }
+
+    /// Debug (-adsEEA): what the consent SDK said
+    @Published private(set) var consentNote = ""
 
     /// 설정 › 광고 개인정보 설정 (Europe/UK)
     func showPrivacyOptions() {
@@ -341,10 +351,14 @@ struct AdBanner: View {
             let shown = loaded || Ads.demo
             VStack(spacing: 0) {
                 if shown { RemoveAdsLink(action: plus).frame(maxWidth: .infinity, alignment: .trailing).padding(.horizontal, 10) }
+                // the banner view keeps its full size while it loads (squeezed to nothing it never gets an ad);
+                // only the room it takes on the page is clipped to nothing until one has come
                 Group {
                     if Ads.demo { DemoBanner() } else { BannerBox(size: size) { loaded = true } }
                 }
-                .frame(width: size.size.width, height: shown ? (Ads.demo ? 62 : size.size.height) : 1)
+                .frame(width: size.size.width, height: Ads.demo ? 62 : size.size.height)
+                .frame(height: shown ? nil : 0, alignment: .top)
+                .clipped()
             }
             .frame(maxWidth: .infinity)
             .background { if shown { Rectangle().fill(.bar).ignoresSafeArea() } }
@@ -530,3 +544,16 @@ private struct DemoBanner: View {
         .foregroundStyle(Color.black)
     }
 }
+
+#if DEBUG
+/// -adsEEA: the consent SDK's answer on screen, for the picture
+struct AdsConsentNote: View {
+    @ObservedObject private var ads = Ads.shared
+    var body: some View {
+        if ProcessInfo.processInfo.arguments.contains("-adsEEA"), !ads.consentNote.isEmpty {
+            Text(ads.consentNote).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white)
+                .padding(6).background(Color.black.opacity(0.75)).padding(.top, 54)
+        }
+    }
+}
+#endif

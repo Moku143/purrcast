@@ -142,6 +142,9 @@ struct RootView: View {
             DayDetailView(start: d.value).presentationDetents([.large]).presentationCornerRadius(28)
         }
         .onAppear(perform: openFromLaunchArguments)
+        #if DEBUG
+        .overlay(alignment: .top) { AdsConsentNote() }       // -adsEEA: what the consent SDK said
+        #endif
         // a 월간 리포트 tapped: the 날씨 달력 at its month
         .onReceive(NotificationRouter.shared.$calendarMonth) { m in
             guard let m, model.onboarded else { return }
