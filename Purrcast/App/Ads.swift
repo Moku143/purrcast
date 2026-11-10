@@ -136,7 +136,7 @@ final class Ads: ObservableObject {
         }
         #endif
         guard ConsentInformation.shared.canRequestAds else { return }
-        MobileAds.shared.start()
+        _ = await MobileAds.shared.start()
         ready = true
         loadInterstitial()
         loadHome()
