@@ -652,11 +652,20 @@ final class ScreenshotTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["ad-banner"].firstMatch.waitForExistence(timeout: 10), "no banner under home")
         XCTAssertTrue(app.buttons["remove-ads"].firstMatch.exists, "no 광고 없애기 line")
         app.terminate()
-        app.launchArguments = free + ["-plus", "-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
-        app.launch()
-        sleep(3)
-        XCTAssertFalse(app.descendants(matching: .any)["ad-banner"].firstMatch.exists, "Plus shows an ad")
-        app.terminate()
+        // Plus: no card, no banner, no 'remove ads' line on any screen, all the way down
+        for open in ["", "day", "places", "settings"] {
+            app.launchArguments = free + ["-plus"] + (open.isEmpty ? [] : ["-open", open]) + ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+            app.launch()
+            sleep(3)
+            for step in 0..<(open.isEmpty ? 6 : 3) {
+                if step > 0 { app.swipeUp(); sleep(1) }
+                for id in ["ad-banner", "ad-card", "remove-ads"] {
+                    XCTAssertFalse(app.descendants(matching: .any)[id].firstMatch.exists, "Plus shows \(id) on \(open.isEmpty ? "home" : open) after \(step) swipes")
+                }
+            }
+            if open.isEmpty { shot("ads-plus-home", free + ["-plus"], wait: 3) }
+            app.terminate()
+        }
     }
 
     /// Google's real sample ads (-adsLive, network): the cards and banner as they come, the full-screen ad as a day
