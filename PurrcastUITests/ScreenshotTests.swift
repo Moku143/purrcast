@@ -674,15 +674,14 @@ final class ScreenshotTests: XCTestCase {
     func test27AdsLive() {
         let live = ["-scene", "maybe", "-char", "cat", "-adsLive", "-adsEvery1"]
         shot("live-home-0", live, wait: 15)
-        shot("live-home-1", live, wait: 15) { app in app.swipeUp(); sleep(2) }
-        shot("live-full", live, wait: 15) { app in
-            for _ in 0..<6 where !app.buttons["day-1"].firstMatch.isHittable { app.swipeUp(); sleep(1) }
-            app.buttons["day-1"].firstMatch.tap()
-            sleep(6)
-        }
         shot("live-day", live + ["-open", "day"], wait: 15)
+    }
+
+    /// Google's consent form as a person in Europe sees it (-adsEEA), with the consent SDK's answer on screen.
+    /// No swipes: a moving ad keeps the app from going idle, and XCUITest then times out.
+    func test28AdsEEA() {
         for lang in ["en", "de", "fr"] {
-            shot("eea-\(lang)", ["-scene", "maybe", "-char", "cat", "-adsLive", "-adsEEA"], wait: 15, lang: lang)
+            shot("eea-\(lang)", ["-scene", "maybe", "-char", "cat", "-adsLive", "-adsEEA"], wait: 20, lang: lang)
         }
     }
 
