@@ -87,7 +87,13 @@ final class Ads: ObservableObject {
         #endif
     }()
 
-    @Published private(set) var config = Config()
+    @Published private(set) var config: Config = {
+        var c = Config()
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-adsEvery1") { c.every = 1; c.gap = 0 }   // the full-screen ad's picture
+        #endif
+        return c
+    }()
     /// Not Plus (`PurrcastApp.syncPlan`)
     @Published private(set) var free = false
     /// Consent settled and the SDK started
@@ -139,8 +145,18 @@ final class Ads: ObservableObject {
 
     /// Google's consent form where the law asks for it (Europe/UK); elsewhere nothing shows
     private func gatherConsent() async {
+        let params = RequestParameters()
+        #if DEBUG
+        // -adsEEA: as if in Europe, from a fresh start (the consent form's picture)
+        if ProcessInfo.processInfo.arguments.contains("-adsEEA") {
+            ConsentInformation.shared.reset()
+            let d = DebugSettings()
+            d.geography = .EEA
+            params.debugSettings = d
+        }
+        #endif
         let asked: Bool = await withCheckedContinuation { done in
-            ConsentInformation.shared.requestConsentInfoUpdate(with: RequestParameters()) { error in done.resume(returning: error == nil) }
+            ConsentInformation.shared.requestConsentInfoUpdate(with: params) { error in done.resume(returning: error == nil) }
         }
         if asked { try? await ConsentForm.loadAndPresentIfRequired(from: nil) }
     }
@@ -155,7 +171,10 @@ final class Ads: ObservableObject {
         var r = URLRequest(url: base.appendingPathComponent("v1/ads"))
         r.timeoutInterval = 5
         guard let (data, resp) = try? await URLSession.shared.data(for: r), (resp as? HTTPURLResponse)?.statusCode == 200,
-              let c = try? JSONDecoder().decode(Config.self, from: data) else { return }
+              var c = try? JSONDecoder().decode(Config.self, from: data) else { return }
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-adsEvery1") { c.every = 1; c.gap = 0 }
+        #endif
         config = c
     }
 

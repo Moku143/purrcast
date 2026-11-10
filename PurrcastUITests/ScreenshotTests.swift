@@ -659,6 +659,24 @@ final class ScreenshotTests: XCTestCase {
         app.terminate()
     }
 
+    /// Google's real sample ads (-adsLive, network): the cards and banner as they come, the full-screen ad as a day
+    /// opens; and Google's consent form as a person in Europe sees it (-adsEEA). Needs the GDPR message published in
+    /// AdMob (Privacy & messaging) for the form to appear.
+    func test27AdsLive() {
+        let live = ["-scene", "maybe", "-char", "cat", "-adsLive", "-adsEvery1"]
+        shot("live-home-0", live, wait: 15)
+        shot("live-home-1", live, wait: 15) { app in app.swipeUp(); sleep(2) }
+        shot("live-full", live, wait: 15) { app in
+            for _ in 0..<6 where !app.buttons["day-1"].firstMatch.isHittable { app.swipeUp(); sleep(1) }
+            app.buttons["day-1"].firstMatch.tap()
+            sleep(6)
+        }
+        shot("live-day", live + ["-open", "day"], wait: 15)
+        for lang in ["en", "de", "fr"] {
+            shot("eea-\(lang)", ["-scene", "maybe", "-char", "cat", "-adsLive", "-adsEEA"], wait: 15, lang: lang)
+        }
+    }
+
     /// First run with the 이전 button, the fuller widget and watch pages; the merged rain slide of the Plus page
     func test18Onboard() {
         for lang in ["ko", "en", "ja"] {
