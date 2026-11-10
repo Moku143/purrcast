@@ -1,7 +1,8 @@
 # Character sprite prompts (GPT Image)
 
 How the characters (cat · abys · brit · …) were drawn, so the next one comes out the same way.
-Keep this file up to date whenever a prompt changes.
+Keep this file up to date whenever a prompt changes. Every single picture asked for goes into `log.md` with its exact
+prompt, settings and result.
 
 ## Where and how
 
@@ -214,7 +215,7 @@ short thick legs and a short thick tail." (Too gold / no stripes / folded ears w
 Step 0 features: "a big blocky barrel-shaped head with a long, flat-topped, squarish muzzle; small round ears set high
 on the head; small calm half-closed eyes set high and wide apart; two large dark nostrils at the front of the muzzle;
 a calm, sleepy, gentle expression; a chunky round body with short thick legs and no visible tail."
-First run (medium / 1k, 0.5 credits): `capy-0-candidates.png` — reads a little like a bear (round ears, short
+First run (medium / 1k, 0.5 credits): `capy/0-candidates-v1.png` — reads a little like a bear (round ears, short
 muzzle); next run: longer, flatter, more rectangular muzzle reaching further forward, tiny ears, eyes high on the
 sides of the head.
 Candidates: (1) classic warm brown · (2) lighter caramel with a cream muzzle · (3) reddish chestnut · (4) classic
