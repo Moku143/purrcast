@@ -182,19 +182,19 @@ final class Purchases: ObservableObject {
         return willRenew ? e.addingTimeInterval(widgetAllowance) : e
     }
 
-    /// "연간 · 2027년 10월 21일에 자동 갱신" / "월간 · 11월 21일에 끝나요" /
-    /// "연간 · 무료 체험 중 · 2026년 11월 10일부터 쿠폰 적용" / "연간 · 쿠폰 적용 중 · 2027년 11월 10일에 자동 갱신"
+    /// Where the plan stands, with no renewal wording (the Plus page says how renewal works):
+    /// "연간 · 2026년 11월 11일 무료 체험 종료" · "… 무료 체험 종료 · 이후 쿠폰 적용" (a code redeemed during the trial
+    /// starts when it ends) · "연간 · 2027년 11월 10일까지 쿠폰 적용" · "월간 · 2026년 12월 11일까지"
     var statusLine: String? {
         if !active, testActive { return L("테스트 Plus · 기간 제한 없음") }
         guard active else { return nil }
-        var kind = activeProduct == Self.monthly ? L("월간") : L("연간")
-        if inTrial { kind = L("%@ · 무료 체험 중", kind) } else if onCoupon { kind = L("%@ · 쿠폰 적용 중", kind) }
+        let kind = activeProduct == Self.monthly ? L("월간") : L("연간")
         guard let e = expires else { return kind }
         let f = DateFormatter(); f.locale = Lang.current.locale; f.dateFormat = L("yyyy년 M월 d일")
         let day = f.string(from: e)
-        // a code waiting for the renewal: that day starts the coupon, it is not a charge
-        if willRenew, couponNext, !onCoupon { return L("%@ · %@부터 쿠폰 적용", kind, day) }
-        return willRenew ? L("%@ · %@에 자동 갱신", kind, day) : L("%@ · %@에 끝나요", kind, day)
+        if inTrial { return willRenew && couponNext ? L("%@ · %@ 무료 체험 종료 · 이후 쿠폰 적용", kind, day) : L("%@ · %@ 무료 체험 종료", kind, day) }
+        if onCoupon { return L("%@ · %@까지 쿠폰 적용", kind, day) }
+        return L("%@ · %@까지", kind, day)
     }
 
     /// true when the purchase went through

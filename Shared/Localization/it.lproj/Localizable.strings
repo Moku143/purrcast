@@ -169,9 +169,10 @@
 "yyyy년 M월 d일" = "d MMM yyyy";
 "%@ · %@에 자동 갱신" = "%@ · Si rinnova il %@";
 "%@ · %@에 끝나요" = "%@ · Scade il %@";
-"%@ · 무료 체험 중" = "%@ · Prova gratuita";
-"%@ · 쿠폰 적용 중" = "%@ · Codice offerta attivo";
-"%@ · %@부터 쿠폰 적용" = "%@ · Codice offerta dal %@";
+"%@ · %@ 무료 체험 종료" = "%@ · La prova gratuita termina il %@";
+"%@ · %@ 무료 체험 종료 · 이후 쿠폰 적용" = "%@ · La prova gratuita termina il %@ · poi codice offerta";
+"%@ · %@까지 쿠폰 적용" = "%@ · Codice offerta fino al %@";
+"%@ · %@까지" = "%@ · Fino al %@";
 "지금은 결제할 수 없어요. 잠시 뒤 다시 해 주세요." = "Al momento non puoi acquistare. Riprova più tardi.";
 "결제를 확인하지 못했어요." = "Impossibile verificare l'acquisto.";
 "승인을 기다리고 있어요. 승인되면 Plus가 켜져요." = "In attesa di approvazione. Plus si attiva appena approvato.";
