@@ -212,12 +212,17 @@ small pink nose and a cream chin; warm sandy-tan coat with faint caramel tabby s
 short thick legs and a short thick tail." (Too gold / no stripes / folded ears were the three misses.)
 
 ### capy — capybara (in progress, 2026-11-11)
-Step 0 features: "a big blocky barrel-shaped head with a long, flat-topped, squarish muzzle; small round ears set high
-on the head; small calm half-closed eyes set high and wide apart; two large dark nostrils at the front of the muzzle;
-a calm, sleepy, gentle expression; a chunky round body with short thick legs and no visible tail."
-First run (medium / 1k, 0.5 credits): `capy/0-candidates-v1.png` — reads a little like a bear (round ears, short
-muzzle); next run: longer, flatter, more rectangular muzzle reaching further forward, tiny ears, eyes high on the
-sides of the head.
+Step 0 features, v2 — the wording that finally read as a capybara (v1's "big blocky barrel-shaped head…" read as a
+bear; the fix was the brick metaphor, proportions and three NOTs): "the head is a long rectangular brick, clearly
+LONGER than it is tall, with a completely FLAT straight top; the muzzle is very long, deep and squared-off, taking up
+the entire lower two-thirds of the head and reaching far forward, ending in a broad flat blunt front like a brick,
+NOT a round bear snout and NOT a pig disc; the nose is two small dark nostrils sitting on TOP of the blunt front end
+of the muzzle; the ears are TINY, short and rounded, barely sticking up, set far back on top of the head; the eyes
+are small, calm and half-closed, placed very HIGH on the head and far apart, close to the sides; a serene, sleepy,
+gentle expression; a chunky rectangular body with short thick legs and NO tail. … NOT a bear and NOT a pig" (full
+prompt in `log.md`).
+`capy/0-candidates-v1.png` (bear-ish) → `capy/0-candidates-v2.png` (good). Still to fix in step 1: feet came out
+white (capybara feet are DARK brown), and ears on some candidates a touch too round.
 Candidates: (1) classic warm brown · (2) lighter caramel with a cream muzzle · (3) reddish chestnut · (4) classic
 brown with a small orange yuzu on the head · (5) baby: rounder, bigger head, shorter muzzle · (6) darker
 chocolate-brown, slightly fluffier. Lock screen hint: "blocky head and long flat muzzle, small round ears, no tail".
