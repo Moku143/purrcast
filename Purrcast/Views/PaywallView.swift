@@ -14,7 +14,7 @@ struct PaywallView: View {
     struct Feature { let art: String; let title: String; let note: String; let check: String }
     static var features: [Feature] {
         var f: [Feature] = []
-        if Features.adsInFree { f.append(Feature(art: "ads", title: L("광고 없이"), note: L("화면 사이 광고가 사라져요."), check: L("광고 제거"))) }
+        if Features.adsInFree { f.append(Feature(art: "ads", title: L("광고 없이"), note: L("앱 속 광고가 모두 사라져요."), check: L("광고 제거"))) }
         f += [
             Feature(art: "fresh", title: L("새 예보마다 업데이트"), note: L("무료는 하루 1번, Plus는 새 예보가 나올 때마다."), check: L("새 예보마다")),
             Feature(art: "rain", title: L("가까운 비 · 알림"),

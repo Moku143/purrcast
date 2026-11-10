@@ -565,6 +565,9 @@ struct HomeView: View {
                 } else {
                     movable(row[0], ids: ids) { card(row[0], s, ink: ink) }
                 }
+                // Free: an ad card under 시간별 and one under 10일, wherever those two have been moved
+                if row[0] == "hourly" { AdCard(slot: .home(0), ink: ink) { route = .paywall } }
+                if row[0] == "daily" { AdCard(slot: .home(1), ink: ink) { route = .paywall } }
             }
             .reveal(min(i + 1, 5)).settleInScroll()
         }

@@ -1,4 +1,4 @@
 /* The app keeps its English name in this language */
 "CFBundleDisplayName" = "Ronrom Clima";
 "NSLocationWhenInUseUsageDescription" = "Usado para mostrar o tempo onde você está.";
-"NSUserTrackingUsageDescription" = "Usado apenas para mostrar anúncios que possam te interessar. O app funciona do mesmo jeito se você não permitir.";
+"NSUserTrackingUsageDescription" = "Usado para anúncios personalizados.";

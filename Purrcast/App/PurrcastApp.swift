@@ -68,6 +68,7 @@ struct PurrcastApp: App {
                     Task {
                         await purchases.refresh()
                         syncPlan()
+                        Ads.shared.foreground()
                         AppIcon.follow(model.shownCharacter)
                         await model.refresh()
                         await CloudLog.shared.sync(model: model)
@@ -82,6 +83,7 @@ struct PurrcastApp: App {
                 .onChange(of: purchases.willRenew) { _, _ in syncPlan() }      // the widgets' allowance follows auto-renew
                 .onChange(of: purchases.testUntil) { _, _ in syncPlan() }
                 .onChange(of: purchases.testBuild) { _, _ in syncPlan() }
+                .onChange(of: model.onboarded) { _, _ in syncPlan() }       // ads start on home, after the first-run pages
         }
     }
 
@@ -90,6 +92,7 @@ struct PurrcastApp: App {
         model.plus = purchases.active || purchases.testActive || model.debugPlus
         model.plusUntil = Purchases.widgetPlusUntil(active: purchases.active, expires: purchases.expires, willRenew: purchases.willRenew,
                                                     testUntil: purchases.testActive ? purchases.testUntil : nil)
+        Ads.shared.update(plus: model.plus, onboarded: model.onboarded)
     }
 }
 
@@ -107,7 +110,9 @@ struct RootView: View {
     var body: some View {
         Group {
             if model.onboarded {
-                HomeView(route: $route, day: $day).id(model.language).transition(.opacity)   // a new language rebuilds the page
+                HomeView(route: $route, day: $day).id(model.language)   // a new language rebuilds the page
+                    .safeAreaInset(edge: .bottom, spacing: 0) { AdBanner { route = .paywall } }     // Free: the banner under home
+                    .transition(.opacity)
             } else {
                 OnboardingView().environment(\.colorScheme, .light).transition(.move(edge: .leading).combined(with: .opacity))
             }

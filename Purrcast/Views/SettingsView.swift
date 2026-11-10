@@ -9,6 +9,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var redeeming = false
     @ObservedObject private var cloud = CloudLog.shared
+    @ObservedObject private var ads = Ads.shared
 
     var body: some View {
         VStack(spacing: 0) {
@@ -30,12 +31,19 @@ struct SettingsView: View {
                     widgetsSection
                     cloudSection
                     infoSection
+                    // Europe/UK (Google's consent form): change the ad consent any time
+                    if ads.privacyOptions && !model.plus {
+                        Button(L("광고 개인정보 설정")) { ads.showPrivacyOptions() }
+                            .font(.ui(12.5)).foregroundStyle(UI.sub).padding(.top, 14)
+                            .accessibilityIdentifier("ad-privacy")
+                    }
                     Text(model.isSample ? L("지금은 예시 날씨로 보여요 (서버 연결 전)") : "")
                         .font(.ui(11)).foregroundStyle(UI.faint).padding(.top, 14).padding(.bottom, 30)
                 }
             }
         }
         .background(UI.bg)
+        .safeAreaInset(edge: .bottom, spacing: 0) { AdBanner { go(.paywall) } }     // Free
         // Apple's offer-code sheet; the transaction listener picks the redeemed plan up by itself
         .offerCodeRedemption(isPresented: $redeeming) { _ in Task { await purchases.refresh(); await purchases.refreshTrialEligibility() } }
     }

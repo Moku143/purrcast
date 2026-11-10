@@ -1,4 +1,4 @@
 /* The app keeps its English name in this language */
 "CFBundleDisplayName" = "Ronron Météo";
 "NSLocationWhenInUseUsageDescription" = "Utilisé pour afficher la météo là où vous êtes.";
-"NSUserTrackingUsageDescription" = "Sert uniquement à afficher des publicités susceptibles de vous intéresser. L’app fonctionne de la même façon si vous refusez.";
+"NSUserTrackingUsageDescription" = "Sert aux publicités personnalisées.";

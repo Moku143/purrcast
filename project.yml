@@ -48,7 +48,7 @@ targets:
         # AdMob (Ads.swift): the app's id, Apple's tracking prompt text (every language in InfoPlist.strings), and the
         # ad networks' install attribution ids from Google's own sample
         GADApplicationIdentifier: ca-app-pub-3820798685245860~8729194680
-        NSUserTrackingUsageDescription: 관심 있을 만한 광고를 보여 드리는 데만 써요. 허용하지 않아도 앱은 똑같이 쓸 수 있어요.
+        NSUserTrackingUsageDescription: 맞춤 광고에 써요.
         SKAdNetworkItems:
           - SKAdNetworkIdentifier: cstr6suwn9.skadnetwork
           - SKAdNetworkIdentifier: 4fzdc2evr5.skadnetwork

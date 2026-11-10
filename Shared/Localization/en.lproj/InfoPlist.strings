@@ -1,4 +1,4 @@
 /* Name on English (and other non-Korean) iPhones and Apple Watches */
 "CFBundleDisplayName" = "Purrcast";
 "NSLocationWhenInUseUsageDescription" = "Used to show the weather where you are.";
-"NSUserTrackingUsageDescription" = "Used only to show ads you may find interesting. The app works the same if you don’t allow it.";
+"NSUserTrackingUsageDescription" = "Used for personalized ads.";

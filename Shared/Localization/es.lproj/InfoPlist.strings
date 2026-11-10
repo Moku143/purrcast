@@ -1,4 +1,4 @@
 /* The app keeps its English name in this language */
 "CFBundleDisplayName" = "Ronroneo";
 "NSLocationWhenInUseUsageDescription" = "Se usa para mostrar el tiempo donde estás.";
-"NSUserTrackingUsageDescription" = "Solo se usa para mostrarte anuncios que te puedan interesar. La app funciona igual si no lo permites.";
+"NSUserTrackingUsageDescription" = "Se usa para anuncios personalizados.";

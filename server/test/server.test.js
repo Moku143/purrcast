@@ -1350,3 +1350,12 @@ test('radar: /v1/radar/img passes the picture on, keeps the key out of errors, r
   assert.equal(bad.status, 502);
   assert.ok(!(await bad.text()).includes('SECRET'));
 });
+
+test('HTTP: /v1/ads gives the app its ad config; ADS_CONFIG turns parts down', async () => {
+  const d = await (await worker.fetch(new Request('https://x/v1/ads'), {}, null)).json();
+  assert.deepEqual(d, { on: true, homeCards: 2, dayCard: true, banner: true, interstitialEvery: 2, interstitialGap: 60 });
+  const less = await (await worker.fetch(new Request('https://x/v1/ads'), { ADS_CONFIG: '{"interstitialEvery":0,"homeCards":1}' }, null)).json();
+  assert.equal(less.interstitialEvery, 0); assert.equal(less.homeCards, 1); assert.equal(less.banner, true);
+  const broken = await (await worker.fetch(new Request('https://x/v1/ads'), { ADS_CONFIG: '{oops' }, null)).json();
+  assert.equal(broken.on, true);
+});

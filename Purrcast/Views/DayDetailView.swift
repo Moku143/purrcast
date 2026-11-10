@@ -39,6 +39,7 @@ struct DayDetailView: View {
     @State private var fine = true           // 미세먼지 tab: PM2.5 (초미세) or PM10
     @State private var picked: Int?          // hour chosen on the chart; nil → now (today) or noon
     @State private var scrubbing = false
+    @State private var showPaywall = false      // from the ad card's "광고 없애기 · Plus"
     @Namespace private var ns
 
     var body: some View {
@@ -73,6 +74,7 @@ struct DayDetailView: View {
                     if index == 0, let a = s.alert { alertLine(a, ctx) }          // a 날씨 기록 day: that day's 특보
                 }
                 brief(ctx)
+                if !focus { AdCard(slot: .day, ink: ink) { showPaywall = true } }     // Free
                 if let h = hourly {
                     chartCard(ctx, h).reveal(1)
                     extremesRow(ctx, h).reveal(1)
@@ -86,6 +88,9 @@ struct DayDetailView: View {
         .background { if !focus { sheetBackground(s).ignoresSafeArea() } }
         .foregroundStyle(ink.ink)
         .onAppear { if startMetric != .temp, metric == .temp { metric = startMetric } }
+        .onAppear { if !focus { Ads.shared.screenOpened() } }
+        .onDisappear { if !focus { Ads.shared.dayClosed() } }
+        .sheet(isPresented: $showPaywall) { PaywallView() }
         .onChange(of: start) { _, i in
             picked = nil; scrubbing = false
             if metric == .dust, DayHourly.make(scene: s, index: i)?.hasDust != true { metric = .temp }   // today's readings, tomorrow's forecast only

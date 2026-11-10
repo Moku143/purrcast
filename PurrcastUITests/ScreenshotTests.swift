@@ -633,6 +633,32 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    /// Free's ads where they go (stand-ins, -adsDemo: no SDK, no network): two cards on home and the banner under it,
+    /// the day sheet's card, the banners under 지역 and 설정 — light and dark. Plus sees none.
+    func test26Ads() {
+        let free = ["-scene", "maybe", "-char", "cat", "-adsDemo"]
+        for (mode, extra) in [("light", [String]()), ("dark", ["-appearance", "dark"])] {
+            for (name, open, swipes) in [("home", "", 0), ("home", "", 1), ("home", "", 2), ("day", "day", 0), ("places", "places", 0), ("settings", "settings", 0)] {
+                let args = free + extra + (open.isEmpty ? [] : ["-open", open])
+                shot("ads-\(mode)-\(name)-\(swipes)", args, wait: 3) { app in
+                    for _ in 0..<swipes { app.swipeUp(); sleep(1) }
+                }
+            }
+        }
+        // the cards and the banner exist, each with our 'remove ads' line; Plus has none
+        let app = XCUIApplication()
+        app.launchArguments = free + ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+        app.launch()
+        XCTAssertTrue(app.descendants(matching: .any)["ad-banner"].firstMatch.waitForExistence(timeout: 10), "no banner under home")
+        XCTAssertTrue(app.buttons["remove-ads"].firstMatch.exists, "no 광고 없애기 line")
+        app.terminate()
+        app.launchArguments = free + ["-plus", "-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+        app.launch()
+        sleep(3)
+        XCTAssertFalse(app.descendants(matching: .any)["ad-banner"].firstMatch.exists, "Plus shows an ad")
+        app.terminate()
+    }
+
     /// First run with the 이전 button, the fuller widget and watch pages; the merged rain slide of the Plus page
     func test18Onboard() {
         for lang in ["ko", "en", "ja"] {

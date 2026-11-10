@@ -1,4 +1,4 @@
 /* The app keeps its English name in this language */
 "CFBundleDisplayName" = "Schnurrwetter";
 "NSLocationWhenInUseUsageDescription" = "Wird verwendet, um das Wetter an deinem Standort anzuzeigen.";
-"NSUserTrackingUsageDescription" = "Wird nur genutzt, um dir Werbung zu zeigen, die dich interessieren könnte. Ohne Erlaubnis funktioniert die App genauso.";
+"NSUserTrackingUsageDescription" = "Wird für personalisierte Werbung genutzt.";

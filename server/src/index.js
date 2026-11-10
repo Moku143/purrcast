@@ -43,6 +43,8 @@ export default {
       return json(out);
     }
     if (url.pathname === '/v1/devices') return devices(request, env);
+    // Free's ads (the app's Ads.swift): how many of each, turned down here without an app update
+    if (url.pathname === '/v1/ads') return json(adsConfig(env), 200, { 'cache-control': 'public, max-age=600' });
     if (url.pathname === '/v1/airmap') {
       try {
         const out = await airMapAnswer(url.searchParams, env, ctx);
@@ -295,6 +297,12 @@ export function legacyIcons(scene) {
   if (scene.bubble) scene.bubble.icon = swap(scene.bubble.icon);
   for (const t of scene.tiles ?? []) t.icon = swap(t.icon);
   return scene;
+}
+
+/** Free's ads. ADS_CONFIG (a JSON var in wrangler.toml / the dashboard) overrides any field; the defaults are the app's. */
+export function adsConfig(env) {
+  const base = { on: true, homeCards: 2, dayCard: true, banner: true, interstitialEvery: 2, interstitialGap: 60 };
+  try { return { ...base, ...(env.ADS_CONFIG ? JSON.parse(env.ADS_CONFIG) : {}) }; } catch { return base; }
 }
 
 function json(body, status = 200, extra = {}) {

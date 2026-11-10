@@ -28,6 +28,8 @@ struct PlacesView: View {
         .onChange(of: query) { _, q in runSearch(q) }
         .task { await model.refreshPreviews() }
         .task { await loadIndex() }
+        .safeAreaInset(edge: .bottom, spacing: 0) { if !searching { AdBanner { showPaywall = true } } }    // Free
+        .onAppear { Ads.shared.screenOpened() }
         .sheet(isPresented: $showPaywall) { PaywallView() }
     }
 

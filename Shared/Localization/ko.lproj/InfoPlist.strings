@@ -1,4 +1,4 @@
 /* 한국어 아이폰 · 애플워치에서 보이는 이름 */
 "CFBundleDisplayName" = "그르릉날씨";
 "NSLocationWhenInUseUsageDescription" = "지금 위치의 날씨를 보여 드리기 위해 필요해요.";
-"NSUserTrackingUsageDescription" = "관심 있을 만한 광고를 보여 드리는 데만 써요. 허용하지 않아도 앱은 똑같이 쓸 수 있어요.";
+"NSUserTrackingUsageDescription" = "맞춤 광고에 써요.";
