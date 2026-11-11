@@ -8,6 +8,7 @@
 "고양이" = "Gato";
 "아비시니안" = "Abissínio";
 "브리티시숏헤어" = "British Shorthair";
+"카피바라" = "Capivara";
 "폭염" = "Onda de calor";
 "한파" = "Onda de frio";
 "폭우" = "Temporal";
@@ -793,8 +794,8 @@
 "날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요." = "Sempre que você vê o tempo, o dia e a roupa vão para o calendário.";
 "달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷을 정리해 1일에 알려 드려요." = "Dias de chuva, o dia mais quente e o que você mais usou, todo dia 1º.";
 "날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷 · 1일에 알림" = "O tempo e a roupa do dia vão para o calendário\nTodo mês: chuva · dia mais quente · mais usado · aviso no dia 1º";
-"아비시니안 · 브리티시숏헤어 · 이름 짓기\n추후 업데이트로 캐릭터 추가 예정" = "Abissínio · British Shorthair · Dê um nome\nMais personagens em atualizações futuras";
-"아비시니안 · 브리티시숏헤어 · 이름 · 말투\n추후 업데이트로 캐릭터 추가 예정" = "Abissínio · British Shorthair · Dê um nome\nMais personagens em atualizações futuras";
+"아비시니안 · 브리티시숏헤어 · 카피바라 · 이름 짓기\n추후 업데이트로 캐릭터 추가 예정" = "Abissínio · British Shorthair · Capivara · Dê um nome\nMais personagens em atualizações futuras";
+"아비시니안 · 브리티시숏헤어 · 카피바라 · 이름 · 말투\n추후 업데이트로 캐릭터 추가 예정" = "Abissínio · British Shorthair · Capivara · Dê um nome\nMais personagens em atualizações futuras";
 "매일의 날씨와 옷차림이" = "O tempo e a roupa de cada dia";
 "달력에 쌓여요" = "no seu calendário";
 "홈 화면도 잠금화면도" = "Telas de Início e Bloqueio";

@@ -694,6 +694,22 @@ final class ScreenshotTests: XCTestCase {
         shot("onb-back", ["-scene", "spring_rain", "-onboarding", "-onbStep", "2"], wait: 3) { app in app.buttons["back"].firstMatch.tap(); sleep(1) }
     }
 
+    /// The capybara (Plus): home in four kinds of weather (umbrella, bag, snow, heat), its pages, and the rows that
+    /// now show four characters (Plus page, onboarding's last step).
+    func test29Capybara() {
+        for key in ["clear", "spring_rain", "maybe", "winter_snow", "summer_heat", "winter_cold"] {
+            shot("capy-home-\(key)", ["-scene", key, "-plus", "-char", "capy"])
+        }
+        shot("capy-home-umbrella-en", ["-scene", "spring_rain", "-plus", "-char", "capy", "-lang", "en"])
+        shot("capy-page-character", ["-scene", "maybe", "-plus", "-char", "capy", "-open", "character"], wait: 2)
+        shot("capy-page-widgets", ["-scene", "spring_rain", "-plus", "-char", "capy", "-open", "widgets"], wait: 2)
+        shot("capy-paywall-chars", ["-scene", "maybe", "-open", "paywall"], wait: 2) { app in
+            for _ in 0..<10 { app.swipeLeft(); usleep(600_000) }   // 캐릭터 바꾸기 is the last slide
+            sleep(1)
+        }
+        shot("capy-onb-plus", ["-scene", "maybe", "-onboarding", "-onbStep", "7"], wait: 3)
+    }
+
     func test10Layout() {
         var screens: [(String, [String], Int)] = [
             ("home-1", ["-scene", "maybe", "-plus", "-char", "cat"], 0),

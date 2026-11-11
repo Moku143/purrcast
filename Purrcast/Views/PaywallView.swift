@@ -29,8 +29,8 @@ struct PaywallView: View {
             Feature(art: "calendar", title: L("날씨 달력 · 월간 리포트"), note: L("날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷 · 1일에 알림"), check: L("날씨 달력")),
             Feature(art: "watch", title: L("애플워치"), note: L("손목에서 지금 날씨 · 시간별 · 10일\n워치 페이스에 기온 · 비 확률 · 캐릭터"), check: L("애플워치")),
             Feature(art: "places", title: L("지역 여러 곳"), note: L("무료는 1곳 더, Plus는 제한 없이."), check: L("지역 여러 곳")),
-            Feature(art: "chars", title: L("캐릭터 바꾸기"), note: Voice.choices.isEmpty ? L("아비시니안 · 브리티시숏헤어 · 이름 짓기\n추후 업데이트로 캐릭터 추가 예정")
-                                                                       : L("아비시니안 · 브리티시숏헤어 · 이름 · 말투\n추후 업데이트로 캐릭터 추가 예정"), check: L("캐릭터")),
+            Feature(art: "chars", title: L("캐릭터 바꾸기"), note: Voice.choices.isEmpty ? L("아비시니안 · 브리티시숏헤어 · 카피바라 · 이름 짓기\n추후 업데이트로 캐릭터 추가 예정")
+                                                                       : L("아비시니안 · 브리티시숏헤어 · 카피바라 · 이름 · 말투\n추후 업데이트로 캐릭터 추가 예정"), check: L("캐릭터")),
         ]
         return f
     }
@@ -360,12 +360,12 @@ struct PaywallView: View {
         }
     }
 
-    /// The three characters as tiles, the first one chosen
+    /// The four characters as tiles, the first one chosen
     private var charsArt: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             ForEach(Array(PurrCharacter.allCases.enumerated()), id: \.offset) { i, c in
-                CharacterSprite(character: c, level: 5, rain: .none, width: 72, animate: false)
-                    .frame(width: 92, height: 132)
+                CharacterSprite(character: c, level: 5, rain: .none, width: 62, animate: false)
+                    .frame(width: 74, height: 116)
                     .background(i == 0 ? Color(hex: "#D9EFCF") : Color.white)
                     .overlay(RoundedRectangle(cornerRadius: 16).stroke(i == 0 ? UI.accent : Color.white, lineWidth: 3))
                     .clipShape(RoundedRectangle(cornerRadius: 16))

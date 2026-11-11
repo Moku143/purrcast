@@ -8,6 +8,7 @@
 "고양이" = "Kucing";
 "아비시니안" = "Abyssinian";
 "브리티시숏헤어" = "British Shorthair";
+"카피바라" = "Kapibara";
 "폭염" = "Gelombang panas";
 "한파" = "Gelombang dingin";
 "폭우" = "Hujan deras";
@@ -793,8 +794,8 @@
 "날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요." = "Setiap kali Anda melihat cuaca, cuaca dan pakaian hari itu tercatat di kalender.";
 "달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷을 정리해 1일에 알려 드려요." = "Hari hujan, hari terpanas, dan pakaian tersering tiap bulan, dikirim tiap tanggal 1.";
 "날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷 · 1일에 알림" = "Cuaca dan pakaian hari itu tercatat di kalender\nTiap bulan: hari hujan · terpanas · paling sering · kabar tanggal 1";
-"아비시니안 · 브리티시숏헤어 · 이름 짓기\n추후 업데이트로 캐릭터 추가 예정" = "Abyssinian · British Shorthair · Beri nama\nKarakter lain di pembaruan mendatang";
-"아비시니안 · 브리티시숏헤어 · 이름 · 말투\n추후 업데이트로 캐릭터 추가 예정" = "Abyssinian · British Shorthair · Beri nama\nKarakter lain di pembaruan mendatang";
+"아비시니안 · 브리티시숏헤어 · 카피바라 · 이름 짓기\n추후 업데이트로 캐릭터 추가 예정" = "Abyssinian · British Shorthair · Kapibara · Beri nama\nKarakter lain di pembaruan mendatang";
+"아비시니안 · 브리티시숏헤어 · 카피바라 · 이름 · 말투\n추후 업데이트로 캐릭터 추가 예정" = "Abyssinian · British Shorthair · Kapibara · Beri nama\nKarakter lain di pembaruan mendatang";
 "매일의 날씨와 옷차림이" = "Cuaca dan pakaian setiap hari";
 "달력에 쌓여요" = "tersimpan di kalender";
 "홈 화면도 잠금화면도" = "Layar Utama & Layar Kunci";

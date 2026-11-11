@@ -1,14 +1,17 @@
 import SwiftUI
 
-/// The three pixel characters. The cat is free; the others come with Plus.
+/// The pixel characters. The cat is free; the others come with Plus.
 enum PurrCharacter: String, CaseIterable, Codable, Identifiable {
-    case cat, abys, brit
+    case cat, abys, brit, capy
     var id: String { rawValue }
     var defaultName: String {
-        switch self { case .cat: return L("고양이"); case .abys: return L("아비시니안"); case .brit: return L("브리티시숏헤어") }
+        switch self {
+        case .cat: return L("고양이"); case .abys: return L("아비시니안"); case .brit: return L("브리티시숏헤어")
+        case .capy: return L("카피바라")
+        }
     }
     var isPlus: Bool { self != .cat }
-    /// How each one talks by default: 고양이 존댓말 · 브리티시숏헤어 격식 · 아비시니안 반말
+    /// How each one talks by default: 고양이 존댓말 · 브리티시숏헤어 격식 · 아비시니안 반말 · 카피바라 존댓말 (느긋하고 다정하게)
     var defaultVoice: Voice { self == .brit ? .formal : self == .abys ? .casual : .polite }
     var faceImage: String { "\(rawValue)-face" }
     func stand(level: Int, rain: RainState) -> String { "\(rawValue)-stand-\(level)-\(rain.spriteKey)" }

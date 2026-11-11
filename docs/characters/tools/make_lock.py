@@ -124,8 +124,12 @@ for k in range(15):
     out[..., :3] = 255
     out[..., 3] = alpha.astype(np.uint8)
     fig = Image.fromarray(out, 'RGBA')
-    bb = im.getbbox()
-    fig = fig.crop(bb)
+    # the cats' ratio is (lock picture, outline already gone) / (standing sprite with its outline): size what is left
+    # after the outline to scale x the standing height, and stand its bottom on the cats' line (the outline under
+    # the feet would otherwise lift it ~7 px and shrink it ~3%)
+    stand_h = im.getbbox()[3] - im.getbbox()[1]
+    fig = fig.crop(fig.getbbox())
+    scale = scale * stand_h / fig.height
     scale = min(scale, (botm - 2) / fig.height, 366 / fig.width)
     fig = fig.resize((max(1, round(fig.width * scale)), max(1, round(fig.height * scale))), Image.LANCZOS)
     canvas = Image.new('RGBA', (370, 480), (255, 255, 255, 0))

@@ -20,7 +20,7 @@ struct RainActivityAttributes: ActivityAttributes {
         var endDate: Date { Date(timeIntervalSince1970: TimeInterval(max(end, start + 60))) }
     }
     var place: String          // "오류동"
-    var character: String      // cat | abys | brit
+    var character: String      // cat | abys | brit | capy
     var level: Int             // the outfit (0…14)
 }
 #endif
