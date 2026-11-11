@@ -599,3 +599,15 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   top corners. Compare the attached cat: its outline is the same thin width all the way round."
 - 같은 방식(라이트박스 100%, 원본 스크린샷 좌/우 2장 잘라 붙임) → `capy/m3-stand-row1-test2.png` (1790×498)
 - 시각 확인: 정수리 한 줄, 귀-머리 접합부 한 줄 공유, 모서리 덩어리 없음. 주인 판정 대기.
+
+## 2026-11-11 · capy · 화질 테스트 3 — abys·brit 스타일 기준 (m3-stand-row1-test3)
+
+- 주인: 테스트 2는 테두리가 너무 얇아 고양이들과 느낌이 다름 → 스타일을 abys·brit 기준으로.
+- 같은 채팅에 refs 3장: `m2-stand-15-v8.png`(디자인) + `abys-stand-2-none.png` + `brit-stand-2-none.png`(앱 에셋).
+  문구: "Draw it in EXACTLY the pixel-art style of the two attached cat sprites (the grey Abyssinian and the round
+  British Shorthair): the same pixel size, the same clean crisp edges, the same outline width and dark colour, the
+  same soft rounded shapes and flat colour fills. The outline has the same width all the way round the head - no
+  doubled or stacked lines on top of the head or where the ears meet it. Only the style comes from the cats; the
+  capybara itself (face, muzzle, ears, body, outfits) stays exactly as in the first reference."
+- 같은 방식 캡처 → `capy/m3-stand-row1-test3.png` (1780×495)
+- 시각 확인: 테두리가 고양이 수준의 도톰한 균일 선으로, 정수리·귀 접합부 겹침 없음, 모서리 계단 규칙적. 주인 판정 대기.
