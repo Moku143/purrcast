@@ -262,24 +262,22 @@ What the other three wear per stage (for the no-repeat check): 0 hats = straw(ca
 11 mouton+earmuffs(cat)·short puffer(abys·brit) · 12 hats = beanie(cat)·trapper(abys)·deerstalker(brit) ·
 13 fur hood(cat)·hood up(abys)·balaclava(brit) · 14 muzzle-scarf(cat)·fur hood(abys)·cossack hat(brit).
 
-(0) cream sleeveless tank with a small yuzu print + woven straw sun hat + holding a glass of iced yuzu juice with a
-straw · (1) sage-green sleeveless tank with thin cream stripes + holding a fresh cucumber · (2) white tee with ONE
-small orange yuzu + light-denim shorts · (3) white camp shirt with a green banana-leaf pattern + beige shorts ·
+(0) cream sleeveless tank with a small yuzu print + woven straw sun hat + glass of iced yuzu juice with a straw ·
+(1) sage-green sleeveless tank with thin cream stripes + holding a slice of watermelon · (2) white tee with ONE small
+orange yuzu + light-denim shorts · (3) white camp shirt with a green banana-leaf pattern + beige shorts ·
 (4) pale-yellow button-up + moss-green knit tie · (5) terracotta sweatshirt with a small white duck ·
-(6) moss-green cable-knit cardigan with small wooden buttons over a cream tee · (7) brown corduroy jacket with a
-cream sherpa collar, open, over a cream tee · (8) retro colour-block WINDBREAKER in mint and lavender with a white
-zip · (9) deep-teal quilted jacket with a mustard corduroy collar · (10) navy padded hanten robe-coat with a tiny
-white wave pattern + mustard scarf · (11) camel DUFFLE COAT with toggle buttons + forest-green scarf ·
-(12) burnt-orange puffer + red-and-cream striped BOBBLE BEANIE pulled down just over the eyes + brown scarf ·
-(13) plum long puffer + oatmeal knitted HOODED SCARF, hood up, edge just over the eyes ·
-(14) deep-green long puffer with its own PADDED (quilted) HOOD worn up, edge just over the eyes + red-and-cream
-striped scarf + red mittens
+(6) sky-blue and cream striped knit sweater · (7) cream varsity jacket with coral-pink sleeves and a small orange
+yuzu patch · (8) bright sunny-yellow windbreaker with sky-blue colour-block shoulders and a white zip ·
+(9) raspberry-pink quilted jacket with a cream collar · (10) navy padded hanten robe-coat with a tiny white wave
+pattern + mustard scarf · (11) camel duffle coat with toggle buttons + forest-green scarf ·
+(12) burnt-orange SHORT puffer + red-and-cream striped bobble beanie slipped down so the eyes just barely peek out +
+brown scarf · (13) ice-blue HIP-LENGTH puffer + white knitted earflap hat with braided tassels, slipped down, eyes
+just peeking + plum scarf · (14) deep-green ANKLE-LENGTH puffer + a puffy quilted hat with a FUR TRIM, slipped down,
+eyes just peeking + red-and-cream striped scarf + red mittens
 
-v3 changes (owner, 15:57): straw hat back at 0 · cuter details everywhere (stripes, sherpa/corduroy collars, wave
-pattern) · a windbreaker added at 8 · 14 = padded hood (not fur, not beanie) · 11 poncho and 12 bucket hat were not
-recognisable → duffle coat and striped bobble beanie; recognisable-and-cute beats unique, only identical combos with
-the cats are avoided (capy 0 straw hat differs from cat 0 by prop/colours; capy 11 duffle differs from cat 10 duffle
-by stage, colour and scarf).
+v4 changes (owner, 16:05): 1 cucumber → watermelon slice · 12-14 eye coverage softened (the hat has slipped down so
+the eyes just barely peek out, a sleepy dopey look - not fully masked) · 14 = fur-trimmed padded hat · 12/13/14 made
+clearly different from each other (hat shape, colour, coat length, scarf) · 6-9 redesigned bright and eye-catching.
 
 Eye coverage rule (owner): on 12-14 the eyes are hidden NATURALLY - the hat brim / hood edge comes down just over the
 eyes; never a mask covering the whole face.

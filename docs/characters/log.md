@@ -284,3 +284,15 @@ Character design candidates for a NEW character: 6 different takes on a CAPYBARA
   recognisable, with lovely little details" added.
 - result: `capy/1r-outfits-15-v3.png` — checked: all five fixes landed, 15/15 in order, eyes on 12-14 hidden
   naturally by brim/hood edge, muzzle visible.
+
+## 2026-11-11 · capy · round era step 1 v4 — awaiting confirmation
+
+- Owner on v3: 1 cucumber out → watermelon slice; 12-14 eye coverage softened to "hat slipped down, eyes just barely
+  peek out, sleepy dopey look"; 14 = puffy quilted hat WITH FUR TRIM; 12/13/14 strongly differentiated (hat shape,
+  colour, coat length, scarf: orange short puffer+striped bobble beanie / ice-blue hip puffer+white earflap hat+plum
+  scarf / deep-green ankle puffer+fur-trim padded hat+striped scarf+mittens); 6-9 redesigned bright & eye-catching
+  (sky-blue striped knit · cream/coral varsity with yuzu patch · yellow/sky windbreaker · raspberry quilted).
+- ChatGPT (no credits) · chat "Pixel Art Outfit Sheet" (second of that name) · refs: `ref-cand4.png` +
+  `abys-outfits-15-v2.png` · full prompt in the chat, list in prompts.md (v4 block).
+- result: `capy/1r-outfits-15-v4.png` — checked: all five fixes in, 15/15 in order, eyes peeking on 12/13 and
+  nearly hidden on 14, three winter outfits clearly distinct, 6-9 bright.
