@@ -433,3 +433,12 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 결과: `capy/stage14-stand-v1-fixed.png`. 시트에 끼울 때 배율 0.31(주둥이 폭 기준), 발·몸 중심 맞춤:
   `tools/swap14.py sheet single 0.31 out` (잠금화면은 `--lock`).
 - 가방·우산·잠금화면 14단계도 같은 눈 크기·털색으로 맞출 것(안 맞으면 같은 후처리).
+
+## 2026-11-11 · capy · 14단계 서 있기 v2 (주인: "눈 위치는 그대로, 모자가 더 안쪽으로 감싸야지")
+
+- v1-fixed는 눈 줄을 늘리면서 눈이 바깥(얼굴 가장자리)으로 간 것처럼 보였음. 다른 단계의 눈 자리(주둥이 중심
+  ±0.62 mw, 주둥이 위 0.10 mw, 길이 0.28 mw, 두께 0.09 mw — mw=주둥이 폭)에 눈을 다시 그리고, 후드 털 테두리를
+  행마다 안쪽으로 늘려(테두리 그림은 그대로, 가로로만 당김) 안쪽 끝이 주둥이 중심 ±0.80 mw에 오게 함 → 눈 바깥쪽
+  절반이 털에 가려짐. 털색은 furfix(R×0.94, 밝은 털 G+3·B+5).
+- `tools/hoodwrap.py stage14-stand-v1.png out.png 0.80` → `tools/furfix.py` → `capy/stage14-stand-v2.png`.
+  시트 배율 0.31(`tools/swap14.py`). 가방·우산·잠금 14단계 단독 그림에도 같은 순서로 적용.
