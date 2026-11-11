@@ -123,9 +123,12 @@ No text, no labels, no frames. Output 16:9.
   the head, NOT round bear ears; a serene, sleepy, gentle, huggable expression; a chubby round body with short thick
   legs; feet and paws DARK chocolate brown; NO tail; the head closes with ONE clean 1-pixel dark-navy jaw line with
   the collar right below it — no shadow band, no double chin."
-- `{OUTFIT 0..14}`: the v4 list in "capy — the 15 outfits" below, with (14) = "deep-green ankle-length puffer coat
-  with its own attached padded hood worn up, a cream fur trim around the face, red-and-cream STRIPED scarf, red
-  mittens".
+- `{OUTFIT 0..14}`: the v4 list in "capy — the 15 outfits" below, with two owner changes (2026-11-11 20:20):
+  (10) = "navy double-breasted wool pea coat buttoned shut up to the neck (two rows of buttons, nothing open at the
+  front) + mustard scarf" — not the hanten (its open wrap front looked cold next to the cats' buttoned wool coats);
+  (14) = "deep-green KNEE-length puffer parka with its own big round hood in the same green, one piece with the coat,
+  worn up and wrapping the whole head like the cats' stage 14; a thick cream fur ring around the face; the ears inside
+  the hood; red-and-cream STRIPED scarf; red mittens; no breath puff".
 - `{CARRY}`: moss-green bag · coral-red J handle · coral-red open umbrella.
 - `{LOCK HINT}`: "the rounded loaf head, the big rounded muzzle in light grey with two dark nostrils, tiny ear nubs,
   no tail".
