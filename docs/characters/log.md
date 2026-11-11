@@ -296,3 +296,13 @@ Character design candidates for a NEW character: 6 different takes on a CAPYBARA
   `abys-outfits-15-v2.png` · full prompt in the chat, list in prompts.md (v4 block).
 - result: `capy/1r-outfits-15-v4.png` — checked: all five fixes in, 15/15 in order, eyes peeking on 12/13 and
   nearly hidden on 14, three winter outfits clearly distinct, 6-9 bright.
+
+## 2026-11-11 · capy · round era step 1 v5 — CONFIRMED STANDING SHEET
+
+- Owner approved v4 except: on 12/13/14 the eyes were still fully hidden (the two dots are nostrils). v5's only
+  change: "a pair of HALF-CLOSED SLEEPY EYES … peeks out in the narrow gap between the hat's bottom edge and the top
+  of the muzzle". ChatGPT chat "Redraw Winter Capybara" · ref: v4 sheet.
+- result: `capy/1r-outfits-15-v5.png` — THE base sheet for every later capy sheet (옷·눈 모양·크기 그대로 따를 것).
+- Owner also pre-approved the pipeline: bag → umbrella → lock, each following this sheet exactly; umbrella coral-red,
+  shaft straight from paw to top tip, canopy symmetric around the shaft, smooth even scallop, body height/proportions
+  identical to standing (verify by overlay).
