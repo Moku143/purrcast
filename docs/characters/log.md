@@ -715,3 +715,14 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 우산: 최종 서기 줄 그림 `capy/m3-stand-final-row{1,2,3}.png`을 편집해 우산만 더함(얼굴·옷·크기 그대로),
   고양이 우산 참고 `capy/ref/{cat-stand-2,brit-stand-6,abys-stand-14}-umbrella.png` → `capy/m3-umb-row{1,2,3}.png`.
 - 가방(접은 우산 등에 멤)·잠금화면·시계 위(inline)·얼굴: 최종 서기에서 코드로 만듦(그림 새로 안 뽑음 → 15칸 완전히 같은 얼굴).
+
+## 2026-11-12 · capy · 앱 그림 (우산 빼고) — `capy/assets/`
+
+- 서기 `capy-stand-{0..14}-none.png` = `sprite_kit.py build m3-stand-15-v2.png … --mw 105` (480×560, 발 y=555,
+  주둥이 105px → 털 없는 칸 키가 고양이들 평균과 같음).
+- 가방 `capy-stand-{0..14}-bag.png` = `tools/make_bag.py`: 고양이 가방 그림(cat-stand-2-bag)의 접은 우산을 떼어
+  이끼초록 천 + 코랄 J 손잡이로 바꿔 칠하고, 15칸 같은 자리(어깨 뒤)에 붙임.
+- 잠금화면 `capy-lock-{0..14}.png` = `tools/make_lock.py`: 서기 그림을 고양이 잠금 그림 방식(흰색+투명도, 외곽선은
+  투명)으로 변환, 크기·위치는 같은 단계 고양이 3마리 평균. 12번 낙타색 더플은 털색과 같아 옷으로 따로 지정.
+- 시계 위 `capy-inline-{0..14}@2x/@3x.png` = 잠금 그림을 위에서 74%(상의 밑단)까지 잘라 높이 40/60 — 고양이와 같은 컷.
+- 얼굴 `capy-face.png` = 8번 머리(모든 맨머리 칸이 공유하는 머리) 원 크기.
