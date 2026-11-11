@@ -784,3 +784,16 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - sprite_kit check: 주둥이 86~87, body 2.91~2.97, 눈 dy 0.09~0.10, 플래그 없음.
 - 같은 대화에서 우산 추가 진행(지난 우산 문구, 첫 문장만 "Edit your last picture (the clean capybara row you
   just drew)."로 바꿈 + 막대 중심 문장 "The shaft is at the CENTRE of the canopy …" 추가, 우산 고양이 3장 첨부).
+
+## 2026-11-12 01시대 · capy · m4 우산 1줄 (m4-umb-row1)
+
+- 같은 "Redraw Pixel Art" 대화에서 m4 1줄에 우산 추가. 첨부: 우산 고양이 3장.
+  프롬프트 = 지난 우산 문구(첫 문장만 "Edit your last picture (the clean capybara row you just drew)."로)
+  + 막대 중심 문장("The shaft is at the CENTRE of the canopy: the tip knob is straight above the shaft and
+  the canopy is the same width on both sides of the shaft."). 1차 생성 채택.
+- 캡처: 100% 좌/우 2분할(dx=366). 마크업 툴바가 4·5번 캐노피 위에 겹쳐 툴바를 아래로 끌어 옮기고
+  오른쪽 샷 재캡처 후 스티칭 → `capy/m4-umb-row1.png` (1780×594). 상단 칩·버튼·수평선·툴바 잔상은
+  그림 시작(y75) 위 여백이라 배경색 패치.
+- sprite_kit check: 주둥이 70~74(서기 86~87보다 작음 — 캐노피가 들어가며 전체 축소), body 3.14~3.29,
+  막대는 꼭지 바로 아래 중심 ✓. 플래그: 전원 eye dy 0.18~0.19 (서기 0.09~0.10 대비 큼) — 줄 안에서는 고름.
+  주인 겹쳐보기 판정 대기.
