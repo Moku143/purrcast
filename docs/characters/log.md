@@ -876,3 +876,26 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 코드로 캐노피를 옆으로 옮기면(centre_canopy.py) 테두리 아래 흰 점·옛 외곽선 자국이 남음 → 앱 그림에는 쓰지 않음.
 - 대신 ChatGPT가 옮기게: `tools/shaft_guide.py IN OUT` = 막대 위치에 빨간 세로선(꼭지 위까지)을 그린 가이드 →
   "캐노피만 옆으로 옮겨 꼭지와 캐노피 가운데가 빨간 선 위에 오게, 나머지·빨간 선은 그리지 말 것" 단독/줄 편집.
+
+## 2026-11-12 01:23~ · capy · m4 우산 1줄 꼭지↔막대 정렬 (shaft_guide, 진행 중)
+
+- 주인: 코드로 캐노피 옮기면 픽셀이 튀어 폐기 → `tools/shaft_guide.py`(막대 위치 빨간 세로선) 가이드로 ChatGPT 편집.
+  기준: 꼭지·캐노피 중심이 선에서 3px 안.
+- 시작점(테두리 정리판): 막대↔캐노피 중심 차이 8·8·6·6·12px.
+- 같은 "Edit Capybara Umbrella Pose" 대화에서:
+  - 1차(사용자 문구 verbatim, 가이드 첨부) → 차이 1·8·1·1·1px (1번 밀짚모자만 8px). ★ 지금까지 최선.
+  - 2차("four umbrellas are already correct … Only the FIRST … moves", 가이드2) → 2·1·1·7·5px — 1번 개선 대신 2번이 틀어짐.
+  - 3차("Only the FIRST and SECOND … move a few pixels toward the viewer-right", 가이드3) → 1번 22px·2번 12px로 과보정, 폐기.
+- 캡처는 매번 100% 2분할(또는 2×2) 원본 스크린샷 스티칭. 1차·2차 결과는 scratchpad에 보존(umb-align-v1/v2).
+  다음: 1차 결과를 첫 그림으로 새로 첨부해 1번만 다시 맞추기 (머리 clean3 끝난 뒤).
+- 메모: 3차까지 같은 대화를 이어가니 "last picture"가 매번 바뀌어 누적 오차 — 최선판을 첨부해 거기서 다시 시작하는 게 안전.
+
+## 2026-11-12 01:29~ · capy · 머리 턱 보정 (m4-stage8-clean3)
+
+- 주인: "턱을 조금 더 넓게" — 턱 아래쪽이 원래 8번보다 약 8% 좁음, `capy/edit/m4-stage8-headguide2.png`(빨간 선).
+- clean2와 같은 "Redraw Capybara Pixel Art" 대화에서 가이드 첨부 + 사용자 지정 문구 verbatim
+  ("only the lower half of the head changes - from the bottom of the muzzle down to the jaw line, make the
+  cheeks and the jaw about 8 percent wider and rounder … Do not draw the red line."). 1차 채택.
+- 캡처: 100% 세로 3분할(408/184) → `capy/edit/m4-stage8-clean3.png` (920×1162). 상단 칩·하단 툴바 띠·오른쪽 여백만 패치.
+- 측정(외곽선 바깥 폭, clean2 → clean3): 턱 쪽 y500 564→598(+6%), y540 486→521(+7%), y560 429→460(+7%),
+  볼 y460~480 +2~3%, 정수리·귀·눈·주둥이는 그대로. 목표 8%에 근접.
