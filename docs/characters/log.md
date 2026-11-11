@@ -340,3 +340,14 @@ Character design candidates for a NEW character: 6 different takes on a CAPYBARA
   → `capy/4r-lock-15-v1.png` — white on #20264A, all 15 outfits readable in grey (duck, stripes, windbreaker panels,
   quilting, wave hanten + tie, duffle toggles, striped beanie, earflap hat, fur-trim hat), eyes peeking on 12-14.
 - Both await the owner's overlay check; originals in the ChatGPT chats named above.
+
+## 2026-11-11 · capy · standing v6 — 12-14 faces rebuilt like figure 11's
+
+- Owner: on 12-14 the two "nostrils" were actually the close-set eye lines (real muzzle hidden by the scarf). v6:
+  faces built exactly like (11)'s — wide-apart half-closed eyes just under the hat edge, full normal muzzle with
+  small round nostrils, scarf wrapped BELOW the muzzle. ChatGPT chat "Redraw Capybara Faces" · ref: v5.
+- → `capy/1r-outfits-15-v6.png` — checked: 12/13/14 faces correct, 0-11 unchanged. NEW base sheet.
+- Mishap logged: one wasted generation (chat "Redraw Capybara Lock Screen") — a stuck tab's composer still held the
+  old lock prompt and the v6 text got appended, producing a navy lock sheet with the face fix; discarded.
+- Owner's umbrella v2 verdict: size/height PASS; shaft still 3-6% of canopy width left of the tip → next umbrella run
+  must put the tip EXACTLY above the shaft. Lock v1: size PASS; stage 14 scarf came out checked, must be STRIPED.
