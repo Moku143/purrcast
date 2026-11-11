@@ -192,3 +192,12 @@ drawn smaller than the standing/bag sheets. prompts.md now carries the consisten
   pass: umbrella v4 bodies are ~25% shorter than standing (same feet line, lower head, squashed torso at 1/5/11) —
   next umbrella run must keep the body at identical height/proportions (more headroom per cell, e.g. squarer output),
   or fall back to compositing the umbrella + raised arm onto the standing art.
+
+## 2026-11-11 · capy · standing sheet v3 (muzzle halfway v1↔v2 + neck shadow) — awaiting confirmation
+
+- Owner on v2: muzzle got too small, and with no neck boundary the head looks glued to the body. v3: muzzle size
+  halfway between v1 and v2 (length and height), chin fur band kept, plus "one thin row of slightly darker warm-brown
+  shadow pixels under the chin, where the head meets the body … just a subtle shadow line, not an outline".
+- ChatGPT (no credits) · chat "Redraw Capybara Sheet" · refs: v1 (first) + v2 (second), prompt asks for halfway
+- result: `capy/1-outfits-15-v3.png`; comparison `capy/1-outfits-v123-compare.png` (stages 1·2·7, rows v1/v2/v3)
+- bag/umbrella/lock regeneration still on hold until the owner confirms the base.
