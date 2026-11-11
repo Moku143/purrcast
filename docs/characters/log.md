@@ -953,3 +953,13 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   모자 4칸(1·13·14·15)은 m4 깨끗한 그림 그대로(13~15 눈 바깥 절반 덮임 확인).
 - 측정: 맨머리 칸 주둥이 위 y 242~250, 몸 2.92~3.02, 눈 dy 0.12 dx 0.71 (전부 같은 머리라 픽셀까지 동일).
 - 우산 입력: `m5-stand-trio-{1..5}.png` (최종 서기 3마리씩, 위에 우산 자리 200px).
+
+## 2026-11-12 03:10 · 서기·가방·잠금·시계 위·얼굴·해 아이콘 확정본을 assets/ 로
+- `capy/assets/` 를 m5 확정본으로 바꿈 (예전 clean_outline 판은 지움): capy-stand-{0..14}-none/bag, capy-lock-{0..14},
+  capy-inline-{0..14}@2x/@3x (잠금 그림 74% 높이에서 자름), capy-face (픽셀 머리 268×204).
+- 가방 = `tools/make_bag.py` (cat-stand-2-bag 의 접은 우산 층을 이끼색 몸통 + 산호색 J 손잡이로, 그림 뒤 같은 자리).
+- 잠금 = `tools/make_lock.py` (흰색+투명, 고양이 3마리 칸별 평균 크기·위치).
+- 해 아이콘 `assets/icons/`: AppIcon-sun-{blue,peach}-capy, iconpick-sun-{blue,peach}-capy
+  (abys 해 아이콘에서 얼굴만 `pixel_head.py --mw 160 --u 10` 머리로 교체).
+- 확인 그림: `compare-f6-stand-bag-vs-brit.png` (윗줄 서기, 가운데 가방, 아랫줄 브리티시숏헤어 — 키·발 위치 같음).
+- 남은 것: 우산 15칸(다른 대화에서 m5-umb-trio 대기), 비 아이콘(AppIcon-rain-capy).
