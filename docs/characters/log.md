@@ -817,3 +817,15 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   (1) 8번 한 마리만 크게(`edit/m3-stage8-in.png`) ChatGPT로 깨끗하게 다시 — 실루엣은 그대로, 외곽선만 고르게
   → `edit/m4-stage8-clean.png`, (2) 그 머리를 맨머리 칸 전부(서기·우산)에 같은 자리로 붙임(눈 자리도 저절로 같아짐),
   (3) 모자 칸은 한 마리씩 "모자 아래 얼굴 = 이 얼굴" 편집(out2 때처럼).
+
+## 2026-11-12 01:02~ · capy · m4 우산 1줄 재작업 (주인 불통과 → 덮어쓰기)
+
+- 불통과 사유: 막대가 캐노피 왼쪽 1/3(꼭지는 가운데) + 얼굴 변형(눈 dy 0.19, 몸 +8%).
+- 새 대화 "Edit Capybara Umbrella Pose" (`…/c/6af491ba-8efc-83ec-9113-8bc7c70333f3`),
+  첨부: `capy/m4-stand-row1.png` + 우산 고양이 3장. 프롬프트: 사용자 지정 verbatim
+  ("keep every capybara EXACTLY as it is - do not redraw the faces … the coral-red canopy is centred on the
+  SHAFT, not on the head - … the canopy sits shifted toward the viewer-left exactly like the cats …"). 1차 채택.
+- 캡처: 100% 좌/우 2분할(dx=238), 툴바는 아래로 이동 → `capy/m4-umb-row1.png` 덮어쓰기 (1772×599).
+  오른쪽 샷 커서가 1번 볼에 박혀 왼쪽 샷 같은 영역으로 치환, 상단 UI 띠·툴바 잔상 배경 패치.
+- sprite_kit check: 플래그 없음 — 주둥이 82~86(서기 86~87와 같은 크기), body 2.83~3.00(서기 2.91~2.97),
+  눈 dy 0.07~0.12(서기 0.09~0.10). 막대 = 캐노피 중심, 캐노피는 고양이처럼 몸 중심에서 왼쪽으로. 주인 검사 대기.
