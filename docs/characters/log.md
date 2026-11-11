@@ -158,3 +158,23 @@ Lock-screen version of the capybara in the first reference image, in its same 15
   the canopy - the shaft and the tip are on the SAME vertical line, and the canopy is left-right SYMMETRICAL AROUND
   THE SHAFT. Because the paw holding it is at the side of the body, the whole canopy sits slightly toward that side,
   NOT centred over the head - copy the cat picture."
+
+## 2026-11-11 · capy · consistency pass (owner's side-by-side review) — lock v2 + umbrella v4, both FINAL
+
+Owner found, comparing the four sheets stage by stage: lock v1 showed eyes on 12/13/14 (colour sheet hides them —
+the two dots on the muzzle are NOSTRILS, eyes sit higher and are covered by beanie/balaclava/fur hood); lock v1's
+yuzu prints read as apples on 0/2, 9 lost its zip, 14's mittens/striped scarf drifted; umbrella v3's bodies were
+drawn smaller than the standing/bag sheets. prompts.md now carries the consistency rule (모든 시트는 서 있는 컬러
+시트를 그대로 따른다 — 눈 가림·크기 포함) to go into every non-standing prompt.
+
+- lock v2 · ChatGPT chat "Convert Capybara Lock Screen" · refs: capy colour sheet + `cat-04-lock-screen.png` ·
+  "THIS IS A COLOUR CONVERSION ONLY … figures (12), (13) and (14) have their EYES COMPLETELY HIDDEN … the only dark
+  dots on the face are the two NOSTRILS" plus explicit yuzu-not-apple / zip / striped-scarf-and-mittens clauses.
+  → `capy/4-lock-15-v2.png`. Supersedes v1.
+- umbrella v4 · ChatGPT chat "Umbrella Pixel Art Redraw" · refs: capy colour sheet + `ref-cat-umb.png` ·
+  v3's geometry sentence kept, "make smaller" removed and replaced with "CRITICAL SIZE RULE: every figure's BODY
+  stays EXACTLY the same size and position as in the first reference - the umbrella is simply added above", plus the
+  eye-coverage clause. → `capy/3-umbrella-15-v4.png`. Supersedes v1–v3.
+- verification: built per-stage 4-way grids (standing · bag · umbrella v4 · lock v2) for all 15 stages and checked
+  them myself — outfits/hats/props/prints identical, eye coverage identical (12/13/14 hidden in all four), umbrella
+  bodies now at standing size (a stage or two reads ~5% smaller; correctable at asset-cut time).

@@ -55,6 +55,15 @@ section below and in `log.md`.
 | 13 | −9–−5° | long puffer + head cover (balaclava, hood up…) |
 | 14 | −10°− | long puffer with fur-trimmed hood up + mittens + scarf (breath puff optional) |
 
+## The consistency rule (put it in every non-standing sheet's prompt)
+
+모든 시트는 서 있는 컬러 시트(step 1)를 그대로 따른다 — 눈 가림·크기 포함. Every later sheet (bag, umbrella,
+lock, walk, …) copies the standing colour sheet figure by figure: same outfits, hats, scarves, props, prints and
+details, nothing added, removed, resized or redesigned; the SAME body size and position in the cell; and the SAME eye
+coverage — a stage whose hat/balaclava/hood hides the eyes in the colour sheet hides them in every sheet (the two
+dots on the muzzle are NOSTRILS, not eyes). Before calling a step done, put the sheets side by side stage by stage
+and check outfit, eye coverage and size yourself.
+
 ## The pixel paragraph (put it in every prompt)
 
 ```
