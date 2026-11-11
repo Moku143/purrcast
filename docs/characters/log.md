@@ -442,3 +442,17 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   절반이 털에 가려짐. 털색은 furfix(R×0.94, 밝은 털 G+3·B+5).
 - `tools/hoodwrap.py stage14-stand-v1.png out.png 0.80` → `tools/furfix.py` → `capy/stage14-stand-v2.png`.
   시트 배율 0.31(`tools/swap14.py`). 가방·우산·잠금 14단계 단독 그림에도 같은 순서로 적용.
+
+## 2026-11-11 · capy · 14단계 단독 가방·우산 (생성 직후 중단됨) + 잡음 2건
+
+- 주인 결정(17:48, 사용자 전달)으로 **14단계 단독 작업 전면 중단**: 13~15번 얼굴이 1~12번보다 ~10% 작고 눈 자리도
+  달라, 4장 전부 처음부터 다시 뽑기로. 사용자가 (1) 마스터 프롬프트 템플릿(서기·가방·우산·잠금, 동물·옷 칸만 교체)과
+  (2) 자동 검사·크기 맞춤 도구를 만들어 푸시하면, 그 템플릿 그대로 서기부터 재생성 예정. 그때까지 생성 중단.
+- 중단 전에 생성돼 있던 것(기록용으로만 보존, 사용 안 함):
+  - `capy/stage14-bag-v1.png` · 채팅 "Redraw Hooded Capybara Outfit" (`https://chatgpt.com/c/6af4288c-a098-83ee-896b-dc46ae303d32`)
+    · refs: stage14-stand-v1 + ref-cat-bag · 1차는 가방이 통째로 빠져 2차 수정으로 채택 (이끼색 가방+코랄 J손잡이 OK)
+  - `capy/stage14-umbrella-v1.png` · 채팅 "Redraw Capybara Umbrella" (`https://chatgpt.com/c/6af429c1-9f58-83e8-a90c-866f81ebbda5`)
+    · refs: stage14-stand-v1-fixed + ref-cat-umb · 1차는 접힌 우산+가방으로 잘못 나와 2차 수정으로 채택 (펼친 우산, 꼭지 정중앙 OK)
+- 잡음: (a) 잠금 변환용 새 채팅(`…/c/6af42b00-9b5c-83e8-8bbc-2bd881203d11`)에서 작성기에 남아 있던 이전 우산 초안이
+  대신 전송돼 컬러 우산 중복 1장 생성(폐기). 같은 채팅에서 잠금 프롬프트를 이어 보냈으나 생성 완료 전에 중단 지시가
+  와서 결과 미수거(폐기). — 작성기 초안은 지우고 **보내기 직전에 내용 재확인**까지 해야 함.
