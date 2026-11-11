@@ -250,3 +250,21 @@ Character design candidates for a NEW character: 6 different takes on a CAPYBARA
 - result: `capy/1r-outfits-15-v1.png` (round era files use the `1r-` prefix; the brick era keeps `1-…4-`).
 - checked: 15/15 outfits in order, eyes covered on 12/13/14, no yuzu on any head, uniform head colour, shorts on 2/3,
   duck print on 5, zip on 9, striped scarf + mittens on 14.
+
+## 2026-11-11 · capy · round era step 1 v2: capy-only outfit list + natural eye coverage — awaiting confirmation
+
+- Owner on v1: (a) eyes looked force-masked on 12-14 — cover them NATURALLY (brim/hood edge just over the eyes, face
+  not masked); (b) outfits echoed the cats' (straw hat+ice pop, beanie+puffer, duffle+scarf, fur hood). Checked all
+  three cats stage by stage (cat from `cat-states-15.png`, abys/brit from their 15 sheets — the per-stage table now
+  sits in prompts.md) and rewrote capy's 15 so no same-stage kind repeats; theme: relaxed onsen/yuzu/cucumber.
+  New kinds: 0 head towel + yuzu juice · 1 cucumber · 8 teddy fleece (swapped with 9 quilted) · 10 navy hanten robe ·
+  11 mustard fringed poncho · 12 sherpa bucket hat · 13 plum puffer + knitted hooded scarf · 14 oversized cream
+  bobble beanie + striped scarf + red mittens.
+- ChatGPT (no credits) · chat "Pixel Art Sprite Sheet" · refs: `ref-cand4.png` + `abys-outfits-15-v2.png`
+- result: `capy/1r-outfits-15-v2.png`; 4-character stage-by-stage comparisons `capy/compare-4way-0-4.png`,
+  `compare-4way-5-9.png`, `compare-4way-10-14.png` (columns: cat · abys · brit · capy).
+- checked: 15/15 correct; eyes on 12-14 hidden by brim/hood edge with the muzzle fully visible; no same-stage kind
+  clash (closest call: abys 13 wears its puffer's hood up while capy 13 wears a separate knitted hooded scarf).
+- prompt: v1's with the outfit list replaced by the new 15 and the eye-coverage clause reworded to "hidden NATURALLY:
+  the hat brim or hood edge comes down just over the eyes so they cannot be seen, but the face is NOT masked - the
+  muzzle and nostrils stay fully visible" (full text in the chat; outfit list in prompts.md).

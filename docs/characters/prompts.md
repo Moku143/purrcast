@@ -253,20 +253,32 @@ Candidates: (1) classic warm brown · (2) lighter caramel with a cream muzzle ·
 brown with a small orange yuzu on the head · (5) baby: rounder, bigger head, shorter muzzle · (6) darker
 chocolate-brown, slightly fluffier. Lock screen hint: "blocky head and long flat muzzle, small round ears, no tail".
 
-#### capy — the 15 outfits (decided 2026-11-11; capybara props: yuzu, onsen towel, duck)
+#### capy — the 15 outfits · v2 (2026-11-11, round era; checked stage-by-stage against cat·abys·brit so no
+same-stage kind repeats; relaxed onsen/yuzu/cucumber theme)
 
-(0) cream sleeveless tank with a small orange yuzu print + woven straw sun hat + yuzu-yellow ice pop in one paw ·
-(1) sage-green sleeveless tank + small white onsen hand towel draped around the neck ·
+What the other three wear per stage (for the no-repeat check): 0 hats = straw(cat)·panama(brit)·sun cap(abys), props
+= fan·lollipop·ice bar · 1 fan(cat)·folding fan(abys)·water bottle(brit) · 8 trench(cat)·peacoat(abys)·quilted(brit)
+· 9 light puffer(cat)·fleece(abys)·chester+scarf(brit) · 10 duffle(cat)·check coat(abys)·tartan coat(brit) ·
+11 mouton+earmuffs(cat)·short puffer(abys·brit) · 12 hats = beanie(cat)·trapper(abys)·deerstalker(brit) ·
+13 fur hood(cat)·hood up(abys)·balaclava(brit) · 14 muzzle-scarf(cat)·fur hood(abys)·cossack hat(brit).
+
+(0) cream sleeveless tank with a small yuzu print + a folded white onsen towel resting flat on top of the head +
+holding a glass of iced yuzu juice with a straw ·
+(1) sage-green sleeveless tank + holding a fresh green cucumber ·
 (2) white short-sleeve tee with ONE small orange yuzu on the chest + light-denim shorts ·
 (3) white camp shirt with a green banana-leaf pattern + beige shorts ·
 (4) pale-yellow button-up shirt + moss-green knit tie ·
-(5) terracotta sweatshirt with a small white duck print on the chest ·
+(5) terracotta sweatshirt with a small white duck print ·
 (6) moss-green cable-knit cardigan with small wooden buttons over a cream tee ·
 (7) brown corduroy jacket, open, over a cream tee ·
-(8) deep-teal quilted jacket ·
-(9) oatmeal teddy-fleece zip-up jacket ·
-(10) camel duffle coat with toggles + mustard-yellow scarf ·
-(11) burnt-orange short puffer + cream scarf ·
-(12) mustard-yellow puffer + forest-green bobble beanie + brown scarf ·
-(13) navy long puffer + cream balaclava ·
-(14) deep-green long puffer with a big fur-trimmed hood worn up + red mittens + red-and-cream striped scarf
+(8) oatmeal teddy-fleece zip-up jacket ·
+(9) deep-teal quilted jacket with visible stitching squares ·
+(10) navy padded hanten robe-coat (quilted lounge coat) + mustard-yellow scarf ·
+(11) mustard-yellow knitted poncho with a fringed hem + cream scarf ·
+(12) burnt-orange puffer + brown sherpa-lined bucket hat, brim down just over the eyes + brown scarf ·
+(13) plum long puffer + oatmeal knitted hooded scarf, hood up, edge just over the eyes ·
+(14) deep-green long puffer + oversized cream bobble beanie pulled down just over the eyes + red-and-cream striped
+scarf + red mittens
+
+Eye coverage rule (owner): on 12-14 the eyes are hidden NATURALLY - the hat brim / hood edge comes down just over the
+eyes; never a mask covering the whole face.
