@@ -11,8 +11,8 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage
 
-sys.path.insert(0, '.')
-from figs import figures  # noqa: E402  (figs.py sits next to this file)
+sys.path.insert(0, __import__('os').path.dirname(__import__('os').path.abspath(__file__)))
+from sprite_kit import figures  # noqa: E402  (15 per sheet, or 5 on a one-row picture)
 
 
 def hsv(a):

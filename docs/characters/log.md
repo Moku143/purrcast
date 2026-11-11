@@ -840,3 +840,11 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   muzzle, with a broad full jaw, NOT an even oval …"). 1차 생성 채택.
 - 캡처: 100% 세로 3분할(408/193) → `capy/edit/m4-stage8-clean.png` (916×1160).
   상단 칩·오른쪽 여백 조각·아래로 옮긴 툴바 잔상 배경 패치(그림 y110~1055는 손대지 않음).
+
+## 2026-11-12 01:15 · capy · 8번 깨끗한 단독(m4-stage8-clean) 검사 + 우산 꼭지 정렬
+
+- m4-stage8-clean: 외곽선은 깨끗한데 머리 아래 볼이 원래 8번보다 좁음(옆 볼 각 ~3%) → 원래 8번 머리 윤곽을 빨간 선으로
+  얹은 가이드 `edit/m4-stage8-headguide.png`로 한 번 더 단독 편집("머리 윤곽만 빨간 선에 맞춰 아래 볼을 넓게").
+- 주인 "우산도 꼭지 중앙에서 안 내려오네, 옆으로 쳐짐": 재 보니 막대가 꼭지보다 12~15px 왼쪽.
+  ChatGPT는 매번 몇 px씩 빗나감 → `tools/centre_canopy.py`: 캐노피 줄(꼭지~테두리 외곽선)을 통째로 옆으로 옮겨
+  꼭지를 막대 바로 위에(다시 그리지 않음, 얼굴·모자·막대는 제자리). 우산 그림이 끝선까지 확정되면 마지막에 적용.
