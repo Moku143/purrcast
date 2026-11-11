@@ -1045,3 +1045,16 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 막대: 꼭지(195.5) 아래는 머리 뒤로, 턱 아래는 그림의 막대 자리(183.5·189.5·186.5)에 12px 막대를 새로 그리고
   주먹을 그 위에 다시 올림(주먹이 막대를 감싸 쥔 모양). 머리 뒤에서 몇 px 옮겨 가는 건 보이지 않음.
   그림 모델의 막대(회색 세로줄)는 지우고 옆 색으로 채움.
+
+## 2026-11-12 02:5x · capy · 팔 trio 2 (단계 3-5) — m6-arm-trio-2
+
+- 사용자(02:44): trio 1은 1차(`edit/m6-arm-trio-1-v1.png`)를 씀(주먹 모양 깨끗, 빨간 자국 없음, 막대 x는 코드로 맞춤).
+  trio 2~5는 1차를 그대로 푸시. 다시 그리기는 ① 빨간 자국 남음 ② 막대가 빨간 선에서 12px 넘게 벗어남 ③ 머리·옷이 바뀜
+  때만 한 번.
+- 새 대화 "Edit Capybara Arms" (`https://chatgpt.com/c/6af4a89d-c728-83ee-9269-7302787e346d`), 첨부: `capy/m6/m6-arm-guide-2.png`
+  (첫 장) + 우산 고양이 3장, 02:45 문구 verbatim. 1차 원본 1726×911 → `capy/m6/m6-arm-trio-2.png`.
+- 측정(armcheck2): 막대 x −6.1·−3.9·−9.4px(12px 안), 빨간 자국 없음(3번 "red px"는 주황 스웨터), 머리·옷 그대로
+  (가이드와 나란히 비교) → 새 규칙 통과. 앞발↔원 18.2·11.9·17.8px (umb_build paw_cx/cy: 182.4/388.9, 184.4/390.1,
+  181.4/390.1 — 원 195.5/378). 주먹으로 쥔 모양, trio 1 1차와 같은 형태.
+- 새 규칙이 오기 전에 같은 대화에서 가이드 다시 첨부해 "about 15 pixels up and about 15 pixels toward the viewer-right …"
+  편집을 이미 보냈음 → 그 결과는 쓰지 않음(캡처 안 함).
