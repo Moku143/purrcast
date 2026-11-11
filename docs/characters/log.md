@@ -392,3 +392,15 @@ Redraw the first reference image (a pixel-art capybara in 15 outfits, 3 rows of 
 ```
 THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference image (15 outfits, 3 rows of 5) in EXACTLY the monochrome lock-screen style of the second reference image (the orange cat's lock-screen set): pure WHITE figures with light lavender-grey and mid-grey pixel shading for the fur, outfit details and folds, no other colours, NO dark outline, crisp hard-edged pixels, on a flat dark navy background (#20264A). Nothing else changes: same 15 outfits in the same order and cells, same pose, same size, same props - figure (0) keeps its glass of yuzu juice and figure (1) its slice of watermelon, drawn in greys. FACES, copied from the first reference: the rounded muzzle is shaded light lavender-grey so it reads against the white head, with its two small round nostrils in dark grey; the half-closed eyes are two short dark-grey lines set high and WIDE APART; on figures (12), (13) and (14) those wide-apart eyes peek out just under the hat edge, the full muzzle with its small nostrils is completely visible, and the scarf sits BELOW the muzzle, around the neck. Outfit details that must stay exact: the yuzu prints on figures (0) and (2) are YUZU fruits (a round citrus with a leaf), not apples; figure (9)'s quilted jacket keeps its front ZIP line; figure (14) keeps its red mittens (drawn grey) and its scarf is STRIPED - alternating light and dark bands across the scarf - NOT checked, NOT plaid, NOT a grid pattern. Every outfit must stay recognisable from its shape and grey shading alone. All 15 figures the same size, feet on the same baseline in each row, centred in their cells, no text, no labels, no numbers.
 ```
+
+## 2026-11-11 · capy · umbrella v3 canopy re-centred in post (overlay check by the other session)
+
+- ChatGPT missed the shaft-under-tip rule three times (v1 −10%, v2 −3…6%, v3 −6…7% of canopy width). Instead of a
+  fourth run, the canopy (with its outline and soft edge) is moved sideways so the tip knob sits exactly above the
+  shaft: `tools/recentre_umbrella.py in.png out.png` (uses `tools/figs.py` to find the 15 figures as blobs). Shifts
+  on v3 were −5…−7 px each; the figure stays in front of the moved canopy.
+- result: `capy/3r-umbrella-15-v3-centred.png` (preview made from the capture). Apply the same script to the
+  full-resolution original before cutting the umbrella assets.
+- overlay checks against standing v6 (feet + body centre aligned): bag v2 PASS (head/height within 2%), umbrella v3
+  body PASS (uniform 0.87× of the standing figure — rescale once when cutting), lock v2 PASS (silhouettes and
+  heights within ~3%; 14 scarf striped).
