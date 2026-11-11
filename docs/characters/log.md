@@ -351,3 +351,14 @@ Character design candidates for a NEW character: 6 different takes on a CAPYBARA
   old lock prompt and the v6 text got appended, producing a navy lock sheet with the face fix; discarded.
 - Owner's umbrella v2 verdict: size/height PASS; shaft still 3-6% of canopy width left of the tip → next umbrella run
   must put the tip EXACTLY above the shaft. Lock v1: size PASS; stage 14 scarf came out checked, must be STRIPED.
+
+## 2026-11-11 · capy · 2단계 가방 시트 (v6 기준 재생성) · v2
+
+- ChatGPT 이미지 생성 (브라우저, 크레딧 0) · 채팅 "Redraw Capybara Outfits" (`https://chatgpt.com/c/6af4209a-2da8-83ee-b05d-908cb3c5579d`)
+- references: `1r-outfits-15-v6.png` (확정 서 있는 시트), `ref-cat-bag.png` (주황 고양이 가방 시트)
+- 결과 → `capy/2r-bag-15-v2.png` (화면 캡처 3행 이어붙임; 원본은 위 채팅에서 다운로드)
+- verdict: 15칸 모두 이끼색 가방 + 코랄 J손잡이, (0) 유자주스·(1) 수박 유지, 12–14 얼굴 v6 그대로(눈 양옆·주둥이 보임·목도리 아래) — 사용자 겹침 검사 대기
+
+```
+Redraw the first reference image (a pixel-art capybara in 15 outfits, 3 rows of 5) EXACTLY: same character, same 15 outfits in the same order and same cells, same upright pose facing the viewer, same size, same faces (on the last three figures the wide-apart half-closed eyes peek out under the hats, the full muzzle with small nostrils shows, the scarf sits below the muzzle), same crisp pixel-art style with the dark navy outline, same plain flat light grey-blue background (#EEF1F6), no text, no labels, no numbers. Add ONLY one thing to every figure, carried the same way as the orange cat in the second reference image: a small MOSS-GREEN umbrella bag slung on the back, its rounded end visible behind the body on the viewer's RIGHT at waist-to-shoulder height, with a folded umbrella inside so that only the umbrella's curved J-shaped CORAL-RED handle sticks up out of the bag above the shoulder. The bag and folded umbrella are identical on all 15 figures and must not cover the outfit on the front of the body. Everything else stays exactly as in the first reference: arms down at the sides, figure (0) still holding its glass of yuzu juice and figure (1) its slice of watermelon, every outfit's hat, scarf, print and colours unchanged.
+```
