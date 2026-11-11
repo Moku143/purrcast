@@ -404,3 +404,23 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - overlay checks against standing v6 (feet + body centre aligned): bag v2 PASS (head/height within 2%), umbrella v3
   body PASS (uniform 0.87× of the standing figure — rescale once when cutting), lock v2 PASS (silhouettes and
   heights within ~3%; 14 scarf striped).
+
+## 2026-11-11 · capy · 14단계 단독 — 패딩 후드 (주인 의견 반영) · 서 있기 v1
+
+- 주인(17:23): 14단계는 뜨개 모자가 머리에 따로 얹혀 있고 귀가 밖에 나와 있음 → 초록 롱패딩에 **붙은 패딩 후드**를
+  쓴 모습으로(후드가 어깨까지 이어짐, 귀는 후드 안, 후드 털 테두리가 눈을 반쯤 가림, 눈은 양옆 넓은 자리,
+  주둥이·콧구멍 평소 크기). 줄무늬 목도리·빨간 장갑 유지. **나머지 14개는 재생성 금지** — 14단계 한 마리만
+  단독으로 4종(서기·가방·우산·잠금) 생성, 사용자가 기존 시트에 끼워 넣음.
+- ChatGPT (크레딧 0) · 채팅 "Redraw Hooded Capybara" (`https://chatgpt.com/c/6af42619-bd0c-83ec-bfb4-a80b57c8021c`)
+- reference: `1r-outfits-15-v6.png` · 3회 생성(1차: 눈 완전 가림, 2차: 여전히 가림, 3차 채택)
+- 결과 → `capy/stage14-stand-v1.png` (원본은 위 채팅에서 다운로드)
+- verdict: 후드가 코트와 한 몸으로 연결, 귀 안 보임, 크림 털 테두리, 반감긴 눈 두 줄이 털 테두리 바로 아래 양옆에
+  보일 듯 말 듯, 주둥이·콧구멍 정상, 줄무늬 목도리·빨간 장갑 유지 — 사용자 겹침 검사 대기
+
+```
+(1차) From the attached reference sheet (a pixel-art capybara in 15 outfits, 3 rows of 5), redraw ONLY the very last figure - bottom-right corner, figure (14), the one in the deep-green ANKLE-LENGTH puffer coat - as ONE single large figure, centred on a plain flat light grey-blue background (#EEF1F6), same crisp pixel-art style with the dark navy outline, same upright pose facing the viewer, same body shape and proportions as in the sheet. Make ONE change to its head wear: REMOVE the separate quilted hat that sits on top of the head. Instead, the deep-green puffer coat has its own attached padded HOOD, worn UP over the head: the hood is part of the coat, made of the same deep-green quilted puffer material with the same segment lines, and it connects seamlessly into the coat's shoulders with no gap - one continuous garment. The ears are INSIDE the hood, not visible. The hood's face opening is edged all around with a cream-coloured FUR TRIM, and this fur-trimmed edge comes down LOW over the face so it HALF-COVERS the eyes: the two half-closed eyes stay in their usual wide-apart positions near the sides of the head, each eye half hidden under the fur trim and half visible, a sleepy peeking look. The big rounded lighter-tone MUZZLE with its two small round nostrils stays fully visible at its normal size, below the eyes. Keep exactly as in the reference: the red-and-cream STRIPED scarf (alternating bands, not checked) wrapped around the neck BELOW the muzzle, the red mittens, the dark chocolate feet. No text, no labels, no numbers.
+
+(2차 수정 — 눈이 완전히 가려져서) Perfect - keep this exact image, with ONE small fix: the eyes are currently completely hidden under the fur trim. Show them HALF-visible: the two half-closed eyes (short dark horizontal lines) sit WIDE APART near the left and right sides of the head, between the fur trim and the muzzle; the fur-trimmed hood edge covers only the TOP half of each eye, so the lower half of each dark eye line clearly peeks out below the fur. Everything else stays exactly the same...
+
+(3차 수정 — 그래도 가려져서, 채택본) The eyes are still invisible. Fix it this way: lift the cream fur trim a little HIGHER on the face, so that between the fur trim and the muzzle there is a clearly visible band of orange-brown face fur. In that band, draw the TWO EYES as short dark horizontal lines (half-closed sleepy eyes), set WIDE APART near the left and right edges of the face, with the top of each eye line touching the bottom edge of the fur trim. The eyes must be clearly visible dark pixels. Everything else stays exactly the same: attached deep-green padded hood, cream fur trim, muzzle with two small round nostrils, red-and-cream striped scarf, red mittens, same pose, same size, same background.
+```
