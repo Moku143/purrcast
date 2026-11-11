@@ -982,3 +982,14 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   (abys 해 아이콘에서 얼굴만 `pixel_head.py --mw 160 --u 10` 머리로 교체).
 - 확인 그림: `compare-f6-stand-bag-vs-brit.png` (윗줄 서기, 가운데 가방, 아랫줄 브리티시숏헤어 — 키·발 위치 같음).
 - 남은 것: 우산 15칸(다른 대화에서 m5-umb-trio 대기), 비 아이콘(AppIcon-rain-capy).
+
+## 2026-11-12 02:3x · capy · 우산 trio 2 (단계 3-5) — m5-umb-trio-2
+
+- 새 대화 "Edit Capybara Umbrellas" (`…/c/6af4a3b0-114c-83ee-a4c1-8c72d1e2d0ae`), 첨부·문구는 trio 1과 동일(verbatim).
+  출력 원본 1672×941. 1차(`edit/m5-umb-trio-2-v1.png`): 캐노피가 머리 중심, 막대↔캐노피 중심 109·106·106px.
+- 가이드 편집 1회: 지난번 문구 + 방향·거리 "about 105 pixels toward the viewer-LEFT" + "Keep every canopy whole inside
+  the picture."(1번 막대가 왼쪽 끝에서 165px뿐이라 캐노피 반폭 219px를 막대 중심으로 두면 그림 밖으로 나감)
+  → 43·21·3px. 1번 캐노피는 왼쪽 끝(x≈5)까지 붙음 — 이 그림 폭에선 더 못 옮김. 규칙대로 그대로 푸시.
+- 캡처: 150% 2×2 타일(UI 숨김) → 원본 크기. stitch_grid 가장자리 찾기를 우산 위 빈 띠(y80)에서 하도록 고침
+  (가운데 줄은 흰 셔츠에 걸려 잘못 자른 적 있음).
+- 참고(trio 1·2 공통): ChatGPT가 캔버스를 키우면서 카피바라도 약 13% 더 크게 그림(주둥이 141~143px, 입력 104→×1.2=125 예상).
