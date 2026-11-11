@@ -797,3 +797,14 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - sprite_kit check: 주둥이 70~74(서기 86~87보다 작음 — 캐노피가 들어가며 전체 축소), body 3.14~3.29,
   막대는 꼭지 바로 아래 중심 ✓. 플래그: 전원 eye dy 0.18~0.19 (서기 0.09~0.10 대비 큼) — 줄 안에서는 고름.
   주인 겹쳐보기 판정 대기.
+
+## 2026-11-12 01시대 · capy · m4 깨끗한 재추출 2줄 (m4-stand-row2)
+
+- 새 대화 "Redraw Pixel Art" (`…/c/6af4915e-0b60-83e8-a659-36978f358cb5`),
+  첨부: `capy/m3-stand-v3-row2.png` + abys/brit 스타일 참고 2장. 프롬프트 verbatim(1줄과 동일). 1차 생성 채택.
+- 캡처: 100% 좌/우 2분할(dx=248) → `capy/m4-stand-row2.png` (1780×596). 상단 UI 띠 배경 패치,
+  오른쪽 샷 커서가 1번 소매에 박혀 왼쪽 샷 같은 영역으로 치환, 아래로 옮겨둔 툴바 잔상 배경 패치.
+- sprite_kit check: 주둥이 93~94, body 3.01~3.03, 눈 dy 0.10~0.11, 플래그 없음.
+- (주인 01:02 지시 반영: m4 우산 1줄은 불통과 — 막대 왼쪽 1/3 + 얼굴 변형(dy 0.19, 몸 +8%) → 새 대화에서
+  m4-stand-row1 + 고양이 우산 3장, "do not redraw the faces … canopy centred on the SHAFT, shifted toward
+  viewer-left like the cats" 문구로 재작업 중. 우산 2·3줄은 1줄 통과 후.)
