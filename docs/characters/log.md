@@ -113,3 +113,9 @@ Redraw the first reference image (a pixel-art capybara in 15 outfits, 3 rows of 
 ```
 Redraw the first reference image (a pixel-art capybara in 15 outfits, 3 rows of 5) with the same character, same 15 outfits in the same order and same cells, same crisp pixel-art style with the dark navy outline, same plain flat light grey-blue background (#EEF1F6), no text, no labels, no numbers. Every figure now holds an OPEN umbrella exactly the way the orange cat does in the second reference image: one arm raised across the chest holding the straight grey shaft, the shaft going straight up beside the head on the viewer's LEFT, and a wide open umbrella canopy centred above the head, covering the ears. The umbrella is CORAL-RED with a darker red tip and darker red rib lines and a grey shaft, identical on all 15 figures. Figure (0) holds the umbrella instead of the ice pop (no ice pop anywhere). Make every figure a little smaller than in the first reference so the WHOLE umbrella canopy fits inside its cell with clear empty space above it: nothing may touch or cross the top edge of a cell or of the image. All 15 figures the same size, feet on the same baseline in each row, every outfit's hat, scarf, print and colours unchanged.
 ```
+
+## 2026-11-11 · capy · walking sheet — generated then DISCARDED
+
+- A 15-figure walking frame A sheet was generated (ChatGPT chat "Redraw Walking Capybaras") right before the owner
+  said walking is no longer used in the app (removed in 24c05e4f; the app uses face, stand(none·bag·umbrella), lock,
+  inline only). Not saved, not an asset. prompts.md steps 5–10 are now marked 안 씀.

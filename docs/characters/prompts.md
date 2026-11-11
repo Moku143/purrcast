@@ -157,7 +157,7 @@ from its shape and grey details alone. All figures the same size, feet on the sa
 their cells, no text.
 ```
 
-### 5 · 6 · walking, frame A and frame B (one sheet each)
+### 5 · 6 · walking, frame A and frame B — 안 씀 (앱에서 빠짐, 커밋 24c05e4f; the app only uses face, stand(none·bag·umbrella), lock, inline)
 
 References: step 1, orange cat walk (`415c91b2…`).
 
@@ -175,7 +175,7 @@ size, feet on the same baseline in each row, each centred in its cell.
 Frame B: "walk frame B … (its SECOND column) … RIGHT leg stepping forward and LEFT leg behind, left arm swung forward
 and right arm back".
 
-### 7 · 8 · walking with the backpack (frame A, frame B)
+### 7 · 8 · walking with the backpack — 안 씀 (앱에서 빠짐)
 
 References: step 5 (or 6), step 2.
 
@@ -189,7 +189,7 @@ sticking up out of the backpack at shoulder height. Identical backpack and umbre
 still holds its small fan.
 ```
 
-### 9 · 10 · walking with the open umbrella (frame A, frame B)
+### 9 · 10 · walking with the open umbrella — 안 씀 (앱에서 빠짐)
 
 References: step 5 (or 6), step 3 — and for the second of the pair, the first one's result instead of step 3, so
 both hold the umbrella in the **same paw**.
