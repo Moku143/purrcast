@@ -740,3 +740,14 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   투명)으로 변환, 크기·위치는 같은 단계 고양이 3마리 평균. 12번 낙타색 더플은 털색과 같아 옷으로 따로 지정.
 - 시계 위 `capy-inline-{0..14}@2x/@3x.png` = 잠금 그림을 위에서 74%(상의 밑단)까지 잘라 높이 40/60 — 고양이와 같은 컷.
 - 얼굴 `capy-face.png` = 8번 머리(모든 맨머리 칸이 공유하는 머리) 원 크기.
+
+## 2026-11-12 00~01시 · capy · 우산 1줄 (m3-umb-row1)
+
+- 새 대화 "Edit Capybara Umbrellas" (`…/c/6af48cca-c94c-83ee-8c58-86028e0ab4f0`),
+  첨부: `capy/m3-stand-final-row1.png` + 우산 참고 고양이 3장(cat-stand-2/brit-stand-6/abys-stand-14-umbrella).
+- 프롬프트: 사용자 지정 verbatim (다섯 마리 그대로, 산호색 #F26B5B 우산만 추가 — 보는 쪽 왼팔을 가슴으로,
+  얇은 연회색 곧은 막대, 꼭지까지 수직, 머리 폭 1.4배 대칭 돔, 테두리는 머리/모자 바로 위).
+- 1차 생성 채택. 캡처: 라이트박스 100%, 가로가 화면보다 넓어 2×2(좌상·우상·우하·좌하) 원본 스크린샷
+  상관관계 스티칭(dx=172, dy=61) → `capy/m3-umb-row1.png` (1701×619).
+  라이트박스 머리띠·수평선 UI 조각이 그림 위에 겹쳐 배경 여백만 배경색 패치(5번 꼭지는 보존).
+- sprite_kit check: 주둥이 82~83, body 2.89~2.95, 눈 dy 0.09~0.10 고름. 1번 eyeL hidden = 밀짚모자+막대 겹침(정상).
