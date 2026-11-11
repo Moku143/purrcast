@@ -16,6 +16,9 @@ Commands
         feet on y=555, body centred on x=240, every muzzle exactly --mw px wide; plus OUTDIR/NAME-KIND-sheet.png
   python3 sprite_kit.py fit    SHEET... [--lock-last]                biggest --mw that keeps every figure of every
                                                                       sheet inside 480x560 (use one value for all)
+  python3 sprite_kit.py compose OUT SHEET:0-9 SHEET2:10,11 ... [--lock]
+        one clean sheet from the stages that passed on different generations (stages 0-based); check/build it after.
+        Regenerating only the failed cells shakes the others by ~7%, so keep each stage from the take that got it right.
 Needs numpy, scipy, Pillow. Sheets: 15 figures in 3 rows of 5, plain light background (or navy with --lock).
 """
 import sys
@@ -256,6 +259,50 @@ def build(path, outdir, name, kind, lock=False, mw_target=100):
     return flags
 
 
+def _stages(sel):
+    out = []
+    for part in sel.split(','):
+        a, _, b = part.partition('-')
+        out += list(range(int(a), int(b or a) + 1))
+    return out
+
+
+def compose(out, specs, lock=False):
+    """Pick each stage from whichever generation got it right: specs like 'v5.png:0-9' 'v6.png:10,11,12-14'
+    (0-based stages). Every pick is rescaled to the median muzzle width and pasted on a clean 5x3 sheet."""
+    picks = {}
+    for spec in specs:
+        path, sel = spec.rsplit(':', 1)
+        figs, rows, _ = check(path, lock, verbose=False)
+        for s in _stages(sel):
+            if not rows[s]:
+                raise SystemExit(f'{path}: figure {s + 1} could not be measured')
+            picks[s] = (figs[s], rows[s], path)
+    missing = sorted(set(range(15)) - set(picks))
+    if missing:
+        raise SystemExit(f'no source for stages {missing}')
+    mw = float(np.median([r['mw'] for _, r, _ in picks.values()]))
+    tiles = []
+    for s in range(15):
+        f, r, path = picks[s]
+        k = mw / r['mw']
+        W, H = f['img'].size
+        nw, nh = max(1, round(W * k)), max(1, round(H * k))
+        img = f['img'].resize((nw, nh), Image.LANCZOS if k < 1 else Image.NEAREST).convert('RGBA')
+        img.putalpha(Image.fromarray((f['mask'] * 255).astype(np.uint8)).resize((nw, nh), Image.NEAREST))
+        tiles.append((img, r['feet'] * k, r['cx'] * k))
+        print(f'stage {s:2d} (#{s + 1:2d}) <- {path}  x{k:.3f}')
+    cw = max(t[0].width for t in tiles) + 40
+    ch = max(t[0].height for t in tiles) + 40
+    sheet = Image.new('RGBA', (cw * 5, ch * 3), (32, 38, 74, 255) if lock else (238, 241, 246, 255))
+    for s, (img, feet, cx) in enumerate(tiles):
+        x = (s % 5) * cw + round(cw / 2 - cx)
+        y = (s // 5) * ch + round(ch - 20 - feet)
+        sheet.alpha_composite(img, (x, y))
+    sheet.convert('RGB').save(out)
+    print(f'{out}: {sheet.width}x{sheet.height}, muzzle {mw:.0f}px')
+
+
 def fit(paths, lock_last=False):
     need = []
     for k, p in enumerate(paths):
@@ -289,5 +336,7 @@ if __name__ == '__main__':
         build(args[1], args[2], args[3], args[4] if len(args) > 4 else 'none', lock, mw)
     elif cmd == 'fit':
         fit(args[1:], '--lock-last' in opts)
+    elif cmd == 'compose':
+        compose(args[1], args[2:], lock)
     else:
         print(__doc__)
