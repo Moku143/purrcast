@@ -1010,3 +1010,29 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   same background, same picture size.'
   첨부: 가이드 그림(첫 장) + capy/ref 우산 고양이 3장. 결과 → `capy/m6/m6-arm-trio-{1..5}.png` (원본 크기 캡처).
   앞발이 원 밖(중심 6px 넘게)이면 같은 가이드로 한 번 더, 그래도 안 되면 그대로 푸시하고 적기.
+
+## 2026-11-12 02:50~ · capy · 팔 trio 1 (단계 0-2) — m6-arm-trio-1
+
+- 우산 trio 3은 02:27 방식 변경 전에 새 대화(`…/c/6af4a54b-b418-83e8-9e13-c210ba7e53fe`)에서 1차까지 만들었지만
+  측정·저장 없이 중단. trio 4·5는 안 함.
+- 새 대화 "Edit Capybara Image" (`https://chatgpt.com/c/6af4a600-e3c4-83ee-9b63-b83a57740927`),
+  첨부: `capy/m6/m6-arm-guide-1.png`(첫 장) + `capy/ref/cat-stand-2-umbrella.png`, `brit-stand-6-umbrella.png`,
+  `abys-stand-14-umbrella.png`. 문구는 위 02:45 항목 그대로(verbatim).
+- 1차(원본 1727×911 → `capy/edit/m6-arm-trio-1-v1.png`): 깨끗함 — 주먹으로 막대를 쥐고, 빨간 자국 없음, 머리·옷 그대로.
+  그러나 주먹이 원보다 왼쪽 아래: 앞발 중심↔원 중심 35.7·28.6·25.7px(가이드 px), 막대 x −10.2·−4.6·−5.8px.
+- 다시 1회(같은 대화, 가이드 1 다시 첨부), 문구:
+  'Edit your last picture, using the attached guide again (the red circle and red line on each capybara). In your
+  picture each raised paw sits too low and too far to the viewer-left: move each paw about 30 pixels up and about 25
+  pixels toward the viewer-right so it sits exactly inside the red circle, and move each stick a few pixels to the
+  viewer-right so it runs exactly along the red line, from just under the chin down through the paw to a little below
+  it. Keep the capybaras, heads, faces, clothes, the other arm, size and position exactly as they are. No umbrella
+  canopy, nothing above the chin, no red marks. Same pixel-art style, same background, same picture size.'
+- 2차(원본 1727×910 → `capy/m6/m6-arm-trio-1.png`): 앞발 끝이 원 안으로 들어옴 — 19.7·12.4·18.0px(여전히 6px 기준
+  불통과), 막대 x −13.1·+2.7·−3.3px. 문제: ① 빨간 원·선 자국이 옅게 남음(1·3번 원 테두리, 2·3번 막대 옆 세로선),
+  ② 주먹이 아니라 팔을 비스듬히 올려 앞발 끝을 막대 앞에 댄 모양, ③ 2번 막대는 앞발 위·아래 토막이 약 7px 어긋남.
+  규칙대로 2차를 그대로 푸시, 1차는 대안으로 둠.
+- 측정: scratchpad `armcheck2.py` — 주둥이로 결과→가이드 좌표 맞춤(결과 ×1.18~1.22), 막대 = 원 근처에서 세로로 가장
+  긴 회색 기둥, 앞발 = 원에 가장 많이 걸친 털색 덩어리에서 막대 윗끝에 가장 가까운 점 둘레 0.4×주둥이폭의 중심.
+  (첫 armcheck.py는 막대가 앞발에 가려 끊긴 자리로 앞발을 찾아서, 2차처럼 막대가 앞발을 지나가면 엉뚱한 곳을 잡음.)
+  2차는 이 방식이 팔뚝 쪽으로 몇 px 끌려가 실제보다 조금 크게 나옴(눈으로는 2번이 원을 거의 채움).
+- 캡처: 150% 2×2 타일(UI 숨김) → 원본 크기(stitch 배율 1.228×1.237).
