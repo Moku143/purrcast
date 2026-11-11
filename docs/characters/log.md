@@ -925,3 +925,18 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   정수리는 선이 외곽선보다 10px 남짓 위(원래 8번 정수리가 더 높음). 주인 판정 대기.
 - 우산: 주인 지시로 쉼 — 줄 전체가 22% 작아져(주둥이 65px) 앱 크기로 키우면 흐려짐 → 다음엔 한 장에 3마리씩
   (단계 0-2, 3-5, 6-8, 9-11, 12-14) 크게, 주인이 올릴 최종 서기 3마리 줄 그림으로. 캐노피 색은 주인이 코드로 #F26B5B.
+
+## 2026-11-12 01:48~ · capy · m4 깨끗한 재추출 3줄 (m4-stand-row3)
+
+- 주인 취침, 사용자에게 위임. 얼굴은 사용자가 원래 8번 모양으로 코드 정리(clean 편집 종료).
+- 새 대화 "Redraw Pixel Art Capsybara Scene" (`…/c/6af49c85-9584-83e8-8214-8188ab07c7a9`),
+  첨부: `capy/m3-stand-v3-row3.png` + abys/brit 스타일 2장. 프롬프트 = row1/2와 같은 문구 verbatim
+  + "The hat edges must keep hiding the outer half of each eye exactly as in the first picture."
+- 1차: 외곽선은 깨끗하지만 11~13번(줄무늬 모자·크림 뜨개모자·초록 후드)의 눈 안쪽 토막이 사라짐(모자가 눈 전체를 덮음).
+  확대 비교로 확인(원본엔 토막 있음). sprite_kit의 'eye hidden' 플래그는 원본에도 떠서 판단 근거로는 안 씀.
+- 2차(같은 대화): "only the last three … Bring back those two short inner eye dashes … at the same height and length
+  as in the first picture, with the hat edge still covering the outer half. Do not move the hats …" → 세 마리 모두 토막 복원.
+  부작용: 12·13번 콧구멍이 약간 네모(얼굴은 사용자가 교체 예정이라 그대로 둠).
+- 캡처: 100% 좌/우 2분할(dx=366), 커서는 각 샷의 반대편에 두고 왼쪽은 왼쪽 샷·오른쪽은 오른쪽 샷으로 합침
+  → `capy/m4-stand-row3.png` (1778×594). 위·아래 여백 띠는 배경색으로.
+- sprite_kit check: 주둥이 88~90, body 3.00~3.07, 1~2번 눈 dy 0.08~0.10. 3~5번 eye hidden은 원본과 같음(정상).
