@@ -860,3 +860,13 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 주인 "우산도 꼭지 중앙에서 안 내려오네, 옆으로 쳐짐": 재 보니 막대가 꼭지보다 12~15px 왼쪽.
   ChatGPT는 매번 몇 px씩 빗나감 → `tools/centre_canopy.py`: 캐노피 줄(꼭지~테두리 외곽선)을 통째로 옆으로 옮겨
   꼭지를 막대 바로 위에(다시 그리지 않음, 얼굴·모자·막대는 제자리). 우산 그림이 끝선까지 확정되면 마지막에 적용.
+
+## 2026-11-12 01:14~ · capy · 머리 가이드 보정 (m4-stage8-clean2)
+
+- 주인: clean 판은 볼이 원래 8번보다 좁음 → `capy/edit/m4-stage8-headguide.png`(빨간 선 = 원래 8번 윤곽) 전달.
+- 같은 "Redraw Capybara Pixel Art" 대화에서 가이드 첨부 + 사용자 지정 문구
+  ("change only the head outline so it follows the red line exactly - the lower cheeks a little wider and
+  fuller, the jaw a little broader and rounder … Do not draw the red line."). 1차 채택.
+- 캡처: 100% 세로 3분할(408/183) → `capy/edit/m4-stage8-clean2.png` (921×1153).
+  상단 칩·하단 툴바 띠·오른쪽 '100%' 풍선 조각 배경 패치(그림 y112~1047 보존).
+- 육안: 볼이 주둥이 옆에서 제일 넓고 턱이 둥글넓게 — 가이드 방향과 일치. 주인 겹쳐보기 대기.
