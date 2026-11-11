@@ -953,3 +953,22 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   모자 4칸(1·13·14·15)은 m4 깨끗한 그림 그대로(13~15 눈 바깥 절반 덮임 확인).
 - 측정: 맨머리 칸 주둥이 위 y 242~250, 몸 2.92~3.02, 눈 dy 0.12 dx 0.71 (전부 같은 머리라 픽셀까지 동일).
 - 우산 입력: `m5-stand-trio-{1..5}.png` (최종 서기 3마리씩, 위에 우산 자리 200px).
+
+## 2026-11-12 02:02~ · capy · 우산 trio 1 (단계 0-2) — m5-umb-trio-1
+
+- ★ 캡처 정정(중요): 지금까지의 "라이트박스 100% 원본 픽셀" 캡처는 실제로 원본의 약 0.82배였음. 크롬 창 CSS 폭 1920을
+  스크린샷 도구가 1568px로 줄여 돌려줌(0.817배). 라이트박스 100% = CSS 1:1이라 원본 1726px → 캡처 1410px.
+  m3/m4 줄 그림·clean 머리 등 이 방식으로 저장한 그림은 모두 원본의 약 82% 크기(+JPEG)였음. 창 크기 변경은 안 먹힘.
+  → 새 방식: 라이트박스 150%(캡처상 1.23배)로 열고, 라이트박스 UI(툴바·입력창·칩)를 CSS로 숨긴 뒤 2열×3행 타일을
+  찍어 상관관계 스티칭 → LANCZOS로 정확히 원본 크기(1726×911)로 줄임. 커서는 버리는 쪽에 둠.
+  (scratchpad `stitch_grid.py`, `hide_ui.js`; 0.3배 미리보기 스크린샷은 파일도 0.3배로 저장되니 쓰지 말 것.)
+- 새 대화 "Edit Capybara Umbrellas" (`…/c/6af4a000-0ed8-83e8-972c-e23ba0c951c9`),
+  첨부: `capy/m5-stand-trio-1.png` + 우산 고양이 3장, 사용자 지정 문구 verbatim. 1차 결과(`edit/m5-umb-trio-1-v1.png`):
+  캐노피 테두리·크기 좋음, 그러나 꼭지·캐노피 중심이 머리 위에 있고 막대는 왼손 → 막대↔캐노피 중심 84·74·69px.
+- shaft 측정: 저장소 shaft_guide.py는 이 그림에서 정확(막대 175·746·1310). scratchpad shaftcheck.py는 hue<0.062 +
+  캐노피 폭 필터로 고침(앞서 0.075로 넓혔더니 털색(0.077)까지 잡혀 머리를 캐노피로 셈).
+- 가이드 편집 1회(지난번 문구 verbatim, shaft_guide 가이드 첨부): 첫 응답은 "Prepared image edits"만 뜨고 그림 없음
+  → "No picture came back. Please make that edit now …" 한 줄로 다시 요청해 받음.
+  결과: 56·41·27px (개선됐지만 3px 기준 불통과). 규칙대로 그대로 `capy/m5-umb-trio-1.png` (1726×911) 푸시.
+- 다음 trio부터 가이드 편집 문구에 측정한 방향·거리를 덧붙임("about N pixels toward the viewer-left") —
+  지난 우산 1줄 4차(8px 지정)에서 3px 안으로 들어온 방식.
