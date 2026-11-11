@@ -611,3 +611,12 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   capybara itself (face, muzzle, ears, body, outfits) stays exactly as in the first reference."
 - 같은 방식 캡처 → `capy/m3-stand-row1-test3.png` (1780×495)
 - 시각 확인: 테두리가 고양이 수준의 도톰한 균일 선으로, 정수리·귀 접합부 겹침 없음, 모서리 계단 규칙적. 주인 판정 대기.
+
+## 2026-11-11 23:00 · capy · 화질 테스트 3 판정 + 기준 얼굴을 후보 1번으로
+
+- 시험 3(`m3-stand-row1-test3.png`, abys·brit 스타일 참고): 테두리 굵기 고르고 정수리 겹침 없음 ✓.
+- 주인: "얼굴이 너무 넙적해 옆으로. 처음 시안은 안 이랬는데 점점 넙적해져" → `compare-width-history.png`
+  (같은 키로: 후보 4 → 1r-v6 → v8 → 시험 3). 원인: 매번 직전 결과를 참고 그림으로 써서 조금씩 넓어짐
+  (머리 윗선이 둥근 돔 → 납작한 윗선 + 옆으로 불룩한 볼, 털색도 갈색 → 밝은 주황).
+- 주인 결정: **후보 1번**(`0-candidates-v4.png` 왼쪽 위, 유자 없음, 갈색)을 기준 얼굴로 → `capy/ref-cand1-anchor.png`.
+  앞으로 얼굴·머리·몸 모양·털색의 참고 그림은 항상 이 원본(직전 결과 아님). v8은 옷만 참고.
