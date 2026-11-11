@@ -715,3 +715,17 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 우산: 최종 서기 줄 그림 `capy/m3-stand-final-row{1,2,3}.png`을 편집해 우산만 더함(얼굴·옷·크기 그대로),
   고양이 우산 참고 `capy/ref/{cat-stand-2,brit-stand-6,abys-stand-14}-umbrella.png` → `capy/m3-umb-row{1,2,3}.png`.
 - 가방(접은 우산 등에 멤)·잠금화면·시계 위(inline)·얼굴: 최종 서기에서 코드로 만듦(그림 새로 안 뽑음 → 15칸 완전히 같은 얼굴).
+
+## 2026-11-12 00시대 · capy · 13·14·15 눈 덮기 최종 (out3, guide3 단독 편집)
+
+- 각 out2 대화에서 `edit/m3-stand-{13,14,15}-guide3.png` 첨부 + 사용자 지정 프롬프트 그대로
+  ("Edit your last picture only: bring the hat (or hood fur) edge down and inward so it covers the RED boxes…
+  only the inner half in the BLUE boxes stays visible. … Do not draw the boxes." — 15는 "hood fur edge" 표현).
+- 13 · "Edit Face Image" (`…/c/6af485db-f57c-83e8-83a6-31d85bd3e375`) → 1차 채택.
+- 14 · "Edit First Picture Face" (`…/c/6af48688-2db4-83e8-adb0-78b062752b91`) — 첫 전송이 소리 없이 실패
+  (프롬프트가 작성기에 그대로 남음), 보내기 버튼을 직접 눌러 전송 → 1차 채택.
+- 15 · "이미지 수정 요청" (`…/c/6af48712-7030-83e8-8b11-904845e57fbe`) → 1차 채택.
+- 캡처: 라이트박스 100% 세로 3분할 원본 스크린샷 상관관계 스티칭 → `edit/m3-stand-{13,14,15}-out3.png`
+  (842×1255 · 871×1225 · 895×1193). 여백 UI 조각만 배경색 패치(그림 픽셀은 손대지 않음).
+- 확대 확인: 셋 다 모자/후드 털 가장자리가 눈 바깥 절반을 덮고 안쪽 토막만 보임. 14는 토막이 짧은 편.
+- 주인이 서기를 `m3-stand-15-v2`로 확정했으므로 out3는 13~15 눈 덮기 비교용(더 나은 쪽 채택)으로 보존.
