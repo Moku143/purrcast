@@ -9,11 +9,14 @@ import json
 import shutil
 import numpy as np
 from PIL import Image
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import sprite_kit as sk  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
 SHARED = os.path.join(ROOT, 'Shared', 'SharedAssets.xcassets')
 APP = os.path.join(ROOT, 'Purrcast', 'Resources', 'Assets.xcassets')
 INFO = {"version": 1, "author": "xcode"}
+REF_COL = {'capy': np.array([205, 125, 76])}   # the muzzle colour, so measure() finds the nostrils and not the eyes
 
 
 def imageset(cat, name, src, template=False):
@@ -52,7 +55,11 @@ def anchors(name, src):
         top = int(ys.min())
         band = a[top:top + 120]; bx = np.nonzero(band.any(0))[0]
         head_top.append(top); umb_top.append(int(np.nonzero(u.any(1))[0].min()))
-        head_cx.append(round(float(bx.min() + bx.max()) / 2 * 2) / 2)
+        # the head's centre = the muzzle's centre (the face is drawn symmetric about it); a hat or a raised paw in the
+        # top rows would pull a bounding-box centre sideways
+        rgba = np.asarray(Image.open(os.path.join(src, f'{name}-stand-{k}-none.png')).convert('RGBA'))
+        r = sk.measure({'img': Image.fromarray(rgba[..., :3]), 'mask': a}, ref_col=REF_COL.get(name))
+        head_cx.append(round(float(r['mc']) * 2) / 2 if r else round(float(bx.min() + bx.max()) / 2 * 2) / 2)
         yy, xx = np.nonzero(a)
         box.append([int(xx.min()), int(xx.max()), int(yy.min()), int(yy.max())])
     p = os.path.join(ROOT, 'Shared', 'Data', 'anchors.json')
