@@ -306,3 +306,10 @@ Character design candidates for a NEW character: 6 different takes on a CAPYBARA
 - Owner also pre-approved the pipeline: bag → umbrella → lock, each following this sheet exactly; umbrella coral-red,
   shaft straight from paw to top tip, canopy symmetric around the shaft, smooth even scallop, body height/proportions
   identical to standing (verify by overlay).
+
+## 2026-11-11 · capy · round era step 2 (umbrella bag) · v1
+
+- ChatGPT (no credits) · chat "Redraw Capybara Outfits" (second of that name) · refs: confirmed standing sheet
+  `1r-outfits-15-v5.png` + `ref-cat-bag.png` · moss-green bag, coral J handle (capy carry colours)
+- result: `capy/2r-bag-15-v1.png` — 15/15: bag identical behind the viewer-right shoulder, outfits/props unchanged,
+  (0) juice and (1) watermelon kept, peeking eyes on 12-14 kept.
