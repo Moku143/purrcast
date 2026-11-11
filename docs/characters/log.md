@@ -770,3 +770,17 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   → `capy/m4-umb-row{1,2,3}.png` (막대가 꼭지 바로 아래, 우산이 막대 중심으로 대칭). 우산 m3-umb-row1은 막대가
   가장자리로 가서 폐기.
 - 앱 그림은 확대할 때 LANCZOS만, 외곽선 덧칠·머리 붙이기 없음.
+
+## 2026-11-12 01시대 · capy · m4 깨끗한 재추출 1줄 (m4-stand-row1)
+
+- 주인 지시 전환: 우산 2·3줄 생성 중단(2줄은 생성까지 끝났으나 캡처 전 폐기), m3-umb-row1 폐기(막대가 가장자리).
+- 새 대화 "Redraw Pixel Art" (`…/c/6af48f53-9fb8-83ee-943b-07d72db9ca9c`),
+  첨부: `capy/m3-stand-v3-row1.png` + 스타일 참고 `abys-stand-2-none.png`, `brit-stand-2-none.png`.
+- 프롬프트: 사용자 지정 verbatim ("Redraw the first picture as clean, crisp pixel art … no lumps, no doubled
+  lines, no white sticker fringe … Same background."). 1차 생성 채택.
+- 캡처: 라이트박스 100%, 세로는 한 화면에 들어가 좌/우 2분할 원본 스크린샷 스티칭(dx=248)
+  → `capy/m4-stand-row1.png` (1780×599). 상단 라이트박스 칩·버튼·수평선 UI 조각은 그림 위 여백이라 배경색 패치
+  (1번 모자 윗단 y132 아래는 손대지 않음; 처음 일괄 패치가 모자 윗부분을 건드려 다시 스티칭해 바로잡음).
+- sprite_kit check: 주둥이 86~87, body 2.91~2.97, 눈 dy 0.09~0.10, 플래그 없음.
+- 같은 대화에서 우산 추가 진행(지난 우산 문구, 첫 문장만 "Edit your last picture (the clean capybara row you
+  just drew)."로 바꿈 + 막대 중심 문장 "The shaft is at the CENTRE of the canopy …" 추가, 우산 고양이 3장 첨부).
