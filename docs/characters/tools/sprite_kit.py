@@ -273,9 +273,40 @@ def _stages(sel):
     return out
 
 
-def compose(out, specs, lock=False):
+def fur_colours(f, r):
+    """Median fur colour (face fur beside and above the muzzle) and muzzle colour of one figure."""
+    a = np.asarray(f['img'].convert('RGB')).astype(int)
+    mw, mt, mc = r['mw'], r['mtop'], r['mc']
+    H, W = a.shape[:2]
+    y0, y1 = int(max(0, mt - 0.5 * mw)), int(min(H, mt + 0.5 * mw))
+    x0, x1 = int(max(0, mc - 1.0 * mw)), int(min(W, mc + 1.0 * mw))
+    reg = a[y0:y1, x0:x1]
+    h, s, v = _hsv(reg.astype(np.uint8))
+    yy, xx = np.mgrid[y0:y1, x0:x1]
+    in_muz = (np.abs(xx - mc) < 0.55 * mw) & (yy > mt - 0.05 * mw)
+    warm = (h > 0.03) & (h < 0.11) & (s > 0.35) & (v > 0.55) & ~in_muz
+    fur = np.median(reg[warm], axis=0) if warm.sum() > 20 else None
+    m = a[int(mt + 0.3 * mw):int(mt + 0.6 * mw), int(mc - 0.2 * mw):int(mc + 0.2 * mw)].reshape(-1, 3)
+    return fur, np.median(m, axis=0)
+
+
+def match_colours(img, src_fur, src_muz, dst_fur, dst_muz, tol=40):
+    """Shift the fur and muzzle colours of one RGBA tile onto the target ones (other colours untouched)."""
+    a = np.asarray(img).astype(int).copy()
+    rgb = a[..., :3]
+    for src, dst in ((src_muz, dst_muz), (src_fur, dst_fur)):
+        if src is None or dst is None:
+            continue
+        near = np.abs(rgb - src).sum(-1) < tol
+        rgb[near] = np.clip(rgb[near] + (np.array(dst) - np.array(src)), 0, 255)
+    a[..., :3] = rgb
+    return Image.fromarray(a.astype(np.uint8), 'RGBA')
+
+
+def compose(out, specs, lock=False, match=False):
     """Pick each stage from whichever generation got it right: specs like 'v5.png:0-9' 'v6.png:10,11,12-14'
-    (0-based stages). Every pick is rescaled to the median muzzle width and pasted on a clean 5x3 sheet."""
+    (0-based stages). Every pick is rescaled to the median muzzle width and pasted on a clean 5x3 sheet.
+    match=True: fur and muzzle colours of every pick are shifted onto those of the first spec's figures."""
     picks = {}
     for spec in specs:
         path, sel = spec.rsplit(':', 1)
@@ -291,16 +322,28 @@ def compose(out, specs, lock=False):
     if missing:
         raise SystemExit(f'no source for stages {missing}')
     mw = float(np.median([r['mw'] for _, r, _ in picks.values()]))
+    target = None
+    if match and not lock:
+        first = specs[0].rsplit(':', 1)[0]
+        cols = [fur_colours(f, r) for f, r, p in picks.values() if p == first]
+        target = (np.median([c[0] for c in cols if c[0] is not None], axis=0), np.median([c[1] for c in cols], axis=0))
+        print(f'colour target from {first}: fur {target[0].astype(int)} muzzle {target[1].astype(int)}')
     tiles = []
     for s in range(15):
         f, r, path = picks[s]
         k = mw / r['mw']
         W, H = f['img'].size
         nw, nh = max(1, round(W * k)), max(1, round(H * k))
-        img = f['img'].resize((nw, nh), Image.LANCZOS if k < 1 else Image.NEAREST).convert('RGBA')
+        img = f['img'].convert('RGBA')
+        note = ''
+        if target is not None:
+            sf, sm = fur_colours(f, r)
+            img = match_colours(img, sf, sm, *target)
+            note = f'  fur {None if sf is None else sf.astype(int)} -> target'
+        img = img.resize((nw, nh), Image.LANCZOS if k < 1 else Image.NEAREST)
         img.putalpha(Image.fromarray((f['mask'] * 255).astype(np.uint8)).resize((nw, nh), Image.NEAREST))
         tiles.append((img, r['feet'] * k, r['cx'] * k))
-        print(f'stage {s:2d} (#{s + 1:2d}) <- {path}  x{k:.3f}')
+        print(f'stage {s:2d} (#{s + 1:2d}) <- {path}  x{k:.3f}{note}')
     cw = max(t[0].width for t in tiles) + 40
     ch = max(t[0].height for t in tiles) + 40
     sheet = Image.new('RGBA', (cw * 5, ch * 3), (32, 38, 74, 255) if lock else (238, 241, 246, 255))
@@ -346,6 +389,6 @@ if __name__ == '__main__':
     elif cmd == 'fit':
         fit(args[1:], '--lock-last' in opts)
     elif cmd == 'compose':
-        compose(args[1], args[2:], lock)
+        compose(args[1], args[2:], lock, '--match' in opts)
     else:
         print(__doc__)
