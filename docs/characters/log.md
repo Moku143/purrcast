@@ -561,3 +561,19 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 다음: 13·14·15를 한 마리씩 크게(×4) 잘라 ChatGPT에 따로 편집 → `capy/edit/m2-stand-{13,14,15}-in.png`,
   가이드 `…-guide.png` (빨간 칸 = 모자 뒤로 숨길 눈 바깥 절반, 파란 칸 = 그대로 보일 안쪽 절반).
   결과는 `capy/edit/m2-stand-{13,14,15}-out.png`로 → compose로 합침.
+
+## 2026-11-11 · capy · 13·14·15 단독 편집 (가이드 칸 방식) — edit/m2-stand-{13,14,15}-out.png
+
+- 사용자(21:05): v9 키 해결, 눈 덮기는 들쭉날쭉 → 15칸 시트 대신 한 마리씩: `capy/edit/m2-stand-{13,14,15}-in.png`
+  + 가이드(`-guide.png`, 빨간 칸=숨길 바깥 절반, 파란 칸=보일 안쪽 절반)를 새 대화에 첨부해 각각 편집.
+- 공통 프롬프트: "Edit the FIRST image. … RED boxes … HIDDEN, … BLUE boxes … VISIBLE. Pull the side edges of the
+  hat (hood's cream fur ring) inwards so it covers exactly the RED box areas, leaving only the BLUE-box eye pieces
+  visible. Do NOT move or shrink the eyes. Everything else stays exactly the same … Do NOT draw the red or blue boxes."
+- 13번 · 채팅 "Create Capybara Sprite Sheet" (`…/c/6af45a0a-6230-83e8-8f12-9707aec673d0`):
+  잡음 — 첫 전송에서 작성기에 남아 있던 옛 프롬프트 S가 대신 나가 15칸 시트 1장 낭비(폐기). 이어서 정상 전송,
+  1차는 왼눈이 통째로 가려져 2차 수정으로 채택 → `edit/m2-stand-13-out.png` (양쪽 안쪽 토막 대칭).
+- 14번 · 채팅 "Edit Hat Brim Coverage" (`…/c/6af45c10-8170-83e8-8dfb-69af08a2511b`): 1차 채택
+  → `edit/m2-stand-14-out.png`.
+- 15번 · 채팅 "Edit eye visibility" (`…/c/6af45cde-0890-83ee-b1d7-5b231e7be9c3`): 1차는 눈이 둘 다 가려져
+  2차 수정으로 채택 → `edit/m2-stand-15-out.png`.
+- 셋 다 확대 확인: 안쪽 눈 토막 두 개가 같은 높이로 보이고 바깥 절반은 모자/털 뒤. 사용자 검사·합성(build) 대기.
