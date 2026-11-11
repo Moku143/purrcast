@@ -620,3 +620,16 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   (머리 윗선이 둥근 돔 → 납작한 윗선 + 옆으로 불룩한 볼, 털색도 갈색 → 밝은 주황).
 - 주인 결정: **후보 1번**(`0-candidates-v4.png` 왼쪽 위, 유자 없음, 갈색)을 기준 얼굴로 → `capy/ref-cand1-anchor.png`.
   앞으로 얼굴·머리·몸 모양·털색의 참고 그림은 항상 이 원본(직전 결과 아님). v8은 옷만 참고.
+
+## 2026-11-11 · capy · 화질 테스트 4 — 후보 1번 얼굴 기준 (m3-stand-row1-test4)
+
+- 주인: 얼굴이 점점 옆으로 넓적해지고 털색이 밝아짐(`compare-width-history.png`) → 후보 1번을 기준 얼굴로.
+- 새 대화 "Create Pixel Capybara" (`https://chatgpt.com/c/6af47628-68c8-83ee-96ab-4b971cb96392`) · refs 4장:
+  (1) `ref-cand1-anchor.png` = 얼굴·머리·귀·몸·털색 유일 기준 · (2) `m2-stand-15-v8.png` = 옷만 ·
+  (3)(4) abys·brit = 픽셀 스타일·테두리만.
+- 문구: "The capybara must look EXACTLY like the first reference: the same warm brown fur colour, the same head
+  shape (a rounded dome on top, sides nearly straight, NOT a flat-topped wide oval with cheeks bulging sideways),
+  the same head width and height relative to the body, the same small ears on the top corners, the same eyes and
+  muzzle. Take only the outfits from the second reference." + 테스트 3 스타일 문구.
+- 라이트박스 100%에서 전체가 한 화면에 들어와 원본 스크린샷 1장에서 잘라냄 → `capy/m3-stand-row1-test4.png`
+- 시각 확인: 머리가 둥근 돔+옆선 직선, 진한 웜브라운 털색 복귀, 테두리는 테스트 3 수준 유지. 주인 판정 대기.
