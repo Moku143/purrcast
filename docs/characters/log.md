@@ -577,3 +577,14 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 15번 · 채팅 "Edit eye visibility" (`…/c/6af45cde-0890-83ee-b1d7-5b231e7be9c3`): 1차는 눈이 둘 다 가려져
   2차 수정으로 채택 → `edit/m2-stand-15-out.png`.
 - 셋 다 확대 확인: 안쪽 눈 토막 두 개가 같은 높이로 보이고 바깥 절반은 모자/털 뒤. 사용자 검사·합성(build) 대기.
+
+## 2026-11-11 · capy · 화질 테스트 — 첫 줄 5벌 크게 (m3-stand-row1-test)
+
+- 주인: 픽셀 테두리가 울퉁불퉁·흐릿, 정수리만 살짝 어두움 (15칸 시트 캡처라 한 마리 ~250px).
+- 테스트: 새 채팅 "Redraw Top Row Figures" (`https://chatgpt.com/c/6af45ff6-82c4-83e8-afe0-a789a87a624f`) ·
+  ref `m2-stand-15-v8.png` · 단계 0~4만 한 줄 5마리 크게. 프롬프트에 추가: "crisp pixel art on a regular square
+  pixel grid, even 1-pixel dark-navy outline with regular stair steps on curves, flat colour fills, NO blur,
+  NO anti-aliasing; the whole head is ONE flat fur colour, no darker shading on the top of the head".
+- 캡처: 라이트박스 100%에서 zoom(리샘플링) 대신 원본 스크린샷 2장(좌로 최대/우로 최대 스크롤) 저장 후 잘라 이어붙임
+  → `capy/m3-stand-row1-test.png` (1790×508, 한 마리 ~350px, 원본 픽셀 그대로)
+- 시각 확인: 테두리 계단이 고르고 머리 단색. 주인 판정 대기 — 통과 시 나머지도 이 방식(줄 단위 or 더 크게)으로.
