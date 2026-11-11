@@ -100,3 +100,16 @@ Full 15-outfit sprite sheet for a pixel-art capybara character, 15 figures laid 
 ```
 Redraw the first reference image (a pixel-art capybara in 15 outfits, 3 rows of 5) EXACTLY: same character, same 15 outfits in the same order and same cells, same upright pose facing the viewer, same size, same crisp pixel-art style with the dark navy outline, same plain flat light grey-blue background (#EEF1F6), no text, no labels, no numbers. Add ONLY one thing to every figure, carried the same way as the orange cat in the second reference image: a small MOSS-GREEN umbrella bag slung on the back, its rounded end visible behind the body on the viewer's RIGHT at waist-to-shoulder height, with a folded umbrella inside so that only the umbrella's curved J-shaped CORAL-RED handle sticks up out of the bag above the shoulder. The bag and folded umbrella are identical on all 15 figures and must not cover the outfit on the front of the body. Everything else stays exactly as in the first reference: arms down at the sides, figure (0) still holding its yuzu-yellow ice pop, every outfit's hat, scarf, print and colours unchanged.
 ```
+
+## 2026-11-11 · capy · step 3 (open umbrella, 15 outfits) · v1
+
+- ChatGPT (no credits) · chat "Redraw Pixel Art Umbrellas" · 3 rows of 5
+- references: (1st) `capy/1-outfits-15-v1.png`, (2nd) `ref-cat-umb.png` (in-app cat holding the open umbrella)
+- note: the message accidentally contained the prompt twice (a type retry landed twice); harmless, result correct
+- result: `capy/3-umbrella-15-v1.png` (capture stitch, 1008×606; original in the ChatGPT chat)
+- verdict: 15/15 good — CORAL-RED canopy with darker ribs centred over the head on every figure, canopy inside each
+  cell, (0) holds the umbrella instead of the ice pop, outfits unchanged.
+
+```
+Redraw the first reference image (a pixel-art capybara in 15 outfits, 3 rows of 5) with the same character, same 15 outfits in the same order and same cells, same crisp pixel-art style with the dark navy outline, same plain flat light grey-blue background (#EEF1F6), no text, no labels, no numbers. Every figure now holds an OPEN umbrella exactly the way the orange cat does in the second reference image: one arm raised across the chest holding the straight grey shaft, the shaft going straight up beside the head on the viewer's LEFT, and a wide open umbrella canopy centred above the head, covering the ears. The umbrella is CORAL-RED with a darker red tip and darker red rib lines and a grey shaft, identical on all 15 figures. Figure (0) holds the umbrella instead of the ice pop (no ice pop anywhere). Make every figure a little smaller than in the first reference so the WHOLE umbrella canopy fits inside its cell with clear empty space above it: nothing may touch or cross the top edge of a cell or of the image. All 15 figures the same size, feet on the same baseline in each row, every outfit's hat, scarf, print and colours unchanged.
+```
