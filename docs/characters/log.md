@@ -1058,3 +1058,19 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   181.4/390.1 — 원 195.5/378). 주먹으로 쥔 모양, trio 1 1차와 같은 형태.
 - 새 규칙이 오기 전에 같은 대화에서 가이드 다시 첨부해 "about 15 pixels up and about 15 pixels toward the viewer-right …"
   편집을 이미 보냈음 → 그 결과는 쓰지 않음(캡처 안 함).
+
+## 2026-11-12 03:0x · capy · 팔 trio 3 (단계 6-8) — m6-arm-trio-3
+
+- 새 대화 "Edit Capybara Image" (`https://chatgpt.com/c/6af4a9e2-8c58-83ee-80a0-5c9602cfb26d`), 첨부: `capy/m6/m6-arm-guide-3.png`
+  (첫 장) + 우산 고양이 3장, 02:45 문구 verbatim. 1차 원본 1672×941 → `capy/m6/m6-arm-trio-3.png`.
+- 1차 측정: 빨간 자국 없음, 머리·옷 그대로, 주먹으로 쥔 모양. 막대 x(umb_build shaft_x 186.5·186.5·181.5, 선 195.5)
+  = −9·−9·−14px → 3번이 12px 기준을 넘어서 한 번 다시. (armcheck2는 2번에서 재킷 흰 줄을 막대로 잡아 +33으로 틀리게 나옴.)
+- 다시 1회(같은 대화, 가이드 첨부 안 함 — trio 1 때 가이드를 다시 붙였더니 빨간 자국이 남았음), 문구:
+  'Edit your last picture: move each capybara's stick together with the paw holding it about 14 pixels toward the
+  viewer-right (the paw stays closed around the stick exactly as it is drawn now; the stick stays straight and
+  vertical, from just under the chin down to a little below the paw). Keep everything else exactly as it is - heads,
+  faces, clothes, the other arm, size and position. No umbrella canopy, nothing above the chin, no red marks. Same
+  pixel-art style, same background, same picture size.'
+- 2차(원본 1726×911 → `capy/edit/m6-arm-trio-3-v2.png`): 막대는 +5·+6·+3px로 들어왔지만 주먹이 털색이 아니라 연한
+  베이지/흰색으로 바뀌고 캔버스·카피바라 크기도 바뀜(주둥이 124→128~133). umb_build로 만들어 보면 앞발이 하얗게 뜨고
+  3번엔 검은 쐐기 자국 → 1차가 나음. 그래서 1차를 푸시(막대 3번 −14px은 코드로 맞춤 필요).
