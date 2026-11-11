@@ -1110,3 +1110,6 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   + iconpick. 비 아이콘 = `tools/make_rain_icon.py`(8단계 우산 그림 ×1.5, 고양이 비 아이콘의 하늘).
 - 잠금 그림 다시 만듦(make_lock 수정: 발 줄 = 고양이들 줄 471, 테두리 뺀 크기로 맞춤).
 - 비교 그림: `capy/compare-final-capy-vs-cats.png` (서기·가방·우산 × 카피바라·고양이 3, 잠금·시계 위·얼굴).
+- iOS build (only=test29Capybara) run 43074184028 @ 8959ba98: 녹색. 유닛+화면 88개 실행 · 83 통과 · 0 실패 · 6 건너뜀,
+  12분(18:04→18:16 UTC). 화면: 홈(비 우산·맑음 가방·눈 우산·폭염), Plus 화면 4칸, 온보딩 4마리, 캐릭터 고르기, 위젯.
+- 임시 브랜치 `capy-ci-check`(자리표시 우산으로 미리 돌려 본 것)는 프록시가 지우기를 막아서 원격에 남아 있음 → 지워도 됨.
