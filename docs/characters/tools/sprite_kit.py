@@ -303,7 +303,62 @@ def match_colours(img, src_fur, src_muz, dst_fur, dst_muz, tol=40):
     return Image.fromarray(a.astype(np.uint8), 'RGBA')
 
 
-def compose(out, specs, lock=False, match=False):
+def snap_eyes(f, r, dx_t, dy_t):
+    """Move both eye bars of a figure (on flat fur) so their centres sit at +/-dx_t mw and dy_t mw above the muzzle
+    top. Returns a new figure dict, or the same one if an eye is missing (hat stages)."""
+    if not (r.get('eyeL') and r.get('eyeR')):
+        return f
+    a = np.asarray(f['img'].convert('RGB')).astype(int).copy()
+    mw, mt, mc = r['mw'], r['mtop'], r['mc']
+    H, W = a.shape[:2]
+    fur_sum = np.median(a[int(mt - 0.45 * mw):int(mt - 0.25 * mw), int(mc - 0.3 * mw):int(mc + 0.3 * mw)].sum(-1))
+    dark = a.sum(-1) < fur_sum - 40  # the eye and its soft edge
+    for sg, e in ((-1, r['eyeL']), (1, r['eyeR'])):
+        cx, cy, L = mc + sg * e[0] * mw, mt - e[1] * mw, e[2] * mw
+        x0, x1 = int(cx - L / 2 - 0.06 * mw), int(cx + L / 2 + 0.06 * mw) + 1
+        y0, y1 = int(cy - 0.09 * mw), int(cy + 0.09 * mw) + 1
+        box = dark[y0:y1, x0:x1]
+        if box.sum() == 0:
+            continue
+        ring = a[max(0, y0 - 3):y1 + 3, max(0, x0 - 3):x1 + 3]
+        ringd = ring.sum(-1) < fur_sum - 40
+        fur = np.median(ring[~ringd], axis=0)
+        patch = a[y0:y1, x0:x1].copy()
+        a[y0:y1, x0:x1][box] = fur
+        ox = int(round(sg * dx_t * mw - sg * e[0] * mw))
+        oy = int(round(-(dy_t - e[1]) * mw))
+        ys, xs = np.nonzero(box)
+        ty, tx = ys + y0 + oy, xs + x0 + ox
+        ok = (ty >= 0) & (ty < H) & (tx >= 0) & (tx < W)
+        a[ty[ok], tx[ok]] = patch[ys[ok], xs[ok]]
+    g = dict(f)
+    g['img'] = Image.fromarray(a.astype(np.uint8))
+    return g
+
+
+def fit_body(f, r, body_t):
+    """Stretch or squeeze the figure below the jaw so muzzle-top-to-feet equals body_t muzzle widths."""
+    mw, mt = r['mw'], r['mtop']
+    if abs(r['body'] / body_t - 1) < 0.015:
+        return f, r
+    split = int(mt + 1.0 * mw)
+    img, mask = f['img'].convert('RGB'), f['mask']
+    W, H = img.size
+    feet = r['feet']
+    new_lower = int(round(body_t * mw - (split - mt))) + (H - 1 - feet)
+    top, low = img.crop((0, 0, W, split)), img.crop((0, split, W, H))
+    mtop_, mlow = mask[:split], mask[split:]
+    low = low.resize((W, max(1, new_lower)), Image.LANCZOS)
+    mlow = np.asarray(Image.fromarray((mlow * 255).astype(np.uint8)).resize((W, max(1, new_lower)), Image.NEAREST)) > 127
+    out = Image.new('RGB', (W, split + low.height))
+    out.paste(top, (0, 0)); out.paste(low, (0, split))
+    m = np.vstack([mtop_, mlow])
+    g = dict(f); g['img'] = out; g['mask'] = m
+    s = dict(r); s['feet'] = split + low.height - 1 - (H - 1 - feet); s['body'] = (s['feet'] - mt) / mw
+    return g, s
+
+
+def compose(out, specs, lock=False, match=False, eyes=False, body=False):
     """Pick each stage from whichever generation got it right: specs like 'v5.png:0-9' 'v6.png:10,11,12-14'
     (0-based stages). Every pick is rescaled to the median muzzle width and pasted on a clean 5x3 sheet.
     match=True: fur and muzzle colours of every pick are shifted onto those of the first spec's figures."""
@@ -328,9 +383,22 @@ def compose(out, specs, lock=False, match=False):
         cols = [fur_colours(f, r) for f, r, p in picks.values() if p == first]
         target = (np.median([c[0] for c in cols if c[0] is not None], axis=0), np.median([c[1] for c in cols], axis=0))
         print(f'colour target from {first}: fur {target[0].astype(int)} muzzle {target[1].astype(int)}')
+    first = specs[0].rsplit(':', 1)[0]
+    base = [r for f, r, p in picks.values() if p == first]
+    if eyes:
+        dx_t = float(np.median([(r['eyeL'][0] + r['eyeR'][0]) / 2 for r in base if r.get('eyeL') and r.get('eyeR')]))
+        dy_t = float(np.median([(r['eyeL'][1] + r['eyeR'][1]) / 2 for r in base if r.get('eyeL') and r.get('eyeR')]))
+        print(f'eyes snapped to dx {dx_t:.3f} dy {dy_t:.3f} (from {first})')
+    if body:
+        body_t = float(np.median([r['body'] for r in base]))
+        print(f'body fitted to {body_t:.3f} muzzle widths (from {first})')
     tiles = []
     for s in range(15):
         f, r, path = picks[s]
+        if eyes:
+            f = snap_eyes(f, r, dx_t, dy_t)
+        if body:
+            f, r = fit_body(f, r, body_t)
         k = mw / r['mw']
         W, H = f['img'].size
         nw, nh = max(1, round(W * k)), max(1, round(H * k))
@@ -389,6 +457,6 @@ if __name__ == '__main__':
     elif cmd == 'fit':
         fit(args[1:], '--lock-last' in opts)
     elif cmd == 'compose':
-        compose(args[1], args[2:], lock, '--match' in opts)
+        compose(args[1], args[2:], lock, '--match' in opts, '--eyes' in opts, '--body' in opts)
     else:
         print(__doc__)
