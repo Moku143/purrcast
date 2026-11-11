@@ -1092,3 +1092,12 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 2차(원본 1726×911 → `capy/m6/m6-arm-trio-4.png`): 오른쪽으로 너무 감 — 막대 x +16.1·+7.6·+10.8px
   (umb_build 199.5·205.5, 1번 195.5). 1번은 여전히 12px 넘지만 1차(−22)보다 가깝고 3번은 들어옴 → 2차를 씀.
   빨간 자국 없음, 머리·옷 그대로, 털색 주먹. 다만 umb_build err가 58·55·47 → 71·67·59로 커짐(선이 조금 더 뭉개짐).
+
+## 2026-11-12 03:2x · capy · 팔 trio 5 (단계 12-14) — m6-arm-trio-5
+
+- 새 대화 "Edit Capybara Image" (`https://chatgpt.com/c/6af4acdc-f7c0-83ec-a52a-2a9fc47ec2c9`), 첨부: `capy/m6/m6-arm-guide-5.png`
+  (첫 장) + 우산 고양이 3장, 02:45 문구 verbatim. 1차 원본 1727×911 → `capy/m6/m6-arm-trio-5.png`.
+- 측정: 막대 x −1.0·−1.1·−2.6px (umb_build shaft_x 192.5·193.5·191.5 → −3·−2·−4), 빨간 자국 없음(3번 빨간 건 원래
+  있던 벙어리장갑·목도리), 모자·후드·눈 가림·옷 그대로 → 새 규칙 통과, 다시 그리기 없음.
+  3번 앞발은 원래 오른손처럼 빨간 벙어리장갑을 낀 주먹. 주먹은 원보다 약 26~31px 아래(가이드 px).
+- 팔 trio 1~5 끝. 쓴 대화: 1 `…/c/6af4a600-…`, 2 `…/c/6af4a89d-…`, 3 `…/c/6af4a9e2-…`, 4 `…/c/6af4ab69-…`, 5 `…/c/6af4acdc-…`.
