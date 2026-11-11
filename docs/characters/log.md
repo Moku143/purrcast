@@ -551,3 +551,13 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - check: 13 body 2.69로 중앙값 수준(키 보정됨) · 13~15 eye hidden = 바깥 절반 덮임(의도) · 시각 확인: 보이는
   눈이 짧은 안쪽 토막만 남음. 1~12는 어차피 v8 확정분 사용(이번 판 1·3·8·10의 eyeL x 0.60 미세 플래그 무관).
 - 사용자 검사 대기 — 통과 시 B(가방).
+
+## 2026-11-11 21:20 · capy · v9 검사 → 13~15 한 마리씩 편집으로 전환
+
+- v9 13~15: 키는 맞음(body 2.69~2.72, v8 1~12 중앙값과 같음). 눈 덮기는 여전히 들쭉날쭉
+  (`m2-stand-15-v9-eyecheck.png`): 13 왼눈은 덮이는 대신 눈이 안쪽으로 밀림, 14 오른눈·15 왼눈은 통째로 보임.
+  ChatGPT에 15칸 시트로 4번 요청해도 안 됨. 내 후처리(eyefix: 12번 눈 복사 + 모자 가장자리 늘리기)는 계단·점 잡티가 생겨 폐기.
+- 지금까지 합본: `m2-stand-15-v8v9-composed.png` = v8 1~12 + v9 13~15 (compose, 주둥이 64px).
+- 다음: 13·14·15를 한 마리씩 크게(×4) 잘라 ChatGPT에 따로 편집 → `capy/edit/m2-stand-{13,14,15}-in.png`,
+  가이드 `…-guide.png` (빨간 칸 = 모자 뒤로 숨길 눈 바깥 절반, 파란 칸 = 그대로 보일 안쪽 절반).
+  결과는 `capy/edit/m2-stand-{13,14,15}-out.png`로 → compose로 합침.
