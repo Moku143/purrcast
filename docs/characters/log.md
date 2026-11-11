@@ -236,3 +236,17 @@ Character design candidates for a NEW character: 6 different takes on a CAPYBARA
 - ChatGPT (no credits) · chat "Redraw Capybara Variants" · ref: `capy/0-candidates-v3.png`
 - result: `capy/0-candidates-v4.png`. Note: candidates (2) and (5) came back with open dot eyes (v3's (2) had
   half-closed lines) — the rest keep half-closed eyes; mention when picking.
+
+## 2026-11-11 · capy · ROUND ERA step 1: 15-outfit standing sheet v1 (from candidate 4, yuzu removed) — awaiting confirmation
+
+- Owner picked candidate (4) of `0-candidates-v4.png`, minus the yuzu on the head. Same 15-outfit list as before,
+  eyes covered by beanie/balaclava/hood on 12–14, all learned rules kept (uniform head colour, tiny ears, dark feet,
+  muzzle clear of the collar, single 1px navy jaw line).
+- ChatGPT (no credits) · chat "Generate sprite sheet" · refs: (1st) candidate 4 cropped (`ref-cand4.png`), (2nd)
+  `abys-outfits-15-v2.png` (variety bar; ignore text)
+- prompt = the previous 15-outfit prompt with the character paragraph swapped for the round candidate-4 description
+  + "REMOVE the small yuzu fruit from the top of the head", and the 12/13/14 outfit lines now say the hat/balaclava/
+  hood is pulled down so it COVERS THE EYES (only muzzle and nostrils show).
+- result: `capy/1r-outfits-15-v1.png` (round era files use the `1r-` prefix; the brick era keeps `1-…4-`).
+- checked: 15/15 outfits in order, eyes covered on 12/13/14, no yuzu on any head, uniform head colour, shorts on 2/3,
+  duck print on 5, zip on 9, striped scarf + mittens on 14.
