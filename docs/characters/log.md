@@ -201,3 +201,13 @@ drawn smaller than the standing/bag sheets. prompts.md now carries the consisten
 - ChatGPT (no credits) · chat "Redraw Capybara Sheet" · refs: v1 (first) + v2 (second), prompt asks for halfway
 - result: `capy/1-outfits-15-v3.png`; comparison `capy/1-outfits-v123-compare.png` (stages 1·2·7, rows v1/v2/v3)
 - bag/umbrella/lock regeneration still on hold until the owner confirms the base.
+
+## 2026-11-11 · capy · standing sheet v4 (clean navy jaw line) — awaiting confirmation
+
+- Owner on v3: the chin band + shadow row read as a double chin. v4: shadow band REMOVED; the head now closes with
+  ONE 1-pixel dark-navy jaw line (same colour as the other outlines) and the collar starts immediately below it;
+  muzzle stays v3-sized with 1-2px of plain chin fur above the jaw line.
+- ChatGPT (no credits) · chat "Redraw Pixel Art" · ref: `capy/1-outfits-15-v3.png`
+- result: `capy/1-outfits-15-v4.png`; magnified comparison `capy/1-outfits-v34-compare.png` (stages 1·2·4, top v3 /
+  bottom v4). Checked myself: no double chin, single navy boundary, chin gap kept (thinner at stage 2's centre),
+  outfits/eye coverage unchanged.
