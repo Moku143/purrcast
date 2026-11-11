@@ -1059,7 +1059,7 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 새 규칙이 오기 전에 같은 대화에서 가이드 다시 첨부해 "about 15 pixels up and about 15 pixels toward the viewer-right …"
   편집을 이미 보냈음 → 그 결과는 쓰지 않음(캡처 안 함).
 
-## 2026-11-12 03:0x · capy · 팔 trio 3 (단계 6-8) — m6-arm-trio-3
+## 2026-11-12 02:5x · capy · 팔 trio 3 (단계 6-8) — m6-arm-trio-3
 
 - 새 대화 "Edit Capybara Image" (`https://chatgpt.com/c/6af4a9e2-8c58-83ee-80a0-5c9602cfb26d`), 첨부: `capy/m6/m6-arm-guide-3.png`
   (첫 장) + 우산 고양이 3장, 02:45 문구 verbatim. 1차 원본 1672×941 → `capy/m6/m6-arm-trio-3.png`.
@@ -1075,7 +1075,7 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   베이지/흰색으로 바뀌고 캔버스·카피바라 크기도 바뀜(주둥이 124→128~133). umb_build로 만들어 보면 앞발이 하얗게 뜨고
   3번엔 검은 쐐기 자국 → 1차가 나음. 그래서 1차를 푸시(막대 3번 −14px은 코드로 맞춤 필요).
 
-## 2026-11-12 03:1x · capy · 팔 trio 4 (단계 9-11) — m6-arm-trio-4
+## 2026-11-12 02:5x · capy · 팔 trio 4 (단계 9-11) — m6-arm-trio-4
 
 - 새 대화 "Edit capybara image" (`https://chatgpt.com/c/6af4ab69-5054-83ee-9a18-6c1fb4963439`), 첨부: `capy/m6/m6-arm-guide-4.png`
   (첫 장) + 우산 고양이 3장, 02:45 문구 verbatim. 1차 원본 1726×911 → `capy/edit/m6-arm-trio-4-v1.png`.
@@ -1093,7 +1093,7 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   (umb_build 199.5·205.5, 1번 195.5). 1번은 여전히 12px 넘지만 1차(−22)보다 가깝고 3번은 들어옴 → 2차를 씀.
   빨간 자국 없음, 머리·옷 그대로, 털색 주먹. 다만 umb_build err가 58·55·47 → 71·67·59로 커짐(선이 조금 더 뭉개짐).
 
-## 2026-11-12 03:2x · capy · 팔 trio 5 (단계 12-14) — m6-arm-trio-5
+## 2026-11-12 03:00 · capy · 팔 trio 5 (단계 12-14) — m6-arm-trio-5
 
 - 새 대화 "Edit Capybara Image" (`https://chatgpt.com/c/6af4acdc-f7c0-83ec-a52a-2a9fc47ec2c9`), 첨부: `capy/m6/m6-arm-guide-5.png`
   (첫 장) + 우산 고양이 3장, 02:45 문구 verbatim. 1차 원본 1727×911 → `capy/m6/m6-arm-trio-5.png`.
