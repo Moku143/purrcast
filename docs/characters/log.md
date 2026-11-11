@@ -119,3 +119,17 @@ Redraw the first reference image (a pixel-art capybara in 15 outfits, 3 rows of 
 - A 15-figure walking frame A sheet was generated (ChatGPT chat "Redraw Walking Capybaras") right before the owner
   said walking is no longer used in the app (removed in 24c05e4f; the app uses face, stand(none·bag·umbrella), lock,
   inline only). Not saved, not an asset. prompts.md steps 5–10 are now marked 안 씀.
+
+## 2026-11-11 · capy · step 3 redo (smooth dome umbrella) · v2
+
+- Owner: v1 canopy edge was wrinkly. v2 copies the cat umbrella's SHAPE: wide smooth symmetrical dome, small round
+  tip, clean EVEN scalloped bottom edge (equal arcs between rib tips, same horizontal line), colour still coral-red.
+- ChatGPT (no credits) · chat "Redraw Pixel Art Grid" · refs: capy 15-outfit sheet + `ref-cat-umb.png`
+- result: `capy/3-umbrella-15-v2.png` (capture stitch; original in the ChatGPT chat) — 15/15 smooth even domes,
+  outfits unchanged, (0) without ice pop. v2 supersedes v1.
+- the prompt = v1's with the canopy sentence replaced by: "THE CANOPY SHAPE IS THE MOST IMPORTANT PART and must copy
+  the SHAPE of the cat's blue umbrella in the second reference exactly: a WIDE, SMOOTH, symmetrical round DOME like
+  the top half of a circle, clearly wider than the body, with a small round tip on top, and a clean EVEN SCALLOPED
+  bottom edge - a row of equal small arcs, one arc between each pair of rib tips, all the same size and on the same
+  horizontal line, NOT jagged, NOT wrinkled, NOT crumpled, no random zigzag. Only the colour differs from the cat's:
+  the canopy is CORAL-RED with darker coral-red panel seams, identical on all 15 figures."
