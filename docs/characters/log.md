@@ -588,3 +588,14 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 캡처: 라이트박스 100%에서 zoom(리샘플링) 대신 원본 스크린샷 2장(좌로 최대/우로 최대 스크롤) 저장 후 잘라 이어붙임
   → `capy/m3-stand-row1-test.png` (1790×508, 한 마리 ~350px, 원본 픽셀 그대로)
 - 시각 확인: 테두리 계단이 고르고 머리 단색. 주인 판정 대기 — 통과 시 나머지도 이 방식(줄 단위 or 더 크게)으로.
+
+## 2026-11-11 · capy · 화질 테스트 2 — 테두리 1픽셀 통일 (m3-stand-row1-test2)
+
+- 주인: 정수리·귀 붙는 곳 테두리가 2~3줄 겹친 덩어리처럼 보임.
+- 같은 채팅("Redraw Top Row Figures")에 고양이 스프라이트(`cat-stand-2-none.png`, 앱 에셋) 첨부 + 재생성.
+  추가 문구: "The dark outline is exactly ONE pixel-grid unit thick everywhere, the same as on the cheeks: along
+  the top of the head between the ears it is a single thin line, and where each ear meets the head the ear outline
+  and the head outline share one line - never two or three stacked or doubled lines, no thick black block at the
+  top corners. Compare the attached cat: its outline is the same thin width all the way round."
+- 같은 방식(라이트박스 100%, 원본 스크린샷 좌/우 2장 잘라 붙임) → `capy/m3-stand-row1-test2.png` (1790×498)
+- 시각 확인: 정수리 한 줄, 귀-머리 접합부 한 줄 공유, 모서리 덩어리 없음. 주인 판정 대기.
