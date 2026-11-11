@@ -640,3 +640,17 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   (check: flags none, body 2.96~3.00). 주인 "1번": 진행 + 주둥이 아래 **입 선은 빼기**.
 - prompts.md에 v3 변경점 기록(한 장 5마리, 기준 얼굴은 항상 원본 후보, 스타일은 abys·brit, 입 선 없음).
 - sprite_kit: 한 줄(5마리) 그림도 check/compose 가능.
+
+## 2026-11-12 (00시 전후) · capy · m3 서기 3장 (줄 단위, 마스터 v3 방식)
+
+- (A) 1줄 `capy/m3-stand-row1.png` (23458e25): 시험 4 대화에서 입 선만 제거. check 플래그 0
+  (주둥이 102px, 눈 dx 0.64~0.66 / dy 0.09~0.10 / body 2.95~2.98).
+- (B) 2줄 `capy/m3-stand-row2.png` (ff85ba74): 새 대화 "Pixel Art Capybara Wardrobe"
+  (`…/c/6af47b51-767c-83ee-91df-322f5881e95b`) · refs 4장(cand1·v8옷·abys·brit) → 1차 dy 0.07(너무 낮음)
+  → row1 첨부 후 "내리기/올리기" 두 번 오가며 (0.17 → -0.01) → 4차에서 dy 0.09~0.11로 1줄과 일치, 플래그 0.
+- (C) 3줄 `capy/m3-stand-row3.png`: 새 대화 "Pixel Art Wardrobe Image" (`…/c/6af47c9b-d1f0-83e8-93b1-0394b97cdf9e`)
+  · refs 7장(cand1·v8옷·abys·brit·13/14/15-out) → 사용자 지시로 row1을 얼굴 기준으로 추가 첨부해 재생성
+  → 1차는 3~5번 몸이 서로 붙어 분리 불가(배경 기둥 없음) → 간격 요청 2차 채택.
+  check: #1 head+7%·#2 head+5%(무시 대상), #3~5 eye hidden(바깥 절반 덮임, 의도), 1~2번 dy 0.14 (row1 0.10보다
+  약간 큼), body 3.10~3.22 (row1 2.95 대비 +5~9% — 겹침 검사 때 확인 요).
+- 캡처 전부 라이트박스 100% 원본 스크린샷에서 잘라냄 (리샘플링 없음).
