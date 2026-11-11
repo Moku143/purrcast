@@ -456,3 +456,14 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 잡음: (a) 잠금 변환용 새 채팅(`…/c/6af42b00-9b5c-83e8-8bbc-2bd881203d11`)에서 작성기에 남아 있던 이전 우산 초안이
   대신 전송돼 컬러 우산 중복 1장 생성(폐기). 같은 채팅에서 잠금 프롬프트를 이어 보냈으나 생성 완료 전에 중단 지시가
   와서 결과 미수거(폐기). — 작성기 초안은 지우고 **보내기 직전에 내용 재확인**까지 해야 함.
+
+## 2026-11-11 · capy · 전면 재생성 결정 + MASTER TEMPLATE v2 + sprite_kit
+
+- 주인(17:46): 13~15번이 1~12번보다 작고 눈 자리가 다름 → 4장 전부 처음부터 다시. 앞으로 동물·옷만 바꿔 계속
+  추가할 수 있게 프롬프트를 한 번에 확실히 정하기로.
+- 측정(`tools/sprite_kit.py check`): 서기 v6에서 13·14·15번 주둥이 폭이 중앙값보다 −9·−12·−9%, 11·12번은 몸(주둥이
+  위~발)이 +8·+12%. 가방·우산·잠금도 같은 경향.
+- prompts.md 맨 위에 ★ MASTER TEMPLATE v2: 파이프라인, 슬롯({ANIMAL}{LOOK}{OUTFIT 0..14}{CARRY}{LOCK HINT}),
+  고정 문단(FACE·SIZE·PIXEL·BACKGROUND), 프롬프트 S·B·U·L, capy 슬롯 값.
+- `tools/sprite_kit.py`: check(주둥이 기준 머리 크기·몸 길이·눈 자리 표 + 경고), fit(4장 공통 주둥이 폭),
+  build(15개를 480×560, 발 y=555, 주둥이 폭 동일하게 앱용 PNG로). 생성 크기 차이는 build가 없앰.

@@ -4,6 +4,132 @@ How the characters (cat · abys · brit · …) were drawn, so the next one come
 Keep this file up to date whenever a prompt changes. Every single picture asked for goes into `log.md` with its exact
 prompt, settings and result.
 
+## ★ MASTER TEMPLATE v2 (2026-11-11) — use this for every new character
+
+Owner's rule: from now on only the **animal** and the **15 outfits** change. Everything else (layout, size, face
+rules, carry items, rendering, checks) is fixed here. The old "Steps" further down are history.
+
+### The pipeline
+
+1. **Design** — step 0 candidates (old Steps § 0). The owner picks one → write its `{LOOK}` paragraph below.
+2. **Standing sheet** — prompt S. References: (1st) the picked candidate cropped alone, (2nd) the newest standing
+   sheet of any finished character (layout + cuteness bar).
+3. **Check** — `python3 tools/sprite_kit.py check SHEET`. Any flagged stage (head ±5%, body ±6%, eyes off the
+   standard place) goes back to the model for that sheet, naming the stage numbers; the owner only sees sheets that
+   pass. Size drift alone is fine — `build` fixes it.
+4. **Bag, umbrella, lock** — prompts B, U, L. Reference: the passed standing sheet (+ the cat's carry / lock sheet).
+   Check each the same way.
+5. **Build** — one muzzle width for all four sheets: `python3 tools/sprite_kit.py fit S.png B.png U.png L.png
+   --lock-last` → use (at most) that number as `--mw` for every `build`. Output = app sprites 480×560, feet on
+   y=555, body centred, every muzzle exactly the same width: `NAME-stand-{0..14}-{none|bag|umbrella}.png`,
+   `NAME-lock-{0..14}.png`. Umbrellas: run `tools/recentre_umbrella.py` on the umbrella sheet first if the tip is
+   not over the shaft.
+6. Log every generation in `log.md` (date, tool, references, exact prompt, result, verdict).
+
+### Slots (the only things that change)
+
+- `{ANIMAL}` — one word ("capybara").
+- `{LOOK}` — the character paragraph, frozen after the design pick (head, ears, eyes, muzzle, body, feet, tail,
+  colours). Must say what is NOT allowed (e.g. "NOT round bear ears").
+- `{OUTFIT 0..14}` — this character's 15 outfits (the kinds in "The 15 stages"), each with its colours, pattern,
+  hat and prop. No same-stage kind may repeat another character's.
+- `{CARRY}` — bag colour, folded-umbrella handle colour, open-umbrella colour (each character its own).
+- `{LOCK HINT}` — what keeps the animal recognisable in white only.
+
+### Fixed paragraphs (copy word for word)
+
+**FACE** — `Every figure has EXACTLY the same face in the same place: two short horizontal half-closed eye lines,
+wide apart, at the same height on every figure; the muzzle at full normal size with its two small round nostrils,
+always completely visible; scarves always wrap BELOW the muzzle. Hats and hoods sit ON TOP of this same head and never
+move, shrink or replace any part of the face. On the three coldest figures (12, 13, 14) the hat brim or hood edge
+comes down just far enough to cover the OUTER half of each eye line — the eyes stay exactly where they are on every
+other figure.`
+
+**SIZE** — `All 15 figures are ONE character at ONE size: the same head width, the same muzzle size, the same eye
+line and the same body; draw figure (0)'s body first and put that identical body under every outfit. Clothes, hats
+and coats are added on top and never make a figure bigger, smaller, taller or shorter. Feet flat on one baseline in
+each row, arms down at the sides unless holding a prop, every figure centred in its own equal cell with plenty of
+empty space around it.`
+
+**PIXEL** — the pixel paragraph below ("RENDERING - the most important part…").
+
+**BACKGROUND** — `Plain flat light grey-blue background (#EEF1F6), no text, no labels, no numbers, no shadows,
+no frames. 3 rows of 5, left-to-right then top-to-bottom. Output 16:9.`
+
+### Prompt S — standing, empty-handed
+
+```
+Wardrobe sprite sheet: the {ANIMAL} from the first reference image, drawn 15 times in 15 outfits, in exactly the same
+pixel-art sprite style and 3-rows-of-5 layout as the second reference image. Use the second reference ONLY for the
+technique, figure size, pose, layout and how cute and detailed the outfits must be — do NOT copy its animal, its
+outfits or any text. Character (identical in all 15): {LOOK}
+{FACE}
+{SIZE}
+{PIXEL}
+The 15 outfits in this exact order (hottest to coldest), cute and detailed: (0) {OUTFIT 0}; (1) {OUTFIT 1}; …
+(14) {OUTFIT 14}. Figure (14)'s hood is part of its coat (one piece, ears inside the hood).
+{BACKGROUND}
+```
+
+### Prompt B — bag with the folded umbrella
+
+```
+Redraw the first reference image (the {ANIMAL} in 15 outfits, 3 rows of 5) EXACTLY: same character, same 15 outfits,
+same order, same cells, same size, same faces, same crisp pixel-art style, same background, no text. Add ONLY one
+thing to every figure, carried the way the cat carries it in the second reference image: a small {CARRY: bag colour}
+bag worn on the back, its rounded end visible behind the body on the viewer's RIGHT at waist-to-shoulder height, with
+a folded umbrella inside so only its curved J-shaped {CARRY: handle colour} handle sticks up above the shoulder.
+Identical on all 15; it never covers the front of the outfit. Props in the paws stay as they are.
+{FACE}
+{SIZE}
+```
+
+### Prompt U — open umbrella
+
+```
+Redraw the first reference image (the {ANIMAL} in 15 outfits, 3 rows of 5) with the same character, outfits, order,
+cells, faces and crisp pixel-art style, same background, no text. Every figure now holds an OPEN {CARRY: umbrella
+colour} umbrella the way the cat does in the second reference image: a straight thin grey shaft held in the paw on the
+viewer's LEFT, going straight up to the tip knob; the canopy is a wide smooth symmetrical dome centred EXACTLY on
+the shaft (the tip knob directly above the shaft), its rim just above the top of the head, about 1.4 times as wide
+as the head, with a clean evenly scalloped bottom edge. The figure under the umbrella is EXACTLY the same size as in
+the first reference — never shrink it to make room; the canopy must still fit inside the cell. Figure (0) holds the
+umbrella instead of its prop.
+{FACE}
+{SIZE}
+```
+
+### Prompt L — lock screen
+
+```
+Colour conversion of the first reference image ONLY (the {ANIMAL} in 15 outfits, 3 rows of 5): same layout, cells,
+order, outfits, props, prints, faces and sizes, nothing added or removed — redrawn in the monochrome style of the
+second reference image (the cat's lock-screen set): pure white figures with light lavender-grey and mid-grey pixel
+shading for markings, outfit details and folds, no other colours, no dark outline, crisp hard-edged pixels, on a flat
+dark navy background (#20264A). Eye lines and nostrils stay dark navy and in exactly the same place. {LOCK HINT}
+{FACE}
+{SIZE}
+No text, no labels, no frames. Output 16:9.
+```
+
+### capy — slot values (round era, owner-approved)
+
+- `{LOOK}`: "a capybara, round and soft, nothing angular: the head is shaped like a loaf of bread with fully rounded
+  corners and a gently curved top, a little wider than it is tall, all in ONE warm brown fur colour (same as the
+  body); the muzzle is a large rounded block in a slightly darker brown with soft round corners, sticking out
+  slightly forward and covering the lower middle of the face, always leaving a strip of fur below and beside it —
+  it never reaches the collar; two small dark round nostrils sit high on the front of the muzzle; the eyes are two
+  short calm half-closed lines set high and wide apart; the ears are TINY soft rounded nubs set far back on top of
+  the head, NOT round bear ears; a serene, sleepy, gentle, huggable expression; a chubby round body with short thick
+  legs; feet and paws DARK chocolate brown; NO tail; the head closes with ONE clean 1-pixel dark-navy jaw line with
+  the collar right below it — no shadow band, no double chin."
+- `{OUTFIT 0..14}`: the v4 list in "capy — the 15 outfits" below, with (14) = "deep-green ankle-length puffer coat
+  with its own attached padded hood worn up, a cream fur trim around the face, red-and-cream STRIPED scarf, red
+  mittens".
+- `{CARRY}`: moss-green bag · coral-red J handle · coral-red open umbrella.
+- `{LOCK HINT}`: "the rounded loaf head, the big rounded muzzle in light grey with two dark nostrils, tiny ear nubs,
+  no tail".
+
 ## Where and how
 
 - **Tool:** Higgsfield → `generate_image` / `generate_image_batch`
