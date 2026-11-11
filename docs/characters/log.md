@@ -424,3 +424,12 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 
 (3차 수정 — 그래도 가려져서, 채택본) The eyes are still invisible. Fix it this way: lift the cream fur trim a little HIGHER on the face, so that between the fur trim and the muzzle there is a clearly visible band of orange-brown face fur. In that band, draw the TWO EYES as short dark horizontal lines (half-closed sleepy eyes), set WIDE APART near the left and right edges of the face, with the top of each eye line touching the bottom edge of the fur trim. The eyes must be clearly visible dark pixels. Everything else stays exactly the same: attached deep-green padded hood, cream fur trim, muzzle with two small round nostrils, red-and-cream striped scarf, red mittens, same pose, same size, same background.
 ```
+
+## 2026-11-11 · capy · 14단계 서 있기 v1 후처리 (주인: "눈이 작아졌잖아")
+
+- 단독 그림의 눈 줄이 다른 단계보다 짧고 얇았음(주둥이 폭 대비 0.25·0.06 vs 다른 단계 0.30·0.09) → 눈 줄을 같은
+  비율(원본 기준 33×10px, 진한 남색 #0C0E1B)로 다시 그림. 털색도 다른 단계보다 붉게 나와서(R 251 vs 237) 따뜻한
+  색 픽셀의 R을 0.94배, 밝은 털은 G+3·B+5로 맞춤 → 털 (237,149,80), 주둥이 (207,108,61).
+- 결과: `capy/stage14-stand-v1-fixed.png`. 시트에 끼울 때 배율 0.31(주둥이 폭 기준), 발·몸 중심 맞춤:
+  `tools/swap14.py sheet single 0.31 out` (잠금화면은 `--lock`).
+- 가방·우산·잠금화면 14단계도 같은 눈 크기·털색으로 맞출 것(안 맞으면 같은 후처리).
