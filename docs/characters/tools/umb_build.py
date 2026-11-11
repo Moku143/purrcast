@@ -101,10 +101,10 @@ def snap(rgb, pal):
     return pal[d.argmin(1)].round().astype(np.uint8)
 
 
-def shaft_rows(out, y0, y1):
+def shaft_rows(out, y0, y1, x0=SX0):
     for y in range(max(0, y0), min(560, y1)):
         for j, c in enumerate(SHAFT):
-            out[y, SX0 + j] = (*c, 255)
+            out[y, x0 + j] = (*c, 255)
 
 
 def build(fig, orig, canopy, dbg=None, name=''):
@@ -149,7 +149,24 @@ def build(fig, orig, canopy, dbg=None, name=''):
             ys = np.nonzero(lab1 == i)[0]
             if len(ys) >= 18:
                 runs[ys, x] = True
-    stick = runs | (ndimage.binary_dilation(runs, structure=np.ones((1, 7))) & (rgb.max(-1) < 90) & band)
+    # the stick's columns (where a tall grey run is): every grey or dark bit in them goes, also the short ends the
+    # paw cut off, and the dark lines just beside them
+    cols = np.nonzero(runs.any(0))[0]
+    # below the chin the shaft goes where the picture's paw holds it (its stick's middle); behind the head it moves
+    # back under the knob, which nobody sees
+    cnt = runs.sum(0)
+    core = np.nonzero(cnt >= 0.5 * cnt.max())[0] if len(cols) else []
+    cxm = float((core * cnt[core]).sum() / cnt[core].sum()) if len(core) else TIP_X
+    lx0 = int(round(cxm - (len(SHAFT) - 1) / 2)) if len(cols) else SX0
+    lx0 = SX0 if abs(lx0 - SX0) > 14 else lx0
+    stick = np.zeros_like(runs)
+    if len(cols):
+        c0, c1 = cols.min() - 3, cols.max() + 4
+        greyish = (rgb.max(-1) - rgb.min(-1) < 45) & (rgb.max(-1) > 95) & (rgb.max(-1) < 238)
+        stick[:, c0:c1] = greyish[:, c0:c1]      # the dark edges are under the new shaft; the paw keeps its outline
+        stick &= take & ~ndimage.binary_dilation(ndimage.binary_opening(
+            (np.abs(rgb - np.array([241, 165, 100])).sum(-1) < 75), iterations=1), iterations=2)
+        stick[:, c0:c1] &= (yy[:, c0:c1] > mtop)
     for y in np.unique(np.nonzero(stick)[0]):
         xs = np.nonzero(stick[y])[0]
         x0, x1 = xs.min() - 1, xs.max() + 1
@@ -159,23 +176,28 @@ def build(fig, orig, canopy, dbg=None, name=''):
                 out[y, x] = out[y, src]
     # the paw: the picture's fur and outline around the guide circle, put back over the front shaft
     rgb = out[..., :3].astype(int)
-    fur = (np.abs(rgb - np.array([241, 165, 100])).sum(-1) < 75) & take & near_paw
+    fur = (np.abs(rgb - np.array([241, 165, 100])).sum(-1) < 75) & take
     fur = ndimage.binary_opening(fur, iterations=1)
-    paw = (fur | (ndimage.binary_dilation(fur, iterations=3) & (rgb.max(-1) < 90))) & take & near_paw
+    flab, fn = ndimage.label(fur)
+    hit = np.unique(flab[near_paw & fur])
+    fur = np.isin(flab, hit[hit > 0])          # the whole paw/arm fur that reaches the guide circle
+    paw = ndimage.binary_fill_holes(fur | (ndimage.binary_dilation(fur, iterations=3) & (rgb.max(-1) < 90))) & take
     # layers: canopy, the shaft behind the head, the figure, the shaft in front below the chin, the paw
     L = np.asarray(canopy.convert('RGBA')).copy()
-    shaft_rows(L, 118, PAW_Y + 60)
+    hc = np.nonzero(hm[:, min(SX0, lx0):max(SX0, lx0) + len(SHAFT)].any(1))[0]
+    front0 = int(hc.max()) + 1 if len(hc) else int(ro['mbot']) + 40
+    shaft_rows(L, 118, front0 - 30)  # behind everything; only the part between canopy and head shows
+    shaft_rows(L, front0 - 30, 470, lx0)
     fig_l = Image.fromarray(out, 'RGBA')
     base = Image.fromarray(L, 'RGBA')
     base.alpha_composite(fig_l)
     B = np.asarray(base).copy()
-    # the shaft shows in front from the first row under the head at its columns
-    hc = np.nonzero(hm[:, SX0:SX0 + len(SHAFT)].any(1))[0]
-    front0 = int(hc.max()) + 1 if len(hc) else int(ro['mbot']) + 40
-    shaft_rows(B, front0, PAW_Y + 44)
-    # a dark end cap
-    for j in range(len(SHAFT)):
-        B[PAW_Y + 44, SX0 + j] = (14, 12, 22, 255)
+    on = paw[:, lx0:lx0 + len(SHAFT)].any(1)
+    end = (int(np.nonzero(on)[0].max()) + 22) if on.any() else PAW_Y + 44
+    end = min(end, feet - 40)
+    shaft_rows(B, front0, end, lx0)
+    for j in range(len(SHAFT)):                 # a dark end cap
+        B[end, lx0 + j] = (14, 12, 22, 255)
     B[paw] = out[paw]
     from drop_fringe import drop
     res = Image.fromarray(drop(B)[0], 'RGBA')
@@ -190,7 +212,7 @@ def build(fig, orig, canopy, dbg=None, name=''):
         vv[np.nonzero(keep)[0], np.nonzero(keep)[1] + 480] = (vv[np.nonzero(keep)[0], np.nonzero(keep)[1] + 480] * 0.5 + np.array([0, 255, 0, 255]) * 0.5).astype(np.uint8)
         Image.fromarray(vv).save(f'{dbg}/{name}-debug.png')
     pawc = np.nonzero(paw)
-    info = dict(err=round(float(err), 1), s=round(float(s), 4), front0=front0, stick=int(stick.sum()),
+    info = dict(err=round(float(err), 1), s=round(float(s), 4), front0=front0, stick=int(stick.sum()), shaft_x=lx0 + 5.5,
                 paw_cx=round(float(pawc[1].mean()), 1) if len(pawc[1]) else None,
                 paw_cy=round(float(pawc[0].mean()), 1) if len(pawc[0]) else None, region=int(keep.sum()))
     return res, info
