@@ -373,3 +373,22 @@ Redraw the first reference image (a pixel-art capybara in 15 outfits, 3 rows of 
 ```
 Redraw the first reference image (a pixel-art capybara in 15 outfits, 3 rows of 5) EXACTLY: same character, same 15 outfits in the same order and same cells, same upright pose facing the viewer, same faces (on the last three figures the wide-apart half-closed eyes peek out under the hats, the full muzzle with small nostrils shows, the scarf sits below the muzzle), same crisp pixel-art style with the dark navy outline, same plain flat light grey-blue background (#EEF1F6), no text, no labels, no numbers. CRITICAL SIZE RULE: every body stays exactly the first reference's size and proportions - the umbrella is simply added above; especially figures (5) and (6) must NOT be stretched taller. Add ONLY one thing to every figure, held the same way as the cat in the second reference image: an open CORAL-RED umbrella held overhead in one raised paw. Umbrella geometry, identical on all 15 figures: the straight shaft runs from the paw in ONE CONTINUOUS VERTICAL LINE up through the canopy to the small round tip at the very top of the canopy; the tip sits EXACTLY directly above the shaft, ZERO horizontal offset, shaft and tip forming one single straight vertical line; the canopy is a wide smooth symmetric dome centred on that line, the same amount of canopy on the left of the shaft as on the right, with a smooth even scalloped bottom edge. On figures (0) and (1) the umbrella replaces the glass of yuzu juice and the slice of watermelon - those props are gone. Everything else stays exactly as in the first reference: every outfit's hat, scarf, print and colours unchanged.
 ```
+
+## 2026-11-11 · capy · 사용자 검사 결과 (가방 v2 · 우산 v3) — 17:14
+
+- 가방 v2: **통과** (15단계 모두 머리·키 비율 2% 안쪽).
+- 우산 v3: 몸 비율 통과(칸 대비 0.87배로 일정). 막대는 여전히 15개 모두 꼭지보다 덮개 폭의 약 6~7% 왼쪽.
+  ChatGPT가 3번 연속 못 맞춰서 **우산은 더 생성하지 않음** — 덮개+꼭지를 막대 위로 수평 이동하는 후처리는
+  사용자가 처리 (에셋 재단 시에도 같은 방식). 우산 v3 = 최종 원본.
+
+## 2026-11-11 · capy · 4단계 잠금화면 (v6 기준 재생성, 14 줄무늬 목도리) · v2
+
+- ChatGPT 이미지 생성 (브라우저, 크레딧 0) · 채팅 "Convert Capybara Colors" (`https://chatgpt.com/c/6af42386-9e24-83ec-ad1e-e02f49c18ccb`)
+- references: `1r-outfits-15-v6.png`, `cat-04-lock-screen.png`
+- 결과 → `capy/4r-lock-15-v2.png` (v1 대체; 원본은 위 채팅에서 다운로드)
+- verdict: 시각 확인 — 흰색/라벤더그레이 on #20264A, 12–14 얼굴 v6 그대로(눈 양옆·주둥이 보임), (14) 목도리 줄무늬(체크 아님),
+  (0) 주스·(1) 수박 유지, 유자 프린트·지퍼 유지 — 사용자 겹침 검사 대기
+
+```
+THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference image (15 outfits, 3 rows of 5) in EXACTLY the monochrome lock-screen style of the second reference image (the orange cat's lock-screen set): pure WHITE figures with light lavender-grey and mid-grey pixel shading for the fur, outfit details and folds, no other colours, NO dark outline, crisp hard-edged pixels, on a flat dark navy background (#20264A). Nothing else changes: same 15 outfits in the same order and cells, same pose, same size, same props - figure (0) keeps its glass of yuzu juice and figure (1) its slice of watermelon, drawn in greys. FACES, copied from the first reference: the rounded muzzle is shaded light lavender-grey so it reads against the white head, with its two small round nostrils in dark grey; the half-closed eyes are two short dark-grey lines set high and WIDE APART; on figures (12), (13) and (14) those wide-apart eyes peek out just under the hat edge, the full muzzle with its small nostrils is completely visible, and the scarf sits BELOW the muzzle, around the neck. Outfit details that must stay exact: the yuzu prints on figures (0) and (2) are YUZU fruits (a round citrus with a leaf), not apples; figure (9)'s quilted jacket keeps its front ZIP line; figure (14) keeps its red mittens (drawn grey) and its scarf is STRIPED - alternating light and dark bands across the scarf - NOT checked, NOT plaid, NOT a grid pattern. Every outfit must stay recognisable from its shape and grey shading alone. All 15 figures the same size, feet on the same baseline in each row, centred in their cells, no text, no labels, no numbers.
+```
