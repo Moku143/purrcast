@@ -940,3 +940,16 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 캡처: 100% 좌/우 2분할(dx=366), 커서는 각 샷의 반대편에 두고 왼쪽은 왼쪽 샷·오른쪽은 오른쪽 샷으로 합침
   → `capy/m4-stand-row3.png` (1778×594). 위·아래 여백 띠는 배경색으로.
 - sprite_kit check: 주둥이 88~90, body 3.00~3.07, 1~2번 눈 dy 0.08~0.10. 3~5번 eye hidden은 원본과 같음(정상).
+
+## 2026-11-12 02:30 · capy · 주인 취침 — 끝까지 맡김. 얼굴 = 원래 8번 모양 그대로, 선만 깔끔하게 (코드)
+
+- ChatGPT clean2/3/4는 모양이 매번 흔들림(머리 높이/주둥이 +16%, 턱 -8%~+8%) → 8번 머리를 직접 픽셀아트로 정리:
+  `tools/pixel_head.py m3-stand-15-v3.png 7 OUT --fur 241,165,100 --muzzle 205,125,76` (앱 크기 주둥이 105px에서
+  4px 칸으로 자르고 칸마다 머리 안 7색 중 가장 많은 색, 테두리는 정확히 2칸, 귀 안쪽 한 덩어리, 눈 2칸 막대 좌우 대칭,
+  콧구멍 둥근 점) → `edit/m5-head-pixel.png`. 높이별 폭이 원래 8번과 3% 안(-3~+2%).
+- 서기: `m5/m5-stand-composed.png` = compose(m4-stand-row1 0-4, row2 5-9, row3 10-14, --match --body) →
+  build --mw 105 → `tools/put_head.py HEAD DIR capy none --skip 0,12,13,14` (맨머리 11칸에 같은 머리, 주둥이 맞춤,
+  턱 아래 틈은 바로 밑 옷 색 한 가지 + 테두리) → `tools/drop_fringe.py` (바깥 흰 테두리만 제거, 다시 그리지 않음).
+  모자 4칸(1·13·14·15)은 m4 깨끗한 그림 그대로(13~15 눈 바깥 절반 덮임 확인).
+- 측정: 맨머리 칸 주둥이 위 y 242~250, 몸 2.92~3.02, 눈 dy 0.12 dx 0.71 (전부 같은 머리라 픽셀까지 동일).
+- 우산 입력: `m5-stand-trio-{1..5}.png` (최종 서기 3마리씩, 위에 우산 자리 200px).
