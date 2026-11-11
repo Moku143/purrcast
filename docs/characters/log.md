@@ -467,3 +467,21 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   고정 문단(FACE·SIZE·PIXEL·BACKGROUND), 프롬프트 S·B·U·L, capy 슬롯 값.
 - `tools/sprite_kit.py`: check(주둥이 기준 머리 크기·몸 길이·눈 자리 표 + 경고), fit(4장 공통 주둥이 폭),
   build(15개를 480×560, 발 y=555, 주둥이 폭 동일하게 앱용 PNG로). 생성 크기 차이는 build가 없앰.
+
+## 2026-11-11 · capy · ★ 마스터 템플릿 v2 — 프롬프트 S (서기 15벌) · v1~v5
+
+- ChatGPT (크레딧 0) · 채팅 "Wardrobe Sprite Sheet Design" (`https://chatgpt.com/c/6af4445f-6a84-83ec-8b53-a1271b5214e0`)
+- 프롬프트 S를 템플릿 그대로 조립(고정 문단 FACE·SIZE·PIXEL·BACKGROUND 원문 그대로 + capy 슬롯 값).
+  references: (1) `ref-cand4.png` (후보 4 단독, 유자 없음) · (2) `1r-outfits-15-v6.png`
+- 생성 경과 (매번 sprite_kit check):
+  - v1 `capy/m2-stand-15-v1.png` → flags: #11 body+8%, #12 body+8%, #15 눈 가림
+  - v2 `…-v2.png` (11·12·15 지목 수정) → #11 body+9%, #15 눈 가림
+  - v3 `…-v3.png` (10·14 지목 수정) → #8 head+7%, #13·#14 눈 가림 (15는 통과)
+  - v4 `…-v4.png` (7·12·13 지목 수정) → 5개 플래그로 악화 (#1·#11 head+7%, #12 body+7%, #13 head-7%+눈, #15 head-7%)
+  - v5 `…-v5.png` (두 번째 그림으로 되돌려 10·14만 수정) → 고배율 재캡처 기준
+    flags: #13 head-8%+눈, #14 head-9%+눈, #5·#10·#15 측정 불가(캡처에 UI 겹침)
+- 소견: ChatGPT가 지목 수정할 때마다 다른 칸이 ±7% 흔들려 5회에서 중단. 저배율 캡처(주둥이 ~28px)에서는
+  플래그가 부풀려짐 — 100% 배율 재캡처로 상당수 해소. v5 고배율 눈 확인: 12·13·14 모두 눈 두 줄이 모자 아래
+  양옆에 보임(체커는 모자 그림자 간섭으로 "hidden"으로 읽는 것으로 보임). 오른쪽 열(5·10·15)은 라이트박스
+  UI 버튼이 겹쳐 측정 불가 — 원본 다운로드 후 재검사 필요.
+- 프롬프트 전문은 prompts.md 템플릿 + capy 슬롯과 동일(지목 수정 4건은 채팅에 있음). 원본은 위 채팅에서 다운로드.
