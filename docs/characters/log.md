@@ -324,3 +324,19 @@ Character design candidates for a NEW character: 6 different takes on a CAPYBARA
 - size verification: my pixel measurements on the originals were inconclusive (grid/palette noise); the owner now
   measures every sheet by overlaying it on the standing sheet and reports exact failing stages. Owner confirmed the
   BAG sheet is within 3% at all 15 stages (earlier 7% was their measurement artifact) → bag v1 stands.
+
+## 2026-11-11 · capy · round era step 3 v2 (umbrella fixed) + step 4 (lock screen)
+
+- Umbrella v2 · owner's overlay findings on v1: all 15 uniformly ~0.75× (fine, fixed at cut time), but the shaft sat
+  ~10% of the canopy width to the LEFT of the canopy centre and ended under the canopy, and stages 5·6 bodies were
+  ~5% taller. v2 prompt adds: "the small round tip sits at the very top of the canopy DIRECTLY ABOVE THE SHAFT …
+  the same amount of canopy on the left of the shaft as on the right. The shaft must NOT be off to one side … shaft
+  and tip form one continuous vertical line through the canopy's centre" and "especially figures (5) and (6), whose
+  bodies must NOT be stretched taller". ChatGPT chat "Redraw Umbrella Pixel Art" · refs: v5 standing + ref-cat-umb.
+  → `capy/3r-umbrella-15-v2.png` (supersedes v1). Visual check: shaft→tip continuous and centred on all 15.
+- Lock screen v1 · ChatGPT chat "Capybara Lock Screen Redraw" · refs: v5 standing + `cat-04-lock-screen.png` ·
+  strict colour-conversion prompt incl. "the hats sit slipped down with the HALF-CLOSED EYES PEEKING OUT just under
+  the hat edge". (A first send attempt silently failed on a stuck tab; resent via a fresh composer.)
+  → `capy/4r-lock-15-v1.png` — white on #20264A, all 15 outfits readable in grey (duck, stripes, windbreaker panels,
+  quilting, wave hanten + tie, duffle toggles, striped beanie, earflap hat, fur-trim hat), eyes peeking on 12-14.
+- Both await the owner's overlay check; originals in the ChatGPT chats named above.
