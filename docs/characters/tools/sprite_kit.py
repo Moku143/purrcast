@@ -16,7 +16,7 @@ Commands
         feet on y=555, body centred on x=240, every muzzle exactly --mw px wide; plus OUTDIR/NAME-KIND-sheet.png
   python3 sprite_kit.py fit    SHEET... [--lock-last]                biggest --mw that keeps every figure of every
                                                                       sheet inside 480x560 (use one value for all)
-  python3 sprite_kit.py compose OUT SHEET:0-9 SHEET2:10,11 ... [--lock]
+  python3 sprite_kit.py compose OUT SHEET:0-9 SHEET2:10,11 ROW.png:10-11=0-1 SINGLE.png:12 ... [--lock] [--match] [--eyes] [--body]
         one clean sheet from the stages that passed on different generations (stages 0-based); check/build it after.
         Regenerating only the failed cells shakes the others by ~7%, so keep each stage from the take that got it right.
 Needs numpy, scipy, Pillow. Sheets: 15 figures in 3 rows of 5, plain light background (or navy with --lock).
@@ -57,23 +57,23 @@ def _figure_mask(arr, lock):
     return m
 
 
-def figures(path, lock=False):
-    """15 figures (3 rows of 5) or, on a one-row sheet, 5 figures; reading order."""
+def figures(path, lock=False, n=None):
+    """15 figures (3 rows of 5) or, on a one-row sheet, 5 figures (or n given: n figures in one row); reading order."""
     im = Image.open(path).convert('RGB')
     arr = np.asarray(im)
     m = _figure_mask(arr, lock)
-    lab, n = ndimage.label(m)
-    sizes = ndimage.sum(m, lab, range(1, n + 1))
+    lab, nlab = ndimage.label(m)
+    sizes = ndimage.sum(m, lab, range(1, nlab + 1))
     H, W = m.shape
-    one_row = W > 2.6 * H  # a strip of 5
-    want = 5 if one_row else 15
+    one_row = n is not None or W > 2.6 * H  # a strip of 5 (or of n)
+    want = n if n is not None else (5 if one_row else 15)
     blobs = []
     for idx in np.argsort(sizes)[::-1]:
         sl = ndimage.find_objects((lab == idx + 1).astype(np.int8))[0]
         y0, y1, x0, x1 = sl[0].start, sl[0].stop, sl[1].start, sl[1].stop
         # skip frames / lines along the edges of a screen capture
         if one_row:
-            if (x1 - x0) > 0.4 * W or (x1 - x0) < 0.05 * W or (y1 - y0) < 0.4 * H:
+            if (y1 - y0) < 0.4 * H or (n is None and ((x1 - x0) > 0.4 * W or (x1 - x0) < 0.05 * W)):
                 continue
         elif (x1 - x0) > 0.5 * W or (y1 - y0) > 0.6 * H or (x1 - x0) < 0.04 * W or (y1 - y0) < 0.08 * H:
             continue
@@ -84,8 +84,9 @@ def figures(path, lock=False):
         raise SystemExit(f'{path}: found {len(blobs)} figures, expected {want}')
     blobs.sort(key=lambda b: (b[0] + b[1]) / 2)
     out = []
-    for r in range(want // 5):
-        row = sorted(blobs[r * 5:(r + 1) * 5], key=lambda b: (b[2] + b[3]) / 2)
+    per = want if one_row else 5
+    for r in range(want // per):
+        row = sorted(blobs[r * per:(r + 1) * per], key=lambda b: (b[2] + b[3]) / 2)
         for y0, y1, x0, x1, li in row:
             mask = ndimage.binary_fill_holes(lab[y0:y1, x0:x1] == li)
             out.append(dict(box=(x0, y0, x1, y1), mask=mask, img=im.crop((x0, y0, x1, y1))))
@@ -171,8 +172,8 @@ def measure(f, lock=False, ref_col=None):
     return r
 
 
-def check(path, lock=False, verbose=True):
-    figs = figures(path, lock)
+def check(path, lock=False, verbose=True, n=None):
+    figs = figures(path, lock, n)
     rows = [measure(f, lock) for f in figs]
     # second pass: where a figure had several dot pairs, take the one whose muzzle colour matches the others
     sure = [r['col'] for r in rows if r and r['ncand'] == 1]
@@ -365,10 +366,17 @@ def compose(out, specs, lock=False, match=False, eyes=False, body=False):
     picks = {}
     for spec in specs:
         path, sel = spec.rsplit(':', 1)
-        figs, rows, _ = check(path, lock, verbose=False)
+        sel, _, at = sel.partition('=')  # 'row3.png:10-11=0-1' -> stages 10,11 are figures 0,1 of that picture
         stages = _stages(sel)
+        try:
+            figs, rows, _ = check(path, lock, verbose=False)
+        except SystemExit:
+            figs, rows, _ = check(path, lock, verbose=False, n=len(stages))
         # a one-row sheet holds just the listed stages, left to right; a full sheet holds all 15
-        idx = range(len(stages)) if len(figs) == len(stages) and len(figs) < 15 else stages
+        if at:
+            idx = _stages(at)
+        else:
+            idx = range(len(stages)) if len(figs) == len(stages) and len(figs) < 15 else stages
         for s, i in zip(stages, idx):
             if not rows[i]:
                 raise SystemExit(f'{path}: figure {i + 1} could not be measured')

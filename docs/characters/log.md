@@ -668,3 +668,12 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   → `capy/edit/m3-stand-{13,14,15}-out.png` (845×1240 · 845×1215 · 876×1223 — -in과 같은 원본 크기).
   마우스 커서가 찍힌 상단은 재촬영분으로 교체, 가장자리 UI 조각은 배경색 패치 (그림 영역 밖 여백만).
 - 셋 다 확대 확인: 안쪽 눈 토막 두 개 같은 높이, 바깥 절반은 모자/털 링 뒤. 사용자 검사 대기.
+
+## 2026-11-12 · capy · 서기 15벌 합본 (m3) — 주인 확인 대기
+
+- `capy/m3-stand-15-composed.png` = `sprite_kit.py compose OUT m3-stand-row1.png:0-4 m3-stand-row2.png:5-9
+  m3-stand-row3.png:10-11=0-1 edit/m3-stand-13-out.png:12 edit/m3-stand-14-out.png:13 edit/m3-stand-15-out.png:14
+  --match --eyes --body` (털·주둥이 색은 1줄 색으로, 0~11 눈은 1줄 자리로 이동, 목 아래 길이를 1줄 몸 길이로).
+- check: 15칸 주둥이 폭 ±1%, 몸 2.93~2.99, 0~11 눈 dx 0.64~0.67 / dy 0.08~0.10.
+  12~14(모자): 바깥 절반 덮임, 보이는 안쪽 토막 높이 0.07~0.10 (0~11은 0.08~0.09).
+- sprite_kit: compose가 한 마리 그림·줄 그림의 일부(`row.png:10-11=0-1`)도 받음; --eyes, --body 추가.
