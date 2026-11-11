@@ -7,7 +7,7 @@ the picture, its colours snapped to the sprite's own. The umbrella is the cats' 
 colour (canopy layer PNG, knob centred at Sprite.umbrellaTipX = 195.5), its shaft straight down from the knob:
 behind the head, in front of the body below the chin, the paw over it.
 
-Usage: umb_build.py PICTURE T SPRITE_DIR CANOPY.png OUT_DIR [--debug DIR]
+Usage: umb_build.py PICTURE T SPRITE_DIR CANOPY.png OUT_DIR [--debug DIR] [--paw K:R,G,B]
   T = 1..5: the picture holds stages 3(T-1) .. 3(T-1)+2."""
 import os
 import sys
@@ -107,7 +107,7 @@ def shaft_rows(out, y0, y1, x0=SX0):
             out[y, x0 + j] = (*c, 255)
 
 
-def build(fig, orig, canopy, dbg=None, name=''):
+def build(fig, orig, canopy, dbg=None, name='', paw_col=(241, 165, 100)):
     (err, s, ox, oy), ro = align(fig, orig)
     A, am = warp(fig['img'], fig['mask'], s, ox, oy)
     om = orig[..., 3] > 0
@@ -176,7 +176,7 @@ def build(fig, orig, canopy, dbg=None, name=''):
                 out[y, x] = out[y, src]
     # the paw: the picture's fur and outline around the guide circle, put back over the front shaft
     rgb = out[..., :3].astype(int)
-    fur = (np.abs(rgb - np.array([241, 165, 100])).sum(-1) < 75) & take
+    fur = (np.abs(rgb - np.array(paw_col)).sum(-1) < 75) & take
     fur = ndimage.binary_opening(fur, iterations=1)
     flab, fn = ndimage.label(fur)
     hit = np.unique(flab[near_paw & fur])
@@ -227,12 +227,18 @@ if __name__ == '__main__':
     pic, t, sdir, can, odir = sys.argv[1:6]
     dbg = sys.argv[sys.argv.index('--debug') + 1] if '--debug' in sys.argv else None
     t = int(t)
+    # --paw K:R,G,B  the colour of stage K's paw when it is not fur (a mitten)
+    PAW = {}
+    for i, a in enumerate(sys.argv):
+        if a == '--paw':
+            k_, c_ = sys.argv[i + 1].split(':')
+            PAW[int(k_)] = tuple(int(v) for v in c_.split(','))
     canopy = Image.open(can)
     figs = sk.figures(pic, n=3)
     os.makedirs(odir, exist_ok=True)
     for i, f in enumerate(figs):
         k = 3 * (t - 1) + i
         orig = np.asarray(Image.open(f'{sdir}/capy-stand-{k}-none.png').convert('RGBA')).copy()
-        im, info = build(f, orig, canopy, dbg, f'capy-{k}')
+        im, info = build(f, orig, canopy, dbg, f'capy-{k}', PAW.get(k, (241, 165, 100)))
         im.save(f'{odir}/capy-stand-{k}-umbrella.png')
         print(k, info)

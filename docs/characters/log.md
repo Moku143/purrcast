@@ -1101,3 +1101,12 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   있던 벙어리장갑·목도리), 모자·후드·눈 가림·옷 그대로 → 새 규칙 통과, 다시 그리기 없음.
   3번 앞발은 원래 오른손처럼 빨간 벙어리장갑을 낀 주먹. 주먹은 원보다 약 26~31px 아래(가이드 px).
 - 팔 trio 1~5 끝. 쓴 대화: 1 `…/c/6af4a600-…`, 2 `…/c/6af4a89d-…`, 3 `…/c/6af4a9e2-…`, 4 `…/c/6af4ab69-…`, 5 `…/c/6af4acdc-…`.
+
+## 2026-11-12 03:10 · 우산 15칸 끝, 앱에 설치
+- 우산 9~11: 팔 trio 4는 2차(`m6-arm-trio-4.png`)를 씀 — 1차는 9번 막대가 −22px라 옛 막대 자국이 남음.
+- 우산 12~14: 1차 그대로. 14번 앞발은 빨간 벙어리장갑 → `umb_build.py … --paw 14:224,102,89`(장갑 색을 앞발로 봄).
+- `tools/install_sprites.py capy <f7> <icons>`: SharedAssets에 서기·가방·우산 45장, 잠금 15, 시계 위 15(@2x·@3x,
+  template), 얼굴 1; anchors.json에 capy(head_top·umb_top·head_cx=주둥이 가운데·box); 앱 아이콘 sun-blue·sun-peach·rain
+  + iconpick. 비 아이콘 = `tools/make_rain_icon.py`(8단계 우산 그림 ×1.5, 고양이 비 아이콘의 하늘).
+- 잠금 그림 다시 만듦(make_lock 수정: 발 줄 = 고양이들 줄 471, 테두리 뺀 크기로 맞춤).
+- 비교 그림: `capy/compare-final-capy-vs-cats.png` (서기·가방·우산 × 카피바라·고양이 3, 잠금·시계 위·얼굴).
