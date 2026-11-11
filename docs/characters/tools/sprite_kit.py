@@ -226,7 +226,8 @@ def place(f, r, mw_target, lock=False):
     img = f['img']
     W, H = img.size
     nw, nh = max(1, round(W * s)), max(1, round(H * s))
-    big = img.resize((nw, nh), Image.LANCZOS if s < 1 else Image.NEAREST)
+    big = img.resize((nw, nh), Image.LANCZOS)  # never NEAREST at a fractional scale: it repeats every n-th row and
+    # column, which makes the outline's stair steps uneven (wavy)
     mask = Image.fromarray((f['mask'] * 255).astype(np.uint8)).resize((nw, nh), Image.NEAREST)
     canvas = Image.new('RGBA', CANVAS, (0, 0, 0, 0))
     ox = round(CANVAS[0] / 2 - r['cx'] * s)
@@ -381,6 +382,16 @@ def compose(out, specs, lock=False, match=False, eyes=False, body=False):
             if not rows[i]:
                 raise SystemExit(f'{path}: figure {i + 1} could not be measured')
             picks[s] = (figs[i], rows[i], path)
+    # a single-figure picture has no other figures to agree with; re-measure any pick whose muzzle colour is far from
+    # the first spec's (it found the wrong pair of dots, e.g. on a hood)
+    first_path = specs[0].rsplit(':', 1)[0]
+    ref = np.median([r['col'] for f, r, p in picks.values() if p == first_path], axis=0)
+    for s_, (f, r, p) in list(picks.items()):
+        if np.abs(np.array(r['col']) - ref).sum() > 60:
+            r2 = measure(f, lock, ref)
+            if r2:
+                picks[s_] = (f, r2, p)
+                print(f'stage {s_}: re-measured with the muzzle colour of {first_path} (mw {r["mw"]} -> {r2["mw"]})')
     missing = sorted(set(range(15)) - set(picks))
     if missing:
         raise SystemExit(f'no source for stages {missing}')
@@ -416,7 +427,7 @@ def compose(out, specs, lock=False, match=False, eyes=False, body=False):
             sf, sm = fur_colours(f, r)
             img = match_colours(img, sf, sm, *target)
             note = f'  fur {None if sf is None else sf.astype(int)} -> target'
-        img = img.resize((nw, nh), Image.LANCZOS if k < 1 else Image.NEAREST)
+        img = img.resize((nw, nh), Image.LANCZOS)
         img.putalpha(Image.fromarray((f['mask'] * 255).astype(np.uint8)).resize((nw, nh), Image.NEAREST))
         tiles.append((img, r['feet'] * k, r['cx'] * k))
         print(f'stage {s:2d} (#{s + 1:2d}) <- {path}  x{k:.3f}{note}')
