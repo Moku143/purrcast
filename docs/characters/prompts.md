@@ -28,15 +28,32 @@ prompt, settings and result.
 | `c5c57f56-3e85-410c-b331-4814499066e6` | orange cat · lock-screen (white on navy) |
 | `261e89a8-5eb1-4514-bbf8-5e68b3d8d619` | Abyssinian · 10 outfits, standing (an example of step 1's output) |
 
-## The 10 outfits (same order for every character and every sheet)
+## The 15 stages (what the app actually uses — same order for every character)
 
-Coldest last. A new character gets the **same kind** of outfit in each slot, in its own colours and details.
+The app dresses each character by temperature in **15 stages (0 hottest … 14 coldest)**; the old 10-outfit list
+above this line's history was retired when the app moved to 15. One sheet = one pose, 15 outfits, **3 rows × 5**,
+numbered left-to-right, top-to-bottom. A new character gets the same **kind** of outfit in each stage, but in its own
+colours, patterns and props — the outfits must be as cute and varied as the existing characters' (patterns, shorts or
+pants on the warm slots, hats, layering, a small prop or two). Each character's own 15-outfit list is recorded in its
+section below and in `log.md`.
 
-Row 1: (0) tank top, holding a small handheld fan · (1) plain tank top · (2) short-sleeved T-shirt · (3) button-up
-shirt with a necktie · (4) crew-neck sweatshirt
-Row 2: (5) cable-knit sweater · (6) trench coat with a belt · (7) duffle coat with toggles and a striped scarf ·
-(8) puffer jacket with earmuffs and a scarf · (9) long puffer coat with a fur-trimmed hood (ears inside), scarf and
-mittens
+| stage | temp | kind |
+|---|---|---|
+| 0 | 35°+ | sleeveless top + sun hat + a cooling prop (ice pop, lollipop, fan…) |
+| 1 | 33–34° | sleeveless top + a small heat prop (water bottle, folding fan, towel…) |
+| 2 | 28–32° | short-sleeve tee with a small chest print, shorts |
+| 3 | 23–27° | patterned summer shirt (gingham, hawaiian, leaf…) + shorts |
+| 4 | 20–22° | button-up shirt + necktie or bow tie |
+| 5 | 18–19° | sweatshirt or hoodie with a small print |
+| 6 | 16–17° | knitwear (argyle sweater, knit vest, cardigan…) |
+| 7 | 12–15° | light jacket (blazer, denim or corduroy jacket, field jacket…) |
+| 8 | 9–11° | heavier jacket (quilted, peacoat, trench…) |
+| 9 | 6–8° | cozy mid-layer (chester coat + scarf, fleece…) |
+| 10 | 3–5° | wool coat (tartan, check, duffle…) + scarf |
+| 11 | 0–2° | short puffer + scarf (gloves optional) |
+| 12 | −4–−1° | puffer + a hat (deerstalker, trapper, bobble beanie…) + scarf |
+| 13 | −9–−5° | long puffer + head cover (balaclava, hood up…) |
+| 14 | −10°− | long puffer with fur-trimmed hood up + mittens + scarf (breath puff optional) |
 
 ## The pixel paragraph (put it in every prompt)
 
@@ -226,3 +243,21 @@ white (capybara feet are DARK brown), and ears on some candidates a touch too ro
 Candidates: (1) classic warm brown · (2) lighter caramel with a cream muzzle · (3) reddish chestnut · (4) classic
 brown with a small orange yuzu on the head · (5) baby: rounder, bigger head, shorter muzzle · (6) darker
 chocolate-brown, slightly fluffier. Lock screen hint: "blocky head and long flat muzzle, small round ears, no tail".
+
+#### capy — the 15 outfits (decided 2026-11-11; capybara props: yuzu, onsen towel, duck)
+
+(0) cream sleeveless tank with a small orange yuzu print + woven straw sun hat + yuzu-yellow ice pop in one paw ·
+(1) sage-green sleeveless tank + small white onsen hand towel draped around the neck ·
+(2) white short-sleeve tee with ONE small orange yuzu on the chest + light-denim shorts ·
+(3) white camp shirt with a green banana-leaf pattern + beige shorts ·
+(4) pale-yellow button-up shirt + moss-green knit tie ·
+(5) terracotta sweatshirt with a small white duck print on the chest ·
+(6) moss-green cable-knit cardigan with small wooden buttons over a cream tee ·
+(7) brown corduroy jacket, open, over a cream tee ·
+(8) deep-teal quilted jacket ·
+(9) oatmeal teddy-fleece zip-up jacket ·
+(10) camel duffle coat with toggles + mustard-yellow scarf ·
+(11) burnt-orange short puffer + cream scarf ·
+(12) mustard-yellow puffer + forest-green bobble beanie + brown scarf ·
+(13) navy long puffer + cream balaclava ·
+(14) deep-green long puffer with a big fur-trimmed hood worn up + red mittens + red-and-cream striped scarf
