@@ -761,3 +761,12 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 서기 최종 `capy/m3-stand-15-v3.png` (13~15는 out3: 눈 바깥 절반 덮기가 더 정확). compose가 한 마리 그림의
   주둥이를 잘못 잡으면(15번 후드) 첫 줄 주둥이 색으로 다시 잼.
 - `capy/assets/` 전부 다시: 서기·가방(외곽선 정리 포함)·잠금화면(가장자리 회색 점 정리)·시계 위·얼굴.
+
+## 2026-11-12 00:55 · capy · 주인 "더 부자연스러운데? 그냥 깔끔하게 다시 뽑아"
+
+- 코드로 외곽선을 다시 칠한 판(`clean_outline.py`)은 폐기 — 앱 그림에는 안 씀.
+- 대신 ChatGPT가 처음부터 깨끗하게: 최종 서기 줄 그림 `capy/m3-stand-v3-row{1,2,3}.png`(13~15 = out3)을
+  "같은 그림을 깨끗한 픽셀아트로 다시" 그리기 → `capy/m4-stand-row{1,2,3}.png`. 그 깨끗한 줄로 우산 3줄을 다시
+  → `capy/m4-umb-row{1,2,3}.png` (막대가 꼭지 바로 아래, 우산이 막대 중심으로 대칭). 우산 m3-umb-row1은 막대가
+  가장자리로 가서 폐기.
+- 앱 그림은 확대할 때 LANCZOS만, 외곽선 덧칠·머리 붙이기 없음.
