@@ -158,7 +158,7 @@ def build(fig, orig, canopy, dbg=None, name=''):
     core = np.nonzero(cnt >= 0.5 * cnt.max())[0] if len(cols) else []
     cxm = float((core * cnt[core]).sum() / cnt[core].sum()) if len(core) else TIP_X
     lx0 = int(round(cxm - (len(SHAFT) - 1) / 2)) if len(cols) else SX0
-    lx0 = SX0 if abs(lx0 - SX0) > 14 else lx0
+    lx0 = SX0 if abs(lx0 - SX0) > 20 else lx0
     stick = np.zeros_like(runs)
     if len(cols):
         c0, c1 = cols.min() - 3, cols.max() + 4
@@ -182,6 +182,11 @@ def build(fig, orig, canopy, dbg=None, name=''):
     hit = np.unique(flab[near_paw & fur])
     fur = np.isin(flab, hit[hit > 0])          # the whole paw/arm fur that reaches the guide circle
     paw = ndimage.binary_fill_holes(fur | (ndimage.binary_dilation(fur, iterations=3) & (rgb.max(-1) < 90))) & take
+    paw = ndimage.binary_fill_holes(ndimage.binary_closing(paw, iterations=2)) & take
+    # the stick showed through between the fingers in the picture: inside the paw those grey bits become fur
+    gpaw = paw & (rgb.max(-1) - rgb.min(-1) < 45) & (rgb.max(-1) > 95)
+    if fur.any():
+        out[gpaw, :3] = np.median(out[fur][:, :3], axis=0).astype(np.uint8)
     # layers: canopy, the shaft behind the head, the figure, the shaft in front below the chin, the paw
     L = np.asarray(canopy.convert('RGBA')).copy()
     hc = np.nonzero(hm[:, min(SX0, lx0):max(SX0, lx0) + len(SHAFT)].any(1))[0]
