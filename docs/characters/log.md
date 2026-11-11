@@ -840,3 +840,15 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   muzzle, with a broad full jaw, NOT an even oval …"). 1차 생성 채택.
 - 캡처: 100% 세로 3분할(408/193) → `capy/edit/m4-stage8-clean.png` (916×1160).
   상단 칩·오른쪽 여백 조각·아래로 옮긴 툴바 잔상 배경 패치(그림 y110~1055는 손대지 않음).
+
+## 2026-11-12 01:08~ · capy · m4 우산 1줄 테두리 정리 (덮어쓰기 2차)
+
+- 주인: 막대 중심·크기·몸 통과, 캐노피 가장자리만 찢어진 듯 들쭉날쭉.
+- 같은 "Edit Capybara Umbrella Pose" 대화에서 `cat-stand-2-umbrella.png` 재첨부 + 사용자 지정 문구
+  ("only the umbrella canopies change - … a smooth dome, a clean edge with a slightly darker underside band
+  and small, even, regular scallops; no torn, ragged or jagged bits …"). 1차 채택.
+- 캡처: 100% 세로 2분할(off 213) → `capy/m4-umb-row1.png` 덮어쓰기 (1375×774, 이번 생성은 여백이 큼).
+  상·하단 UI와 아래로 옮긴 툴바 잔상 패치, 오른쪽 위 칩이 5번 캐노피 위에 겹쳐 위쪽 샷 같은 영역으로 치환.
+  (중간에 패치 범위 음수 슬라이스 실수로 그림이 통째로 지워져 캔버스에서 다시 만듦 — 결과물은 정상.)
+- check(n=5): 플래그 없음 — 주둥이 65~69, body 2.71~2.89, 눈 dy 0.08~0.11. 테두리 매끈 + 고른 스캘럽.
+  우산 꼭지↔막대 미세 정렬은 주인이 코드로 마무리 예정.
