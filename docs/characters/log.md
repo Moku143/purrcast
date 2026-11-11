@@ -911,3 +911,17 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   막대↔캐노피 중심 2·3·3·3·1px (3px 기준 통과). 같은 방식으로 1차는 8·1·1·5·1px.
 - 주의: 캐노피 색이 #FA986D로 밝아짐(1차 #F78865, 목표 #F26B5B). sprite_kit check(n=5) 플래그 없음, 눈 dy 0.09~0.12.
   비교용으로 1차 결과를 `capy/edit/m4-umb-row1-v1.png`로 함께 보존.
+
+## 2026-11-12 01:42~ · capy · 머리 빨간 선에 맞추기 (m4-stage8-clean4)
+
+- 주인 결정: "원래 8번 모양 그대로, 라인만 더 깔끔하게" — 정답 = 빨간 선(clean2와 clean3 사이).
+- 같은 "Redraw Capybara Pixel Art" 대화에서 `edit/m4-stage8-headguide2.png` 재첨부 + 사용자 지정 문구 verbatim
+  ("Go back to the picture before your last one … lies EXACTLY on the red line all the way round … about halfway
+  between the two …"). 1차 결과.
+- 캡처: 100% 세로 3분할(408/183) → `capy/edit/m4-stage8-clean4.png` (920×1153, clean2와 같은 크기).
+- 측정(검은 외곽선 바깥 폭, 머리 꼭대기 기준 정렬): clean4는 대부분 행에서 clean2와 ±4px 안 — 사실상 clean2로 돌아감.
+  턱 행 480·520은 clean2보다 오히려 22px 좁음(609→586, 536→514). clean3 쪽(+20~35px)으로는 안 감.
+  겹쳐보기 `capy/edit/m4-stage8-clean4-vs-guide.png`(clean2/3/4 위에 빨간 선을 하늘색으로): 옆선·턱은 선과 거의 겹치고,
+  정수리는 선이 외곽선보다 10px 남짓 위(원래 8번 정수리가 더 높음). 주인 판정 대기.
+- 우산: 주인 지시로 쉼 — 줄 전체가 22% 작아져(주둥이 65px) 앱 크기로 키우면 흐려짐 → 다음엔 한 장에 3마리씩
+  (단계 0-2, 3-5, 6-8, 9-11, 12-14) 크게, 주인이 올릴 최종 서기 3마리 줄 그림으로. 캐노피 색은 주인이 코드로 #F26B5B.
