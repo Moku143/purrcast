@@ -10,7 +10,7 @@ enum AppIcon {
     struct Choice: Identifiable, Hashable {
         let id: String
         let title: String
-        /// a Plus character's icon (아비시니안 · 브리티시숏헤어)
+        /// a Plus character's icon (아비시니안 · 브리티시숏헤어 · 카피바라)
         var plus = false
         /// the sun faces: the icon is the shown character's
         var follows: Bool { id.hasPrefix("sun-") }

@@ -8,6 +8,7 @@
 "고양이" = "Chat";
 "아비시니안" = "Abyssin";
 "브리티시숏헤어" = "British Shorthair";
+"카피바라" = "Capybara";
 "폭염" = "Canicule";
 "한파" = "Vague de froid";
 "폭우" = "Déluge";
@@ -793,8 +794,8 @@
 "날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요." = "À chaque consultation, la météo et la tenue du jour s’ajoutent au calendrier.";
 "달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷을 정리해 1일에 알려 드려요." = "Jours de pluie, jour le plus chaud et tenue du mois, résumés le 1er.";
 "날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷 · 1일에 알림" = "La météo et la tenue du jour s’ajoutent au calendrier\nChaque mois : pluie · jour le plus chaud · tenue du mois · avis le 1er";
-"아비시니안 · 브리티시숏헤어 · 이름 짓기\n추후 업데이트로 캐릭터 추가 예정" = "Abyssin · British Shorthair · Donnez-leur un nom\nD’autres personnages dans de futures mises à jour";
-"아비시니안 · 브리티시숏헤어 · 이름 · 말투\n추후 업데이트로 캐릭터 추가 예정" = "Abyssin · British Shorthair · Donnez-leur un nom\nD’autres personnages dans de futures mises à jour";
+"아비시니안 · 브리티시숏헤어 · 카피바라 · 이름 짓기\n추후 업데이트로 캐릭터 추가 예정" = "Abyssin · British Shorthair · Capybara · Donnez-leur un nom\nD’autres personnages dans de futures mises à jour";
+"아비시니안 · 브리티시숏헤어 · 카피바라 · 이름 · 말투\n추후 업데이트로 캐릭터 추가 예정" = "Abyssin · British Shorthair · Capybara · Donnez-leur un nom\nD’autres personnages dans de futures mises à jour";
 "매일의 날씨와 옷차림이" = "La météo et la tenue du jour";
 "달력에 쌓여요" = "dans votre calendrier";
 "홈 화면도 잠금화면도" = "Accueil et verrouillage";

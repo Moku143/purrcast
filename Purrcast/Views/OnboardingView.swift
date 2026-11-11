@@ -354,8 +354,8 @@ struct OnboardingView: View {
     private var plus: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack { Text("Plus").font(.px(22)); Spacer(); if let t = purchases.trialText(Purchases.yearly) { Text(t).font(.px(13)).foregroundStyle(UI.accent) } }.padding(.top, 30)
-            HStack(spacing: -10) {
-                ForEach(PurrCharacter.allCases) { c in CharacterSprite(character: c, level: 4, rain: .none, width: 110, animate: false) }
+            HStack(spacing: -8) {
+                ForEach(PurrCharacter.allCases) { c in CharacterSprite(character: c, level: 4, rain: .none, width: 88, animate: false) }
             }.frame(maxWidth: .infinity).padding(.top, 20)
             FlowChecks(items: PaywallView.features.map { $0.check })
             if let y = purchases.price(Purchases.yearly), let m = purchases.price(Purchases.monthly) {
