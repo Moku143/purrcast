@@ -1,9 +1,14 @@
-"""Move each umbrella canopy sideways so its tip knob sits exactly above the shaft.
+"""Move each umbrella canopy sideways so its tip knob sits exactly above the shaft, without redrawing anything.
 
-The rows that hold only the canopy (knob down to the bottom of the rim outline) are shifted as whole row segments,
-so the canopy, its outline and its soft edge move together pixel for pixel - nothing is redrawn. Where those rows
-also hold part of the figure (ears or hat under the rim) and around the shaft, the original pixels are put back on
-top, so the figure and the shaft do not move. Usage: centre_canopy.py IN OUT"""
+For each umbrella:
+  * canopy rows = from above the knob down to the last row of the rim's own outline;
+  * head rows   = rows where the figure (head, ears, hat) starts - anything below the rim that is not the shaft.
+  Rows that hold only canopy + background + the hidden shaft are shifted as whole row segments (canopy, outline and
+  soft edge move together, pixel for pixel). If the head reaches into the canopy rows, those rows keep the figure as it
+  is and only the canopy's own pixels (coral and the dark outline touching it) are moved, drawn in front.
+  The shaft stays where the paw holds it: in the rim rows the moved gap in the rim outline is closed with the rim's own
+  pixels from beside it, and the real shaft is put back where it enters the canopy.
+Usage: centre_canopy.py IN OUT"""
 import sys
 import os
 import numpy as np
@@ -11,6 +16,17 @@ from PIL import Image
 from scipy import ndimage
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sprite_kit as sk
+
+
+def shift_rows(block, dx, fill):
+    new = np.empty_like(block); new[:] = fill
+    if dx > 0:
+        new[:, dx:] = block[:, :-dx]
+    elif dx < 0:
+        new[:, :dx] = block[:, -dx:]
+    else:
+        new = block.copy()
+    return new
 
 
 def main(src, dst):
@@ -22,8 +38,7 @@ def main(src, dst):
     coral = ((h < 0.045) | (h > 0.95)) & (s > 0.30) & (v > 0.35)
     dark = a.max(-1) < 110
     grey = (s < 0.12) & (v > 0.50) & (v < 0.93)
-    offbg = np.abs(a - bgc).sum(-1) > 45
-    figure = offbg & ~coral & ~dark & ~((s < 0.15) & (v > 0.85)) & ~grey     # fur, hat, ears, clothes
+    offbg = np.abs(a - bgc).sum(-1) > 30
     lab, n = ndimage.label(coral)
     sizes = ndimage.sum(coral, lab, range(1, n + 1))
     big = [i + 1 for i in np.argsort(sizes)[::-1] if sizes[i] > 0.25 * sizes.max()]
@@ -45,53 +60,75 @@ def main(src, dst):
         band = grey[rim + 8:rim + 70, x0:x1 + 1] & offbg[rim + 8:rim + 70, x0:x1 + 1]
         cols = band.sum(0)
         good = np.nonzero(cols >= 0.6 * cols.max())[0]
-        sx = good.mean() + x0
-        sw = good.max() - good.min() + 1
+        sx0, sx1 = good.min() + x0, good.max() + x0
+        sx = (sx0 + sx1) / 2
         dx = int(round(sx - kx))
         if dx == 0:
             continue
-        # bottom of the rim outline: dark rows right under the coral
-        rb = rim
-        lx_ = int(x0 + 0.15 * (x1 - x0))       # a column of the rim away from the head
-        while rb + 1 < H and rb < rim + 10 and dark[rb + 1, lx_ - 6:lx_ + 6].any():
+        L, R = max(0, x0 - 30), min(W, x1 + 31)
+        # last row of the rim outline (measured at a rim column away from the shaft and the head)
+        cx_ = int(x0 + 0.12 * (x1 - x0))
+        rb = int(np.nonzero(cm[:, max(0, cx_ - 8):cx_ + 8].any(1))[0].max())
+        while rb + 1 < H and rb < rim + 14 and dark[rb + 1, cx_ - 8:cx_ + 8].any():
             rb += 1
-        y0, y1 = max(0, ktop - 12), min(H - 1, rb + 3)
-        L, R = max(0, x0 - 24), min(W, x1 + 25)
-        seg = a[y0:y1 + 1, L:R].copy()
-        new = np.empty_like(seg); new[:] = bgc
-        if dx > 0:
-            new[:, dx:] = seg[:, :-dx]
-        else:
-            new[:, :dx] = seg[:, -dx:]
-        # the figure (and its outline) inside these rows stays where it is, in front
-        # the figure inside these rows: what is not canopy (coral, knob and the 7 px of outline/soft edge round them)
-        # and is connected to the figure below the rows
-        cbody = ndimage.binary_fill_holes(ndimage.binary_closing(cm | knob, iterations=3))[y0:y1 + 1, L:R]
-        ob = offbg[y0:y1 + 1, L:R]
-        can = ndimage.binary_dilation(cbody, iterations=7) & ob
-        rest = offbg[y0:min(H, y1 + 40), L:R].copy()
-        rest[:can.shape[0]] &= ~can
-        labr, nr = ndimage.label(rest)
-        below = np.unique(labr[can.shape[0]:])
-        fig = np.isin(labr[:can.shape[0]], below[below > 0])
-        stay = fig
-        # the shaft below the coral stays too
-        sh = np.zeros_like(stay)
-        rr = rim - y0 - 1
-        if rr < sh.shape[0]:
-            c0, c1 = int(sx - L - sw / 2 - 4), int(sx - L + sw / 2 + 5)
-            sh[max(0, rr):, max(0, c0):c1] = True
-        stay |= sh & ~coral[y0:y1 + 1, L:R]
-        new[stay] = seg[stay]
-        # a moved copy of the shaft landing outside the canopy goes back to background
-        if rr < sh.shape[0]:
-            c0, c1 = int(sx + dx - L - sw / 2 - 4), int(sx + dx - L + sw / 2 + 5)
-            ghost = np.zeros_like(stay); ghost[max(0, rr):, max(0, c0):c1] = True
-            g2 = ghost & ~stay & ~coral[y0:y1 + 1, L:R] & (np.abs(new - bgc).sum(-1) > 0)
-            g2 &= (sk._hsv(new.astype(np.uint8))[1] < 0.15) & ~(new.max(-1) < 110)
-            new[g2] = bgc
-        out[y0:y1 + 1, L:R] = new
-        print(f'canopy x {x0}-{x1}: knob {kx:.1f} -> shaft {sx:.1f}  shift {dx:+d}px  rows {y0}-{y1}')
+        # first row of the figure below the canopy: off-background pixels that are not the shaft
+        shaftcols = np.zeros(W, bool); shaftcols[max(0, sx0 - 3):sx1 + 4] = True
+        fig_rows = [y for y in range(top, min(H, rim + 60))
+                    if (offbg[y, L:R] & ~shaftcols[L:R] & ~ndimage.binary_dilation(cm, iterations=2)[y, L:R]
+                        & ~knob[y, L:R] & ~(ndimage.binary_dilation(cm, iterations=9)[y, L:R] & (dark[y, L:R] | (s[y, L:R] < 0.3)))).sum() > 3]
+        head_top = min(fig_rows) if fig_rows else rb + 1
+        y0 = max(0, ktop - 12)
+        yc = rb
+        # the canopy's own pixels: coral + knob, and its dark outline and soft edge around it - never fur/hat colours
+        body = ndimage.binary_fill_holes(ndimage.binary_closing(cm | knob, iterations=3))
+        # the figure: what is left outside the canopy that hangs together with the figure below the rim
+        white = (s < 0.07) & (v > 0.95)                  # the sticker fringe: pure white, not cream cloth
+        rest = offbg & ~white & ~ndimage.binary_dilation(body, iterations=3)
+        rest[:, max(0, sx0 - 4):sx1 + 5] = False          # cut the shaft so the canopy is not joined to the paw
+        labr, _ = ndimage.label(rest)
+        below = np.unique(labr[min(H - 1, rb + 25):min(H, rb + 60), L:R])
+        figure = np.isin(labr, below[below > 0])
+        figcol = figure & ~dark
+        d_c = ndimage.distance_transform_edt(~body)
+        d_f = ndimage.distance_transform_edt(~figcol)
+        soft = offbg & (s < 0.35) & (v < 0.88)
+        fringe = offbg & (s < 0.15) & (v >= 0.85)
+        own = body | ((d_c <= 10) & offbg & ~figure)
+        own[:y0] = False; own[yc + 1:] = False
+        oy, ox = np.nonzero(own)
+        colours = a[oy, ox].copy()
+        out[oy, ox] = bgc
+        tx = ox + dx; ok = (tx >= 0) & (tx < W)
+        out[oy[ok], tx[ok]] = colours[ok]
+        head_top = yc + 1
+        # the light sticker fringe around the old and the new canopy: background (never figure pixels)
+        nb = np.zeros_like(body); by, bx = np.nonzero(body); tb = bx + dx; okb = (tb >= 0) & (tb < W)
+        nb[by[okb], tb[okb]] = True
+        zone = ndimage.binary_dilation(body | nb, iterations=14)
+        zone[:y0] = False; zone[yc + 4:] = False
+        oh, os_, ov = sk._hsv(np.clip(out, 0, 255).astype(np.uint8))
+        light = zone & (((os_ < 0.07) & (ov > 0.95)) | ((os_ < 0.18) & (ov >= 0.80) & ~figure))
+        out[light] = bgc
+        # and whatever is a touch lighter than the background (the bluish-white halo) in the canopy rows
+        blk = out[y0:yc + 7, L:R]
+        bh, bs, bv = sk._hsv(np.clip(blk, 0, 255).astype(np.uint8))
+        warm = ndimage.binary_dilation(bs >= 0.25, iterations=2)
+        halo = (blk.sum(-1) > bgc.sum() + 8) & (bs < 0.10) & ~warm
+        blk[halo] = bgc
+        out[y0:yc + 7, L:R] = blk
+        # the shaft: close the moved gap in the rim with the rim's pixels beside it, put the real shaft back
+        gy0, gy1 = max(y0, rim - 12), yc
+        g0, g1 = int(sx0 + dx) - 2, int(sx1 + dx) + 3
+        for y in range(gy0, gy1 + 1):
+            seg = out[y, g0:g1]
+            hs = sk._hsv(np.clip(seg, 0, 255).astype(np.uint8)[None])
+            gs = (hs[1][0] < 0.12) & (hs[2][0] < 0.93) & (np.abs(seg - bgc).sum(-1) > 30)
+            if gs.any() and not (g0 <= sx0 and sx1 < g1):
+                left, right = out[y, g0 - 1], out[y, g1]
+                out[y, g0:g1][gs] = left if np.abs(left - bgc).sum() > 30 else right
+        for y in range(max(y0, rim - 2), yc + 1):
+            out[y, sx0 - 2:sx1 + 3] = a[y, sx0 - 2:sx1 + 3]
+        print(f'canopy x {x0}-{x1}: knob {kx:.1f} -> shaft {sx:.1f}  shift {dx:+d}px; rows {y0}-{yc}')
     Image.fromarray(np.clip(out, 0, 255).astype(np.uint8)).save(dst)
 
 
