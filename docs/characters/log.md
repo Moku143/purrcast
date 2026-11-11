@@ -829,3 +829,14 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   오른쪽 샷 커서가 1번 볼에 박혀 왼쪽 샷 같은 영역으로 치환, 상단 UI 띠·툴바 잔상 배경 패치.
 - sprite_kit check: 플래그 없음 — 주둥이 82~86(서기 86~87와 같은 크기), body 2.83~3.00(서기 2.91~2.97),
   눈 dy 0.07~0.12(서기 0.09~0.10). 막대 = 캐노피 중심, 캐노피는 고양이처럼 몸 중심에서 왼쪽으로. 주인 검사 대기.
+
+## 2026-11-12 01:06~ · capy · 머리 고정 기준 (m4-stage8-clean)
+
+- 주인: m4 얼굴이 또 타원으로 — 원본은 위보다 아래가 볼륨(볼이 제일 넓음) (`capy/compare-head-shapes.png`).
+  머리를 하나로 고정하기로 — 8단계 한 마리를 깨끗하게 다시 그려 기준으로.
+- 새 대화 "Redraw Capybara Pixel Art" (`…/c/6af492cd-c804-83e8-9160-ea63cdcf4338`),
+  첨부: `capy/edit/m3-stage8-in.png` + abys/brit 스타일 2장. 프롬프트 verbatim
+  ("tracing it EXACTLY: … the head is wider at the bottom than at the top, widest at the cheeks beside the
+  muzzle, with a broad full jaw, NOT an even oval …"). 1차 생성 채택.
+- 캡처: 100% 세로 3분할(408/193) → `capy/edit/m4-stage8-clean.png` (916×1160).
+  상단 칩·오른쪽 여백 조각·아래로 옮긴 툴바 잔상 배경 패치(그림 y110~1055는 손대지 않음).
