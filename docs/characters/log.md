@@ -973,7 +973,7 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 다음 trio부터 가이드 편집 문구에 측정한 방향·거리를 덧붙임("about N pixels toward the viewer-left") —
   지난 우산 1줄 4차(8px 지정)에서 3px 안으로 들어온 방식.
 
-## 2026-11-12 03:10 · 서기·가방·잠금·시계 위·얼굴·해 아이콘 확정본을 assets/ 로
+## 2026-11-12 02:15 · 서기·가방·잠금·시계 위·얼굴·해 아이콘 확정본을 assets/ 로
 - `capy/assets/` 를 m5 확정본으로 바꿈 (예전 clean_outline 판은 지움): capy-stand-{0..14}-none/bag, capy-lock-{0..14},
   capy-inline-{0..14}@2x/@3x (잠금 그림 74% 높이에서 자름), capy-face (픽셀 머리 268×204).
 - 가방 = `tools/make_bag.py` (cat-stand-2-bag 의 접은 우산 층을 이끼색 몸통 + 산호색 J 손잡이로, 그림 뒤 같은 자리).
@@ -993,3 +993,20 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 캡처: 150% 2×2 타일(UI 숨김) → 원본 크기. stitch_grid 가장자리 찾기를 우산 위 빈 띠(y80)에서 하도록 고침
   (가운데 줄은 흰 셔츠에 걸려 잘못 자른 적 있음).
 - 참고(trio 1·2 공통): ChatGPT가 캔버스를 키우면서 카피바라도 약 13% 더 크게 그림(주둥이 141~143px, 입력 104→×1.2=125 예상).
+## 2026-11-12 02:45 · 우산 방식 바꿈: 캐노피는 고양이들 것, 그림 모델은 팔만
+- 확인: 고양이 3마리 우산 45장은 캐노피가 전부 같은 틀(x 0~391, 꼭지 가운데 195.5 = Sprite.umbrellaTipX, 위 y≈7).
+  막대는 x≈176이라 꼭지와 20px 어긋나 있음(고양이도).
+- 카피바라는 머리 폭 268px이라 막대가 195.5면 코(주둥이 왼쪽 끝 ~185)를 가림, 눈 왼쪽(~140)이면 캐노피가 화면 밖으로
+  나감. → 막대는 195.5, 머리 뒤로 지나감(머리 위·턱 아래만 보임). 캐노피 = 고양이 틀을 산호색 #F26B5B로 바꾼 것
+  (테두리 고른 그 우산), 꼭지 바로 아래로 막대. 이러면 앱 코드(umbrellaTipX)도 그대로.
+- 그림 모델 몫은 왼팔만: `capy/m6/m6-arm-guide-{1..5}.png` (trio에 빨간 선 = 막대 x 195.5, 턱 밑~y 432,
+  빨간 원 = 앞발 자리 y 378). 문구:
+  'Edit the first picture. Keep all three capybaras EXACTLY as they are - same heads, faces, eyes, hats, clothes,
+  colours, outline, size and position; do not redraw, move or resize them. Only change each capybara's viewer-left
+  arm: raise it so its paw sits exactly inside the red circle on the chest, holding a thin straight light-grey stick
+  (like the umbrella shafts in the attached cat pictures) that runs exactly along the red line, from just under the
+  chin down through the paw to a little below it. Do not draw any umbrella canopy and nothing above the chin. Where
+  the arm used to hang, show the clothes and body as they would look. Remove all red marks. Same pixel-art style,
+  same background, same picture size.'
+  첨부: 가이드 그림(첫 장) + capy/ref 우산 고양이 3장. 결과 → `capy/m6/m6-arm-trio-{1..5}.png` (원본 크기 캡처).
+  앞발이 원 밖(중심 6px 넘게)이면 같은 가이드로 한 번 더, 그래도 안 되면 그대로 푸시하고 적기.
