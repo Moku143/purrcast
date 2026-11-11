@@ -899,3 +899,15 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 캡처: 100% 세로 3분할(408/184) → `capy/edit/m4-stage8-clean3.png` (920×1162). 상단 칩·하단 툴바 띠·오른쪽 여백만 패치.
 - 측정(외곽선 바깥 폭, clean2 → clean3): 턱 쪽 y500 564→598(+6%), y540 486→521(+7%), y560 429→460(+7%),
   볼 y460~480 +2~3%, 정수리·귀·눈·주둥이는 그대로. 목표 8%에 근접.
+
+### 정렬 4차 — 새 대화에서 1차 결과부터 다시 (01:35~)
+
+- 정정: 3차 문구가 "toward the viewer-right"였는데 1·2번 캐노피는 이미 막대보다 오른쪽 → 방향이 반대라 과보정. 제 실수.
+- 새 대화 "Edit Umbrella Canopy" (`…/c/6af49a62-c520-83e8-b4ec-74a4ca09561a`): 1차 결과(`edit/m4-umb-row1-v1.png`)
+  + 그 shaft_guide 첨부, "Only the FIRST … about 8 pixels toward the viewer-LEFT … Do not draw the red line." 1차 채택.
+- 결과는 ChatGPT가 줄 전체를 다시 그려 약 22% 작아짐(캐노피 폭 237→184, 주둥이 86→65). 100% 세로 2분할(off 213)
+  → `capy/m4-umb-row1.png` (1367×771). 아래 샷 머리띠 칩이 5번 캐노피에 겹쳐 아래 샷 위 48줄은 빼고 스티칭.
+- shaft_guide 원본은 이 그림의 밝은 캐노피를 hue<0.045에서 조각내 엉뚱한 값을 냄 → hue<0.075 + closing으로 재측정:
+  막대↔캐노피 중심 2·3·3·3·1px (3px 기준 통과). 같은 방식으로 1차는 8·1·1·5·1px.
+- 주의: 캐노피 색이 #FA986D로 밝아짐(1차 #F78865, 목표 #F26B5B). sprite_kit check(n=5) 플래그 없음, 눈 dy 0.09~0.12.
+  비교용으로 1차 결과를 `capy/edit/m4-umb-row1-v1.png`로 함께 보존.
