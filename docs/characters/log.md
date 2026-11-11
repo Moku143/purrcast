@@ -145,3 +145,16 @@ Redraw the first reference image (a pixel-art capybara in 15 outfits, 3 rows of 
 ```
 Lock-screen version of the capybara in the first reference image, in its same 15 outfits (same order, same 3 rows of 5 layout, same upright pose, empty-handed except figure (0) which keeps its ice pop), redrawn in EXACTLY the monochrome style of the second reference image (the orange cat's lock-screen set): pure WHITE figures with light lavender-grey and mid-grey pixel shading for the fur, outfit details and folds, no other colours, NO dark outline, crisp hard-edged pixels, on a flat dark navy background (#20264A). What keeps this capybara recognisable in white: the long rectangular brick-shaped head with its flat top, the big squared-off muzzle filling the lower two-thirds of the head shaded in light lavender-grey so it reads against the white head, the two dark-grey nostrils on top of the blunt muzzle front, the tiny flat ears set far back, the small half-closed grey eyes set high and wide, the chunky body with short thick legs, and NO tail. Every outfit must stay recognisable from its shape and grey shading alone (hat, scarf, hood, prints as grey pixels). All 15 figures the same size, feet on the same baseline in each row, centred in their cells, no text, no labels, no numbers. Output 16:9.
 ```
+
+## 2026-11-11 · capy · step 3 redo 2 (shaft-to-tip geometry) · v3 — FINAL for step 3
+
+- Owner: in v2 the shaft ended under the canopy's side while the canopy sat centred on the head. v3 copies the cat's
+  geometry: the shaft runs from the paw STRAIGHT UP to the tip at the canopy's TOP CENTRE, canopy symmetrical around
+  the shaft, so the canopy sits slightly toward the holding paw. Dome/scallop/colour as v2.
+- ChatGPT (no credits) · chat "Redraw Capybara Umbrellas" · refs: capy 15-outfit sheet + `ref-cat-umb.png`
+- result: `capy/3-umbrella-15-v3.png` — 15/15 correct geometry; supersedes v1 and v2.
+- the prompt = v2's with the geometry sentence replaced by: "THE GEOMETRY IS THE MOST IMPORTANT PART: the straight
+  grey shaft starts in the raised paw, goes STRAIGHT UP, and ends at the small round tip at the very TOP CENTRE of
+  the canopy - the shaft and the tip are on the SAME vertical line, and the canopy is left-right SYMMETRICAL AROUND
+  THE SHAFT. Because the paw holding it is at the side of the body, the whole canopy sits slightly toward that side,
+  NOT centred over the head - copy the cat picture."
