@@ -708,3 +708,10 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - `capy/m3-stand-15-v2.png` = compose(heads8 0~11 + edit/out2 13·14·15, --match --body). 13~15 얼굴 폭·턱이 8번과 같아짐.
 - 남은 것: 얼굴을 넓히면서 모자 가장자리가 다시 눈 바깥 끝에만 닿음(`m3-stand-15-v2-eyecheck.png`)
   → out2에 한 번 더 "모자 가장자리만 내려 눈 바깥 절반 덮기" 단독 편집: `edit/m3-stand-{13,14,15}-in3.png` + `-guide3.png`.
+
+## 2026-11-12 00:30 · capy · 서기 확정(주인 "된 거 같은데") → 나머지 전부 (가방·우산·잠금화면·시계 위·얼굴)
+
+- 서기 최종 = `capy/m3-stand-15-v2.png` (out3가 오면 13~15 눈 덮기만 비교해서 더 나은 쪽).
+- 우산: 최종 서기 줄 그림 `capy/m3-stand-final-row{1,2,3}.png`을 편집해 우산만 더함(얼굴·옷·크기 그대로),
+  고양이 우산 참고 `capy/ref/{cat-stand-2,brit-stand-6,abys-stand-14}-umbrella.png` → `capy/m3-umb-row{1,2,3}.png`.
+- 가방(접은 우산 등에 멤)·잠금화면·시계 위(inline)·얼굴: 최종 서기에서 코드로 만듦(그림 새로 안 뽑음 → 15칸 완전히 같은 얼굴).
