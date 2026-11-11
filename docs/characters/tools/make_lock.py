@@ -105,6 +105,21 @@ for k in range(15):
         alpha[np.isin(lab2, [i + 1 for i, z in enumerate(sizes) if z < 300])] = 0
     thin = (alpha > 0) & ~ndimage.binary_opening(alpha > 0, iterations=2)
     alpha[thin & ~ndimage.binary_erosion(m, iterations=10)] = 0
+    # tidy the rim: pixels next to the clear outline take the median of their neighbours (no grey specks on the edge)
+    zero = alpha == 0
+    rim = ~zero & ndimage.binary_dilation(zero, iterations=10)
+    med = ndimage.median_filter(np.where(zero, np.nan, alpha), size=7, mode='nearest') if False else None
+    al = alpha.astype(float).copy(); al[zero] = np.nan
+    from numpy.lib.stride_tricks import sliding_window_view as sw
+    padded = np.pad(al, 3, constant_values=np.nan)
+    win = sw(padded, (7, 7))
+    ys_, xs_ = np.nonzero(rim)
+    if len(ys_):
+        vals = np.nan_to_num(np.nanmedian(win[ys_, xs_].reshape(len(ys_), -1), axis=1), nan=0)
+        near = ndimage.binary_dilation(zero, iterations=3)[ys_, xs_]
+        # right at the rim: always the neighbours' median; a little further in: only lone darker specks on fur
+        take = near | ((vals >= 230) & (alpha[ys_, xs_] < vals - 40))
+        alpha[ys_[take], xs_[take]] = vals[take]
     out = np.zeros(a.shape, np.uint8)
     out[..., :3] = 255
     out[..., 3] = alpha.astype(np.uint8)
