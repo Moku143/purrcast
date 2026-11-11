@@ -702,3 +702,9 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 캡처: 100% 세로 3분할 원본 스크린샷 상관관계 스티칭 → `edit/m3-stand-{13,14,15}-out2.png`
   (920×1147 · 871×1216 · 893×1184). 여백의 UI 조각만 배경색 패치.
 - 확대 확인: 셋 다 얼굴 폭·직선 옆선·둥근 턱·주둥이가 8번 기준과 일치, 눈 안쪽 토막만 보임. 사용자 검사 대기.
+
+## 2026-11-12 · capy · 서기 m3-v2 합본 (2~12 = 8번 머리, 13~15 = out2)
+
+- `capy/m3-stand-15-v2.png` = compose(heads8 0~11 + edit/out2 13·14·15, --match --body). 13~15 얼굴 폭·턱이 8번과 같아짐.
+- 남은 것: 얼굴을 넓히면서 모자 가장자리가 다시 눈 바깥 끝에만 닿음(`m3-stand-15-v2-eyecheck.png`)
+  → out2에 한 번 더 "모자 가장자리만 내려 눈 바깥 절반 덮기" 단독 편집: `edit/m3-stand-{13,14,15}-in3.png` + `-guide3.png`.
