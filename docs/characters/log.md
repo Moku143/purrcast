@@ -313,3 +313,14 @@ Character design candidates for a NEW character: 6 different takes on a CAPYBARA
   `1r-outfits-15-v5.png` + `ref-cat-bag.png` · moss-green bag, coral J handle (capy carry colours)
 - result: `capy/2r-bag-15-v1.png` — 15/15: bag identical behind the viewer-right shoulder, outfits/props unchanged,
   (0) juice and (1) watermelon kept, peeking eyes on 12-14 kept.
+
+## 2026-11-11 · capy · round era step 3 (open umbrella) · v1
+
+- ChatGPT (no credits) · chat "Redraw Umbrella Capybaras" · refs: `1r-outfits-15-v5.png` + `ref-cat-umb.png`
+- prompt: the proven geometry + size clauses (shaft paw→top-centre tip, canopy symmetric around the shaft, smooth
+  even scallop, coral-red; "CRITICAL SIZE RULE: body stays exactly the standing sheet's size - the umbrella is simply
+  added above"). (0) umbrella replaces the juice, (1) the watermelon.
+- result: `capy/3r-umbrella-15-v1.png` — visual check: 15/15 outfits correct, geometry right, peeking eyes kept.
+- size verification: my pixel measurements on the originals were inconclusive (grid/palette noise); the owner now
+  measures every sheet by overlaying it on the standing sheet and reports exact failing stages. Owner confirmed the
+  BAG sheet is within 3% at all 15 stages (earlier 7% was their measurement artifact) → bag v1 stands.
