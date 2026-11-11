@@ -808,3 +808,12 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - (주인 01:02 지시 반영: m4 우산 1줄은 불통과 — 막대 왼쪽 1/3 + 얼굴 변형(dy 0.19, 몸 +8%) → 새 대화에서
   m4-stand-row1 + 고양이 우산 3장, "do not redraw the faces … canopy centred on the SHAFT, shifted toward
   viewer-left like the cats" 문구로 재작업 중. 우산 2·3줄은 1줄 통과 후.)
+
+## 2026-11-12 01:05 · capy · 주인 "얼굴 비율 또 달라졌잖아 — 원래 위보다 아래가 볼륨이 있었는데 지금은 그냥 타원"
+
+- 재 보니 맞음 (`compare-head-shapes.png`, 머리 높이로 맞춘 폭): 8번(m3)은 머리 높이 60% 지점이 가장 넓고(1.51)
+  75%도 1.42 → 아래 볼이 통통. m4 깨끗한 재추출 #3은 45~60%가 1.45, 75% 1.36, 턱 쪽 1.06 → 아래가 좁은 타원.
+- 줄 단위 재추출은 매번 머리 모양이 흔들림 → 머리는 하나로 고정:
+  (1) 8번 한 마리만 크게(`edit/m3-stage8-in.png`) ChatGPT로 깨끗하게 다시 — 실루엣은 그대로, 외곽선만 고르게
+  → `edit/m4-stage8-clean.png`, (2) 그 머리를 맨머리 칸 전부(서기·우산)에 같은 자리로 붙임(눈 자리도 저절로 같아짐),
+  (3) 모자 칸은 한 마리씩 "모자 아래 얼굴 = 이 얼굴" 편집(out2 때처럼).
