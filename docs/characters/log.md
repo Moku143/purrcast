@@ -178,3 +178,17 @@ drawn smaller than the standing/bag sheets. prompts.md now carries the consisten
 - verification: built per-stage 4-way grids (standing · bag · umbrella v4 · lock v2) for all 15 stages and checked
   them myself — outfits/hats/props/prints identical, eye coverage identical (12/13/14 hidden in all four), umbrella
   bodies now at standing size (a stage or two reads ~5% smaller; correctable at asset-cut time).
+
+## 2026-11-11 · capy · standing sheet v2 (muzzle separated from the neck) — awaiting owner confirmation
+
+- Owner: the muzzle and the neck feel glued together; separate them a little.
+- ChatGPT (no credits) · chat "Redraw Pixel Art Capybara" · ref: `capy/1-outfits-15-v1.png`
+- the ONLY change clause: "make the muzzle slightly SHORTER vertically, so its bottom edge ends a little ABOVE the
+  chin line and a clearly visible band of the lighter warm-brown head fur (2-3 pixels tall on the sprite grid) shows
+  between the bottom of the dark muzzle and the collar of the clothes. The muzzle must no longer touch the collar
+  anywhere."
+- result: `capy/1-outfits-15-v2.png` — all 15 keep outfits/props/eye coverage; muzzle now clears the collar.
+- NOT yet the base: once the owner confirms v2, bag/umbrella/lock get regenerated from it. Known issue to fix in that
+  pass: umbrella v4 bodies are ~25% shorter than standing (same feet line, lower head, squashed torso at 1/5/11) —
+  next umbrella run must keep the body at identical height/proportions (more headroom per cell, e.g. squarer output),
+  or fall back to compositing the umbrella + raised arm onto the standing art.
