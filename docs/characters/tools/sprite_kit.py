@@ -58,27 +58,33 @@ def _figure_mask(arr, lock):
 
 
 def figures(path, lock=False):
+    """15 figures (3 rows of 5) or, on a one-row sheet, 5 figures; reading order."""
     im = Image.open(path).convert('RGB')
     arr = np.asarray(im)
     m = _figure_mask(arr, lock)
     lab, n = ndimage.label(m)
     sizes = ndimage.sum(m, lab, range(1, n + 1))
     H, W = m.shape
+    one_row = W > 2.6 * H  # a strip of 5
+    want = 5 if one_row else 15
     blobs = []
     for idx in np.argsort(sizes)[::-1]:
         sl = ndimage.find_objects((lab == idx + 1).astype(np.int8))[0]
         y0, y1, x0, x1 = sl[0].start, sl[0].stop, sl[1].start, sl[1].stop
         # skip frames / lines along the edges of a screen capture
-        if (x1 - x0) > 0.5 * W or (y1 - y0) > 0.6 * H or (x1 - x0) < 0.04 * W or (y1 - y0) < 0.08 * H:
+        if one_row:
+            if (x1 - x0) > 0.4 * W or (x1 - x0) < 0.05 * W or (y1 - y0) < 0.4 * H:
+                continue
+        elif (x1 - x0) > 0.5 * W or (y1 - y0) > 0.6 * H or (x1 - x0) < 0.04 * W or (y1 - y0) < 0.08 * H:
             continue
         blobs.append((y0, y1, x0, x1, idx + 1))
-        if len(blobs) == 15:
+        if len(blobs) == want:
             break
-    if len(blobs) != 15:
-        raise SystemExit(f'{path}: found {len(blobs)} figures, expected 15')
+    if len(blobs) != want:
+        raise SystemExit(f'{path}: found {len(blobs)} figures, expected {want}')
     blobs.sort(key=lambda b: (b[0] + b[1]) / 2)
     out = []
-    for r in range(3):
+    for r in range(want // 5):
         row = sorted(blobs[r * 5:(r + 1) * 5], key=lambda b: (b[2] + b[3]) / 2)
         for y0, y1, x0, x1, li in row:
             mask = ndimage.binary_fill_holes(lab[y0:y1, x0:x1] == li)
@@ -274,10 +280,13 @@ def compose(out, specs, lock=False):
     for spec in specs:
         path, sel = spec.rsplit(':', 1)
         figs, rows, _ = check(path, lock, verbose=False)
-        for s in _stages(sel):
-            if not rows[s]:
-                raise SystemExit(f'{path}: figure {s + 1} could not be measured')
-            picks[s] = (figs[s], rows[s], path)
+        stages = _stages(sel)
+        # a one-row sheet holds just the listed stages, left to right; a full sheet holds all 15
+        idx = range(len(stages)) if len(figs) == len(stages) and len(figs) < 15 else stages
+        for s, i in zip(stages, idx):
+            if not rows[i]:
+                raise SystemExit(f'{path}: figure {i + 1} could not be measured')
+            picks[s] = (figs[i], rows[i], path)
     missing = sorted(set(range(15)) - set(picks))
     if missing:
         raise SystemExit(f'no source for stages {missing}')

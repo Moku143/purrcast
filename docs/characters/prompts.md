@@ -9,6 +9,26 @@ prompt, settings and result.
 Owner's rule: from now on only the **animal** and the **15 outfits** change. Everything else (layout, size, face
 rules, carry items, rendering, checks) is fixed here. The old "Steps" further down are history.
 
+### v3 changes (owner, 2026-11-11 23:10) — these override anything below
+
+- **One row of 5 per picture**, not 15 per sheet: each sheet (stand · bag · umbrella · lock) = 3 pictures
+  (stages 0–4, 5–9, 10–14). A 15-figure sheet leaves ~250 px per figure, which comes out blurry with bumpy outline
+  steps once enlarged to 480×560; a row of 5 gives ~350–450 px per figure. Capture at 100% (original pixels, no zoom).
+- **Identity reference = the picked candidate, always the original** (capy: `capy/ref-cand1-anchor.png`, candidate 1).
+  Never use an earlier generation as the reference for the face, head shape, body or fur colour — every round drifted
+  a little (head got flatter and wider, fur got lighter) and the drift added up. Earlier sheets may be attached only
+  for the outfits, and the prompt must say so.
+- **Style references = the Abyssinian and British Shorthair sprites** (`abys-stand-2-none.png`, `brit-stand-2-none.png`),
+  with: "Draw it in EXACTLY the pixel-art style of the two attached cat sprites (the grey Abyssinian and the round
+  British Shorthair): the same pixel size, the same clean crisp edges, the same outline width and dark colour, the
+  same soft rounded shapes and flat colour fills. The outline has the same width all the way round the head - no
+  doubled or stacked lines on top of the head or where the ears meet it."
+- capy: **no mouth line** under the muzzle (candidate 1 has none); the whole head ONE flat fur colour.
+- Hat stages 12–14: the single-figure edit (one figure per picture, `capy/edit/`) was the only way the hat edge came
+  to cover the outer half of each eye; if a row picture misses it, edit those figures one by one.
+- Combine with `sprite_kit.py compose OUT row1.png:0-4 row2.png:5-9 row3.png:10-14` (a row picture holds just
+  its listed stages), then `check` / `build` as before.
+
 ### The pipeline
 
 1. **Design** — step 0 candidates (old Steps § 0). The owner picks one → write its `{LOOK}` paragraph below.

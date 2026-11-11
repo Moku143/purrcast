@@ -633,3 +633,10 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   muzzle. Take only the outfits from the second reference." + 테스트 3 스타일 문구.
 - 라이트박스 100%에서 전체가 한 화면에 들어와 원본 스크린샷 1장에서 잘라냄 → `capy/m3-stand-row1-test4.png`
 - 시각 확인: 머리가 둥근 돔+옆선 직선, 진한 웜브라운 털색 복귀, 테두리는 테스트 3 수준 유지. 주인 판정 대기.
+
+## 2026-11-11 23:10 · capy · 시험 4 통과 → 15벌 전부 이 방식으로 (MASTER TEMPLATE v3)
+
+- 시험 4(`m3-stand-row1-test4.png`): 후보 1 기준 돔 머리·갈색 털 복귀, 5벌 주둥이·눈·몸 길이 1% 안
+  (check: flags none, body 2.96~3.00). 주인 "1번": 진행 + 주둥이 아래 **입 선은 빼기**.
+- prompts.md에 v3 변경점 기록(한 장 5마리, 기준 얼굴은 항상 원본 후보, 스타일은 abys·brit, 입 선 없음).
+- sprite_kit: 한 줄(5마리) 그림도 check/compose 가능.
