@@ -262,23 +262,24 @@ What the other three wear per stage (for the no-repeat check): 0 hats = straw(ca
 11 mouton+earmuffs(cat)·short puffer(abys·brit) · 12 hats = beanie(cat)·trapper(abys)·deerstalker(brit) ·
 13 fur hood(cat)·hood up(abys)·balaclava(brit) · 14 muzzle-scarf(cat)·fur hood(abys)·cossack hat(brit).
 
-(0) cream sleeveless tank with a small yuzu print + a folded white onsen towel resting flat on top of the head +
-holding a glass of iced yuzu juice with a straw ·
-(1) sage-green sleeveless tank + holding a fresh green cucumber ·
-(2) white short-sleeve tee with ONE small orange yuzu on the chest + light-denim shorts ·
-(3) white camp shirt with a green banana-leaf pattern + beige shorts ·
-(4) pale-yellow button-up shirt + moss-green knit tie ·
-(5) terracotta sweatshirt with a small white duck print ·
-(6) moss-green cable-knit cardigan with small wooden buttons over a cream tee ·
-(7) brown corduroy jacket, open, over a cream tee ·
-(8) oatmeal teddy-fleece zip-up jacket ·
-(9) deep-teal quilted jacket with visible stitching squares ·
-(10) navy padded hanten robe-coat (quilted lounge coat) + mustard-yellow scarf ·
-(11) mustard-yellow knitted poncho with a fringed hem + cream scarf ·
-(12) burnt-orange puffer + brown sherpa-lined bucket hat, brim down just over the eyes + brown scarf ·
-(13) plum long puffer + oatmeal knitted hooded scarf, hood up, edge just over the eyes ·
-(14) deep-green long puffer + oversized cream bobble beanie pulled down just over the eyes + red-and-cream striped
-scarf + red mittens
+(0) cream sleeveless tank with a small yuzu print + woven straw sun hat + holding a glass of iced yuzu juice with a
+straw · (1) sage-green sleeveless tank with thin cream stripes + holding a fresh cucumber · (2) white tee with ONE
+small orange yuzu + light-denim shorts · (3) white camp shirt with a green banana-leaf pattern + beige shorts ·
+(4) pale-yellow button-up + moss-green knit tie · (5) terracotta sweatshirt with a small white duck ·
+(6) moss-green cable-knit cardigan with small wooden buttons over a cream tee · (7) brown corduroy jacket with a
+cream sherpa collar, open, over a cream tee · (8) retro colour-block WINDBREAKER in mint and lavender with a white
+zip · (9) deep-teal quilted jacket with a mustard corduroy collar · (10) navy padded hanten robe-coat with a tiny
+white wave pattern + mustard scarf · (11) camel DUFFLE COAT with toggle buttons + forest-green scarf ·
+(12) burnt-orange puffer + red-and-cream striped BOBBLE BEANIE pulled down just over the eyes + brown scarf ·
+(13) plum long puffer + oatmeal knitted HOODED SCARF, hood up, edge just over the eyes ·
+(14) deep-green long puffer with its own PADDED (quilted) HOOD worn up, edge just over the eyes + red-and-cream
+striped scarf + red mittens
+
+v3 changes (owner, 15:57): straw hat back at 0 · cuter details everywhere (stripes, sherpa/corduroy collars, wave
+pattern) · a windbreaker added at 8 · 14 = padded hood (not fur, not beanie) · 11 poncho and 12 bucket hat were not
+recognisable → duffle coat and striped bobble beanie; recognisable-and-cute beats unique, only identical combos with
+the cats are avoided (capy 0 straw hat differs from cat 0 by prop/colours; capy 11 duffle differs from cat 10 duffle
+by stage, colour and scarf).
 
 Eye coverage rule (owner): on 12-14 the eyes are hidden NATURALLY - the hat brim / hood edge comes down just over the
 eyes; never a mask covering the whole face.

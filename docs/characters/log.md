@@ -268,3 +268,19 @@ Character design candidates for a NEW character: 6 different takes on a CAPYBARA
 - prompt: v1's with the outfit list replaced by the new 15 and the eye-coverage clause reworded to "hidden NATURALLY:
   the hat brim or hood edge comes down just over the eyes so they cannot be seen, but the face is NOT masked - the
   muzzle and nostrils stay fully visible" (full text in the chat; outfit list in prompts.md).
+
+## 2026-11-11 · capy · round era step 1 v3 (owner's five fixes) — awaiting confirmation
+
+- Owner on v2 (resent after a garbled message): (1) straw hat back at stage 0; (2) cuter details overall (patterns,
+  colour combos, small props); (3) add a windbreaker; (4) stage 14 = padded (quilted) hood; (5) 11 poncho and
+  12 bucket hat unrecognisable → replace with instantly readable items; recognisable-and-cute beats unique, only
+  identical cat combos avoided.
+- v3 list (also in prompts.md): 0 straw hat + yuzu juice · 1 striped sage tank + cucumber · 7 corduroy + cream sherpa
+  collar · 8 mint-lavender WINDBREAKER (new) · 9 teal quilted + mustard collar · 10 hanten + white wave pattern ·
+  11 camel DUFFLE + forest-green scarf · 12 red/cream striped BOBBLE BEANIE (over the eyes) · 13 hooded scarf ·
+  14 padded quilted hood up + striped scarf + mittens.
+- ChatGPT (no credits) · chat "Pixel Art Sprite Sheet" (second of that name) · refs: `ref-cand4.png` +
+  `abys-outfits-15-v2.png` · prompt = v2's with the outfit list above and "The outfits must be CUTE and instantly
+  recognisable, with lovely little details" added.
+- result: `capy/1r-outfits-15-v3.png` — checked: all five fixes landed, 15/15 in order, eyes on 12-14 hidden
+  naturally by brim/hood edge, muzzle visible.
