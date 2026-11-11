@@ -133,3 +133,15 @@ Redraw the first reference image (a pixel-art capybara in 15 outfits, 3 rows of 
   bottom edge - a row of equal small arcs, one arc between each pair of rib tips, all the same size and on the same
   horizontal line, NOT jagged, NOT wrinkled, NOT crumpled, no random zigzag. Only the colour differs from the cat's:
   the canopy is CORAL-RED with darker coral-red panel seams, identical on all 15 figures."
+
+## 2026-11-11 · capy · step 4 (lock screen, white on navy, 15 outfits) · v1
+
+- ChatGPT (no credits) · chat "Capybara Lock Screen Design" · 3 rows of 5
+- references: (1st) `capy/1-outfits-15-v1.png`, (2nd) `cat-04-lock-screen.png` (cat's monochrome lock set)
+- result: `capy/4-lock-15-v1.png` (capture stitch, 1078×606; original in the ChatGPT chat)
+- verdict: 15/15 good — white figures on #20264A, muzzle shaded lavender-grey so the brick head reads, every outfit
+  recognisable from shape/grey alone (straw hat, towel, tie, duck print, beanie, balaclava, fur hood…), no outline.
+
+```
+Lock-screen version of the capybara in the first reference image, in its same 15 outfits (same order, same 3 rows of 5 layout, same upright pose, empty-handed except figure (0) which keeps its ice pop), redrawn in EXACTLY the monochrome style of the second reference image (the orange cat's lock-screen set): pure WHITE figures with light lavender-grey and mid-grey pixel shading for the fur, outfit details and folds, no other colours, NO dark outline, crisp hard-edged pixels, on a flat dark navy background (#20264A). What keeps this capybara recognisable in white: the long rectangular brick-shaped head with its flat top, the big squared-off muzzle filling the lower two-thirds of the head shaded in light lavender-grey so it reads against the white head, the two dark-grey nostrils on top of the blunt muzzle front, the tiny flat ears set far back, the small half-closed grey eyes set high and wide, the chunky body with short thick legs, and NO tail. Every outfit must stay recognisable from its shape and grey shading alone (hat, scarf, hood, prints as grey pixels). All 15 figures the same size, feet on the same baseline in each row, centred in their cells, no text, no labels, no numbers. Output 16:9.
+```
