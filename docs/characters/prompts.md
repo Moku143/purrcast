@@ -59,10 +59,11 @@ section below and in `log.md`.
 
 모든 시트는 서 있는 컬러 시트(step 1)를 그대로 따른다 — 눈 가림·크기 포함. Every later sheet (bag, umbrella,
 lock, walk, …) copies the standing colour sheet figure by figure: same outfits, hats, scarves, props, prints and
-details, nothing added, removed, resized or redesigned; the SAME body size and position in the cell; and the SAME eye
-coverage — a stage whose hat/balaclava/hood hides the eyes in the colour sheet hides them in every sheet (the two
-dots on the muzzle are NOSTRILS, not eyes). Before calling a step done, put the sheets side by side stage by stage
-and check outfit, eye coverage and size yourself.
+details, nothing added, removed, resized or redesigned; the SAME body size and position in the cell; and the SAME
+faces — on 12–14 (v6 기준) the wide-apart half-closed eyes peek out just under the hat edge, the full muzzle with its
+two small round nostrils is completely visible, and the scarf sits BELOW the muzzle (eyes are never covered; the dots
+on the muzzle are NOSTRILS, not eyes). Before calling a step done, put the sheets side by side stage by stage and
+check outfit, face and size yourself. (크기·비율 겹침 검사는 사용자가 직접 하고 틀린 단계만 알려 줌.)
 
 ## The pixel paragraph (put it in every prompt)
 
@@ -270,14 +271,17 @@ orange yuzu + light-denim shorts · (3) white camp shirt with a green banana-lea
 yuzu patch · (8) bright sunny-yellow windbreaker with sky-blue colour-block shoulders and a white zip ·
 (9) raspberry-pink quilted jacket with a cream collar · (10) navy padded hanten robe-coat with a tiny white wave
 pattern + mustard scarf · (11) camel duffle coat with toggle buttons + forest-green scarf ·
-(12) burnt-orange SHORT puffer + red-and-cream striped bobble beanie slipped down so the eyes just barely peek out +
-brown scarf · (13) ice-blue HIP-LENGTH puffer + white knitted earflap hat with braided tassels, slipped down, eyes
-just peeking + plum scarf · (14) deep-green ANKLE-LENGTH puffer + a puffy quilted hat with a FUR TRIM, slipped down,
-eyes just peeking + red-and-cream striped scarf + red mittens
+(12) burnt-orange SHORT puffer + red-and-cream striped bobble beanie + brown scarf ·
+(13) ice-blue HIP-LENGTH puffer + white knitted earflap hat with braided tassels + plum scarf ·
+(14) deep-green ANKLE-LENGTH puffer + a puffy quilted hat with a FUR TRIM + red-and-cream STRIPED scarf (줄무늬,
+체크 아님) + red mittens
 
 v4 changes (owner, 16:05): 1 cucumber → watermelon slice · 12-14 eye coverage softened (the hat has slipped down so
 the eyes just barely peek out, a sleepy dopey look - not fully masked) · 14 = fur-trimmed padded hat · 12/13/14 made
 clearly different from each other (hat shape, colour, coat length, scarf) · 6-9 redesigned bright and eye-catching.
 
-Eye coverage rule (owner): on 12-14 the eyes are hidden NATURALLY - the hat brim / hood edge comes down just over the
-eyes; never a mask covering the whole face.
+12–14 face rule (owner, 16:52 → v6 확정): faces built exactly like figure (11)'s, just with the hat above — the two
+half-closed eyes (short dark lines) sit WIDE APART near the sides of the head, peeking out just under the hat's edge;
+below them the big rounded lighter-tone MUZZLE is fully visible at its normal size with its two small round nostrils;
+the scarf wraps BELOW the muzzle, around the neck, never covering the muzzle or nostrils. (이전 "모자가 눈을 덮음"
+규칙은 폐기 — 가까이 붙은 눈 두 줄이 콧구멍처럼 보이는 문제가 있었음.)
