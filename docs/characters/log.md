@@ -1324,3 +1324,19 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   옷 모두 맞음 → 다시 그리기 없음.
 - 원본 1087×1446 크기로 캡처(150% 세로 타일 4장, 배율 약 1.233). 결과 → `capy/m13/m13-stand-10..14.png`.
 - m13 15칸(0~14) 모두 끝. 다시 그린 칸 없음.
+
+## 2026-11-12 14:3x · 서기(m13)로 앱 그림 만들기 + 우산 팔 편집 요청
+- 주인 "하자"(12~14 눈 가림 그대로, 가방·우산·잠금 진행). 서기 = `tools/build_singles.py` (base-A 키 → 고양이 평균 키
+  406px 한 배율 0.378, 발 y 555, 주둥이 가운데 x 247, 테두리 밖을 윤곽색으로 채운 뒤 줄여서 흰 테 없음).
+  가방 = make_bag, 잠금 = make_lock, 얼굴·시계 위 = make_face_inline.
+- 우산 막대: 주인 선택 "2 눈·코 사이" = 꼭지 x 195.5에서 곧게 내려와 **얼굴 앞으로** 지나감(머리 뒤로 숨기지 않음).
+- 팔 편집 15장: 첨부 (1) `capy/m14/arm-guide-{K}.png` (m13 그림에 빨간 선 = 막대 자리, 빨간 원 = 앞발 자리)
+  (2~4) `capy/ref/` 우산 고양이 3장. 장마다 새 대화. 문구:
+  'Edit the first picture. Keep the capybara EXACTLY as it is - the same head, face, eyes, hat, clothes, colours,
+  outline, size and position; do not redraw, move or resize anything. Only change its viewer-left arm: raise it so
+  its paw sits exactly inside the red circle on the chest, gripping a thin straight light-grey stick (like the
+  umbrella shafts in the attached cat pictures) that runs exactly along the red line, from just under the chin down
+  through the paw to a little below it. Do not draw any umbrella canopy. Where the arm used to hang, show the clothes
+  and body as they would look. Remove all red marks. Same pixel-art style, same background, same picture size.'
+- 결과 → `capy/m14/m14-arm-{K}.png` (원본 크기 캡처, 1차 그대로; 빨간 자국이 남거나 앞발이 원 밖이면 한 번만 다시).
+  0~4, 5~9, 10~14 끝날 때마다 푸시.
