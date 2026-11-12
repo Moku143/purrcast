@@ -1172,3 +1172,12 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 결과 원본 1086×1448(ref 630×840보다 약 1.72배 큼, 같은 3:4) → 다시 그리기 없이 `capy/m10/m10-cand4-noyuzu.png`.
   유자·잎 없어지고 그 자리는 머리 윤곽으로 이어짐, 머리 한 톤, 눈·코·귀·옷·다리 모양 그대로(나란히 비교).
 - 캡처: 150% 세로 타일 4장(가로 스크롤 없음, UI 숨김) → 원본 크기(배율 1.232×1.235), 여백 지우기 끔.
+
+## 2026-11-12 12:30 · 주인: m10 "이마가 너무 동그래졌다, 그것만 고치면 될 듯"
+- 원본 후보 4는 유자 밑 머리 윗선이 귀 사이로 평평함(유자 없는 후보 1과 같은 머리). m10은 위가 둥근 돔이 됨.
+- 편집: 첨부 (1) `capy/m10/m10-cand4-noyuzu.png` (2) `capy/ref-cand1-top.png` (후보 1, 평평한 머리 윗선 참고). 문구:
+  'Edit the first picture. Change ONLY the top of the head: the forehead is too round and domed. Make the top of the
+  head between the two ears flat and wide, a nearly straight line, exactly like the head top of the capybara in the
+  second picture. Keep everything else exactly as it is in the first picture: the ears, eyes, muzzle, nostrils, the
+  one uniform fur tone, the sweatshirt, legs, feet, outline, size, position and pixel-art style. Same background.'
+- 결과 → `capy/m10/m10-cand4-flattop.png` (원본 크기 캡처, 다시 그리기 없음).
