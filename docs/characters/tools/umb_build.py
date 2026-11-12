@@ -114,11 +114,11 @@ def chin_row(orig, ro):
     """The first row of clothes under the head, straight down from the muzzle's middle."""
     rgb = orig[..., :3].astype(int)
     x = int(ro['mc'])
-    def fur(c):                        # head colours: fur, muzzle and its brown outline, the dark outline
-        h, s, v = sk._hsv(np.array([[c]], np.uint8))
-        return c.max() < 90 or (0.02 < h[0, 0] < 0.12 and s[0, 0] > 0.3)
+    dark = lambda c: c.max() < 90  # noqa: E731
     y = int(ro['mbot'])
-    while y < 540 and fur(rgb[y, x]):
+    while y < 540 and not dark(rgb[y, x]):     # the muzzle's brown lower edge, the fur under it
+        y += 1
+    while y < 540 and dark(rgb[y, x]):         # the jaw line
         y += 1
     return y
 
@@ -153,6 +153,10 @@ def build(fig, orig, canopy, dbg=None, name='', paw_col=FUR, front=False):
             keep |= c
     keep = ndimage.binary_fill_holes(keep) & reach
     out = orig.copy()
+    if front:
+        # just outside the taken region: sprite pixels the picture does not have there (the old shoulder's outline)
+        rim = ndimage.binary_dilation(keep, iterations=8) & ~keep & reach & om & ~am & (xx < TIP_X)
+        out[rim] = 0
     pal = palette(orig)
     take = keep & am
     out[keep & ~am] = 0
@@ -227,7 +231,43 @@ def build(fig, orig, canopy, dbg=None, name='', paw_col=FUR, front=False):
     shaft_rows(B, front0, end, lx0)
     for j in range(len(SHAFT)):                 # a dark end cap
         B[end, lx0 + j] = (14, 12, 22, 255)
+    if front and len(cols):
+        # the fist: rows near the guide circle where the picture's own stick is hidden (the fist is in front of it);
+        # in those rows the picture's pixels go back over the drawn shaft, whatever the paw's colour (fur, mitten)
+        gA = (A.max(-1) - A.min(-1) < 45) & (A.max(-1) > 95) & am
+        c0, c1 = cols.min(), cols.max() + 1
+        rows = [y for y in range(PAW_Y - 60, PAW_Y + 60)
+                if gA[y, c0:c1].mean() < 0.3 and take[y, SX0:SX0 + len(SHAFT)].all()]
+        if rows:
+            lab_r, nr = ndimage.label(np.isin(np.arange(560), rows))
+            best = max(range(1, nr + 1), key=lambda i: (lab_r == i).sum())
+            ry = np.nonzero(lab_r == best)[0]
+            fist = np.zeros(paw.shape, bool)
+            fist[ry.min():ry.max() + 1, SX0 - 1:SX0 + len(SHAFT) + 1] = True
+            fist &= take
+            paw = fist
+            end = min(ry.max() + 22, feet - 40)
+            B2 = np.asarray(base).copy()
+            shaft_rows(B2, front0, end, lx0)
+            for j in range(len(SHAFT)):
+                B2[end, lx0 + j] = (14, 12, 22, 255)
+            B = B2
     B[paw] = out[paw]
+    if front:
+        # a fist drawn darker brown than the fur (some edits did that): flat fur like the other stages' paws
+        yy_, xx_ = np.mgrid[:560, :480]
+        pc = np.nonzero(paw)
+        if len(pc[0]):
+            cy_, cx_ = pc[0].mean(), pc[1].mean()
+            near = ((yy_ - cy_) ** 2 + (xx_ - cx_) ** 2 < 34 ** 2) & keep
+            h_, s_, v_ = sk._hsv(B[..., :3].astype(np.uint8))
+            brown = near & (h_ > 0.01) & (h_ < 0.12) & (s_ > 0.3) & (v_ > 0.3) & (v_ < 0.78)
+            if brown.sum() > 120:
+                B[brown, :3] = FUR
+        # thin outline hooks where the drawn arm meets the sprite's shoulder
+        fm = B[..., 3] > 0
+        thin = fm & ~ndimage.binary_opening(fm, iterations=2) & keep & ~(np.abs(xx_ - TIP_X) < 8)
+        B[thin] = 0
     from drop_fringe import drop
     res = Image.fromarray(drop(B)[0], 'RGBA')
     if dbg:
