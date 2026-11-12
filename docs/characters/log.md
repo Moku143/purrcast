@@ -1493,3 +1493,20 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   작은 기록(gift_capy)으로 저장 → 다시 설치하거나 새 폰에서 돌아옴.
 - 첫 화면에 'iCloud에 보관' 단계(알림 다음, Plus 앞): 날씨 달력 · 받은 캐릭터를 보관한다고 적고 [iCloud에 보관하기 / 나중에].
 - 12개 언어 문구, 단위 테스트, 화면 테스트 test30Promo.
+
+## 2026-11-12 20:5x · 요청 · m17 App Store 이벤트 카드 그림 2장 (가로 16:9 · 세로 9:16)
+- 주인: "앱스토어에도 프로모션으로 배너 걸어줄 수 있지?" → App Store 'In-App Events'(이벤트 카드). 그림에 글자·로고 금지,
+  App Store가 아래쪽을 어둡게 덮고 잘라 쓰므로 카피바라는 가운데, 가장자리는 비워 둔다.
+- 새 대화 1개, 첨부 `capy/m16/m16-gift.png` (선물 든 카피바라). 두 장을 따로 만든다.
+- 가로 (Landscape 1536×1024):
+  "Use this capybara exactly as it is (same pixel-art style, face, colours, outline, sweater, gift box, size ratio).
+  Make a wide landscape picture: the capybara stands in the centre, about 45% of the picture height, on a soft pastel
+  blue-lavender sky with a few chunky pixel-art clouds, a little pixel confetti and two or three tiny floating gift
+  boxes in coral (#F26B5B) with yellow ribbons. Keep the left and right thirds and the bottom quarter calm and mostly
+  empty sky. No text, no letters, no logos, no border, no frame, no shadow under the picture."
+- 세로 (Portrait 1024×1536):
+  "Same capybara exactly as it is. Make a tall portrait picture: the capybara stands a little above the middle, about
+  35% of the picture height, on the same soft pastel sky with chunky pixel-art clouds at the top, a little pixel
+  confetti and two or three tiny floating coral gift boxes with yellow ribbons. Keep the bottom third calm and mostly
+  empty sky. No text, no letters, no logos, no border, no frame."
+- 결과 → `capy/m17/m17-card-wide.png`, `capy/m17/m17-card-tall.png` (원본 크기). 카피바라 얼굴·몸이 바뀌면 한 번만 다시.
