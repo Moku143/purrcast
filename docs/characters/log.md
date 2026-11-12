@@ -1465,3 +1465,8 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - `tools/lock_from_pictures.py` 로 15장(14는 norim) → 흰색+투명(남색 위 밝기 = 불투명도), 고양이들 크기·자리.
   시계 위 그림도 새 잠금 그림에서 다시 만듦. 코드로 만든 잠금(make_lock)은 더 안 씀.
 - 확인 그림 `capy/m15/m15-final-locks.png`.
+
+## 2026-11-12 18:0x · 주인 "전부 처리하자" → main 병합 + TestFlight
+- main FF c9052353 → a521e439 (1.2.1 이후 146커밋: 카피바라 그림·앱 추가·도구·기록).
+- TestFlight run 43187831886 (main, submission=no): 성공, 1.2.1 (82), 09:01→09:11 UTC (예상 7~10분과 맞음). App Store 제출 안 함.
+- main push iOS build run 43187792395 진행 중.
