@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: 'Quick run: one screenshot test only (e.g. test10Layout, test3Scroll); the watch build is skipped'
+        description: 'Quick run: these screenshot tests only, comma-separated (e.g. test10Layout or test6Languages,test9IconNote); the watch build is skipped'
         required: false
         default: ''
       device:
@@ -30,9 +30,10 @@ jobs:
   build:
     if: github.event.inputs.watch_e2e != 'yes'
     runs-on: macos-26
-    # a quick run (one test) keeps 90; the full suite gets 120 — two full runs on 2026-11-04 were cancelled at 90
-    # by slow runners (41820276885, 41833956337), and their killed runners uploaded no logs to count tests from
-    timeout-minutes: ${{ github.event.inputs.only != '' && 90 || 120 }}
+    # a quick run keeps 90; the full suite gets 160 — two full runs on 2026-11-04 were cancelled at 90 by slow runners
+    # (41820276885, 41833956337), and the main run of 2026-11-12 (43187792395) at 120: its tests alone took 114 min
+    # (testCatalog 50, plus the capybara's shots) and stopped in test6Languages with 106 passed, 0 failed
+    timeout-minutes: ${{ github.event.inputs.only != '' && 90 || 160 }}
     steps:
       - uses: actions/checkout@v4
       - name: Xcode 26 (the SDK TestFlight builds use, so the screenshots show what iOS 26 phones show)
@@ -72,11 +73,16 @@ jobs:
           grep -q "BUILD SUCCEEDED" build.log
       - name: Screenshot tests
         if: success()
+        env:
+          ONLY: ${{ github.event.inputs.only }}
         run: |
           set -o pipefail
           # the 12-language store captures have their own workflows (store-screenshots.yml, watch-store.yml)
           only="-skip-testing:PurrcastUITests/ScreenshotTests/test11StoreFrames -skip-testing:PurrcastUITests/ScreenshotTests/test16WatchStore"
-          if [ -n "${{ github.event.inputs.only }}" ]; then only="-only-testing:PurrcastUITests/ScreenshotTests/${{ github.event.inputs.only }} -only-testing:PurrcastTests"; fi
+          if [ -n "$ONLY" ]; then
+            only="-only-testing:PurrcastTests"
+            for t in ${ONLY//,/ }; do only="$only -only-testing:PurrcastUITests/ScreenshotTests/$t"; done
+          fi
           xcodebuild test -project Purrcast.xcodeproj -scheme Purrcast $only \
             -destination "platform=iOS Simulator,name=${SIM_DEVICE:-iPhone 16},OS=${SIM_OS:-latest}" \
             -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "error:|Test Case|TEST |Executed" || true
