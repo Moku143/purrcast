@@ -1390,3 +1390,5 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   (아비시니안 해 아이콘의 얼굴 자리), 비 아이콘 = make_rain_icon (8단계 우산).
 - `install_sprites.py capy` → SharedAssets 91장 + anchors.json(capy) + 앱 아이콘 3개·iconpick 3개.
 - 확인 그림: `capy/m14/m14-all-45.png` (서기·가방·우산), `capy/compare-final-capy-vs-cats.png`.
+- iOS build (only=test29Capybara) run 43168833857 @ beae725f: 녹색. 88개 실행 · 83 통과 · 0 실패 · 6 건너뜀, 13분
+  (06:32→06:45 UTC). 화면: 홈(비 우산·맑음 가방·눈 우산·폭염), Plus 화면 4칸, 온보딩 4마리, 캐릭터 고르기, 위젯.
