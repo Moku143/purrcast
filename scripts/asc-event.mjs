@@ -91,7 +91,17 @@ if (mode === 'schedule') {
   if (!ev) { console.log('no event yet: run draft first'); process.exit(1); }
   const start = new Date(a1), end = new Date(a2);
   if (!(start < end) || (end - start) / 86400000 > 31) { console.log('START must be before END, at most 31 days'); process.exit(1); }
-  const territorySchedules = [{ publishStart: start.toISOString(), eventStart: start.toISOString(), eventEnd: end.toISOString() }];
+  // every territory the app is sold in (the event card shows wherever the app does)
+  const avail = must(await api(`/apps/${app.id}/appAvailabilityV2`), 'availability').json.data;
+  const territories = [];
+  for (let next = `https://api.appstoreconnect.apple.com/v2/appAvailabilities/${avail.id}/territoryAvailabilities?limit=200&include=territory`; next;) {
+    const r = must(await api(next), 'territories').json;
+    for (const t of r.data) if (t.attributes.available) territories.push(t.relationships.territory.data.id);
+    next = r.links?.next;
+  }
+  console.log(`territories: ${territories.length}`);
+  if (!territories.length) { console.log('no territories'); process.exit(1); }
+  const territorySchedules = [{ territories, publishStart: start.toISOString(), eventStart: start.toISOString(), eventEnd: end.toISOString() }];
   must(await api(`/appEvents/${ev.id}`, { method: 'PATCH', body: body('appEvents', { territorySchedules }, null, ev.id) }), 'schedule');
   console.log(`event ${E.referenceName}: ${start.toISOString()} → ${end.toISOString()}`);
 }
