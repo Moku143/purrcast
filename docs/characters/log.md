@@ -1510,3 +1510,4 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   confetti and two or three tiny floating coral gift boxes with yellow ribbons. Keep the bottom third calm and mostly
   empty sky. No text, no letters, no logos, no border, no frame."
 - 결과 → `capy/m17/m17-card-wide.png`, `capy/m17/m17-card-tall.png` (원본 크기). 카피바라 얼굴·몸이 바뀌면 한 번만 다시.
+- 20:5x 1차 `https://chatgpt.com/c/6af5a890-3e4c-83ec-acce-6b70048b15f7` (첫 메시지 = m16-gift.png + 가로 문구, 둘째 메시지 = 세로 문구, 첨부 없음) → 두 장 다 그대로 씀. 확인: 카피바라를 m16-gift와 그림 상자끼리 맞추면 실루엣 IoU 가로 0.986·세로 0.989, 얼굴·스웨터·선물 상자·다리 그대로(가로세로비 0.617 → 0.621/0.625) → 다시 그리기 없음. 가로 1672×941(16:9): 카피바라 가운데(x 50%), 높이 54%(문구 45%보다 큼), 발끝이 아래 1/4 선을 3% 넘음, 좌우 1/3엔 구름·선물 상자 1개씩만. 세로 941×1672(9:16): 높이 32%, 가운데 y 42%, 아래 1/3은 빈 하늘. 둘 다 글자·로고·테두리 없음. 원본 크기로 캡처(150%, 화면 속 그림 위치를 재서 타일 이어 붙임; 가장자리 3px는 페이지 번짐이라 바로 안쪽 줄로 채움) → `capy/m17/m17-card-wide.png`, `capy/m17/m17-card-tall.png`.
