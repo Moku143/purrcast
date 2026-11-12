@@ -280,7 +280,8 @@ final class PurrcastTests: XCTestCase {
         let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-12-10T03:00:00Z"))
         let on = #"{"active":true,"id":"capy-2026","char":"capy","end":"2026-12-31T15:00:00.000Z"}"#
         let e = try XCTUnwrap(Promo.decode(Data(on.utf8), now: now))
-        XCTAssertEqual(e.id, "capy-2026"); XCTAssertEqual(e.char, .capy)
+        XCTAssertEqual(e.id, "capy-2026"); XCTAssertEqual(e.char, .capy); XCTAssertFalse(e.launch)
+        XCTAssertEqual(Promo.decode(Data(#"{"active":true,"id":"x","char":"capy","kind":"launch","end":"2026-12-31T15:00:00Z"}"#.utf8), now: now)?.launch, true)
         XCTAssertEqual(e.end, ISO8601DateFormatter().date(from: "2026-12-31T15:00:00Z"))
         XCTAssertNotNil(Promo.decode(Data(#"{"active":true,"id":"x","char":"capy","end":"2026-12-31T15:00:00Z"}"#.utf8), now: now), "no fraction")
         XCTAssertNil(Promo.decode(Data(#"{"active":false}"#.utf8), now: now))

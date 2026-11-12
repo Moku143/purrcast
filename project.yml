@@ -34,6 +34,8 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleDisplayName: Purrcast
         CFBundleDevelopmentRegion: en
+        # purrcast://event — the App Store event card's Open (home, where the event banner is)
+        CFBundleURLTypes: [{CFBundleURLName: app.purrcast.ios, CFBundleURLSchemes: [purrcast]}]
         UILaunchScreen: {}
         UIAppFonts: [PurrcastPixel-Medium.ttf]
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]

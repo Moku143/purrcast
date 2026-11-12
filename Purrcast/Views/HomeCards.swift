@@ -273,7 +273,7 @@ struct PromoBanner: View {
         return HStack(alignment: .center, spacing: 12) {
             art(e.char)
             VStack(alignment: .leading, spacing: 5) {
-                Text(got ? L("선물을 받았어요") : L("%@ 선물 이벤트", model.name(of: e.char))).font(.px(15))
+                Text(got ? L("선물을 받았어요") : L(e.launch ? "출시 기념 %@ 선물" : "%@ 선물 이벤트", model.name(of: e.char))).font(.px(15))
                 Text(got ? L("캐릭터에서 언제든 골라요") : L("%@까지 앱을 연 분께 드려요", e.lastDay)).font(.ui(12))
                 Text(!got || !cloud.enabled ? L("iCloud에 보관을 켜야 앱을 지워도 남아요")
                      : keeps ? L("iCloud에 보관돼서 다시 설치해도 남아요") : L("iCloud에 로그인하면 보관돼요"))

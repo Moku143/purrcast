@@ -120,6 +120,8 @@ struct RootView: View {
             }
         }
         .animation(Motion.gentle, value: model.onboarded)
+        // purrcast://event (the App Store event card): home with the event banner, any open page closed
+        .onOpenURL { url in if url.scheme == "purrcast" { day = nil; route = nil } }
         .sheet(item: $route) { r in
             switch r {
             case .character: CharacterSheet(route: $route).presentationDetents([.medium, .large]).presentationCornerRadius(28)

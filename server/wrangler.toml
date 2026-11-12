@@ -18,7 +18,7 @@ WEATHERKIT_SERVICE_ID = "app.purrcast.ios"   # the WeatherKit service id = the a
 # /health?deep=1 calls every upstream source: off unless set to "on" for a first deploy
 DEEP_CHECK = "off"
 # The gift event (/v1/promo → the app's home banner, Promo.swift): off until set. At release, e.g.
-# PROMO = '{"id":"capy-2026","char":"capy","start":"2026-12-01T00:00:00+09:00","end":"2027-01-01T00:00:00+09:00"}'
+# PROMO = '{"id":"capy-2026","char":"capy","kind":"launch","start":"2026-12-01T00:00:00+09:00","end":"2027-01-01T00:00:00+09:00"}'
 
 # Rate limits (Workers Rate Limiting binding, wrangler 4.36+; per Cloudflare location, approximate).
 # One device: its own id, so phones sharing a mobile carrier's IP do not limit each other.

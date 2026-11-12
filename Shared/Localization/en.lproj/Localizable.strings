@@ -896,6 +896,7 @@
 
 /* 이벤트 · 받은 캐릭터 · iCloud에 보관 (첫 화면) */
 "%@ 선물 이벤트" = "Gift event: %@";
+"출시 기념 %@ 선물" = "Launch gift: %@";
 "%@까지 앱을 연 분께 드려요" = "Free for everyone who opens the app by %@";
 "iCloud에 보관을 켜야 앱을 지워도 남아요" = "Turn on Keep in iCloud to keep it after deleting the app";
 "받기" = "Get";

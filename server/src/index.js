@@ -307,8 +307,8 @@ export function adsConfig(env) {
   try { return { ...base, ...(env.ADS_CONFIG ? JSON.parse(env.ADS_CONFIG) : {}) }; } catch { return base; }
 }
 
-/** The gift event: PROMO (a JSON var), e.g. {"id":"capy-2026","char":"capy","start":"2026-12-01T00:00:00+09:00",
- * "end":"2027-01-01T00:00:00+09:00"}. Everyone who opens the app between start and end can take the character for good.
+/** The gift event: PROMO (a JSON var), e.g. {"id":"capy-2026","char":"capy","kind":"launch",
+ * "start":"2026-12-01T00:00:00+09:00","end":"2027-01-01T00:00:00+09:00"} (kind "launch": the banner says 출시 기념). Everyone who opens the app between start and end can take the character for good.
  * Off ({active:false}) without PROMO, with a broken one, before start and from end on. */
 const GIFT_CHARS = new Set(['abys', 'brit', 'capy']);
 export function promoAnswer(env, now = Date.now()) {
@@ -317,7 +317,7 @@ export function promoAnswer(env, now = Date.now()) {
   const start = Date.parse(p?.start ?? ''), end = Date.parse(p?.end ?? '');
   if (!p || typeof p.id !== 'string' || !p.id || !GIFT_CHARS.has(p.char) || !Number.isFinite(end)) return { active: false };
   if ((Number.isFinite(start) && now < start) || now >= end) return { active: false };
-  return { active: true, id: p.id, char: p.char, end: new Date(end).toISOString() };
+  return { active: true, id: p.id, char: p.char, ...(p.kind === 'launch' ? { kind: 'launch' } : {}), end: new Date(end).toISOString() };
 }
 
 function json(body, status = 200, extra = {}) {

@@ -1374,4 +1374,6 @@ test('HTTP: /v1/promo is off without PROMO, on only between its dates, off when 
   assert.deepEqual(promoAnswer({ PROMO: '{"id":"x","char":"cat","end":"2099-01-01T00:00:00Z"}' }), { active: false }, 'the cat is free already');
   assert.deepEqual(promoAnswer({ PROMO: '{"id":"x","char":"capy"}' }), { active: false }, 'no end date');
   assert.equal(promoAnswer({ PROMO: '{"id":"x","char":"capy","end":"2099-01-01T00:00:00Z"}' }).active, true, 'no start: from now');
+  assert.equal(promoAnswer({ PROMO: '{"id":"x","char":"capy","kind":"launch","end":"2099-01-01T00:00:00Z"}' }).kind, 'launch', '출시 기념');
+  assert.equal(promoAnswer({ PROMO: '{"id":"x","char":"capy","kind":"oops","end":"2099-01-01T00:00:00Z"}' }).kind, undefined);
 });

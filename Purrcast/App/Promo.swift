@@ -11,6 +11,8 @@ final class Promo: ObservableObject {
     struct Event: Equatable {
         var id: String
         var char: PurrCharacter
+        /// the app's launch (the banner says 출시 기념)
+        var launch = false
         /// the first moment after the event (the banner shows the day before it)
         var end: Date
         /// "12월 31일" in the app's language: the event's last day
@@ -34,7 +36,7 @@ final class Promo: ObservableObject {
         // screenshots: -promo capy is an event ending in 30 days; otherwise none while testing
         let a = ProcessInfo.processInfo.arguments
         if let i = a.firstIndex(of: "-promo"), i + 1 < a.count, let c = PurrCharacter(rawValue: a[i + 1]), c.isPlus {
-            event = Event(id: "debug-\(c.rawValue)", char: c, end: Calendar.current.date(byAdding: .day, value: 30, to: Calendar.current.startOfDay(for: Date())) ?? Date())
+            event = Event(id: "debug-\(c.rawValue)", char: c, launch: true, end: Calendar.current.date(byAdding: .day, value: 30, to: Calendar.current.startOfDay(for: Date())) ?? Date())
             closed = []
             return
         }
@@ -47,13 +49,14 @@ final class Promo: ObservableObject {
         event = Self.decode(data)
     }
 
-    /// The server's answer: {"active":true,"id":"capy-2026","char":"capy","end":"2026-12-31T15:00:00.000Z"} or {"active":false}
+    /// The server's answer: {"active":true,"id":"capy-2026","char":"capy","kind":"launch","end":"2026-12-31T15:00:00.000Z"}
+    /// or {"active":false}
     nonisolated static func decode(_ data: Data, now: Date = Date()) -> Event? {
-        struct Answer: Decodable { var active: Bool; var id: String?; var char: String?; var end: String? }
+        struct Answer: Decodable { var active: Bool; var id: String?; var char: String?; var kind: String?; var end: String? }
         guard let a = try? JSONDecoder().decode(Answer.self, from: data), a.active, let id = a.id, !id.isEmpty,
               let c = a.char.flatMap(PurrCharacter.init(rawValue:)), c.isPlus,
               let e = a.end.flatMap(date), e > now else { return nil }
-        return Event(id: id, char: c, end: e)
+        return Event(id: id, char: c, launch: a.kind == "launch", end: e)
     }
 
     nonisolated private static func date(_ s: String) -> Date? {
