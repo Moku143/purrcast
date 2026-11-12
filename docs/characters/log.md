@@ -1237,3 +1237,16 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 확인: base 윤곽을 빨갛게 겹쳐 비교 — 2·3·4는 머리 윗선·머리 폭·발 위치가 거의 그대로(윗선 ±1px, 아래 −5px),
   0(2번)·1도 평평한 윗선 유지. 다시 그리기 조건(윗선 바뀜·옷 틀림) 해당 없음 → 다시 그리기 없음.
 - 원본 1087×1446(base 1087×1447) 크기로 캡처: 150% 세로 타일 4장(UI 숨김) → 배율 약 1.233.
+
+## 2026-11-12 13:02 · 주인: "얼굴 크기 좀만 줄여서 시안 다시, 이마 동글한 버전도" → 옷 5~14 멈춤, 머리 작게 시안 4장
+- 기준이 바뀔 수 있어 옷 5~14는 멈춤(0~4는 기록으로 둠).
+- 시안 4장, 각각 한 장 편집(첨부는 그 기준 그림 하나만):
+  A `capy/m11/base.png`(평평한 이마) → 머리 약 8% 작게 · B 같은 그림 → 약 15% 작게
+  C `capy/m11/base-round.png`(= m10-cand4-noyuzu, 둥근 이마) → 약 8% 작게 · D 같은 그림 → 약 15% 작게
+- 문구 ({N} = 8 또는 15, {TOP} = "flat, nearly straight top between the ears" 또는 "softly rounded top"):
+  'Edit this picture. Make ONLY the head a little smaller - about {N}% smaller in both width and height - with
+  everything on it scaled together (ears, eyes, muzzle and nostrils keep their places on the face). The head keeps
+  exactly its shape with its {TOP}, its one uniform fur colour and its outline. The body, sweatshirt, arms, legs
+  and feet stay exactly the same size and in the same place, and the head still sits right on the collar. Same
+  pixel-art style, same background.'
+- 결과 → `capy/m12/m12-{A,B,C,D}.png` (원본 크기 캡처, 1차 그대로).
