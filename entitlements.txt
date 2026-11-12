@@ -1,0 +1,11 @@
+run=43217347842 build=83 Thu Nov 12 12:28:40 UTC 2026
+STORE_SUBMISSION: yes (submission build — the test Plus is compiled out)
+APP GROUP: in the build
+== app.purrcast.ios.widgets
+{"application-identifier":"9865Z67LR4.app.purrcast.ios.widgets","beta-reports-active":true,"get-task-allow":false,"com.apple.developer.team-identifier":"9865Z67LR4","com.apple.security.application-groups":["group.app.purrcast"]}
+== app.purrcast.ios.watchkitapp.widgets
+{"application-identifier":"9865Z67LR4.app.purrcast.ios.watchkitapp.widgets","beta-reports-active":true,"get-task-allow":false,"com.apple.developer.team-identifier":"9865Z67LR4","com.apple.security.application-groups":["group.app.purrcast.watch"]}
+== app.purrcast.ios.watchkitapp
+{"application-identifier":"9865Z67LR4.app.purrcast.ios.watchkitapp","beta-reports-active":true,"get-task-allow":false,"com.apple.developer.team-identifier":"9865Z67LR4","com.apple.security.application-groups":["group.app.purrcast.watch"]}
+== app.purrcast.ios
+{"get-task-allow":false,"com.apple.developer.icloud-container-identifiers":["iCloud.app.purrcast.ios"],"com.apple.developer.team-identifier":"9865Z67LR4","application-identifier":"9865Z67LR4.app.purrcast.ios","beta-reports-active":true,"com.apple.developer.icloud-container-environment":"Production","com.apple.security.application-groups":["group.app.purrcast"],"com.apple.developer.icloud-services":["CloudKit"],"aps-environment":"production"}
