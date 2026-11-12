@@ -1,19 +1,22 @@
 # A version for App Review (scripts/asc-release.mjs): check what App Store Connect has, apply the texts from
-# docs/store/release-<version>.json and attach the build, or submit. Submitting needs the owner's go-ahead.
+# docs/store/release-<version>.json and attach the build, or submit. With mode event-*: the App Store event card
+# (scripts/asc-event.mjs: event-check · event-draft · event-schedule (version = START, build = END) · event-submit).
+# Submitting needs the owner's go-ahead.
 # The result goes to the release-output branch (release.txt), since logs cannot be read from the agent.
 name: asc-release
 on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'check · apply · submit'
+        description: 'check · apply · submit · event-check · event-draft · event-schedule · event-submit'
         required: true
         default: 'check'
       version:
-        description: 'Version, e.g. 1.2.1'
-        required: true
+        description: 'Version, e.g. 1.2.1 (event-schedule: the start, e.g. 2026-11-14T00:00:00+09:00)'
+        required: false
+        default: ''
       build:
-        description: 'Build number to attach (apply; default: the newest processed one)'
+        description: 'Build number to attach (apply; default: the newest processed one; event-schedule: the end)'
         required: false
         default: ''
 permissions:
@@ -35,7 +38,10 @@ jobs:
           BUILD: ${{ github.event.inputs.build }}
         run: |
           mkdir -p out
-          node scripts/asc-release.mjs "$MODE" "$VERSION" $BUILD 2>&1 | tee out/release.txt
+          case "$MODE" in
+            event-*) node scripts/asc-event.mjs "${MODE#event-}" $VERSION $BUILD 2>&1 | tee out/release.txt ;;
+            *) node scripts/asc-release.mjs "$MODE" "$VERSION" $BUILD 2>&1 | tee out/release.txt ;;
+          esac
           echo "run=${{ github.run_id }} mode=$MODE version=$VERSION build=$BUILD $(date -u)" > out/RUN.txt
           cat out/release.txt >> "$GITHUB_STEP_SUMMARY"
       - name: Publish

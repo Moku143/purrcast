@@ -1,0 +1,88 @@
+{
+ "referenceName": "capy-launch",
+ "badge": "SPECIAL_EVENT",
+ "deepLink": "purrcast://event",
+ "purchaseRequirement": "NO_COST_ASSOCIATED",
+ "primaryLocale": "en-US",
+ "priority": "HIGH",
+ "purpose": "APPROPRIATE_FOR_ALL_USERS",
+ "card": "docs/store/in-app-event/card-1920x1080.png",
+ "details": "docs/store/in-app-event/details-1080x1920.png",
+ "localizations": {
+  "ko": {
+   "name": "출시 기념 카피바라 선물",
+   "shortDescription": "앱 출시 기념, 기간 안에 앱을 열면 카피바라를 드려요",
+   "longDescription": "앱 출시 기념 이벤트예요. 기간 안에 앱을 열고 받기를 누르면 카피바라를 계속 쓸 수 있어요. iCloud에 보관을 켜 두면 다시 설치해도 남아요."
+  },
+  "en-US": {
+   "name": "Launch Gift: Capybara",
+   "shortDescription": "Celebrate our launch with a free Capybara",
+   "longDescription": "To celebrate our launch, open the app during the event and tap Get to keep the Capybara. Keep in iCloud keeps it safe."
+  },
+  "ja": {
+   "name": "リリース記念カピバラプレゼント",
+   "shortDescription": "リリース記念。期間中にアプリを開くとカピバラをプレゼント",
+   "longDescription": "リリース記念イベントです。期間中にアプリを開いて「受け取る」を押すと、カピバラをずっと使えます。「iCloudに保存」をオンにすると再インストールしても残ります。"
+  },
+  "zh-Hans": {
+   "name": "上线纪念：水豚礼物",
+   "shortDescription": "庆祝上线，活动期间打开应用即可获得水豚",
+   "longDescription": "庆祝应用上线。活动期间打开应用并点按“领取”，即可一直使用水豚。开启“保存到 iCloud”，重新安装后也会保留。"
+  },
+  "zh-Hant": {
+   "name": "上架紀念：水豚禮物",
+   "shortDescription": "慶祝上架，活動期間開啟 App 即可獲得水豚",
+   "longDescription": "慶祝 App 上架。活動期間開啟 App 並點一下「領取」，即可一直使用水豚。開啟「儲存到 iCloud」，重新安裝後也會保留。"
+  },
+  "de-DE": {
+   "name": "Launch-Geschenk: Capybara",
+   "shortDescription": "Zum Start gibt es das Capybara gratis",
+   "longDescription": "Zum Start: Öffne die App während der Aktion und tippe auf Holen – das Capybara bleibt dir. iCloud hält es fest."
+  },
+  "es-ES": {
+   "name": "Lanzamiento: Capibara gratis",
+   "shortDescription": "Celebra el lanzamiento con un Capibara gratis",
+   "longDescription": "Por el lanzamiento, abre la app durante el evento y toca Recibir para quedarte el Capibara. iCloud lo conserva."
+  },
+  "fr-FR": {
+   "name": "Lancement : Capybara offert",
+   "shortDescription": "Pour fêter le lancement, un Capybara offert",
+   "longDescription": "Pour le lancement, ouvrez l'app pendant l'événement et touchez Recevoir pour garder le Capybara. Gardez-le dans iCloud."
+  },
+  "it": {
+   "name": "Lancio: Capibara in regalo",
+   "shortDescription": "Per il lancio, un Capibara in regalo",
+   "longDescription": "Per il lancio, apri l'app durante l'evento e tocca Ricevi per tenere il Capibara. Conserva in iCloud lo protegge."
+  },
+  "pt-BR": {
+   "name": "Lançamento: Capivara grátis",
+   "shortDescription": "Para celebrar o lançamento, uma Capivara grátis",
+   "longDescription": "Para celebrar o lançamento, abra o app durante o evento e toque em Receber para ficar com a Capivara. Guarde no iCloud."
+  },
+  "ru": {
+   "name": "Подарок к запуску: Капибара",
+   "shortDescription": "В честь запуска — Капибара в подарок",
+   "longDescription": "В честь запуска откройте приложение во время акции и нажмите «Получить» — Капибара останется с вами. Храните в iCloud."
+  },
+  "id": {
+   "name": "Hadiah Peluncuran: Kapibara",
+   "shortDescription": "Rayakan peluncuran dengan Kapibara gratis",
+   "longDescription": "Rayakan peluncuran: buka aplikasi selama acara dan ketuk Ambil agar Kapibara jadi milikmu. Simpan di iCloud agar aman."
+  },
+  "es-MX": {
+   "name": "Lanzamiento: Capibara gratis",
+   "shortDescription": "Celebra el lanzamiento con un Capibara gratis",
+   "longDescription": "Por el lanzamiento, abre la app durante el evento y toca Recibir para quedarte el Capibara. iCloud lo conserva."
+  },
+  "pt-PT": {
+   "name": "Lançamento: Capivara grátis",
+   "shortDescription": "Para celebrar o lançamento, uma Capivara grátis",
+   "longDescription": "Para celebrar o lançamento, abra o app durante o evento e toque em Receber para ficar com a Capivara. Guarde no iCloud."
+  },
+  "fr-CA": {
+   "name": "Lancement : Capybara offert",
+   "shortDescription": "Pour fêter le lancement, un Capybara offert",
+   "longDescription": "Pour le lancement, ouvrez l'app pendant l'événement et touchez Recevoir pour garder le Capybara. Gardez-le dans iCloud."
+  }
+ }
+}
