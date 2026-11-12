@@ -1482,3 +1482,14 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   lower part of the sweater only; the star can be hidden. No text, no extra objects, no shadow, nothing else changed."
 - 결과 → `capy/m16/m16-gift.png` (원본 크기). 얼굴·몸이 바뀌면 한 번만 다시.
 - 18:4x 1차 `https://chatgpt.com/c/6af5893f-e844-83ec-aff8-862a81a558b3` → 그대로 씀. 확인: 머리·얼굴 실루엣 IoU 0.99, 다리·발 0.96, 털색·검은 테두리·배경 같음; 바뀐 건 팔뿐(양 앞발로 상자를 배 앞에 듦, 소매가 몸 앞으로 와서 전체 폭 832→658px), 상자 빨강 (246,101,77)·노란 리본·나비매듭·검은 테두리, 별은 가려짐, 글자·그림자 없음 → 다시 그리기 없음. 원본 크기 1087×1447로 캡처 → `capy/m16/m16-gift.png`.
+
+## 2026-11-12 18:4x · 선물 이벤트 (앱 + 서버, 배포 전)
+- m16 그림 → `tools/build_singles.py` (base-A 기준 같은 배율 0.378, 서기 그림과 머리 크기·자리 같음) → 그림 상자로 잘라
+  `Assets.xcassets/promo-gift-capy` (253×408) · `capy/assets/promo-gift-capy.png`.
+- 서버 `/v1/promo`: `PROMO` 변수(JSON: id · char · start · end)의 기간 안에만 `{active:true,id,char,end}`, 아니면 `{active:false}`.
+  지금은 꺼져 있음(변수 없음). 출시일에 시작·끝 날짜를 넣어 배포(주인 확인 후).
+- 앱: 홈 날씨 그림 바로 아래 배너(받기 → 카피바라를 받고 골라서 캐릭터 창 열림; 받은 뒤엔 iCloud 보관 여부 한 줄, 꺼져 있으면 켜기),
+  ×로 닫기. 받은 캐릭터는 Plus가 없어도·끝나도 계속(위젯·워치·앱 아이콘도). iCloud에 보관이 켜져 있으면 개인 iCloud에
+  작은 기록(gift_capy)으로 저장 → 다시 설치하거나 새 폰에서 돌아옴.
+- 첫 화면에 'iCloud에 보관' 단계(알림 다음, Plus 앞): 날씨 달력 · 받은 캐릭터를 보관한다고 적고 [iCloud에 보관하기 / 나중에].
+- 12개 언어 문구, 단위 테스트, 화면 테스트 test30Promo.

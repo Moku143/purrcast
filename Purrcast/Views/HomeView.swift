@@ -59,6 +59,7 @@ struct HomeView: View {
                     VStack(spacing: 12) {
                         heroScaled(s, ink: ink, level: lv, width: width, topInset: topInset)
                             .parallaxHero()
+                        PromoBanner(ink: ink) { route = .character }
                         if let e = model.lastError { notice(e, ink: ink).transition(.move(edge: .top).combined(with: .opacity)) }
                         if let a = s.alert { AlertBanner(alert: a, night: ink.night).reveal(0).settleInScroll() }
                         cards(s, ink: ink)

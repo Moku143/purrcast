@@ -20,13 +20,15 @@ struct WeatherSnapshot: Codable {
     var lang: String? = nil             // 설정 → 언어 on the phone ("" = the device's); the watch follows it
     var windUnit: String = "m/s"        // 설정 → 바람 단위: m/s · km/h · mph (the lock-screen wind circle)
     var stale: Bool = false             // aged past the forecast's end (set by aged(at:), never saved)
+    var gifts: [PurrCharacter] = []     // characters given in an event (Promo.swift): theirs for good, Plus or not
 
     init(scene: WeatherScene, character: PurrCharacter, plus: Bool, characterName: String, placeShort: String, saved: Date,
          place: Place? = nil, plusUntil: Date? = nil, unitF: Bool = false, clock12: Bool = false, isSample: Bool = false, lang: String? = nil,
-         windUnit: String = "m/s") {
+         windUnit: String = "m/s", gifts: [PurrCharacter] = []) {
         self.scene = scene; self.character = character; self.plus = plus; self.characterName = characterName
         self.placeShort = placeShort; self.saved = saved; self.place = place; self.plusUntil = plusUntil
         self.unitF = unitF; self.clock12 = clock12; self.isSample = isSample; self.lang = lang; self.windUnit = windUnit
+        self.gifts = gifts
     }
 
     init(from decoder: Decoder) throws {
@@ -45,12 +47,13 @@ struct WeatherSnapshot: Codable {
         lang = try? c.decode(String.self, forKey: .lang)
         windUnit = (try? c.decode(String.self, forKey: .windUnit)) ?? "m/s"
         stale = (try? c.decode(Bool.self, forKey: .stale)) ?? false
+        gifts = ((try? c.decode([String].self, forKey: .gifts)) ?? []).compactMap(PurrCharacter.init(rawValue:))
     }
 
     /// Plus, unless the paid period has ended since the app last ran.
     var plusActive: Bool { plus && (plusUntil.map { $0 > Date() } ?? true) }
-    /// Free plan always shows the cat.
-    var shownCharacter: PurrCharacter { plusActive ? character : .cat }
+    /// Free plan shows the cat, or a character given in an event.
+    var shownCharacter: PurrCharacter { character.owned(plus: plusActive, gifts: Set(gifts)) ? character : .cat }
 
     /// The placeholder before the app has handed over anything (`waiting`): none of its numbers are real
     var isWaiting: Bool { isSample && saved == .distantPast }

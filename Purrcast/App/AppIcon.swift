@@ -10,8 +10,8 @@ enum AppIcon {
     struct Choice: Identifiable, Hashable {
         let id: String
         let title: String
-        /// a Plus character's icon (아비시니안 · 브리티시숏헤어 · 카피바라)
-        var plus = false
+        /// the character under the umbrella (a Plus one's icon needs Plus, or the character given in an event)
+        var char: PurrCharacter? = nil
         /// the sun faces: the icon is the shown character's
         var follows: Bool { id.hasPrefix("sun-") }
         /// nil = the app's own icon
@@ -37,7 +37,7 @@ enum AppIcon {
     }
 
     static var characters: [Choice] {
-        PurrCharacter.allCases.map { Choice(id: "rain-\($0.rawValue)", title: $0.defaultName, plus: $0.isPlus) }
+        PurrCharacter.allCases.map { Choice(id: "rain-\($0.rawValue)", title: $0.defaultName, char: $0) }
     }
 
     /// The choice behind an icon name (a sun face of any character → its sky's choice).
@@ -87,9 +87,9 @@ enum AppIcon {
     }
     #endif
 
-    /// The Plus characters' umbrella icons go back to the app's own icon when Plus ends.
-    @MainActor static func dropPlusIcon(plus: Bool) {
-        guard !plus, characters.contains(where: { $0.plus && $0.id == current }) else { return }
+    /// A Plus character's umbrella icon goes back to the app's own icon when Plus ends (unless it was given in an event).
+    @MainActor static func dropPlusIcon(owns: (PurrCharacter) -> Bool) {
+        guard characters.contains(where: { $0.id == current && $0.char.map(owns) == false }) else { return }
         UIApplication.shared.setAlternateIconName(nil) { _ in }
     }
 }
@@ -137,7 +137,7 @@ struct AppIconView: View {
 
     private func tile(_ c: AppIcon.Choice) -> some View {
         let on = current == c.id
-        let locked = c.plus && !model.plus
+        let locked = c.char.map { !model.owns($0) } ?? false
         return Button {
             Haptic.select()
             if locked {

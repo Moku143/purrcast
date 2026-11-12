@@ -688,7 +688,7 @@ final class ScreenshotTests: XCTestCase {
     /// First run with the 이전 button, the fuller widget and watch pages; the merged rain slide of the Plus page
     func test18Onboard() {
         for lang in ["ko", "en", "ja"] {
-            for st in 0...7 { shot("onb-\(lang)-\(st)", ["-scene", "spring_rain", "-onboarding", "-onbStep", String(st)], wait: 3, lang: lang) }
+            for st in 0...8 { shot("onb-\(lang)-\(st)", ["-scene", "spring_rain", "-onboarding", "-onbStep", String(st)], wait: 3, lang: lang) }
             shot("plus-\(lang)-rain", ["-scene", "maybe", "-open", "paywall"], wait: 3, lang: lang) { app in app.swipeLeft(); sleep(2) }
         }
         shot("onb-back", ["-scene", "spring_rain", "-onboarding", "-onbStep", "2"], wait: 3) { app in app.buttons["back"].firstMatch.tap(); sleep(1) }
@@ -707,7 +707,34 @@ final class ScreenshotTests: XCTestCase {
             for _ in 0..<10 { app.swipeLeft(); usleep(600_000) }   // 캐릭터 바꾸기 is the last slide
             sleep(1)
         }
-        shot("capy-onb-plus", ["-scene", "maybe", "-onboarding", "-onbStep", "7"], wait: 3)
+        shot("capy-onb-plus", ["-scene", "maybe", "-onboarding", "-onbStep", "8"], wait: 3)
+    }
+
+    /// The gift event (-promo capy: one ending in 30 days): the home banner before and after 받기 (Free), 받기 itself
+    /// (the character sheet opens with the capybara picked), at night, in English and Japanese, on Plus; and the
+    /// onboarding's iCloud page.
+    func test30Promo() {
+        shot("promo-home", ["-scene", "maybe", "-promo", "capy"])
+        shot("promo-get", ["-scene", "maybe", "-promo", "capy"], wait: 2) { app in
+            app.buttons["promo-get"].firstMatch.tap(); sleep(2)
+        }
+        shot("promo-home-got", ["-scene", "maybe", "-promo", "capy", "-gift", "capy", "-char", "capy"])
+        shot("promo-home-got-character", ["-scene", "maybe", "-promo", "capy", "-gift", "capy", "-char", "capy", "-open", "character"], wait: 2)
+        shot("promo-home-night", ["-scene", "winter_cold", "-promo", "capy", "-appearance", "dark"])
+        shot("promo-home-plus", ["-scene", "spring_rain", "-plus", "-char", "abys", "-promo", "capy"])
+        shot("promo-home-closed", ["-scene", "maybe", "-promo", "capy"], wait: 2) { app in
+            app.buttons["promo-close"].firstMatch.tap(); sleep(1)
+        }
+        for lang in ["en", "ja", "de"] {
+            shot("promo-home-\(lang)", ["-scene", "maybe", "-promo", "capy"], lang: lang)
+            shot("promo-home-got-\(lang)", ["-scene", "maybe", "-promo", "capy", "-gift", "capy", "-char", "capy"], lang: lang)
+        }
+        shot("onb-cloud", ["-scene", "maybe", "-onboarding", "-onbStep", "7"], wait: 3)
+        shot("onb-cloud-en", ["-scene", "maybe", "-onboarding", "-onbStep", "7"], wait: 3, lang: "en")
+        shot("settings-cloud", ["-scene", "maybe", "-gift", "capy", "-open", "settings"], wait: 2) { app in
+            for _ in 0..<3 { app.swipeUp(); usleep(500_000) }
+            sleep(1)
+        }
     }
 
     func test10Layout() {

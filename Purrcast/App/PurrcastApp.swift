@@ -58,7 +58,8 @@ struct PurrcastApp: App {
                     await purchases.load()
                     syncPlan()
                     await model.refresh(force: true)
-                    await CloudLog.shared.sync(model: model, force: true)    // 날씨 기록 ⇄ the person's iCloud
+                    await Promo.shared.load()      // a gift event on the server: the home banner
+                    await CloudLog.shared.sync(model: model, force: true)    // 날씨 기록 · 받은 캐릭터 ⇄ the person's iCloud
                 }
                 .onChange(of: phase) { _, p in
                     // going away: ask for a best-effort wake near midnight, so the day closes with where the phone is
@@ -71,13 +72,14 @@ struct PurrcastApp: App {
                         Ads.shared.foreground()
                         AppIcon.follow(model.shownCharacter)
                         await model.refresh()
+                        await Promo.shared.load()
                         await CloudLog.shared.sync(model: model)
                     }
                 }
                 // the sun-face icon is the character shown; a Plus character's umbrella icon goes back to the
                 // app's own icon when Plus ends
                 .onChange(of: model.shownCharacter) { _, c in AppIcon.follow(c) }
-                .onChange(of: model.plus) { _, p in AppIcon.dropPlusIcon(plus: p) }
+                .onChange(of: model.plus) { _, _ in AppIcon.dropPlusIcon { model.owns($0) } }
                 .onChange(of: purchases.active) { _, _ in syncPlan() }
                 .onChange(of: purchases.expires) { _, _ in syncPlan() }
                 .onChange(of: purchases.willRenew) { _, _ in syncPlan() }      // the widgets' allowance follows auto-renew

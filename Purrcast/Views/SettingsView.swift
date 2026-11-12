@@ -192,7 +192,7 @@ struct SettingsView: View {
                 RowDivider()
                 Button { go(.character) } label: {
                     SettingRow(icon: "heart", title: L("캐릭터"), subtitle: Voice.choices.isEmpty ? nil : L("이름 · 말투")) {
-                        if model.plus { RowValue(text: model.name(of: model.shownCharacter)) } else { PlusTag() }
+                        if model.plus || model.gifts.contains(model.shownCharacter) { RowValue(text: model.name(of: model.shownCharacter)) } else { PlusTag() }
                     }
                 }.buttonStyle(.row)
                 RowDivider()
@@ -250,7 +250,7 @@ struct SettingsView: View {
     private var cloudLine: String {
         switch cloud.status {
         case .off: return L("이 폰에만 보관해요")
-        case .idle: return L("폰을 바꾸거나 앱을 다시 설치해도 날씨 달력이 그대로 남아요")
+        case .idle: return L("폰을 바꾸거나 앱을 다시 설치해도 날씨 달력과 받은 캐릭터가 그대로 남아요")
         case .syncing: return L("iCloud에 보관하는 중…")
         case .saved(let t): return L("iCloud에 보관했어요 · %@", Self.when(t))
         case .noAccount: return L("iCloud에 로그인하면 보관돼요")

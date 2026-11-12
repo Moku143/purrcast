@@ -45,7 +45,7 @@ struct CharacterSheet: View {
 
     private func tile(_ c: PurrCharacter) -> some View {
         let selected = model.shownCharacter == c
-        let locked = c.isPlus && !model.plus
+        let locked = !model.owns(c)
         return VStack(spacing: 0) {
             Button { pick(c) } label: {
                 CharacterSprite(character: c, level: level, rain: .none, width: 104, animate: selected)
@@ -190,7 +190,7 @@ struct CharacterSheet: View {
 
     private func pick(_ c: PurrCharacter) {
         if editing != nil { saveName() }
-        if c.isPlus && !model.plus { Haptic.soft(); open(.paywall); return }
+        if !model.owns(c) { Haptic.soft(); open(.paywall); return }
         Haptic.success()
         withAnimation(Motion.bouncy) { model.character = c }
     }

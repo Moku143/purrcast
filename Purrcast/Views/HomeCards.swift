@@ -252,6 +252,85 @@ struct PlusPromoCard: View {
     }
 }
 
+/// 이벤트 (Promo): a character as a gift, right under the hero. Before taking it: what it is, until when, and that
+/// iCloud에 보관 keeps it past a reinstall; 받기 takes it, picks it and opens 캐릭터. After: taken, and whether iCloud
+/// keeps it (켜기 while 보관 is off). × closes it for this event.
+struct PromoBanner: View {
+    @EnvironmentObject var model: AppModel
+    @ObservedObject private var promo = Promo.shared
+    @ObservedObject private var cloud = CloudLog.shared
+    let ink: Ink
+    /// 받기: the character sheet, with the gift picked
+    let opened: () -> Void
+
+    var body: some View {
+        if let e = promo.banner { card(e) }
+    }
+
+    private func card(_ e: Promo.Event) -> some View {
+        let got = model.gifts.contains(e.char)
+        let keeps = cloud.enabled && cloud.status != .noAccount
+        return HStack(alignment: .center, spacing: 12) {
+            art(e.char)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(got ? L("선물을 받았어요") : L("%@ 선물 이벤트", model.name(of: e.char))).font(.px(15))
+                Text(got ? L("캐릭터에서 언제든 골라요") : L("%@까지 앱을 연 분께 드려요", e.lastDay)).font(.ui(12))
+                Text(!got || !cloud.enabled ? L("iCloud에 보관을 켜야 앱을 지워도 남아요")
+                     : keeps ? L("iCloud에 보관돼서 다시 설치해도 남아요") : L("iCloud에 로그인하면 보관돼요"))
+                    .font(.ui(11)).foregroundStyle(ink.sub)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.trailing, got && cloud.enabled ? 18 : 0)      // clear of the × when no button sits there
+            if !got {
+                pill(L("받기"), id: "promo-get") {
+                    Haptic.success()
+                    model.receive(e.char)
+                    model.character = e.char
+                    Task { await CloudLog.shared.sync(model: model, force: true) }
+                    opened()
+                }
+            } else if !cloud.enabled {
+                pill(L("켜기"), id: "promo-cloud") { Haptic.soft(); cloud.enabled = true }
+            }
+        }
+        .padding(.leading, 12).padding(.trailing, 14).padding(.vertical, 12)
+        .padding(.top, 6)
+        .background(ink.night ? Color(hex: "#FFAA78").opacity(0.13) : Color(hex: "#FFF4E8").opacity(0.85))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(ink.night ? Color(hex: "#FFBE8C").opacity(0.28) : Color.white.opacity(0.85), lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(alignment: .topTrailing) {
+            Button { Haptic.soft(); withAnimation(Motion.gentle) { promo.close(e) } } label: {
+                Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundStyle(ink.sub)
+                    .frame(width: 22, height: 22).background(ink.btn).clipShape(Circle())
+                    .frame(width: 44, height: 44).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain).offset(x: 8, y: -8).accessibilityIdentifier("promo-close").accessibilityLabel(L("닫기"))
+        }
+        .shadow(color: Color(hex: "#1E2A44").opacity(ink.night ? 0 : 0.08), radius: 9, y: 6)
+        .accessibilityElement(children: .contain).accessibilityIdentifier("promo")
+        .reveal(0).settleInScroll()
+        .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+
+    /// The event's picture (the character holding a gift); the plain standing sprite until one is in the catalog
+    @ViewBuilder private func art(_ c: PurrCharacter) -> some View {
+        if UIImage(named: "promo-gift-\(c.rawValue)") != nil {
+            Image("promo-gift-\(c.rawValue)").resizable().interpolation(.high).scaledToFit().frame(width: 56, height: 86)
+        } else {
+            CharacterSprite(character: c, level: 5, rain: .none, width: 74, animate: false).frame(width: 56, height: 86).clipped()
+        }
+    }
+
+    private func pill(_ t: String, id: String, _ a: @escaping () -> Void) -> some View {
+        Button(action: a) {
+            Text(t).font(.px(13)).foregroundStyle(.white).lineLimit(1)
+                .padding(.horizontal, 14).padding(.vertical, 11).background(Color(hex: "#E8702E")).clipShape(RoundedRectangle(cornerRadius: 14))
+        }
+        .buttonStyle(.press(0.96)).accessibilityIdentifier(id)
+    }
+}
+
 /// Under the last card: every source used for this place, with Apple's required attribution line.
 struct HomeFooter: View {
     let scene: WeatherScene; let region: String; let isSample: Bool; let ink: Ink; let sources: () -> Void

@@ -11,6 +11,8 @@ enum PurrCharacter: String, CaseIterable, Codable, Identifiable {
         }
     }
     var isPlus: Bool { self != .cat }
+    /// Free to use: the cat always, the others with Plus or once given in an event (Promo.swift)
+    func owned(plus: Bool, gifts: Set<PurrCharacter>) -> Bool { !isPlus || plus || gifts.contains(self) }
     /// How each one talks by default: 고양이 존댓말 · 브리티시숏헤어 격식 · 아비시니안 반말 · 카피바라 존댓말 (느긋하고 다정하게)
     var defaultVoice: Voice { self == .brit ? .formal : self == .abys ? .casual : .polite }
     var faceImage: String { "\(rawValue)-face" }

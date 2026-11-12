@@ -74,6 +74,7 @@ final class CloudLog: ObservableObject {
                 model.dayLogChanged()
                 _ = try await push(ids: ids, log: model.dayLog)
             }
+            try? await gifts(model)        // tried again on the next sync when it fails
             let now = Date()
             state.saved = now
             status = .saved(now)
@@ -170,6 +171,43 @@ final class CloudLog: ObservableObject {
         return conflict
     }
 
+    // MARK: 받은 캐릭터
+
+    /// An event's gift (Promo): one small record per character in the default zone ("gift_capy"). Ones this phone
+    /// lacks but iCloud has come back — looked for once per install and account (a reinstall, a new phone) and on
+    /// every sync while an event is on (another phone took it); ones not saved yet go up.
+    private func gifts(_ model: AppModel) async throws {
+        var saved = Set(state.gifts ?? [])
+        let missing = PurrCharacter.allCases.filter { $0.isPlus && !model.gifts.contains($0) }
+        if !missing.isEmpty, state.gifts == nil || Promo.shared.event != nil {
+            let found = try await db.records(for: missing.map { Self.giftID($0) }, desiredKeys: ["month"])
+            for c in missing {
+                guard case .success? = found[Self.giftID(c)] else { continue }
+                model.receive(c)
+                saved.insert(c.rawValue)
+            }
+        }
+        let up = model.gifts.filter { !saved.contains($0.rawValue) }.map { c -> CKRecord in
+            let rec = CKRecord(recordType: Self.recordType, recordID: Self.giftID(c))
+            rec["place"] = "gift" as NSString
+            rec["month"] = c.rawValue as NSString
+            rec["v"] = 1 as NSNumber
+            return rec
+        }
+        if !up.isEmpty {
+            let res = try await db.modifyRecords(saving: up, deleting: [], savePolicy: .allKeys, atomically: false)
+            for (rid, r) in res.saveResults {
+                if case .success = r, let c = Self.giftChar(rid) { saved.insert(c.rawValue) }
+            }
+        }
+        state.gifts = saved.sorted()
+    }
+
+    nonisolated static func giftID(_ c: PurrCharacter) -> CKRecord.ID { CKRecord.ID(recordName: "gift_\(c.rawValue)") }
+    nonisolated static func giftChar(_ id: CKRecord.ID) -> PurrCharacter? {
+        id.recordName.hasPrefix("gift_") ? PurrCharacter(rawValue: String(id.recordName.dropFirst(5))) : nil
+    }
+
     // MARK: helpers
 
     /// "m_<place>_2026-11": the place id as is when it is plain ASCII, else (or when it has other signs, "kr:…",
@@ -193,6 +231,8 @@ private struct CloudState: Codable {
     var fields: [String: Data] = [:]
     var hashes: [String: String] = [:]
     var saved: Date?
+    /// the gifts saved in iCloud (optional: a state saved before gifts existed still loads)
+    var gifts: [String]?
 
     init(user: String? = nil) { self.user = user }
 

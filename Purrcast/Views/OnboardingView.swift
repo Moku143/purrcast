@@ -2,7 +2,7 @@ import SwiftUI
 import CoreLocation
 import UserNotifications
 
-/// First run: what it is · home widgets · the lock screen · watch · 날씨 달력 · location · notifications · Plus.
+/// First run: what it is · home widgets · the lock screen · watch · 날씨 달력 · location · notifications · iCloud · Plus.
 struct OnboardingView: View {
     @EnvironmentObject var model: AppModel
     @EnvironmentObject var purchases: Purchases
@@ -11,7 +11,7 @@ struct OnboardingView: View {
     private static var firstStep: Int {
         #if DEBUG
         let a = ProcessInfo.processInfo.arguments
-        if let i = a.firstIndex(of: "-onbStep"), i + 1 < a.count, let n = Int(a[i + 1]) { return max(0, min(7, n)) }
+        if let i = a.firstIndex(of: "-onbStep"), i + 1 < a.count, let n = Int(a[i + 1]) { return max(0, min(8, n)) }
         #endif
         return 0
     }
@@ -22,9 +22,9 @@ struct OnboardingView: View {
     @State private var demo = 0
     private static let demoKeys = ["spring_rain", "clear", "winter_snow", "spring_chill"]
 
-    private let count = 8
-    /// The pages with their own two buttons (location, notifications, Plus)
-    private static let placeStep = 5, alertsStep = 6, plusStep = 7
+    private let count = 9
+    /// The pages with their own two buttons (location, notifications, iCloud, Plus)
+    private static let placeStep = 5, alertsStep = 6, cloudStep = 7, plusStep = 8
 
     var body: some View {
         VStack(spacing: 0) {
@@ -37,6 +37,7 @@ struct OnboardingView: View {
                 case 4: calendar
                 case Self.placeStep: place
                 case Self.alertsStep: alerts
+                case Self.cloudStep: cloud
                 default: plus
                 }
             }
@@ -92,6 +93,11 @@ struct OnboardingView: View {
                     next()
                 }
                 secondary(L("나중에")) { model.notifyRain = false; model.notifyMorning = false; next() }
+            }
+        case Self.cloudStep:
+            VStack(spacing: 10) {
+                PrimaryButton(title: L("iCloud에 보관하기")) { CloudLog.shared.enabled = true; next() }.accessibilityIdentifier("cloud-on")
+                secondary(L("나중에")) { CloudLog.shared.enabled = false; next() }.accessibilityIdentifier("cloud-later")
             }
         case Self.plusStep:
             VStack(spacing: 10) {
@@ -347,6 +353,26 @@ struct OnboardingView: View {
                 }
             }
             .padding(.horizontal, -16)
+        }
+        .foregroundStyle(UI.ink).padding(.horizontal, 22)
+    }
+
+    /// iCloud에 보관 (CloudLog): what goes to the person's own iCloud, asked once here; 설정 › 날씨 달력 changes it later
+    private var cloud: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Circle().fill(Color.white).frame(width: 96, height: 96)
+                .overlay(Image(systemName: "icloud.fill").font(.system(size: 38, weight: .bold)).foregroundStyle(UI.accent))
+                .frame(maxWidth: .infinity).padding(.top, 40)
+            Text(L("iCloud에 보관")).font(.px(22)).padding(.top, 8)
+            Text(L("폰을 바꾸거나 앱을 다시 설치해도 그대로 남아요")).font(.system(size: 14)).foregroundStyle(UI.sub)
+            RowGroup {
+                SettingRow(icon: "star", title: L("날씨 달력"), subtitle: L("날씨를 볼 때마다 쌓이는 그날 날씨와 옷차림")) { EmptyView() }
+                RowDivider()
+                SettingRow(icon: "heart", title: L("받은 캐릭터"), subtitle: L("이벤트로 받은 캐릭터")) { EmptyView() }
+            }
+            .padding(.horizontal, -16)
+            Text(L("내 Apple 계정의 iCloud에만 보관돼요. 개발자도 볼 수 없어요.")).font(.system(size: 13)).foregroundStyle(UI.sub)
+            Text(L("설정 › 날씨 달력에서 언제든 바꿀 수 있어요.")).font(.system(size: 13)).foregroundStyle(UI.sub)
         }
         .foregroundStyle(UI.ink).padding(.horizontal, 22)
     }

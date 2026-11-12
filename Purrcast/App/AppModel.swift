@@ -32,6 +32,8 @@ final class AppModel: ObservableObject {
     } }
     @Published var plusUntil: Date? { didSet { publish() } }
     @Published var character: PurrCharacter { didSet { persist(); publish() } }
+    /// Characters given in an event (Promo.swift): kept with or without Plus, and in iCloud when 보관 is on (CloudLog)
+    @Published private(set) var gifts: Set<PurrCharacter> { didSet { persist(); publish() } }
     @Published var names: [String: String] { didSet { persist(); publish() } }
 
     // settings
@@ -130,6 +132,8 @@ final class AppModel: ObservableObject {
         plus = forcePlus || (!testing && d.bool(forKey: "plus"))
         plusUntil = nil
         character = arg("-char").flatMap(PurrCharacter.init(rawValue:)) ?? (testing ? .cat : PurrCharacter(rawValue: d.string(forKey: "character") ?? "") ?? .cat)
+        // screenshots: -gift capy (comma-separated) as if taken in the event
+        gifts = Set(((testing ? arg("-gift")?.components(separatedBy: ",") : d.stringArray(forKey: "gifts")) ?? []).compactMap(PurrCharacter.init(rawValue:)))
         names = testing ? [:] : (d.dictionary(forKey: "names") as? [String: String] ?? [:])
         // °F where the device's region measures that way (the US); everyone can change it in 설정 → 온도
         unitF = args.contains("-unitF") || (!testing && (d.object(forKey: "unitF") as? Bool ?? (Locale.current.measurementSystem == .us)))
@@ -302,8 +306,15 @@ final class AppModel: ObservableObject {
 
     // MARK: character
 
-    /// Free plan always shows the cat.
-    var shownCharacter: PurrCharacter { plus ? character : .cat }
+    /// Free plan shows the cat, or a character given in an event.
+    var shownCharacter: PurrCharacter { owns(character) ? character : .cat }
+    /// The cat; every character with Plus; a given one always
+    func owns(_ c: PurrCharacter) -> Bool { c.owned(plus: plus, gifts: gifts) }
+    /// An event's gift taken (or found again in iCloud): theirs for good
+    func receive(_ c: PurrCharacter) {
+        guard c.isPlus, !gifts.contains(c) else { return }
+        gifts.insert(c)
+    }
 
     /// The place's 날씨 기록, oldest first (example weather: made-up days so the card and the calendar have something)
     func days(for place: Place) -> [DayRecord] {
@@ -410,6 +421,7 @@ final class AppModel: ObservableObject {
         if let data = try? JSONEncoder().encode(places) { d.set(data, forKey: "places") }
         d.set(plus && !debugPlus, forKey: "plus")
         d.set(character.rawValue, forKey: "character"); d.set(names, forKey: "names")
+        d.set(gifts.map(\.rawValue).sorted(), forKey: "gifts")
         d.set(unitF, forKey: "unitF"); d.set(clock12, forKey: "clock12"); d.set(wind.rawValue, forKey: "wind")
         d.set(pixelFont, forKey: "pixelFont"); d.set(appearance.rawValue, forKey: "appearance"); d.set(useLocation, forKey: "useLocation")
         d.set(notifyRain, forKey: "notifyRain"); d.set(notifyMorning, forKey: "notifyMorning"); d.set(notifyChange, forKey: "notifyChange")
@@ -421,7 +433,7 @@ final class AppModel: ObservableObject {
         WeatherSnapshot(scene: scene, character: character, plus: plus, characterName: name(of: shownCharacter),
                         placeShort: currentPlace.short, saved: Date(), place: currentPlace, plusUntil: plusUntil,
                         unitF: unitF, clock12: clock12, isSample: isSample, lang: Lang.current.rawValue,   // the language the app shows (the watch shows the same)
-                        windUnit: windUnit)
+                        windUnit: windUnit, gifts: gifts.sorted { $0.rawValue < $1.rawValue })
     }
 
     /// A new language: saved place names follow it, the example scene too, and the forecast is asked for again

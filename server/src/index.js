@@ -45,6 +45,8 @@ export default {
     if (url.pathname === '/v1/devices') return devices(request, env);
     // Free's ads (the app's Ads.swift): how many of each, turned down here without an app update
     if (url.pathname === '/v1/ads') return json(adsConfig(env), 200, { 'cache-control': 'public, max-age=600' });
+    // the character gift event (the app's Promo.swift): on only while PROMO's dates hold
+    if (url.pathname === '/v1/promo') return json(promoAnswer(env), 200, { 'cache-control': 'public, max-age=300' });
     if (url.pathname === '/v1/airmap') {
       try {
         const out = await airMapAnswer(url.searchParams, env, ctx);
@@ -303,6 +305,19 @@ export function legacyIcons(scene) {
 export function adsConfig(env) {
   const base = { on: true, homeCards: 2, dayCard: true, banner: true, interstitialEvery: 2, interstitialGap: 60 };
   try { return { ...base, ...(env.ADS_CONFIG ? JSON.parse(env.ADS_CONFIG) : {}) }; } catch { return base; }
+}
+
+/** The gift event: PROMO (a JSON var), e.g. {"id":"capy-2026","char":"capy","start":"2026-12-01T00:00:00+09:00",
+ * "end":"2027-01-01T00:00:00+09:00"}. Everyone who opens the app between start and end can take the character for good.
+ * Off ({active:false}) without PROMO, with a broken one, before start and from end on. */
+const GIFT_CHARS = new Set(['abys', 'brit', 'capy']);
+export function promoAnswer(env, now = Date.now()) {
+  let p = null;
+  try { p = env.PROMO ? JSON.parse(env.PROMO) : null; } catch { p = null; }
+  const start = Date.parse(p?.start ?? ''), end = Date.parse(p?.end ?? '');
+  if (!p || typeof p.id !== 'string' || !p.id || !GIFT_CHARS.has(p.char) || !Number.isFinite(end)) return { active: false };
+  if ((Number.isFinite(start) && now < start) || now >= end) return { active: false };
+  return { active: true, id: p.id, char: p.char, end: new Date(end).toISOString() };
 }
 
 function json(body, status = 200, extra = {}) {

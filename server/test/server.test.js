@@ -9,7 +9,7 @@ import { level, outfit, bubble, uvNote, whenWord, alertNote, condition, rainKind
 import { strings, normLang, warningName, hourLabel, LANGS } from '../src/i18n.js';
 import { sunDay, local, instant } from '../src/time.js';
 import { feelsLike, humidityWord, windWord } from '../src/physics.js';
-import worker, { forecast, readQuery, resetCache, setUpstreamTimeout, legacyIcons, airMapAnswer, historyAnswer, holidaysAnswer } from '../src/index.js';
+import worker, { forecast, readQuery, resetCache, setUpstreamTimeout, legacyIcons, airMapAnswer, historyAnswer, holidaysAnswer, promoAnswer } from '../src/index.js';
 import { nearestAsos, parseAsos, ASOS_STATIONS } from '../src/providers/history.js';
 import { sidoShort, stationIndex, airMap, gradeCAI, nationUrl, levelOf, pmLevel, subIndex, dayBefore, airDetail, owDetail } from '../src/providers/airkorea.js';
 import { beforeEach } from 'node:test';
@@ -1358,4 +1358,20 @@ test('HTTP: /v1/ads gives the app its ad config; ADS_CONFIG turns parts down', a
   assert.equal(less.interstitialEvery, 0); assert.equal(less.homeCards, 1); assert.equal(less.banner, true);
   const broken = await (await worker.fetch(new Request('https://x/v1/ads'), { ADS_CONFIG: '{oops' }, null)).json();
   assert.equal(broken.on, true);
+});
+
+test('HTTP: /v1/promo is off without PROMO, on only between its dates, off when PROMO is broken', async () => {
+  const off = await worker.fetch(new Request('https://x/v1/promo'), {}, null);
+  assert.equal(off.status, 200);
+  assert.deepEqual(await off.json(), { active: false });
+  const PROMO = '{"id":"capy-2026","char":"capy","start":"2026-12-01T00:00:00+09:00","end":"2027-01-01T00:00:00+09:00"}';
+  const at = (iso) => promoAnswer({ PROMO }, Date.parse(iso));
+  assert.deepEqual(at('2026-11-30T14:59:59Z'), { active: false }, 'before the start (00:00 KST on 1 Dec)');
+  assert.deepEqual(at('2026-11-30T15:00:00Z'), { active: true, id: 'capy-2026', char: 'capy', end: '2026-12-31T15:00:00.000Z' });
+  assert.equal(at('2026-12-31T14:59:59Z').active, true);
+  assert.deepEqual(at('2026-12-31T15:00:00Z'), { active: false }, 'the end is not part of it');
+  assert.deepEqual(promoAnswer({ PROMO: '{oops' }), { active: false });
+  assert.deepEqual(promoAnswer({ PROMO: '{"id":"x","char":"cat","end":"2099-01-01T00:00:00Z"}' }), { active: false }, 'the cat is free already');
+  assert.deepEqual(promoAnswer({ PROMO: '{"id":"x","char":"capy"}' }), { active: false }, 'no end date');
+  assert.equal(promoAnswer({ PROMO: '{"id":"x","char":"capy","end":"2099-01-01T00:00:00Z"}' }).active, true, 'no start: from now');
 });

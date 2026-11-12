@@ -893,3 +893,21 @@
 "자동" = "Auto";
 "라이트" = "Claro";
 "다크" = "Oscuro";
+
+/* 이벤트 · 받은 캐릭터 · iCloud에 보관 (첫 화면) */
+"%@ 선물 이벤트" = "Regalo: %@";
+"%@까지 앱을 연 분께 드려요" = "Gratis para quien abra la app hasta el %@";
+"iCloud에 보관을 켜야 앱을 지워도 남아요" = "Activa Guardar en iCloud para conservarlo aunque borres la app";
+"받기" = "Recibir";
+"선물을 받았어요" = "Ya tienes tu regalo";
+"캐릭터에서 언제든 골라요" = "Elígelo cuando quieras en Personaje";
+"iCloud에 보관돼서 다시 설치해도 남아요" = "Guardado en iCloud: se mantiene al reinstalar";
+"켜기" = "Activar";
+"iCloud에 보관하기" = "Guardar en iCloud";
+"폰을 바꾸거나 앱을 다시 설치해도 그대로 남아요" = "Se mantiene en un iPhone nuevo o al reinstalar";
+"날씨를 볼 때마다 쌓이는 그날 날씨와 옷차림" = "El tiempo y la ropa de cada día, guardados al consultar el tiempo";
+"받은 캐릭터" = "Personajes regalados";
+"이벤트로 받은 캐릭터" = "Personajes que recibiste en un evento";
+"내 Apple 계정의 iCloud에만 보관돼요. 개발자도 볼 수 없어요." = "Solo se guarda en el iCloud de tu propia cuenta de Apple. Ni el desarrollador puede verlo.";
+"설정 › 날씨 달력에서 언제든 바꿀 수 있어요." = "Puedes cambiarlo cuando quieras en Ajustes › Calendario del tiempo.";
+"폰을 바꾸거나 앱을 다시 설치해도 날씨 달력과 받은 캐릭터가 그대로 남아요" = "Tu calendario del tiempo y tus personajes regalados se mantienen, incluso en un iPhone nuevo o al reinstalar";

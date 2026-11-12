@@ -1,5 +1,6 @@
 import XCTest
 import UIKit
+import CloudKit
 @testable import Purrcast
 
 /// Logic checks that run on every GitHub build: decoding (including what the real server sends), the design's
@@ -248,6 +249,51 @@ final class PurrcastTests: XCTestCase {
         XCTAssertTrue(snap.plusActive); XCTAssertEqual(snap.shownCharacter, .brit)
         snap.plusUntil = Date().addingTimeInterval(-60)
         XCTAssertFalse(snap.plusActive); XCTAssertEqual(snap.shownCharacter, .cat)
+    }
+
+    /// An event's gift stays on Free (and after Plus ends) on the widgets and the watch; older snapshots have none
+    func testSnapshotKeepsAGiftedCharacter() throws {
+        var snap = WeatherSnapshot.sample
+        snap.plus = false; snap.character = .capy
+        XCTAssertEqual(snap.shownCharacter, .cat, "no gift: Free shows the cat")
+        snap.gifts = [.capy]
+        XCTAssertEqual(snap.shownCharacter, .capy)
+        snap.character = .abys
+        XCTAssertEqual(snap.shownCharacter, .cat, "only the gifted one")
+        snap.character = .capy; snap.plus = true; snap.plusUntil = Date().addingTimeInterval(-60)
+        XCTAssertEqual(snap.shownCharacter, .capy, "Plus over: the gift stays")
+        let back = try JSONDecoder().decode(WeatherSnapshot.self, from: JSONEncoder().encode(snap))
+        XCTAssertEqual(back.gifts, [.capy]); XCTAssertEqual(back.shownCharacter, .capy)
+        // a snapshot written before gifts existed (and one naming a character this build lacks)
+        var old = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(snap)) as? [String: Any])
+        old["gifts"] = nil
+        XCTAssertEqual(try JSONDecoder().decode(WeatherSnapshot.self, from: JSONSerialization.data(withJSONObject: old)).gifts, [])
+        old["gifts"] = ["capy", "dragon"]
+        XCTAssertEqual(try JSONDecoder().decode(WeatherSnapshot.self, from: JSONSerialization.data(withJSONObject: old)).gifts, [.capy])
+        XCTAssertTrue(PurrCharacter.cat.owned(plus: false, gifts: []))
+        XCTAssertFalse(PurrCharacter.brit.owned(plus: false, gifts: [.capy]))
+        XCTAssertTrue(PurrCharacter.brit.owned(plus: true, gifts: []))
+    }
+
+    /// /v1/promo: an event only while it is on, for a Plus character, with a readable end
+    func testPromoAnswer() throws {
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-12-10T03:00:00Z"))
+        let on = #"{"active":true,"id":"capy-2026","char":"capy","end":"2026-12-31T15:00:00.000Z"}"#
+        let e = try XCTUnwrap(Promo.decode(Data(on.utf8), now: now))
+        XCTAssertEqual(e.id, "capy-2026"); XCTAssertEqual(e.char, .capy)
+        XCTAssertEqual(e.end, ISO8601DateFormatter().date(from: "2026-12-31T15:00:00Z"))
+        XCTAssertNotNil(Promo.decode(Data(#"{"active":true,"id":"x","char":"capy","end":"2026-12-31T15:00:00Z"}"#.utf8), now: now), "no fraction")
+        XCTAssertNil(Promo.decode(Data(#"{"active":false}"#.utf8), now: now))
+        XCTAssertNil(Promo.decode(Data(on.utf8), now: now.addingTimeInterval(40 * 86400)), "past its end")
+        XCTAssertNil(Promo.decode(Data(#"{"active":true,"id":"x","char":"cat","end":"2026-12-31T15:00:00Z"}"#.utf8), now: now), "the cat is free")
+        XCTAssertNil(Promo.decode(Data(#"{"active":true,"id":"x","char":"dragon","end":"2026-12-31T15:00:00Z"}"#.utf8), now: now))
+        XCTAssertNil(Promo.decode(Data("oops".utf8), now: now))
+        // the last day shown is the day before the end moment (00:00 KST on 1 Jan → 31 Dec in Seoul)
+        let f = DateFormatter(); f.timeZone = TimeZone(identifier: "Asia/Seoul"); f.dateFormat = "M-d"
+        XCTAssertEqual(f.string(from: e.end.addingTimeInterval(-1)), "12-31")
+        XCTAssertEqual(CloudLog.giftID(.capy).recordName, "gift_capy")
+        XCTAssertEqual(CloudLog.giftChar(CloudLog.giftID(.capy)), .capy)
+        XCTAssertNil(CloudLog.giftChar(.init(recordName: "m_here_2026-11")))
     }
 
     func testSnapshotUnitsAndRoundTrip() throws {
