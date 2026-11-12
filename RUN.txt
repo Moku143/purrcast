@@ -1,0 +1,1 @@
+run=43217270571 sha=e9fa6d534907b61fa66ec9d70828004c898582a2 device=iPhone 16 os=latest Thu Nov 12 14:27:11 UTC 2026
