@@ -1340,3 +1340,17 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   and body as they would look. Remove all red marks. Same pixel-art style, same background, same picture size.'
 - 결과 → `capy/m14/m14-arm-{K}.png` (원본 크기 캡처, 1차 그대로; 빨간 자국이 남거나 앞발이 원 밖이면 한 번만 다시).
   0~4, 5~9, 10~14 끝날 때마다 푸시.
+
+## 2026-11-12 15:1x · capy · m14 우산 팔 0~4 (1차 그대로)
+
+- 칸마다 새 대화, 첨부 (1) `capy/m14/arm-guide-{K}.png` (2~4) `capy/ref/abys-stand-14-umbrella.png`,
+  `brit-stand-6-umbrella.png`, `cat-stand-2-umbrella.png`. 문구는 14:3x 항목 그대로(칸마다 같음). 여러 탭 동시에.
+- 0 `…/c/6af555cb-f7e8-83e8-b4a1-eb2ec2e506f4` — 왼쪽(보는 사람 기준) 팔만 올려 막대 쥠, 유자 주스는 반대 손에 그대로.
+  쥔 앞발이 짙은 갈색(주스 쥔 손과 같은 색).
+- 1 `…/c/6af555bc-2104-83e8-8856-1d6f819d53d4` — 막대 쥠, 수박은 반대 손에 그대로.
+- 2 `…/c/6af555bf-293c-83e8-ae0f-a93a16b47253` — 막대 쥠.
+- 3 `…/c/6af555c7-3974-83ee-a47a-41d4425f364a` — 막대 쥠.
+- 4 `…/c/6af556da-942c-83e8-aa26-29e19e5b755b` — 막대 쥠.
+- 확인: 다섯 장 모두 빨간 자국 없음(가이드 자리 빨강 0~2px), 앞발이 빨간 원 안, 막대는 빨간 선 따라 턱 밑~앞발 아래.
+  막대 x는 선보다 +5~+8px 오른쪽. 머리 윗선 ±3px, 발 −4~−7px로 그대로 → 다시 그리기 없음.
+- 원본 크기(1087~1088×1446, 1은 1086×1448)로 캡처(150% 세로 타일 4장). 결과 → `capy/m14/m14-arm-0..4.png`.
