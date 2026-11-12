@@ -1181,3 +1181,11 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   second picture. Keep everything else exactly as it is in the first picture: the ears, eyes, muzzle, nostrils, the
   one uniform fur tone, the sweatshirt, legs, feet, outline, size, position and pixel-art style. Same background.'
 - 결과 → `capy/m10/m10-cand4-flattop.png` (원본 크기 캡처, 다시 그리기 없음).
+
+## 2026-11-12 12:3x · capy · m10-cand4-flattop (ChatGPT 1차 그대로)
+
+- 새 대화 "Edit Head Shape" (`https://chatgpt.com/c/6af53294-6ad0-83ee-83e3-b81400120119`), 첨부: (1) `capy/m10/m10-cand4-noyuzu.png`
+  (2) `capy/ref-cand1-top.png`, 문구는 위 12:30 항목 그대로(verbatim).
+- 결과 원본 1087×1447 → 다시 그리기 없이 `capy/m10/m10-cand4-flattop.png`. 귀 사이 머리 윗선이 평평한 직선이 됨
+  (m10·결과·후보 1 나란히 비교), 귀·눈·주둥이·옷·다리·크기는 그대로로 보임.
+- 캡처: 150% 세로 타일 4장(UI 숨김) → 원본 크기(배율 1.233×1.231), 여백 지우기 끔.
