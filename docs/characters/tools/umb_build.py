@@ -184,7 +184,10 @@ def build(fig, orig, canopy, dbg=None, name='', paw_col=FUR, front=False):
     if front:
         # the whole figure below the head from the picture (no seam through the clothes); the head stays the sprite's
         hs = head_mask_sprite(orig, ro)
-        keep = ~ndimage.binary_dilation(hs, iterations=1) & (am | om)
+        # the sprite keeps only the inside of its head; the head's outline comes from the picture too, so it runs
+        # into the raised arm's outline in one line (two outlines crossed into spikes at the shoulder)
+        hs = ndimage.binary_erosion(hs, iterations=12)
+        keep = ~hs & (am | om)
         take = keep & am
         out[keep & ~am] = 0
         out[take, :3] = A[take][:, :3]
@@ -310,6 +313,13 @@ def build(fig, orig, canopy, dbg=None, name='', paw_col=FUR, front=False):
         fm = B[..., 3] > 0
         thin = fm & ~ndimage.binary_opening(fm, iterations=2) & keep & ~(np.abs(xx_ - TIP_X) < 8)
         B[thin] = 0
+        # where the head (the sprite's) meets the shoulder (the picture's) their outlines can cross into spikes
+        cr = chin_row(orig, ro)
+        joint = (yy_ > cr - 45) & (yy_ < cr + 25) & (np.abs(xx_ - TIP_X) > 8)
+        fm = B[..., 3] > 0
+        st = ndimage.generate_binary_structure(2, 1)
+        spike = fm & ~ndimage.binary_opening(fm, structure=st, iterations=4) & joint
+        B[spike] = 0
     from drop_fringe import drop
     res = Image.fromarray(drop(B)[0], 'RGBA')
     if dbg:

@@ -33,6 +33,7 @@ def figure(path):
     m = ndimage.binary_fill_holes(m)
     # background showing through between an arm and the body (closed in by the outline): see-through again
     holes = m & (d < 25)
+    holes = ndimage.binary_opening(holes, iterations=3)   # thin light lines in the drawing (stripe edges) stay
     hl, hn = ndimage.label(holes)
     for i in range(1, hn + 1):
         c = hl == i

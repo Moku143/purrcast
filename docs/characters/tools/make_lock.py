@@ -9,7 +9,8 @@ from scipy import ndimage
 
 A = __import__('os').path.join(__import__('os').path.dirname(__file__), '../../../Shared/SharedAssets.xcassets')
 SRC, OUT = sys.argv[1], sys.argv[2]
-FUR_COLOURED_COAT = {11}   # capy stage 11: camel duffle the same colour as the fur, sleeves included
+FUR_COLOURED_COAT = {11}
+THIN = 1.6               # inner lines below the head stay at most ~3 px wide   # capy stage 11: camel duffle the same colour as the fur, sleeves included
 
 
 def hsv(a):
@@ -68,6 +69,27 @@ for k in range(15):
     alpha[muzzle] = 200
     alpha[fur] = 255
     alpha[dark] = 0
+    # below the head the clothes' inner lines are drawn thick (waist band, collar gaps, buttons): as clear they read as
+    # black blobs on the lock screen. Keep a thin line (like the cats'), the rest takes the nearest cloth's grey.
+    mzr = muzzle & (yy < 360)
+    chin = (int(np.nonzero(mzr.any(1))[0].max()) + 14) if mzr.any() else 345
+    inner = ndimage.binary_erosion(m, iterations=10)
+    dist, (iy, ix) = ndimage.distance_transform_edt(dark, return_indices=True)
+    thick = dark & inner & (dist > THIN) & (yy > chin)
+    alpha[thick] = alpha[iy[thick], ix[thick]]
+    # a small dark blob (a button) is a solid mid grey with its edge
+    labt, nt = ndimage.label(thick)
+    for i in range(1, nt + 1):
+        c = labt == i
+        if c.sum() < 400:
+            alpha[ndimage.binary_dilation(c, iterations=3) & dark & inner] = 140
+    # small near-black bits of cloth (buttons, holes between toggles) read as black too: a mid grey
+    low = (alpha > 0) & (alpha < 115) & (yy > chin) & ~dark
+    labl, nl_ = ndimage.label(low | (dark & (yy > chin) & inner & (dist > 0.5)))
+    if nl_:
+        szl = ndimage.sum(np.ones_like(alpha), labl, range(1, nl_ + 1))
+        small = np.isin(labl, [i + 1 for i, z in enumerate(szl) if z < 500]) & (yy > chin) & inner
+        alpha[small] = 140
     # keep only what lies inside the outer dark outline (drops the light sticker fringe and specks around it)
     inside = ndimage.binary_fill_holes(ndimage.binary_closing(rgb.max(-1) < 90, iterations=2) | ndimage.binary_erosion(m, iterations=4))
     inside &= m
