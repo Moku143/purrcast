@@ -1189,3 +1189,36 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 결과 원본 1087×1447 → 다시 그리기 없이 `capy/m10/m10-cand4-flattop.png`. 귀 사이 머리 윗선이 평평한 직선이 됨
   (m10·결과·후보 1 나란히 비교), 귀·눈·주둥이·옷·다리·크기는 그대로로 보임.
 - 캡처: 150% 세로 타일 4장(UI 숨김) → 원본 크기(배율 1.233×1.231), 여백 지우기 끔.
+
+## 2026-11-12 12:40 · 주인: "3번 진행하자" → 기준 = `capy/m11/base.png` (= m10-cand4-flattop). 15칸 옷 = 기준 그림 편집 15번
+- 모양이 안 바뀌게: 15칸 모두 **기준 그림 하나만 편집**(한 장에 한 마리). 이전 결과를 기준으로 쓰지 않음.
+  옷은 예전에 정한 그대로: 첨부 2번째 = `capy/m11/outfit-ref-{K}.png` (예전 서기 그림 K번, 옷만 참고).
+- 장마다 새 대화(또는 같은 대화에서 매번 base.png 다시 첨부). 첨부 (1) `capy/m11/base.png` (2) `capy/m11/outfit-ref-{K}.png`.
+- 문구 (K, {OUTFIT}만 바꿈):
+  'Edit the first picture. Keep the capybara EXACTLY as it is - the same head shape with the flat top between the
+  ears, the same ears, eyes, muzzle, nostrils, one uniform fur colour, the same body shape and proportions, arms,
+  legs, feet, outline, size, position and pixel-art style. Only change its clothes: take off the blue star
+  sweatshirt and dress it in exactly the outfit of the second picture: {OUTFIT}. Use the second picture ONLY for
+  the clothes and the item in its paw - do NOT copy that capybara's head, face or body shape, it is too wide.
+  Same background, no text.'
+  12·13·14만 끝에 추가: 'The hat sits low: its edge covers the OUTER half of each eye line; the inner half of each
+  eye line stays visible, exactly where the eyes are now.'
+- {OUTFIT}:
+  0 woven straw sun hat, white sleeveless top with a small orange yuzu print, holding a glass of iced yuzu juice with a straw
+  1 green-and-cream striped sleeveless top, holding a slice of watermelon
+  2 white T-shirt with one small orange yuzu print, light-blue shorts
+  3 white camp shirt with a green leaf pattern, shorts
+  4 pale-yellow button-up shirt with a moss-green knit tie
+  5 terracotta-orange sweatshirt with a small white duck
+  6 sky-blue and cream striped knit sweater
+  7 cream varsity jacket with coral-pink sleeves and a small orange patch
+  8 sunny-yellow windbreaker with sky-blue shoulders and a white zip
+  9 raspberry-pink quilted jacket with a cream collar
+  10 navy double-breasted wool pea coat buttoned up to the neck, mustard scarf
+  11 camel duffle coat with toggle buttons, forest-green scarf
+  12 burnt-orange short puffer jacket, red-and-cream striped bobble beanie, brown scarf
+  13 ice-blue hip-length puffer, cream knitted earflap hat with braided tassels, plum scarf
+  14 deep-green knee-length puffer parka with its own round hood worn up, a thick cream fur ring around the face,
+     ears inside the hood, red-and-cream striped scarf, red mittens
+- 결과 → `capy/m11/m11-stand-{K}.png` (원본 크기 캡처, 1차 그대로). 다시 그리기는 ① 머리 모양(평평한 윗선)이 바뀜
+  ② 옷이 틀림 ③ 12~14 눈 가림이 틀림 — 그때만 한 번.
