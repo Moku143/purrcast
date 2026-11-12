@@ -1457,3 +1457,11 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   상자 가로세로비 차 ≤0.017 → 모양 그대로.
 - 원본 크기(1088×1446)로 캡처. 결과 → `capy/m15/m15-lock-10..14.png`.
 - 15장 모두 `tools/lock_from_pictures.py`로 돌려 보니 정상(크기 302~326×424~470, 12·13은 모자 때문에 위로 붙음).
+
+## 2026-11-12 17:4x · 잠금 15장 앱에 설치 (그림 모델이 그린 것) + 14번 흰 테두리 지움
+- 주인: "마지막 코트 잠금화면 겉에 흰색만 지워줘" → `tools/drop_white_rim.py` (가장자리 22px 안의 흰색 중 바로 안쪽이 회색인 곳만
+  남색으로; 털 테두리·장갑·흰 줄무늬처럼 가장자리까지 오는 흰 부분은 그대로; 테두리 양옆 부드러운 가장자리 선도 같이)
+  → `capy/m15/m15-lock-14-norim.png`.
+- `tools/lock_from_pictures.py` 로 15장(14는 norim) → 흰색+투명(남색 위 밝기 = 불투명도), 고양이들 크기·자리.
+  시계 위 그림도 새 잠금 그림에서 다시 만듦. 코드로 만든 잠금(make_lock)은 더 안 씀.
+- 확인 그림 `capy/m15/m15-final-locks.png`.
