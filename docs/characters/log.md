@@ -1266,3 +1266,19 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   C는 8%를 요청했는데 D만큼 작아짐. B·C는 몸 전체가 약 48px 위로 올라감(발끝 −48px), A·D는 발 위치 거의 그대로(−5·−8px).
   이마: A·B 평평, C·D 둥긂 그대로.
 - 캡처: 150% 세로 타일 4장(UI 숨김) → 원본 크기, 배율 약 1.233.
+
+## 2026-11-12 13:26 · 주인: "A로 시작해줘" → 새 기준 = `capy/m11/base-A.png` (= m12-A, 평평한 이마, 머리 조금 작게)
+- 15칸 옷을 처음부터 다시: 0~14 전부 **base-A.png 하나만 편집**(한 장에 한 마리), 첨부 (1) `capy/m11/base-A.png`
+  (2) `capy/m11/outfit-ref-{K}.png` (옷만 참고). 이전 결과(m11-stand-*)는 쓰지 않음.
+- 문구 = 12:40 항목 그대로, 단 첫 줄 뒤에 "the same smaller head size" 넣음:
+  'Edit the first picture. Keep the capybara EXACTLY as it is - the same head shape with the flat top between the
+  ears, the same smaller head size, the same ears, eyes, muzzle, nostrils, one uniform fur colour, the same body
+  shape and proportions, arms, legs, feet, outline, size, position and pixel-art style. Only change its clothes:
+  take off the blue star sweatshirt and dress it in exactly the outfit of the second picture: {OUTFIT}. Use the
+  second picture ONLY for the clothes and the item in its paw - do NOT copy that capybara's head, face or body
+  shape, it is too wide and its head is too big. Same background, no text.'
+  12·13·14 끝에: 'The hat sits low: its edge covers the OUTER half of each eye line; the inner half of each eye
+  line stays visible, exactly where the eyes are now.'
+- {OUTFIT} 목록 = 12:40 항목 그대로.
+- 결과 → `capy/m13/m13-stand-{K}.png` (원본 크기 캡처, 1차 그대로; 다시 그리기 조건도 12:40과 같음).
+  0~4 → 푸시, 5~9 → 푸시, 10~14 → 푸시.
