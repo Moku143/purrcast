@@ -1147,3 +1147,11 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   body a little shorter; (8) face a little longer from the eyes to the chin. All 8 the same height as the cats in
   the second picture, standing upright facing the viewer, arms down, feet on one baseline, each in its own cell
   with space around it. Plain flat light grey-blue background (#EEF1F6), no text, no numbers. Output 16:9.'
+
+## 2026-11-12 12:2x · capy · 다시 처음부터 — m9-drafts8 (ChatGPT 1차 그대로)
+
+- 새 대화 "Redraw Capybara Variations" (`https://chatgpt.com/c/6af5300e-a590-83e8-a18b-bf2f194bf4af`),
+  첨부: `capy/ref-cand4.png`(첫 장) + `capy/ref-cats-stage2.png`, 문구는 위 12:20 항목 그대로(verbatim).
+- 결과 원본 1672×941, 2줄×4 = 8개, 유자 없음 → 다시 그리기 없이 1차 그대로 `capy/m9/m9-drafts8.png`.
+- 캡처: 150% 2×2 타일(UI 숨김) → 원본 크기(배율 1.229×1.232). 그림이 두 줄이라 위·아래 여백 지우기는 끔
+  (원래 스크립트는 가장 긴 줄만 남기고 다른 줄을 지워버림), 가장자리 찾는 줄은 맨 윗줄 귀 위(y 45)로.
