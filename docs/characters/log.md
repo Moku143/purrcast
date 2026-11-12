@@ -1481,3 +1481,4 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   with a yellow ribbon and bow on top, drawn in the same pixel-art style with the same black outline. The box covers the
   lower part of the sweater only; the star can be hidden. No text, no extra objects, no shadow, nothing else changed."
 - 결과 → `capy/m16/m16-gift.png` (원본 크기). 얼굴·몸이 바뀌면 한 번만 다시.
+- 19:0x 1차 `https://chatgpt.com/c/6af5893f-e844-83ec-aff8-862a81a558b3` → 그대로 씀. 확인: 머리·얼굴 실루엣 IoU 0.99, 다리·발 0.96, 털색·검은 테두리·배경 같음; 바뀐 건 팔뿐(양 앞발로 상자를 배 앞에 듦, 소매가 몸 앞으로 와서 전체 폭 832→658px), 상자 빨강 (246,101,77)·노란 리본·나비매듭·검은 테두리, 별은 가려짐, 글자·그림자 없음 → 다시 그리기 없음. 원본 크기 1087×1447로 캡처 → `capy/m16/m16-gift.png`.
