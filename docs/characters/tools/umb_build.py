@@ -303,7 +303,7 @@ def build(fig, orig, canopy, dbg=None, name='', paw_col=FUR, front=False):
             cy_, cx_ = pc[0].mean(), pc[1].mean()
             near = ((yy_ - cy_) ** 2 + (xx_ - cx_) ** 2 < 34 ** 2) & keep
             h_, s_, v_ = sk._hsv(B[..., :3].astype(np.uint8))
-            brown = near & (h_ > 0.01) & (h_ < 0.12) & (s_ > 0.3) & (v_ > 0.3) & (v_ < 0.86)
+            brown = near & (h_ > 0.035) & (h_ < 0.12) & (s_ > 0.3) & (v_ > 0.3) & (v_ < 0.86)
             if brown.sum() > 120:
                 B[brown, :3] = FUR
         # thin outline hooks where the drawn arm meets the sprite's shoulder

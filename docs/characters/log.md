@@ -1380,3 +1380,13 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   (x −2~+6px). 머리·모자 윗선 +0~+5px, 발 −2~−6px → 다시 그리기 없음.
 - 원본 크기(1087~1088×1446) 캡처. 결과 → `capy/m14/m14-arm-10..14.png`. m14 15장 모두 끝, 다시 그린 칸 없음
   (8만 A/B 중 1번 선택).
+
+## 2026-11-12 15:5x · 새 카피바라(base-A) 앱에 설치
+- 서기 15 = `tools/build_singles.py` (m13), 우산 15 = `tools/umb_build.py m14-arm-K K … --single --front`
+  (막대 = 꼭지 x 195.5에서 얼굴 앞으로 곧게, 주먹 안에서 끝남 — 주인 "손잡이가 손 밖으로 나오는 게 부자연스러움";
+  머리는 서기 그림, 머리 아래 몸은 팔 그림 그대로, 주먹 밑 옛 막대 자리는 서기 그림 옷; 짙은 갈색 주먹 → 털색,
+  14번 빨간 장갑은 그대로). 가방 = make_bag, 잠금 = make_lock, 시계 위 = make_face_inline,
+  얼굴 = `tools/face_hi.py` (base-A 머리를 원본 해상도로 잘라 0.378배), 해 아이콘 = `tools/make_sun_icon.py --w 390`
+  (아비시니안 해 아이콘의 얼굴 자리), 비 아이콘 = make_rain_icon (8단계 우산).
+- `install_sprites.py capy` → SharedAssets 91장 + anchors.json(capy) + 앱 아이콘 3개·iconpick 3개.
+- 확인 그림: `capy/m14/m14-all-45.png` (서기·가방·우산), `capy/compare-final-capy-vs-cats.png`.

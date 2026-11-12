@@ -16,7 +16,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 SHARED = os.path.join(ROOT, 'Shared', 'SharedAssets.xcassets')
 APP = os.path.join(ROOT, 'Purrcast', 'Resources', 'Assets.xcassets')
 INFO = {"version": 1, "author": "xcode"}
-REF_COL = {'capy': np.array([205, 125, 76])}   # the muzzle colour, so measure() finds the nostrils and not the eyes
+REF_COL = {'capy': np.array([204, 111, 70])}   # the muzzle colour, so measure() finds the nostrils and not the eyes
 
 
 def imageset(cat, name, src, template=False):
