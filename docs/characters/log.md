@@ -1128,3 +1128,22 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 비율만 다르게: 1 고양이처럼 날씬 / 2 공처럼 둥근 머리 / 3 세로로 조금 긴 얼굴 / 4 작은 머리·긴 몸(3등신) /
   5 큰 머리(2등신)지만 좁게 / 6 달걀형 머리 / 7 브리티시숏헤어 비율 / 8 주황 고양이 비율.
 - `drafts8.png` (8장), `drafts8-vs-cats.png` (같은 키로 고양이·브리티시 옆에).
+
+## 2026-11-12 12:20 · 다시 처음부터: 후보 4번(유자 빼고, 얼굴색 하나) 기준 비율 시안 8개 — ChatGPT로
+- 주인: "당연히 지피티로 새로", "크레딧 녹이지 말고", "맘에 드는 모양이 작업하면서 사라짐", 기준 = "첫 시안 4번에서
+  얼굴색 통일, 유자 빼기". m7(코드로 줄임)·m8(Higgsfield) 시안은 쓰지 않음.
+- 참고 그림: (1) `capy/ref-cand4.png` (0-candidates-v4 후보 4 확대, 유자 달린 원본 — 문구로 뺌),
+  (2) `capy/ref-cats-stage2.png` (고양이 3마리 2단계, 그림체·키).
+- 결과 → `capy/m9/m9-drafts8.png` (원본 크기 캡처). 문구:
+  'Redraw the capybara in the first picture as 8 drafts in one picture, 2 rows of 4. It is the SAME character in all
+  8: REMOVE the small orange fruit from its head; the whole head is ONE uniform warm-brown colour (no lighter or
+  darker patches on the face); keep exactly its colours (warm-brown fur, darker brown rounded muzzle, dark brown
+  feet, dark-navy outline), its face (small half-closed eyes drawn as short dark lines set high and wide apart, two
+  small dark nostrils high on the muzzle, tiny rounded ears, no mouth) and its denim-blue sweatshirt with a white
+  star. Same genuine pixel-art style as both pictures: hard square pixels, flat colours, no blur, one dark-navy
+  outline. ONLY the face and body proportions differ, a little, left to right, top row then bottom row:
+  (1) exactly like the first picture; (2) head 10% smaller; (3) head 10% narrower, same height; (4) body 15%
+  slimmer; (5) head 10% narrower and body 15% slimmer; (6) a little longer body and legs; (7) head 10% bigger and
+  body a little shorter; (8) face a little longer from the eyes to the chin. All 8 the same height as the cats in
+  the second picture, standing upright facing the viewer, arms down, feet on one baseline, each in its own cell
+  with space around it. Plain flat light grey-blue background (#EEF1F6), no text, no numbers. Output 16:9.'
