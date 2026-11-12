@@ -246,12 +246,21 @@ def build(fig, orig, canopy, dbg=None, name='', paw_col=FUR, front=False):
             fist[ry.min():ry.max() + 1, SX0 - 1:SX0 + len(SHAFT) + 1] = True
             fist &= take
             paw = fist
-            end = min(ry.max() + 22, feet - 40)
+            # the shaft ends inside the fist (owner: a handle sticking out under the paw looked unnatural)
+            end = int(ry.min() + 0.6 * (ry.max() - ry.min()))
             B2 = np.asarray(base).copy()
             shaft_rows(B2, front0, end, lx0)
-            for j in range(len(SHAFT)):
-                B2[end, lx0 + j] = (14, 12, 22, 255)
             B = B2
+            # under the fist the picture's stick left its two dark edge lines: fill its columns from the sides
+            x0s, x1s = min(c0, SX0) - 3, max(c1, SX0 + len(SHAFT)) + 3
+            for y in range(ry.max() + 1, min(ry.max() + 90, feet - 20)):
+                seg = B[y, x0s:x1s, :3].astype(int)
+                bad = (seg.max(-1) < 130) | ((seg.max(-1) - seg.min(-1) < 60) & (seg.max(-1) > 95) & (seg.max(-1) < 245))
+                if not bad.any() or not take[y, x0s:x1s].any():
+                    continue
+                L_, R_ = B[y, x0s - 2].copy(), B[y, x1s + 1].copy()
+                for i in np.nonzero(bad)[0]:
+                    B[y, x0s + i] = L_ if i < (x1s - x0s) / 2 else R_
     B[paw] = out[paw]
     if front:
         # a fist drawn darker brown than the fur (some edits did that): flat fur like the other stages' paws
