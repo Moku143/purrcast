@@ -1470,3 +1470,14 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - main FF c9052353 → a521e439 (1.2.1 이후 146커밋: 카피바라 그림·앱 추가·도구·기록).
 - TestFlight run 43187831886 (main, submission=no): 성공, 1.2.1 (82), 09:01→09:11 UTC (예상 7~10분과 맞음). App Store 제출 안 함.
 - main push iOS build run 43187792395 진행 중.
+
+## 2026-11-12 19:xx · 요청 · m16 이벤트 배너 그림 (카피바라 선물 이벤트)
+- 주인: "무료 증정으로 하고 앱 상단에 프로모션으로 걸어줄 수도 있지? 이미지 만들어서?" → 홈 위쪽 배너에 들어갈 그림 1장.
+- 새 대화 1개, 첨부 `capy/m11/base-A.png` (기본 카피바라, 파란 별 스웨터).
+- 문구 (그대로):
+  "Edit this picture. Keep the capybara exactly the same: same pixel-art style, same head, face, ears, fur colours,
+  black outline thickness, blue star sweater, legs and feet, same size and position, same light background.
+  Only change the arms: both paws hold a small wrapped gift box in front of the belly. The box is coral red (#F26B5B)
+  with a yellow ribbon and bow on top, drawn in the same pixel-art style with the same black outline. The box covers the
+  lower part of the sweater only; the star can be hidden. No text, no extra objects, no shadow, nothing else changed."
+- 결과 → `capy/m16/m16-gift.png` (원본 크기). 얼굴·몸이 바뀌면 한 번만 다시.
