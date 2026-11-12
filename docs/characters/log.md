@@ -1164,3 +1164,11 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   stays its darker brown. Change NOTHING else: same shape, same proportions, same size and position, same eyes,
   nostrils, ears, sweatshirt, legs, feet, outline and pixel-art style. Same background.'
 - 결과 → `capy/m10/m10-cand4-noyuzu.png` (원본 크기 캡처, 다시 그리기 없음).
+
+## 2026-11-12 12:3x · capy · m10-cand4-noyuzu (ChatGPT 1차 그대로)
+
+- 새 대화 "Edit Capybara Image" (`https://chatgpt.com/c/6af5316c-8310-83ee-8fcb-0d26f2bc6456`), 첨부: `capy/ref-cand4.png` 하나,
+  문구는 위 12:25 항목 그대로(verbatim).
+- 결과 원본 1086×1448(ref 630×840보다 약 1.72배 큼, 같은 3:4) → 다시 그리기 없이 `capy/m10/m10-cand4-noyuzu.png`.
+  유자·잎 없어지고 그 자리는 머리 윤곽으로 이어짐, 머리 한 톤, 눈·코·귀·옷·다리 모양 그대로(나란히 비교).
+- 캡처: 150% 세로 타일 4장(가로 스크롤 없음, UI 숨김) → 원본 크기(배율 1.232×1.235), 여백 지우기 끔.
