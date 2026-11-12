@@ -8,6 +8,8 @@ colour (canopy layer PNG, knob centred at Sprite.umbrellaTipX = 195.5), its shaf
 behind the head, in front of the body below the chin, the paw over it.
 
 Usage: umb_build.py PICTURE T SPRITE_DIR CANOPY.png OUT_DIR [--debug DIR] [--paw K:R,G,B]
+       umb_build.py PICTURE K SPRITE_DIR CANOPY.png OUT_DIR --single --front   (one figure = stage K; the shaft
+       runs straight down from the knob in front of the face, the paw over it)
   T = 1..5: the picture holds stages 3(T-1) .. 3(T-1)+2."""
 import os
 import sys
@@ -18,7 +20,8 @@ from scipy import ndimage
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sprite_kit as sk  # noqa: E402
 
-MUZ = np.array([205, 125, 76])
+MUZ = np.array([204, 111, 70])     # m13 capybara (the m5 one was 205,125,76 / fur 241,165,100)
+FUR = (237, 143, 79)
 TIP_X = 195.5
 SHAFT = [(14, 12, 22), (14, 12, 22), (111, 116, 134), (150, 156, 174), (197, 200, 214), (227, 228, 235),
          (227, 228, 235), (197, 200, 214), (150, 156, 174), (120, 125, 144), (14, 12, 22), (14, 12, 22)]
@@ -107,14 +110,32 @@ def shaft_rows(out, y0, y1, x0=SX0):
             out[y, x0 + j] = (*c, 255)
 
 
-def build(fig, orig, canopy, dbg=None, name='', paw_col=(241, 165, 100)):
+def chin_row(orig, ro):
+    """The first row of clothes under the head, straight down from the muzzle's middle."""
+    rgb = orig[..., :3].astype(int)
+    x = int(ro['mc'])
+    def fur(c):                        # head colours: fur, muzzle and its brown outline, the dark outline
+        h, s, v = sk._hsv(np.array([[c]], np.uint8))
+        return c.max() < 90 or (0.02 < h[0, 0] < 0.12 and s[0, 0] > 0.3)
+    y = int(ro['mbot'])
+    while y < 540 and fur(rgb[y, x]):
+        y += 1
+    return y
+
+
+def build(fig, orig, canopy, dbg=None, name='', paw_col=FUR, front=False):
     (err, s, ox, oy), ro = align(fig, orig)
     A, am = warp(fig['img'], fig['mask'], s, ox, oy)
     om = orig[..., 3] > 0
     mc, mtop, feet = int(ro['mc']), int(ro['mtop']), int(ro['feet'])
     # what the arm changed: pixels new to the figure, pixels gone (the hanging arm), and a clearly different colour
     # only in the box the raised arm can reach; the head, the hats and the right half keep the sprite's pixels
-    hm = head_sil(orig, ro)
+    if front:
+        hm = np.zeros(orig.shape[:2], bool)
+        hm[:chin_row(orig, ro)] = True
+        hm &= orig[..., 3] > 0
+    else:
+        hm = head_sil(orig, ro)
     D = np.abs(A - orig[..., :3].astype(int)).sum(-1)
     yy, xx = np.mgrid[:560, :480]
     head = ndimage.binary_dilation(hm, iterations=3)
@@ -158,14 +179,14 @@ def build(fig, orig, canopy, dbg=None, name='', paw_col=(241, 165, 100)):
     core = np.nonzero(cnt >= 0.5 * cnt.max())[0] if len(cols) else []
     cxm = float((core * cnt[core]).sum() / cnt[core].sum()) if len(core) else TIP_X
     lx0 = int(round(cxm - (len(SHAFT) - 1) / 2)) if len(cols) else SX0
-    lx0 = SX0 if abs(lx0 - SX0) > 20 else lx0
+    lx0 = SX0 if abs(lx0 - SX0) > 20 or front else lx0   # in front of the face it must be one straight line
     stick = np.zeros_like(runs)
     if len(cols):
         c0, c1 = cols.min() - 3, cols.max() + 4
         greyish = (rgb.max(-1) - rgb.min(-1) < 45) & (rgb.max(-1) > 95) & (rgb.max(-1) < 238)
         stick[:, c0:c1] = greyish[:, c0:c1]      # the dark edges are under the new shaft; the paw keeps its outline
         stick &= take & ~ndimage.binary_dilation(ndimage.binary_opening(
-            (np.abs(rgb - np.array([241, 165, 100])).sum(-1) < 75), iterations=1), iterations=2)
+            (np.abs(rgb - np.array(FUR)).sum(-1) < 75), iterations=1), iterations=2)
         stick[:, c0:c1] &= (yy[:, c0:c1] > mtop)
     for y in np.unique(np.nonzero(stick)[0]):
         xs = np.nonzero(stick[y])[0]
@@ -189,10 +210,13 @@ def build(fig, orig, canopy, dbg=None, name='', paw_col=(241, 165, 100)):
         out[gpaw, :3] = np.median(out[fur][:, :3], axis=0).astype(np.uint8)
     # layers: canopy, the shaft behind the head, the figure, the shaft in front below the chin, the paw
     L = np.asarray(canopy.convert('RGBA')).copy()
-    hc = np.nonzero(hm[:, min(SX0, lx0):max(SX0, lx0) + len(SHAFT)].any(1))[0]
-    front0 = int(hc.max()) + 1 if len(hc) else int(ro['mbot']) + 40
-    shaft_rows(L, 118, front0 - 30)  # behind everything; only the part between canopy and head shows
-    shaft_rows(L, front0 - 30, 470, lx0)
+    if front:
+        front0 = 118                  # from the canopy straight down, in front of the face (like the cats)
+    else:
+        hc = np.nonzero(hm[:, min(SX0, lx0):max(SX0, lx0) + len(SHAFT)].any(1))[0]
+        front0 = int(hc.max()) + 1 if len(hc) else int(ro['mbot']) + 40
+        shaft_rows(L, 118, front0 - 30)  # behind everything; only the part between canopy and head shows
+        shaft_rows(L, front0 - 30, 470, lx0)
     fig_l = Image.fromarray(out, 'RGBA')
     base = Image.fromarray(L, 'RGBA')
     base.alpha_composite(fig_l)
@@ -234,11 +258,21 @@ if __name__ == '__main__':
             k_, c_ = sys.argv[i + 1].split(':')
             PAW[int(k_)] = tuple(int(v) for v in c_.split(','))
     canopy = Image.open(can)
+    front = '--front' in sys.argv
+    if '--single' in sys.argv:            # one picture = stage t
+        k = t
+        orig = np.asarray(Image.open(f'{sdir}/capy-stand-{k}-none.png').convert('RGBA')).copy()
+        f = sk.figures(pic, n=1)[0]
+        os.makedirs(odir, exist_ok=True)
+        im, info = build(f, orig, canopy, dbg, f'capy-{k}', PAW.get(k, FUR), front)
+        im.save(f'{odir}/capy-stand-{k}-umbrella.png')
+        print(k, info)
+        sys.exit(0)
     figs = sk.figures(pic, n=3)
     os.makedirs(odir, exist_ok=True)
     for i, f in enumerate(figs):
         k = 3 * (t - 1) + i
         orig = np.asarray(Image.open(f'{sdir}/capy-stand-{k}-none.png').convert('RGBA')).copy()
-        im, info = build(f, orig, canopy, dbg, f'capy-{k}', PAW.get(k, (241, 165, 100)))
+        im, info = build(f, orig, canopy, dbg, f'capy-{k}', PAW.get(k, FUR))
         im.save(f'{odir}/capy-stand-{k}-umbrella.png')
         print(k, info)
