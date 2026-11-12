@@ -1398,3 +1398,17 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 잠금: 머리 아래 옷의 굵은 안쪽 선은 3px 정도로 가늘게, 작은 검은 덩어리(단추·옷깃 틈)는 중간 회색으로(make_lock).
 - 서기 6·13: 줄무늬 사이 얇은 밝은 선이 투명 구멍으로 잘리던 것 고침(build_singles) → 잠금 6의 검은 점선도 없어짐.
 - 다시 설치(b4cd559a). 그림만 바뀌고 이름·개수는 같음.
+
+## 2026-11-12 16:2x · 주인: 코드로 고친 잠금 그림 "부자연스러움 — 코 부분, 옷 디테일" → 잠금도 그림 모델로 (고양이들처럼)
+- 고양이들 잠금 그림은 그림 모델이 남색 바탕에 흰색으로 그린 것(Prompt L). 카피바라도 같은 방법으로: m13 서기 그림
+  15장을 한 장씩 편집.
+- 첨부 (1) `capy/m13/m13-stand-{K}.png` (2) `capy/m15/lock-style-ref.png` (고양이 잠금 3장을 남색 바탕에 2배로).
+  장마다 새 대화. 문구:
+  'Redraw the first picture as its lock-screen version, in EXACTLY the monochrome style of the second picture: the same
+  capybara with exactly the same shape, pose, size and position, the same outfit, hat, scarf, props, prints and
+  details, but drawn as pure white with light lavender-grey and mid-grey pixel shading for the outfit details and
+  folds, no other colours, no dark outline, crisp hard-edged pixels, on a flat dark navy background (#20264A). The
+  head and paws are pure white; the big rounded muzzle is one light grey with a soft grey edge, and its two nostrils
+  and the two eye lines stay dark navy, in exactly the same place. Nothing added or removed. No text.'
+- 결과 → `capy/m15/m15-lock-{K}.png` (원본 크기 캡처, 1차 그대로; 색이 남거나 모양이 바뀌면 한 번만 다시).
+  0~4, 5~9, 10~14 끝날 때마다 푸시.
