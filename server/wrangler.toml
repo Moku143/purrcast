@@ -17,8 +17,10 @@ CONTACT = "oo0785@daum.net github.com/Moku143/purrcast"
 WEATHERKIT_SERVICE_ID = "app.purrcast.ios"   # the WeatherKit service id = the app's bundle id (JWT `sub`)
 # /health?deep=1 calls every upstream source: off unless set to "on" for a first deploy
 DEEP_CHECK = "off"
-# The gift event (/v1/promo → the app's home banner, Promo.swift): off until set. At release, e.g.
-# PROMO = '{"id":"capy-2026","char":"capy","kind":"launch","start":"2026-12-01T00:00:00+09:00","end":"2027-01-01T00:00:00+09:00"}'
+# The gift event (/v1/promo → the app's home banner, Promo.swift; only 1.2.1 and later show it). 출시 기념: on from
+# now so App Review and TestFlight see it; when 1.2.1 is out, the end becomes its release day + 31 days (the App
+# Store event card gets the same dates). Without PROMO, or past the end: off.
+PROMO = '{"id":"capy-launch","char":"capy","kind":"launch","end":"2026-12-31T00:00:00+09:00"}'
 
 # Rate limits (Workers Rate Limiting binding, wrangler 4.36+; per Cloudflare location, approximate).
 # One device: its own id, so phones sharing a mobile carrier's IP do not limit each other.

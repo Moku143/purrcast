@@ -1,0 +1,46 @@
+# A version for App Review (scripts/asc-release.mjs): check what App Store Connect has, apply the texts from
+# docs/store/release-<version>.json and attach the build, or submit. Submitting needs the owner's go-ahead.
+# The result goes to the release-output branch (release.txt), since logs cannot be read from the agent.
+name: asc-release
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'check · apply · submit'
+        required: true
+        default: 'check'
+      version:
+        description: 'Version, e.g. 1.2.1'
+        required: true
+      build:
+        description: 'Build number to attach (apply; default: the newest processed one)'
+        required: false
+        default: ''
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: App Store Connect
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          MODE: ${{ github.event.inputs.mode }}
+          VERSION: ${{ github.event.inputs.version }}
+          BUILD: ${{ github.event.inputs.build }}
+        run: |
+          mkdir -p out
+          node scripts/asc-release.mjs "$MODE" "$VERSION" $BUILD 2>&1 | tee out/release.txt
+          echo "run=${{ github.run_id }} mode=$MODE version=$VERSION build=$BUILD $(date -u)" > out/RUN.txt
+          cat out/release.txt >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish
+        if: always()
+        run: |
+          cd out && git init -q && git checkout -q -b release-output
+          git add -A && git -c user.name=ci -c user.email=ci@purrcast commit -q -m "asc release ${{ github.run_id }}"
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} release-output
