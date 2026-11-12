@@ -1250,3 +1250,19 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
   and feet stay exactly the same size and in the same place, and the head still sits right on the collar. Same
   pixel-art style, same background.'
 - 결과 → `capy/m12/m12-{A,B,C,D}.png` (원본 크기 캡처, 1차 그대로).
+
+## 2026-11-12 13:1x · capy · m12 머리 작게 시안 A~D (1차 그대로) + 옷 5~14 멈춘 상태
+
+- 옷 5~14: 13:01 멈춤 요청 전에 5~11은 이미 보냄(5 `…/c/6af53759-952c-83e8-a1f9-22fe376cd23c`, 6 `…/c/6af5380b-b18c-83e8-ab6d-19ba34f40ba4`,
+  7 `…/c/6af53897-042c-83e8-bd57-907d22b9f95d`, 8 `…/c/6af538e8-7ae8-83e8-98e8-52f9f2da9ccc`, 9 `…/c/6af53949-fbb8-83e8-802a-0ce7ad6755ce`,
+  10 `…/c/6af539b3-0350-83ee-ba40-4b62de5f7142`, 11 `…/c/6af53a00-af94-83e8-958c-32d778b16a24`). 5·6은 캡처까지 했지만(둘 다 캔버스
+  1122×1402로 바뀜) 푸시 안 함, 7~11은 캡처 안 함. 12~14는 안 보냄.
+- m12: 장마다 새 대화, 첨부는 기준 그림 하나, 문구는 13:02 항목 그대로({N}, {TOP}만 바꿈).
+  A `…/c/6af53a2c-a438-83ee-93bf-f99843476853` base.png, 8%, flat → 원본 1087×1447
+  B `…/c/6af53a2e-6bb8-83ee-b2ce-1f024b75af13` base.png, 15%, flat → 1087×1446
+  C `…/c/6af53a33-ae50-83e8-a037-8841a3fc5912` base-round.png, 8%, softly rounded → 1087×1447
+  D `…/c/6af53a34-a494-83ee-9169-c1b654b8da00` base-round.png, 15%, softly rounded → 1086×1448
+- 대략 잰 값(머리 맨 위~옷깃 높이 / 귀 포함 머리 폭, 기준 그림 대비): A −10%/−15%, B −16%/−19%, C −16%/−15%, D −16%/−18%.
+  C는 8%를 요청했는데 D만큼 작아짐. B·C는 몸 전체가 약 48px 위로 올라감(발끝 −48px), A·D는 발 위치 거의 그대로(−5·−8px).
+  이마: A·B 평평, C·D 둥긂 그대로.
+- 캡처: 150% 세로 타일 4장(UI 숨김) → 원본 크기, 배율 약 1.233.
