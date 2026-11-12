@@ -2,7 +2,7 @@
 sprite scale (muzzle MW px), cut into U x U cells; every cell takes the commonest of a few flat colours found in
 that head (k-means), the silhouette loses one-cell bumps, and the outer outline is redrawn exactly K cells wide.
 Nothing is moved - the shape, the eyes, the muzzle stay where they are; only the edges become regular pixel steps.
-Usage: pixel_head.py SHEET STAGE OUT.png [--mw 105] [--u 4] [--k 2]"""
+Usage: pixel_head.py SHEET STAGE OUT.png [--mw 105] [--u 4] [--k 2] [--ax 1.0 (head width factor)]"""
 import sys
 import os
 import numpy as np
@@ -18,7 +18,7 @@ def opt(name, default):
     return type(default)(sys.argv[sys.argv.index(name) + 1]) if name in sys.argv else default
 
 
-def pixel_head(sheet, stage, mw_t=105.0, u=4, k=2, ncol=7, fur_rgb=None, muz_rgb=None):
+def pixel_head(sheet, stage, mw_t=105.0, u=4, k=2, ncol=7, fur_rgb=None, muz_rgb=None, ax=1.0):
     figs, rows, _ = sk.check(sheet, verbose=False)
     f, r = figs[stage], rows[stage]
     hm, jaw, _ = head_mask(f, r)
@@ -28,7 +28,8 @@ def pixel_head(sheet, stage, mw_t=105.0, u=4, k=2, ncol=7, fur_rgb=None, muz_rgb
     im = Image.fromarray(rgba, 'RGBA')
     bb = im.getbbox(); im = im.crop(bb)
     s = mw_t / r['mw']
-    im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
+    # ax < 1 narrows the head (and the muzzle with it) before it is cut into cells, so the steps stay regular
+    im = im.resize((round(im.width * s * ax), round(im.height * s)), Image.LANCZOS)
     A = np.asarray(im).astype(float)
     Hh, Ww = A.shape[:2]
     gh, gw = -(-Hh // u) + 2, -(-Ww // u) + 2
@@ -188,7 +189,7 @@ def pixel_head(sheet, stage, mw_t=105.0, u=4, k=2, ncol=7, fur_rgb=None, muz_rgb
         ny = (np.mean([c_[0] for c_ in cents]) + 0.5) * u
         half = abs(cents[0][1] - cents[1][1]) / 2 * u
         mx_ = (np.nonzero(M)[1].mean() + 0.5) * u
-        rx, ry = 0.06 * mw_t, 0.05 * mw_t
+        rx, ry = 0.06 * mw_t * ax, 0.05 * mw_t
         col = tuple(int(v) for v in np.clip(cent[darkest], 0, 255)) + (255,)
         for sx_ in (mx_ - half, mx_ + half):
             d_.ellipse([sx_ - rx, ny - ry, sx_ + rx, ny + ry], fill=col)
@@ -200,6 +201,7 @@ if __name__ == '__main__':
     sheet, stage, outp = sys.argv[1], int(sys.argv[2]), sys.argv[3]
     fur = [int(v) for v in opt('--fur', '').split(',')] if '--fur' in sys.argv else None
     muz = [int(v) for v in opt('--muzzle', '').split(',')] if '--muzzle' in sys.argv else None
-    img, info = pixel_head(sheet, stage, opt('--mw', 105.0), opt('--u', 4), opt('--k', 2), fur_rgb=fur, muz_rgb=muz)
+    img, info = pixel_head(sheet, stage, opt('--mw', 105.0), opt('--u', 4), opt('--k', 2), fur_rgb=fur, muz_rgb=muz,
+                           ax=opt('--ax', 1.0))
     img.save(outp)
     print(outp, img.size, 'palette', np.round(info['cent']).astype(int).tolist())
