@@ -123,9 +123,37 @@ def chin_row(orig, ro):
     return y
 
 
+def head_mask_sprite(orig, ro):
+    """The head itself on a sprite: fur, muzzle and outline above the jaw, as one blob with its own outline (not the
+    shoulders' or collar's lines)."""
+    a = orig[..., :3].astype(int)
+    m = orig[..., 3] > 0
+    h, s, v = sk._hsv(a.astype(np.uint8))
+    dark = a.max(-1) < 90
+    hc = (dark | ((h > 0.02) & (h < 0.12) & (s > 0.3))) & m
+    hc[chin_row(orig, ro):] = False
+    hc = ndimage.binary_opening(hc, iterations=1)
+    lab, _ = ndimage.label(hc)
+    blob = ndimage.binary_fill_holes(lab == lab[int(ro['mtop']), int(ro['mc'])])
+    x = int(ro['mc'])
+    t0 = int(np.nonzero(m[:, x])[0].min())
+    while not dark[t0, x] and t0 < 540:
+        t0 += 1
+    th = 0
+    while dark[t0 + th, x]:
+        th += 1
+    furr = ndimage.binary_fill_holes(blob & ~dark)
+    return blob & ndimage.binary_dilation(furr, iterations=th + 1)
+
+
 def build(fig, orig, canopy, dbg=None, name='', paw_col=FUR, front=False):
     (err, s, ox, oy), ro = align(fig, orig)
-    A, am = warp(fig['img'], fig['mask'], s, ox, oy)
+    if front:   # around the figure the outline colour, so its edge does not mix with the light background
+        fa = np.asarray(fig['img']).copy()
+        fa[~fig['mask']] = (14, 12, 22)
+        A, am = warp(Image.fromarray(fa), fig['mask'], s, ox, oy)
+    else:
+        A, am = warp(fig['img'], fig['mask'], s, ox, oy)
     om = orig[..., 3] > 0
     mc, mtop, feet = int(ro['mc']), int(ro['mtop']), int(ro['feet'])
     # what the arm changed: pixels new to the figure, pixels gone (the hanging arm), and a clearly different colour
@@ -154,14 +182,19 @@ def build(fig, orig, canopy, dbg=None, name='', paw_col=FUR, front=False):
     keep = ndimage.binary_fill_holes(keep) & reach
     out = orig.copy()
     if front:
-        # just outside the taken region: sprite pixels the picture does not have there (the old shoulder's outline)
-        rim = ndimage.binary_dilation(keep, iterations=8) & ~keep & reach & om & ~am & (xx < TIP_X)
-        out[rim] = 0
-    pal = palette(orig)
-    take = keep & am
-    out[keep & ~am] = 0
-    out[take, :3] = snap(A[take][:, :3], pal)
-    out[take, 3] = 255
+        # the whole figure below the head from the picture (no seam through the clothes); the head stays the sprite's
+        hs = head_mask_sprite(orig, ro)
+        keep = ~ndimage.binary_dilation(hs, iterations=1) & (am | om)
+        take = keep & am
+        out[keep & ~am] = 0
+        out[take, :3] = A[take][:, :3]
+        out[take, 3] = 255
+    else:
+        pal = palette(orig)
+        take = keep & am
+        out[keep & ~am] = 0
+        out[take, :3] = snap(A[take][:, :3], pal)
+        out[take, 3] = 255
     # the picture's own stick: tall runs of grey (and the dark lines beside them) near the shaft's place -> the
     # colour next to it on the same row; the straight shaft is drawn over that spot below
     rgb = out[..., :3].astype(int)
@@ -253,14 +286,14 @@ def build(fig, orig, canopy, dbg=None, name='', paw_col=FUR, front=False):
             B = B2
             # under the fist the picture's stick left its two dark edge lines: fill its columns from the sides
             x0s, x1s = min(c0, SX0) - 3, max(c1, SX0 + len(SHAFT)) + 3
-            for y in range(ry.max() + 1, min(ry.max() + 90, feet - 20)):
-                seg = B[y, x0s:x1s, :3].astype(int)
-                bad = (seg.max(-1) < 130) | ((seg.max(-1) - seg.min(-1) < 60) & (seg.max(-1) > 95) & (seg.max(-1) < 245))
-                if not bad.any() or not take[y, x0s:x1s].any():
-                    continue
-                L_, R_ = B[y, x0s - 2].copy(), B[y, x1s + 1].copy()
-                for i in np.nonzero(bad)[0]:
-                    B[y, x0s + i] = L_ if i < (x1s - x0s) / 2 else R_
+            # those rows take the standing sprite's own clothes there (the arm hangs at the side in it, so the middle
+            # of the chest is plain clothes), down to just past the picture's stick end
+            sy = [y for y in range(ry.max() + 1, min(ry.max() + 110, feet - 20)) if gA[y, c0:c1].any()]
+            if sy:
+                for y in range(ry.max() + 1, max(sy) + 8):
+                    seg = orig[y, x0s:x1s]
+                    if (seg[:, 3] > 0).all():
+                        B[y, x0s:x1s] = seg
     B[paw] = out[paw]
     if front:
         # a fist drawn darker brown than the fur (some edits did that): flat fur like the other stages' paws
@@ -270,7 +303,7 @@ def build(fig, orig, canopy, dbg=None, name='', paw_col=FUR, front=False):
             cy_, cx_ = pc[0].mean(), pc[1].mean()
             near = ((yy_ - cy_) ** 2 + (xx_ - cx_) ** 2 < 34 ** 2) & keep
             h_, s_, v_ = sk._hsv(B[..., :3].astype(np.uint8))
-            brown = near & (h_ > 0.01) & (h_ < 0.12) & (s_ > 0.3) & (v_ > 0.3) & (v_ < 0.78)
+            brown = near & (h_ > 0.01) & (h_ < 0.12) & (s_ > 0.3) & (v_ > 0.3) & (v_ < 0.86)
             if brown.sum() > 120:
                 B[brown, :3] = FUR
         # thin outline hooks where the drawn arm meets the sprite's shoulder
