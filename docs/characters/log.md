@@ -1155,3 +1155,12 @@ THIS IS A COLOUR CONVERSION ONLY. Redraw the capybara of the first reference ima
 - 결과 원본 1672×941, 2줄×4 = 8개, 유자 없음 → 다시 그리기 없이 1차 그대로 `capy/m9/m9-drafts8.png`.
 - 캡처: 150% 2×2 타일(UI 숨김) → 원본 크기(배율 1.229×1.232). 그림이 두 줄이라 위·아래 여백 지우기는 끔
   (원래 스크립트는 가장 긴 줄만 남기고 다른 줄을 지워버림), 가장자리 찾는 줄은 맨 윗줄 귀 위(y 45)로.
+
+## 2026-11-12 12:25 · 주인: m9 8개 전부 탈락 — "4번에 유자 빼고 얼굴 톤만 맞추라니까" → 비율 바꾸지 말고 한 장만
+- 할 일: 후보 4(`capy/ref-cand4.png`)를 ChatGPT 편집으로 유자만 지우고 머리(얼굴) 색을 한 톤으로. 모양·크기·옷 그대로.
+- 문구: 'Edit this picture. Remove ONLY the small orange fruit with its leaf from the top of the capybara's head and
+  draw the top of the head there, with the same smooth rounded outline and the same fur colour as the rest of the
+  head. Make the whole head and face exactly ONE uniform warm-brown tone (no lighter or darker patches), the muzzle
+  stays its darker brown. Change NOTHING else: same shape, same proportions, same size and position, same eyes,
+  nostrils, ears, sweatshirt, legs, feet, outline and pixel-art style. Same background.'
+- 결과 → `capy/m10/m10-cand4-noyuzu.png` (원본 크기 캡처, 다시 그리기 없음).
