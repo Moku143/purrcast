@@ -1812,6 +1812,23 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(r.placeName(.ko), "오류동")
     }
 
+    /// iPad: the rows shared out among columns — every row once, in order within its column, the first rows across
+    /// the top, the columns ending at about the same height
+    func testHomeColumns() {
+        let rows = HomeLayout.rows(["next", "hourly", "daily", "tile0", "tile1", "dust", "air", "wind", "cmp", "week"])
+        for n in [2, 3] {
+            let cols = HomeLayout.columns(rows, count: n, free: true)
+            XCTAssertEqual(cols.count, n)
+            XCTAssertEqual(Set(cols.flatMap { $0 }), Set(rows), "every row once (\(n) columns)")
+            XCTAssertEqual(cols.flatMap { $0 }.count, rows.count)
+            XCTAssertEqual(cols.map { $0.first }, Array(rows.prefix(n)).map { Optional($0) }, "the first rows across the top")
+            for c in cols { XCTAssertEqual(c, rows.filter { c.contains($0) }, "the order kept inside a column") }
+            let h = cols.map { $0.reduce(CGFloat(0)) { $0 + HomeLayout.height($1, free: true) + 16 } }
+            XCTAssertLessThanOrEqual(h.max()! - h.min()!, 520, "about even (\(h))")
+        }
+        XCTAssertEqual(HomeLayout.columns(rows, count: 1, free: false), [rows])
+    }
+
     /// The home cards: the saved order kept, a card new to it placed after the one it follows by default; tiles
     /// always two to a row — they trade places with each other and move among the whole cards in pairs
     func testHomeCardOrder() {

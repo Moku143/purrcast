@@ -377,7 +377,6 @@ struct CompactHeader: View {
         }
         .lineLimit(1)
         .padding(.horizontal, 22).padding(.top, 6).padding(.bottom, 14)
-        .frame(maxWidth: Column.maxWidth)       // a big window: the words over the page's column, the band across it all
         .frame(maxWidth: .infinity)
         .background {
             // the band's background reaches up under the status bar; the text stays below it

@@ -60,6 +60,14 @@ jobs:
             fi
             echo "SIM_DEVICE=$dev" >> "$GITHUB_ENV"; echo "SIM_OS=latest" >> "$GITHUB_ENV"
           fi
+      - name: Store status bar (iPad store screens only)
+        if: contains(github.event.inputs.only, 'test32PadStore')
+        run: |
+          # the store's clean status bar: 9:41, full battery and signal (the device booted now keeps it for the tests)
+          DEV=$(xcrun simctl list devices available | grep -F "$SIM_DEVICE (" | head -1 | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/')
+          xcrun simctl boot "$DEV" || true
+          xcrun simctl bootstatus "$DEV" -b
+          xcrun simctl status_bar "$DEV" override --time "9:41" --batteryState charged --batteryLevel 100 --wifiBars 3 || true
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project

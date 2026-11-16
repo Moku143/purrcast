@@ -49,8 +49,9 @@ struct HomeView: View {
         let s = model.scene
         let ink = Ink(night: night(s))
         let lv = Rules.clamp(s.level)
-        // a big window (iPad): the hero and the cards in a column in the middle, the sky across the whole window
-        let col = Column.width(in: width)
+        // a big window (iPad): the page across the whole window — a bigger hero, the cards in two or three columns
+        let wide = HomeWide.on(width)
+        let pad: CGFloat = wide ? HomeWide.pad : 16
         return ZStack(alignment: .top) {
             background(level: lv, night: night(s)).ignoresSafeArea()
                 .animation(Motion.fade, value: lv).animation(Motion.fade, value: night(s))
@@ -58,19 +59,21 @@ struct HomeView: View {
                 .id("tint" + skyKey(s)).transition(.opacity)
             if model.hasData {
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 12) {
-                        heroScaled(s, ink: ink, level: lv, width: col, window: width, topInset: topInset)
-                            .parallaxHero()
+                    VStack(spacing: wide ? HomeWide.gap : 12) {
+                        Group {
+                            if wide { heroWide(s, ink: ink, level: lv, width: width, topInset: topInset) }
+                            else { heroScaled(s, ink: ink, level: lv, width: width, topInset: topInset) }
+                        }
+                        .parallaxHero()
                         PromoBanner(ink: ink) { route = .character }
                         if let e = model.lastError { notice(e, ink: ink).transition(.move(edge: .top).combined(with: .opacity)) }
                         if let a = s.alert { AlertBanner(alert: a, night: ink.night).reveal(0).settleInScroll() }
-                        cards(s, ink: ink)
+                        if wide { cardColumns(s, ink: ink, width: width - 2 * pad) } else { cards(s, ink: ink) }
                         if !model.plus { PlusPromoCard(ink: ink) { route = .paywall }.reveal(5).settleInScroll() }
                         HomeFooter(scene: s, region: model.currentPlace.region, isSample: model.isSample, ink: ink) { route = .sources }.reveal(6)
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, pad)
                     .padding(.bottom, 44)
-                    .frame(width: col)
                     .frame(width: width)
                     // how far the page has scrolled (drives the compact header) — behind the stack, so it takes no
                     // room of its own: the sky picture starts at the very top
@@ -156,29 +159,36 @@ struct HomeView: View {
         }
     }
 
-    /// The hero at the design width, scaled to fit the column (see `heroDesignW`); the sky behind it still spans the
-    /// window. In a big window (iPad) the hero is laid out across the whole column, the temperature at its right edge
-    /// like the cards below, and never scaled up.
-    private func heroScaled(_ s: WeatherScene, ink: Ink, level: Int, width: CGFloat, window: CGFloat, topInset: CGFloat) -> some View {
+    /// The hero at the design width, scaled to fit the screen (see `heroDesignW`); the sky behind it still spans the screen
+    private func heroScaled(_ s: WeatherScene, ink: Ink, level: Int, width: CGFloat, topInset: CGFloat) -> some View {
         let avail = max(200, width - 32)
-        let designW = Column.wide(window) ? max(heroDesignW, avail) : heroDesignW
-        let k = min(1, avail / designW)
-        let margin = (window - width) / 2      // from the window's edge to the column's
-        return hero(s, ink: ink, level: level, topInset: topInset / k, skyWidth: window / k, sidePad: (16 + margin) / k)
-            .frame(width: designW, height: heroH, alignment: .topLeading)
+        let k = min(1, avail / heroDesignW)
+        return hero(s, ink: ink, level: level, topInset: topInset / k, skyWidth: width / k, sidePad: 16 / k)
+            .frame(width: heroDesignW, height: heroH, alignment: .topLeading)
             .scaleEffect(k, anchor: .topLeading)
             .frame(width: avail, height: heroH * k, alignment: .topLeading)
     }
 
-    private func hero(_ s: WeatherScene, ink: Ink, level: Int, topInset: CGFloat, skyWidth: CGFloat, sidePad: CGFloat) -> some View {
+    /// A big window (iPad): the hero across the whole page, drawn bigger (never a scaled picture: the sizes grow, so
+    /// the pixel type and the character stay sharp), the character about a quarter in from the left
+    private func heroWide(_ s: WeatherScene, ink: Ink, level: Int, width: CGFloat, topInset: CGFloat) -> some View {
+        let avail = width - 2 * HomeWide.pad
+        let u = HomeWide.heroScale(avail)
+        return hero(s, ink: ink, level: level, topInset: topInset, skyWidth: width, sidePad: HomeWide.pad, u: u, headX: avail * 0.27)
+            .frame(width: avail, height: heroH * u, alignment: .topLeading)
+    }
+
+    /// `u`: how much bigger than the phone's design (1 on a phone); `headX`: where the head's centre goes (nil: the phone's place)
+    private func hero(_ s: WeatherScene, ink: Ink, level: Int, topInset: CGFloat, skyWidth: CGFloat, sidePad: CGFloat,
+                      u: CGFloat = 1, headX wideHeadX: CGFloat? = nil) -> some View {
         let char = model.shownCharacter
         let rain = RainState(rawValue: s.rain) ?? .none
-        let catW: CGFloat = 176, catH = catW * Sprite.height / Sprite.width
+        let catW: CGFloat = 176 * u, catH = catW * Sprite.height / Sprite.width
         // positions from the layout board (2026-10-29): the character a little lower and to the right, the temperature
         // a little lower, the weather words down beside the character's body
-        let feetY: CGFloat = 379
+        let feetY: CGFloat = 379 * u
         let catTop = feetY - Sprite.feetY / Sprite.height * catH
-        let headX: CGFloat = 100 - 16 + 3.3   // hero is inside the 16 pt side padding
+        let headX: CGFloat = wideHeadX ?? (100 - 16 + 3.3)   // hero is inside the 16 pt side padding
         let a = char.anchors
         let catLeft = headX - CGFloat(a.head_cx[level]) * catW / Sprite.width
         let tipY = catTop + CGFloat(rain == .umbrella ? a.umb_top[level] : a.head_top[level]) / Sprite.height * catH - 4
@@ -207,25 +217,25 @@ struct HomeView: View {
             .padding(.horizontal, 4).padding(.top, 8)
 
             // the temperature, right
-            Text(deg(s.temp)).font(.px(88)).rolling(s.temp)
+            Text(deg(s.temp)).font(.px(88 * u)).rolling(s.temp)
                 .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.trailing, 12).padding(.top, 91)
+                .padding(.trailing, 12).padding(.top, 91 * u)
                 .reveal(0, rise: 10)
 
             // the weather in words, right, beside the character's body
-            VStack(alignment: .trailing, spacing: 10) {
-                Text(s.cond).font(.px(17)).id(s.cond).transition(.opacity.combined(with: .move(edge: .trailing)))
-                Text(L("최고 %@ · 최저 %@", deg(s.hi), deg(s.lo))).font(.px(12)).rolling(s.hi * 1000 + s.lo)
+            VStack(alignment: .trailing, spacing: 10 * u) {
+                Text(s.cond).font(.px(17 * u)).id(s.cond).transition(.opacity.combined(with: .move(edge: .trailing)))
+                Text(L("최고 %@ · 최저 %@", deg(s.hi), deg(s.lo))).font(.px(12 * u)).rolling(s.hi * 1000 + s.lo)
                 // one line when it fits beside the character's head, else two ("Feels 17° Pleasant" / "vs yesterday -1°")
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 5) { feelsPart(s); Text("·"); ydayPart(s, ink) }
                     VStack(alignment: .trailing, spacing: 6) { feelsPart(s); ydayPart(s, ink) }
                 }
-                .font(.px(12)).lineLimit(1).minimumScaleFactor(0.8)
-                .frame(maxWidth: 230, alignment: .trailing)
+                .font(.px(12 * u)).lineLimit(1).minimumScaleFactor(0.8)
+                .frame(maxWidth: 230 * u, alignment: .trailing)
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
-            .padding(.trailing, 6).padding(.top, 303)
+            .padding(.trailing, 6).padding(.top, 303 * u)
             .animation(Motion.gentle, value: s.cond)
             .reveal(0, rise: 10)
 
@@ -239,7 +249,7 @@ struct HomeView: View {
                 // the box sits over the character's head, but never past the hero's left edge or above its top: a long
                 // line (미세먼지 매우 나쁨 · 마스크 꼭 챙기세요) wraps inside the hero's width and its tail still points at the head.
                 // (A box allowed to grow past the edge once widened this whole stack, pushing the top row off the screen.)
-                BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Self.bubbleLines(model.say(b.text)), live: true, tailX: tipX)
+                BubbleView(kind: b.kind, tone: b.tone, icon: b.icon, text: Self.bubbleLines(model.say(b.text)), fontSize: 13 * u, live: true, tailX: tipX)
                     .fixedSize()
                     .alignmentGuide(.leading) { d in min(0, d.width / 2 - tipX) }
                     .alignmentGuide(.top) { d in min(0, d.height - tipY) }
@@ -248,12 +258,12 @@ struct HomeView: View {
             }
         }
         .animation(Motion.bouncy, value: s.bubble?.text)
-        .frame(maxWidth: .infinity, minHeight: heroH, maxHeight: heroH, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: heroH * u, maxHeight: heroH * u, alignment: .topLeading)
         .background(alignment: .topLeading) {
             // weather pixels (clouds, rain, snow, wind …), edge to edge from the very top of the screen (behind the
             // status bar and the place row too), two tiles high, fading out above the first card
             SkyParticles(scene: s, width: skyWidth, tiles: 2, animate: !reduce)     // Reduce Motion: one still frame, as on the widgets
-                .frame(width: skyWidth, height: heroH + topInset, alignment: .top)
+                .frame(width: skyWidth, height: heroH * u + topInset, alignment: .top)
                 .clipped()
                 .mask(LinearGradient(stops: [.init(color: .black, location: 0.7), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
                 .opacity(scheme == .dark && !s.isNight ? 0.55 : 1)     // dark mode: the day's sun and white clouds quieter
@@ -563,25 +573,52 @@ struct HomeView: View {
         let ids = HomeLayout.order(saved: model.homeOrder, present: presentCards(s), tiles: s.tiles.count)
         let rows = HomeLayout.rows(ids)
         return ForEach(Array(rows.enumerated()), id: \.element) { i, row in
-            Group {
-                if HomeLayout.isHalf(row[0]) {
-                    HStack(alignment: .top, spacing: 12) {
-                        ForEach(row, id: \.self) { id in movable(id, ids: ids) { card(id, s, ink: ink) } }
-                        if row.count == 1 { Color.clear.frame(maxWidth: .infinity) }
-                    }
-                    .fixedSize(horizontal: false, vertical: true)
-                } else {
-                    movable(row[0], ids: ids) { card(row[0], s, ink: ink) }
-                }
-                // Free: an ad card under 시간별 and one under 10일, wherever those two have been moved
-                if row[0] == "hourly" { AdCard(slot: .home(0), ink: ink) { route = .paywall } }
-                if row[0] == "daily" { AdCard(slot: .home(1), ink: ink) { route = .paywall } }
-            }
-            .reveal(min(i + 1, 5)).settleInScroll()
+            cardRow(row, ids: ids, s, ink: ink)
+                .reveal(min(i + 1, 5)).settleInScroll()
         }
-        // the 대기질 map (Plus) for the place, again after each refresh — here, not on the card, so a place without a
-        // map tries again on the next refresh
-        .task(id: "\(model.currentPlace.id)|\(s.updated)|\(s.clock)|\(s.isPlus)") { if s.isPlus { await model.loadAirMap(); if Features.radar { await model.loadRadar() } } }
+        .task(id: "\(model.currentPlace.id)|\(s.updated)|\(s.clock)|\(s.isPlus)") { await loadMaps(s) }
+    }
+
+    /// A big window (iPad): the same rows in two or three columns side by side, each row going to the shortest
+    /// column so far (moving a card works as on a phone: the order is one list, the columns follow it)
+    private func cardColumns(_ s: WeatherScene, ink: Ink, width: CGFloat) -> some View {
+        let ids = HomeLayout.order(saved: model.homeOrder, present: presentCards(s), tiles: s.tiles.count)
+        let cols = HomeLayout.columns(HomeLayout.rows(ids), count: HomeWide.columns(width), free: !s.isPlus)
+        return HStack(alignment: .top, spacing: HomeWide.gap) {
+            ForEach(cols.indices, id: \.self) { c in
+                VStack(spacing: HomeWide.gap) {
+                    ForEach(Array(cols[c].enumerated()), id: \.element) { i, row in
+                        cardRow(row, ids: ids, s, ink: ink).reveal(min(i + 1, 5)).settleInScroll()
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .top)
+            }
+        }
+        .task(id: "\(model.currentPlace.id)|\(s.updated)|\(s.clock)|\(s.isPlus)") { await loadMaps(s) }
+    }
+
+    /// The 대기질 map (Plus) for the place, again after each refresh — here, not on the card, so a place without a
+    /// map tries again on the next refresh
+    private func loadMaps(_ s: WeatherScene) async {
+        if s.isPlus { await model.loadAirMap(); if Features.radar { await model.loadRadar() } }
+    }
+
+    /// One row: a whole card, or two tiles side by side; Free: an ad card under 시간별 and one under 10일, wherever
+    /// those two have been moved
+    @ViewBuilder private func cardRow(_ row: [String], ids: [String], _ s: WeatherScene, ink: Ink) -> some View {
+        VStack(spacing: 12) {
+            if HomeLayout.isHalf(row[0]) {
+                HStack(alignment: .top, spacing: 12) {
+                    ForEach(row, id: \.self) { id in movable(id, ids: ids) { card(id, s, ink: ink) } }
+                    if row.count == 1 { Color.clear.frame(maxWidth: .infinity) }
+                }
+                .fixedSize(horizontal: false, vertical: true)
+            } else {
+                movable(row[0], ids: ids) { card(row[0], s, ink: ink) }
+            }
+            if row[0] == "hourly" { AdCard(slot: .home(0), ink: ink) { route = .paywall } }
+            if row[0] == "daily" { AdCard(slot: .home(1), ink: ink) { route = .paywall } }
+        }
     }
 
     @ViewBuilder private func card(_ id: String, _ s: WeatherScene, ink: Ink) -> some View {

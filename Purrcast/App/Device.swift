@@ -12,15 +12,9 @@ enum Device {
     }()
 }
 
-/// The page's column in a big window (iPad): the hero and the cards stay a phone-like column in the middle, the sky
-/// behind them spans the window. Phones (440 pt at most) and slim Split View windows fill their width as before.
+/// A phone-wide column in a big window (iPad): the first-run pages and the sheets keep their phone layout this wide.
 enum Column {
-    /// Windows up to this wide are laid out edge to edge, as on a phone
-    static let phoneUpTo: CGFloat = 536
     static let maxWidth: CGFloat = 600
-    static func wide(_ window: CGFloat) -> Bool { window > phoneUpTo }
-    /// The column: the window itself on a phone; 536…600 pt with a margin on each side in a bigger window
-    static func width(in window: CGFloat) -> CGFloat { min(window, max(phoneUpTo, min(window - 64, maxWidth))) }
 }
 
 extension View {
@@ -32,4 +26,17 @@ extension View {
             frame(idealWidth: Column.maxWidth + 40).presentationSizing(.page.fitted(horizontal: true, vertical: false))
         } else { self }
     }
+}
+
+/// The home page in a big window (iPad): across the whole window, the hero drawn bigger, the cards in columns.
+enum HomeWide {
+    /// Windows this wide or wider (an iPad, or two thirds of one); narrower ones get the phone's page
+    static let from: CGFloat = 700
+    static let pad: CGFloat = 24
+    static let gap: CGFloat = 16
+    static func on(_ window: CGFloat) -> Bool { window >= from }
+    /// The hero's sizes against the phone's design: 1 at 620 pt of page, up to 1.6 (a 13-inch iPad)
+    static func heroScale(_ avail: CGFloat) -> CGFloat { min(1.6, max(1, avail / 620)) }
+    /// Two columns of cards, three from 1100 pt (an iPad lying down)
+    static func columns(_ width: CGFloat) -> Int { width >= 1100 ? 3 : 2 }
 }

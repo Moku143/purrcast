@@ -744,11 +744,11 @@ final class ScreenshotTests: XCTestCase {
         try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .pad, "iPad only")
         for (o, tag) in [(UIDeviceOrientation.portrait, "port"), (.landscapeLeft, "land")] {
             XCUIDevice.shared.orientation = o
-            shot("pad-\(tag)-home-free", ["-scene", "maybe"], wait: 2, whole: tag == "land")
+            shot("pad-\(tag)-home-free", ["-scene", "maybe", "-adsDemo"], wait: 2, whole: tag == "land")      // the ads' places (stand-ins)
             shot("pad-\(tag)-home-plus", ["-scene", "spring_rain", "-plus", "-char", "brit"], wait: 2, whole: tag == "land")
             shot("pad-\(tag)-home-dust", ["-scene", "spring_dust", "-plus", "-char", "capy"], wait: 2, whole: tag == "land")
             shot("pad-\(tag)-home-cards", ["-scene", "maybe", "-plus"], wait: 2, whole: tag == "land") { app in for _ in 0..<3 { app.swipeUp() }; sleep(1) }
-            shot("pad-\(tag)-home-bottom", ["-scene", "maybe"], wait: 2, whole: tag == "land") { app in for _ in 0..<6 { app.swipeUp() }; sleep(1) }
+            shot("pad-\(tag)-home-bottom", ["-scene", "maybe", "-adsDemo"], wait: 2, whole: tag == "land") { app in for _ in 0..<6 { app.swipeUp() }; sleep(1) }
             shot("pad-\(tag)-paywall", ["-scene", "maybe", "-open", "paywall"], wait: 2, whole: tag == "land")
             for page in ["character", "settings", "places", "widgets", "day", "calendar", "air", "sources"] {
                 shot("pad-\(tag)-page-\(page)", ["-scene", "maybe", "-plus", "-open", page], wait: 2, whole: tag == "land")
@@ -763,6 +763,27 @@ final class ScreenshotTests: XCTestCase {
         shot("pad-widgetlab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab"], wait: 3)
         shot("pad-widgetlab-2", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage2"], wait: 3)
         shot("pad-locklab", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage4"], wait: 3)
+    }
+
+    /// The iPad App Store pictures' raw screens (13-inch simulator, standing): the real iPad pages in each language,
+    /// each market's own city; the iOS build workflow (only=test32PadStore, an iPad device) publishes them to ci-output and docs/store/ipad/compose.py puts the captions on.
+    func test32PadStore() throws {
+        try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .pad, "iPad only")
+        XCUIDevice.shared.orientation = .portrait
+        let all = ["ko", "en", "ja", "es", "fr", "de", "pt-BR", "it", "id", "ru", "zh-Hans", "zh-Hant"]
+        let langs = ProcessInfo.processInfo.environment["STORE_LANGS"].map { $0.split(separator: " ").map(String.init) } ?? all
+        for lang in langs {
+            let base = (lang == "en" ? ["-clock12"] : []) + ["-storeCity", lang]
+            shot("padstore-\(lang)-home", ["-scene", "spring_rain", "-plus", "-char", "cat"] + base, wait: 3, lang: lang)
+            shot("padstore-\(lang)-days", ["-scene", "maybe", "-char", "cat"] + base, wait: 3, lang: lang) { app in
+                app.swipeUp(); sleep(2)
+            }
+            shot("padstore-\(lang)-day", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "today"] + base, wait: 3, lang: lang) { app in
+                app.buttons["tab-rain"].firstMatch.tap(); sleep(2)
+            }
+            shot("padstore-\(lang)-calendar", ["-scene", "maybe", "-plus", "-char", "cat", "-open", "calendar"] + base, wait: 3, lang: lang)
+            shot("padstore-\(lang)-air", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "air"] + base, wait: 3, lang: lang)
+        }
     }
 
     func test10Layout() {

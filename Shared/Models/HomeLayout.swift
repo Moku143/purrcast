@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 /// The cards under the forecast on home, in the order the person set (long press a card, then drag it).
 /// Ids: next (가까운 비), hourly, daily (10일), tile0… (강수확률 · 자외선 · 일출/일몰 · 습도), dust, air (대기질), wind,
@@ -39,6 +40,33 @@ enum HomeLayout {
             if !isHalf(id) { out.append(id) } else if let p = pairOf[id] { out += p }
         }
         return out
+    }
+
+    /// About how tall each row is (points on a phone-wide card), for sharing rows out among columns
+    static func height(_ row: [String], free: Bool) -> CGFloat {
+        let ad: CGFloat = free ? 190 : 0       // the ad card under 시간별 and under 10일
+        switch row.first ?? "" {
+        case "next": return 330
+        case "hourly": return 250 + ad
+        case "daily": return 500 + ad
+        case "dust": return 260
+        case "air", "radar": return 400
+        case "wind": return 210
+        case "cmp": return 330
+        case "week": return 250
+        default: return 140                    // two tiles side by side
+        }
+    }
+
+    /// The rows in `count` columns (a big window): each row, in order, goes to the column that is shortest so far,
+    /// so the columns end at about the same height and the order still reads left to right, top to bottom
+    static func columns(_ rows: [[String]], count: Int, free: Bool) -> [[[String]]] {
+        var cols = Array(repeating: [[String]](), count: max(1, count)), h = Array(repeating: CGFloat(0), count: max(1, count))
+        for row in rows {
+            let c = h.indices.min { h[$0] < h[$1] || (h[$0] == h[$1] && $0 < $1) }!
+            cols[c].append(row); h[c] += height(row, free: free) + 16
+        }
+        return cols
     }
 
     /// Rows: a whole card alone, tiles two by two in the order they come; a tile with no tile after it keeps its half
