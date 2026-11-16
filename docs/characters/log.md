@@ -1643,3 +1643,50 @@ Redraw this picture as a clean, sharp, high-resolution version of EXACTLY the sa
   13 `a8748b01-33d9-44c9-8674-dc9a69414280`
   14 `1d1e5cf7-8cad-4068-b22d-67960e721818`
 - 15칸 판: `selkirk/1-outfits-15-v1.png`, `bichon/1-outfits-15-v1.png` (주인 확인 전).
+
+## 2026-11-17 00:4x · 주인: "옷이 안따뜻해보이는게 많다 좀 디자인도 너무 못생긴게 많고" → 옷 15칸 v2 (두 캐릭터 전부 다시)
+- 기준: 지금 앱 cat·abys·brit·capy 5~14단계 (`Shared/SharedAssets.xcassets/*-stand-K-none`)와 나란히 봄 — 7단계부터
+  두툼한 겉옷, 9단계부터 목도리, 11단계 이상은 빵빵한 패딩 + 목도리 + 장갑/모자.
+- v1에서 고친 점: 얇아 보이던 옷(셀커크 9 판초·11 짧은 패딩, 비숑 9 조끼·11 스키재킷 등) → 두툼한 셰르파·패딩·털 칼라;
+  캐릭터마다 색 묶음 하나(셀커크 = 딸기 분홍·크림·버터 노랑·세이지·캐러멜·버건디, 비숑 = 네이비·빨강·노랑·하늘색).
+- 문구 = MASTER v4 Step 2에 두 문장 추가 (prompts.md에도 적음):
+  모든 칸 "The outfit design is cute, simple and well put together like a children's picture book: soft friendly colours
+  that go well together, chunky rounded shapes, only a few small details, nothing busy or messy."
+  7~14칸 "It must look clearly WARM and cosy for cold weather: thick, soft, chunky fabric with a gentle rounded volume,
+  long sleeves down to the paws, a snug high collar or scarf around the neck."
+  끝 문장은 "fits this body snugly; the figure stays the same height and the head stays exactly where it is."로 바꿈.
+- Higgsfield `gpt_image_2_6` low 1k 3:4, 30장 7.5 크레딧, 모두 1차 그대로. → `NAME/outfits-v2/stand-K(-orig).png`,
+  판 `NAME/1-outfits-15-v2.png`. (v1은 `outfits/`에 그대로 둠)
+- selkirk v2:
+  0 a woven straw sun hat with a strawberry-pink ribbon and a white ruffled sleeveless top, holding a pink strawberry ice pop · `8fa401ae-3ff4-4f19-85f1-c70b4e2deb30`
+  1 a butter-yellow sleeveless top with one small lemon print, holding a little mint-green hand fan · `758a3824-26de-4291-9c2d-e9d656772876`
+  2 a sky-blue T-shirt with one small strawberry print on the chest and white shorts · `54d4edfe-3845-43b5-be3b-ceba576752ec`
+  3 a cream short-sleeve shirt with a small red cherry pattern and sage-green shorts · `85f9a512-f9b9-4299-9dc9-f690eb642ec6`
+  4 a white button-up shirt with a rounded collar, a strawberry-pink bow tie and caramel shorts · `491df959-7e30-46d6-a60b-9950ab1226cd`
+  5 a cosy oversized strawberry-pink hoodie with one small white cupcake print and a front pocket, hood down · `eaf01cc8-c2a3-4b62-829e-a8f3003e150c`
+  6 a chunky cream cable-knit sweater with a big rolled turtleneck collar and a few small pink hearts knitted in · `a4788f2e-a7c0-4cf8-b590-e10493612794`
+  7 a sage-green corduroy jacket with a fluffy cream sherpa collar, over a butter-yellow knit sweater · `212e1730-b994-4c24-9a96-d993bbbcea26`
+  8 a hip-length sky-blue padded quilted jacket with a big fluffy cream shearling collar and fluffy cuffs · `aae2bd74-27e9-44d9-bb2c-eca80b7d6bbe`
+  9 a fluffy caramel teddy-bear sherpa coat down to the hips, buttoned up, and a chunky strawberry-pink knitted scarf · `6008476b-a17b-4638-ab65-c7e6eaa82de1`
+  10 a knee-length burgundy wool coat with big round buttons, buttoned up, and a thick chunky butter-yellow knitted scarf · `8dff0ce2-d35d-440a-84d3-bb2a1dce8fd9`
+  11 a big puffy hip-length cream puffer jacket with thick rounded puffs, a chunky sage-green knitted scarf and sage-green mittens · `84e09ab6-5724-451f-a1de-3d4bcce34666`
+  12 a big puffy strawberry-pink puffer jacket, a cream knitted bobble hat with a big fluffy pompom, and a chunky caramel knitted scarf · `35edd5ea-f20c-4af5-ad7f-a90da36b8aca`
+  13 a thick knee-length sage-green puffer coat, a fluffy cream knitted earflap hat with braided tassels, a chunky burgundy knitted scarf and cream mittens · `b67fdeb3-ade3-45af-9ce0-765a5a453ebd`
+  14 a thick ankle-length cherry-red puffer coat with its own big hood worn up, framed by a thick fluffy cream fur trim around the face (ears inside the hood), a chunky cream-and-red striped knitted scarf, cream mittens and a small white puff of breath beside the mouth · `e132a5e9-26d6-42e3-a6a7-7052e0502166`
+- bichon v2:
+  0 a white sailor hat and a navy-and-white striped sleeveless top, holding a blue snow cone in a paper cup · `7ff75599-bb58-4354-a7e0-d9fd894cca98`
+  1 a sky-blue sleeveless top with one small yellow duck print, holding a little blue water bottle · `2aa5e79b-0cff-4819-b9c6-ee7587ecdf9d`
+  2 a sunshine-yellow T-shirt with one small white bone print and navy shorts · `733d1ce1-f985-4a3f-af18-68e566594baa`
+  3 a red-and-white gingham short-sleeve shirt and navy shorts · `8bc7e04f-7d97-4707-b7b5-0886fd86d4cb`
+  4 a light-blue button-up shirt, a navy bow tie with white dots and khaki shorts · `77fed8e1-64b1-4f86-b860-89c1056dbb25`
+  5 a cosy oversized sunshine-yellow hoodie with one small white bone print and a front pocket, hood down · `1f89eb91-2267-41a5-b39b-18af6bdb061b`
+  6 a chunky sky-blue cable-knit sweater with a white shirt collar peeking out · `830d7ca3-2626-4f05-8fd4-6f30b12e7b97`
+  7 a red quilted bomber jacket with navy ribbed collar and cuffs, over a white tee · `f8740170-7412-4cba-ae60-052ca2aefbf1`
+  8 a hip-length forest-green padded jacket with a big fluffy white fleece collar and fluffy cuffs · `8a008b11-b268-4f9f-ac3b-99af2fdb0184`
+  9 a thick hip-length navy parka with a fluffy white fleece lining showing at the open hood (hood down) and a chunky red knitted scarf · `f534fa39-74c2-414d-aef9-d4093d2e14f3`
+  10 a knee-length camel wool coat with big buttons, buttoned up, and a thick chunky red-and-navy striped knitted scarf · `2a85ce0c-500e-441d-89db-82142e2b0ec6`
+  11 a big puffy hip-length sunshine-yellow puffer jacket with thick rounded puffs, a chunky navy knitted scarf and navy mittens · `83f1cecc-ea1a-4e90-b129-91afd19763e3`
+  12 a big puffy navy puffer jacket, a red knitted bobble hat with a big white pompom and a white snowflake band, and a chunky yellow knitted scarf · `304c8da4-3b27-43f0-8998-fdde9fd1ef20`
+  13 a thick knee-length red puffer coat, a fluffy navy knitted earflap hat with a white pompom on top, a chunky sky-blue knitted scarf and navy mittens · `d576551e-18e9-4f78-9a87-f1d231713dd4`
+  14 a thick ankle-length royal-blue puffer coat with its own big hood worn up, framed by a thick fluffy white fur trim around the face (ears inside the hood), a chunky red-and-white Nordic-pattern knitted scarf, yellow mittens and a small white puff of breath beside the mouth · `0c02d554-bf5e-49d3-93ab-0adf88ff51a8`
+- 눈에 띄는 점: 셀커크 12·13 모자가 둘 다 크림 니트+방울이라 비슷함. 비숑 14 입김이 뺨 위에 겹침.

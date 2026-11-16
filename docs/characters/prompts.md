@@ -33,6 +33,9 @@ Edit this picture. Keep the {ANIMAL} EXACTLY as it is - the same head shape and 
 - `{FEATURES}` selkirk: `the same ears, eyes, nose, mouth, whiskers, the same curly coat` ·
   bichon: `the same floppy ears, eyes, nose, open mouth with tongue, the same fluffy round head and curly coat` ·
   capy: see log.md 13:26 entry.
+- Since v2 (owner: "옷이 안따뜻해 보임, 못생김"), after `{OUTFIT K}.` add to every stage: `The outfit design is cute, simple and well put together like a children's picture book: soft friendly colours that go well together, chunky rounded shapes, only a few small details, nothing busy or messy.`
+  and to stages 7–14: ` It must look clearly WARM and cosy for cold weather: thick, soft, chunky fabric with a gentle rounded volume, long sleeves down to the paws, a snug high collar or scarf around the neck.`
+  and end with `fits this body snugly; the figure stays the same height and the head stays exactly where it is.` One colour family per character; cold stages = thick sherpa / padded / puffer + chunky scarf (9+) + mittens or hat (11+).
 - `{HAT}` (stages with a hat, usually 0 · 12 · 13): ` The hat sits on top of the head; both eyes stay fully visible, exactly where they are now.`
   Dog with drop ears adds ` The floppy ears hang out below the hat.`
 - `{HOOD}` (stage 14): ` The hood frames the face; both eyes, the nose and the mouth stay fully visible, exactly where they are now.`
