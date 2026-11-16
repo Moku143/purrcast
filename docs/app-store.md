@@ -133,3 +133,12 @@ GitHub → Actions → **Store screenshots** → Run workflow (언어 칸을 비
 | 10 | 애플워치 (Plus) |
 
 애플워치 스크린샷은 Actions → **Watch store screenshots**.
+
+## 기기별 공급 (2026-11-16, 대표 결정)
+앱은 iPhone 전용이에요(`TARGETED_DEVICE_FAMILY: "1"`). 다른 기기에서는 iPhone 앱이 iPhone 크기 창으로 실행돼요.
+- **Apple Silicon Mac: 공급 해제.** App Store Connect → 가격 및 사용 가능 여부. 그때까지 Mac 다운로드는 1건이었어요. Mac 대응 업데이트를 하면 같은 화면에서 다시 켜요.
+- **iPad: 공급 중**(iPhone 크기로 실행, 다운로드 1건). iPad 대응은 나중에 검토해요.
+  - 화면 배치와 위젯 크기를 손봐야 해요.
+  - `TARGETED_DEVICE_FAMILY "1,2"`로 바꿔야 해요.
+  - 13인치 iPad 스토어 스크린샷이 필요해요.
+- **Apple Vision Pro: 공급 중, 검증 안 함.** 기기도 시뮬레이터 실행 기록도 없어요. 유지할지 정해야 해요.
