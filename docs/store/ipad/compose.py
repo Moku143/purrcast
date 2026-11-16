@@ -94,8 +94,8 @@ def outfits(img):
         m = Image.new('L', (tw, th), 0); ImageDraw.Draw(m).rounded_rectangle([0, 0, tw - 1, th - 1], 70, fill=255)
         img.paste(tile, (x, y), Image.composite(tile.getchannel('A'), Image.new('L', (tw, th), 0), m))
         sp = Image.open(f'{ASSETS}/cat-stand-{lv}-none.imageset/cat-stand-{lv}-none.png').convert('RGBA')
-        sp = sp.resize((round(sp.width * 0.98), round(sp.height * 0.98)), Image.LANCZOS)
-        img.paste(sp, (x + (tw - sp.width) // 2, y - 20), sp)
+        sp = sp.resize((round(sp.width * 0.86), round(sp.height * 0.86)), Image.LANCZOS)
+        img.paste(sp, (x + (tw - sp.width) // 2, y + 16), sp)      # feet above the temperature
         s = f'{t}°'
         d.text((x + (tw - d.textlength(s, font=f)) / 2, y + th - 118), s, font=f, fill=NAVY)
 
