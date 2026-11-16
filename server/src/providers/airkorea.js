@@ -57,12 +57,19 @@ export function nearestStation(json, lat, lon) {
 
 const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) && n >= 0 ? n : null; };
 
-/** The newest hour with a reading: { pm10, pm25, at: 'YYYY-MM-DD HH:mm' } (values may be null when a sensor is down). */
-export function parseRealtime(json) {
-  for (const it of items(json)) {
-    const pm10 = num(it.pm10Value), pm25 = num(it.pm25Value);
+/** The newest hour with a reading: { pm10, pm25, at: 'YYYY-MM-DD HH:mm' }. A station often misses one of the two for an
+ *  hour (점검 · 통신장애: "-"); that one is then taken from its own last reading within the 3 hours before (so the card
+ *  shows 미세먼지 33 from 10시 next to 초미세먼지 18 from 11시, not "–"), else left null. */
+export function parseRealtime(json, back = 3) {
+  const rows = items(json);
+  for (let i = 0; i < rows.length; i++) {
+    let pm10 = num(rows[i].pm10Value), pm25 = num(rows[i].pm25Value);
     if (pm10 == null && pm25 == null) continue;
-    return { pm10, pm25, at: it.dataTime || '' };
+    for (let j = i + 1; j <= i + back && j < rows.length && (pm10 == null || pm25 == null); j++) {
+      if (pm10 == null) pm10 = num(rows[j].pm10Value);
+      if (pm25 == null) pm25 = num(rows[j].pm25Value);
+    }
+    return { pm10, pm25, at: rows[i].dataTime || '' };
   }
   return null;
 }

@@ -839,6 +839,16 @@ test('에어코리아: nearest station, newest reading, tomorrow\'s grade, alarm
   const st = nearestStation(STATIONS, 37.49, 126.84);   // 오류동
   assert.equal(st.name, '신정동'); assert.ok(st.km < 6);
   assert.deepEqual(parseRealtime(RT), { pm10: 39, pm25: 29, at: '2026-10-30 13:00' });
+  // 신촌로, 2026-11-16 11시: 미세먼지 "-" (sensor gap) next to 초미세먼지 18 → 미세먼지 from 10시, not "–"
+  const GAP = ak([
+    { dataTime: '2026-11-16 11:00', pm10Value: '-', pm25Value: '18' },
+    { dataTime: '2026-11-16 10:00', pm10Value: '33', pm25Value: '17' },
+    { dataTime: '2026-11-16 09:00', pm10Value: '23', pm25Value: '15' },
+  ]);
+  assert.deepEqual(parseRealtime(GAP), { pm10: 33, pm25: 18, at: '2026-11-16 11:00' });
+  const LONG = ak([{ dataTime: '2026-11-16 11:00', pm10Value: '-', pm25Value: '18' }, ...['10', '09', '08'].map((h) => ({ dataTime: `2026-11-16 ${h}:00`, pm10Value: '-', pm25Value: '17' })),
+    { dataTime: '2026-11-16 07:00', pm10Value: '40', pm25Value: '17' }]);
+  assert.equal(parseRealtime(LONG).pm10, null, 'no 미세먼지 within 3 hours: still none');
   // today's hours for the chart: oldest first, only today, "24:00" is hour 0 of the next day, sensor gaps skipped
   const hist = parseHistory(ak([
     { dataTime: '2026-10-30 14:00', pm10Value: '-', pm25Value: '-' }, { dataTime: '2026-10-30 13:00', pm10Value: '39', pm25Value: '29' },
