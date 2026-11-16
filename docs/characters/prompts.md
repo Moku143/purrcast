@@ -12,6 +12,9 @@ kept unless the head/body changed or the outfit is wrong (then one retry only). 
 
 **Free-plan limit:** ChatGPT Free stops image tools after a few pictures a day ("Free 플랜 한도에 도달 … 24시간 후").
 A full character is 1 base + 15 outfits + 15 umbrella arms + 15 locks = 46 pictures.
+**Higgsfield instead (owner OK 2026-11-17):** `gpt_image_2_6` · quality `low` · `1k` · `3:4` = 0.25 credits a picture
+(medium 0.5). Same prompts, the same single attachment; the app shrinks every figure to ~406 px so low is enough.
+selkirk/bichon outfits 1–14: 26 of 26 first results kept. Output 880×1168 → resize to the base canvas (1086×1448).
 
 ### Step 0 · candidates — the step-0 prompt in log.md (selkirk / bichon 2026-11-17 entries), 2 rows of 3, 16:9.
 
