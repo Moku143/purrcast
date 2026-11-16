@@ -1600,3 +1600,46 @@ Redraw this picture as a clean, sharp, high-resolution version of EXACTLY the sa
 - 1 `…/c/6afb201a-20bc-83ec-8930-46ed62a417a6` · 2 `…/c/6afb202a-bb9c-83e8-aa9c-3759ced1a24a` ·
   3 `…/c/6afb202f-0078-83ee-bcc7-22a39a2e3065` · 4 `…/c/6afb2030-030c-83ee-9400-a69b29666a69`
   → 그림 없음: "이미지 생성 요청에 대한 Free 플랜 한도에 도달했습니다. 24시간 후 한도가 재설정되면 이미지를 더 만들 수 있습니다."
+
+## 2026-11-17 00:3x · 주인: "낮은 화질도 상관없지 않나? 우리 어차피 낮은 화질로 쓰잖아" → Higgsfield 낮은 화질로 옷 나머지
+- Higgsfield · `gpt_image_2_6` · quality **low** · 1k · 3:4 · 장당 **0.25 크레딧** (get_cost로 확인; medium은 0.5).
+  첨부 = 기준 그림 하나 (Higgsfield media `e5c61392-e10d-48c6-93fc-c6a8bad7b3a2` = `selkirk/base-capture.png`,
+  `344c8418-a514-48d4-965f-30ce7e1f35f8` = `bichon/base-capture.png`). 문구 = prompts.md MASTER v4 Step 2, 장마다 그대로.
+- 결과 880×1168 → `NAME/outfits/stand-K-orig.png`, 1086×1448로 키운 것 `stand-K.png` (기준 그림과 같은 캔버스).
+- 시험 4장 먼저(selkirk 1·2, bichon 0·1): 그림 상자 왼·위·오른쪽 끝이 기준 그림과 0.2% 안 (selkirk 0.082/0.122/0.914 vs
+  0.081/0.121/0.913, bichon 0.088/0.121/0.911 vs 0.086/0.120/0.912) → 같은 크기·자리. 나머지 24장 진행.
+- 26장 모두 1차 그대로, 다시 그리기 없음 (6.5 크레딧). 머리·얼굴·털·꼬리 그대로, 옷 모두 문구대로.
+  모자 칸(selkirk 0·12·13, bichon 0·12·13) 두 눈 다 보임; 후드 칸 14 얼굴 다 보임. bichon 13 비행모 귀덮개가 귀를 덮음.
+- job id (Higgsfield):
+- selkirk (0은 ChatGPT):
+  1 `30730bcc-d0a8-4294-9a5d-6046dec8f46e`
+  2 `8ecc9f23-dfb4-4cc2-b588-01e7a6af552f`
+  3 `ce9a8e1e-6e43-4b3d-9d67-d2a67f8198cd`
+  4 `64ca98a2-c1c4-4aae-bb56-d88594716865`
+  5 `477ee95d-26ff-4396-8a6d-61dcd80e1df2`
+  6 `b9e817da-ca77-4ee3-a1ea-8ae46e8f473c`
+  7 `9c8924bf-5434-484d-aea3-88d61f3311b6`
+  8 `79fc2a0d-20c6-4d99-a934-f4ead6f32010`
+  9 `6bfafff2-1f66-4b24-a2cf-6d83ddbe2194`
+  10 `a184b056-c018-4062-9d06-7e965852b3de`
+  11 `a1ab293b-5289-47c9-a5ee-087f151e2d2a`
+  12 `18255f04-6535-4ba9-9f70-054cb194dfb6`
+  13 `eef8ce4f-7724-4123-a5fb-8e8aeb00eff2`
+  14 `b3659d37-59e2-4639-a0a2-0b28c377a15a`
+- bichon:
+  0 `88dac7ad-0821-4235-b1f6-3f91dbdb25a7`
+  1 `b65fba79-aabe-4bc9-9b03-b1e26c173b8f`
+  2 `36abc11a-2e95-4095-a823-eca53f2acd9c`
+  3 `8c169a55-e268-4ad1-96e1-5003ae3ac156`
+  4 `05beaafa-570d-4a69-adbf-af938dd0dd6b`
+  5 `e49c83bf-5657-4b75-be3d-348eb7add61d`
+  6 `e02e7066-a08d-49f0-85ea-94270f5a4ff8`
+  7 `2a959fcf-0318-4c21-a197-d080e53dbb05`
+  8 `77a4b051-4b0e-478f-96b7-d5434591191c`
+  9 `6ba75ca6-f17d-4a27-a4bc-396052dba40f`
+  10 `80a036e3-4549-4ff8-8a38-1aababf44c22`
+  11 `9ea148fb-3313-4c2d-b266-c13fb0d065c9`
+  12 `e48b6d45-194d-4a4f-864c-d40e902ef139`
+  13 `a8748b01-33d9-44c9-8674-dc9a69414280`
+  14 `1d1e5cf7-8cad-4068-b22d-67960e721818`
+- 15칸 판: `selkirk/1-outfits-15-v1.png`, `bichon/1-outfits-15-v1.png` (주인 확인 전).
