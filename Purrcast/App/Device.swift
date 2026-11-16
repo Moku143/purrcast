@@ -24,9 +24,12 @@ enum Column {
 }
 
 extension View {
-    /// iPad: a sheet as a tall page sheet (the default there is a small box in the middle of the screen, which cut the
-    /// day sheet, the Plus page and the settings short). A phone's sheets are unchanged.
+    /// iPad: a sheet as tall as a page sheet and as wide as the home page's column (the default there is a small box in
+    /// the middle of the screen, which cut the day sheet, the Plus page and the settings short; a full page sheet
+    /// stretched their phone layouts across the screen). A phone's sheets are unchanged.
     @ViewBuilder func pageSheet() -> some View {
-        if #available(iOS 18.0, *) { presentationSizing(.page) } else { self }
+        if #available(iOS 18.0, *) {
+            frame(idealWidth: Column.maxWidth + 40).presentationSizing(.page.fitted(horizontal: true, vertical: false))
+        } else { self }
     }
 }
