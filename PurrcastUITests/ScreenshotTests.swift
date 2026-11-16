@@ -7,7 +7,8 @@ final class ScreenshotTests: XCTestCase {
 
     override func setUp() { continueAfterFailure = true }   // a simulator hiccup on one picture must not stop the rest
 
-    private func shot(_ name: String, _ args: [String], wait: UInt32 = 1, lang: String = "ko", env: [String: String] = [:], then: ((XCUIApplication) -> Void)? = nil) {
+    /// `whole`: the screen's own picture instead of the app's (lying down, the app's picture comes out cut and turned)
+    private func shot(_ name: String, _ args: [String], wait: UInt32 = 1, lang: String = "ko", env: [String: String] = [:], whole: Bool = false, then: ((XCUIApplication) -> Void)? = nil) {
         let app = XCUIApplication()
         for (k, v) in env { app.launchEnvironment[k] = v }
         let locale = ["ko": "ko_KR", "en": "en_US", "ja": "ja_JP", "es": "es_ES", "fr": "fr_FR", "de": "de_DE", "pt-BR": "pt_BR", "it": "it_IT",
@@ -19,8 +20,8 @@ final class ScreenshotTests: XCTestCase {
             app.launch()
             sleep(wait)
             then?(app)
-            picture = app.screenshot()
-            if Self.torn(picture.image) { sleep(2); picture = app.screenshot() }
+            picture = whole ? XCUIScreen.main.screenshot() : app.screenshot()
+            if Self.torn(picture.image) { sleep(2); picture = whole ? XCUIScreen.main.screenshot() : app.screenshot() }
             if !Self.torn(picture.image) { break }
         }
         let a = XCTAttachment(screenshot: picture)
@@ -743,20 +744,20 @@ final class ScreenshotTests: XCTestCase {
         try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .pad, "iPad only")
         for (o, tag) in [(UIDeviceOrientation.portrait, "port"), (.landscapeLeft, "land")] {
             XCUIDevice.shared.orientation = o
-            shot("pad-\(tag)-home-free", ["-scene", "maybe"], wait: 2)
-            shot("pad-\(tag)-home-plus", ["-scene", "spring_rain", "-plus", "-char", "brit"], wait: 2)
-            shot("pad-\(tag)-home-dust", ["-scene", "spring_dust", "-plus", "-char", "capy"], wait: 2)
-            shot("pad-\(tag)-home-cards", ["-scene", "maybe", "-plus"], wait: 2) { app in for _ in 0..<3 { app.swipeUp() }; sleep(1) }
-            shot("pad-\(tag)-home-bottom", ["-scene", "maybe"], wait: 2) { app in for _ in 0..<6 { app.swipeUp() }; sleep(1) }
-            shot("pad-\(tag)-paywall", ["-scene", "maybe", "-open", "paywall"], wait: 2)
+            shot("pad-\(tag)-home-free", ["-scene", "maybe"], wait: 2, whole: tag == "land")
+            shot("pad-\(tag)-home-plus", ["-scene", "spring_rain", "-plus", "-char", "brit"], wait: 2, whole: tag == "land")
+            shot("pad-\(tag)-home-dust", ["-scene", "spring_dust", "-plus", "-char", "capy"], wait: 2, whole: tag == "land")
+            shot("pad-\(tag)-home-cards", ["-scene", "maybe", "-plus"], wait: 2, whole: tag == "land") { app in for _ in 0..<3 { app.swipeUp() }; sleep(1) }
+            shot("pad-\(tag)-home-bottom", ["-scene", "maybe"], wait: 2, whole: tag == "land") { app in for _ in 0..<6 { app.swipeUp() }; sleep(1) }
+            shot("pad-\(tag)-paywall", ["-scene", "maybe", "-open", "paywall"], wait: 2, whole: tag == "land")
             for page in ["character", "settings", "places", "widgets", "day", "calendar", "air", "sources"] {
-                shot("pad-\(tag)-page-\(page)", ["-scene", "maybe", "-plus", "-open", page], wait: 2)
+                shot("pad-\(tag)-page-\(page)", ["-scene", "maybe", "-plus", "-open", page], wait: 2, whole: tag == "land")
             }
-            shot("pad-\(tag)-onboarding-1", ["-scene", "maybe", "-onboarding"], wait: 2)
-            shot("pad-\(tag)-onboarding-3", ["-scene", "maybe", "-onboarding"], wait: 2) { app in
+            shot("pad-\(tag)-onboarding-1", ["-scene", "maybe", "-onboarding"], wait: 2, whole: tag == "land")
+            shot("pad-\(tag)-onboarding-3", ["-scene", "maybe", "-onboarding"], wait: 2, whole: tag == "land") { app in
                 app.buttons["next"].tap(); sleep(1); app.buttons["next"].tap(); sleep(1); app.buttons["next"].tap(); sleep(1)   // past the lock screen: no watch page
             }
-            shot("pad-\(tag)-onboarding-plus", ["-scene", "maybe", "-onboarding", "-onbStep", "8"], wait: 2)
+            shot("pad-\(tag)-onboarding-plus", ["-scene", "maybe", "-onboarding", "-onbStep", "8"], wait: 2, whole: tag == "land")
         }
         XCUIDevice.shared.orientation = .portrait
         shot("pad-widgetlab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab"], wait: 3)

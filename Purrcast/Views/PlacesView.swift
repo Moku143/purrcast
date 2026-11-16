@@ -30,7 +30,7 @@ struct PlacesView: View {
         .task { await loadIndex() }
         .safeAreaInset(edge: .bottom, spacing: 0) { if !searching { AdBanner { showPaywall = true } } }    // Free
         .onAppear { Ads.shared.screenOpened() }
-        .sheet(isPresented: $showPaywall) { PaywallView() }
+        .sheet(isPresented: $showPaywall) { PaywallView().pageSheet() }
     }
 
     // MARK: search field

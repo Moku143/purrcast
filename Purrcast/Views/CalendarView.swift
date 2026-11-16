@@ -288,11 +288,11 @@ struct CalendarSheet: View {
                                                     character: r.character, place: r.fullPlaceName(), cc: r.cc,
                                                     confirmed: r.confirmed, tz: TimeZone(identifier: r.tz ?? "") ?? tz, here: true,
                                                     holiday: Holidays.name(d.id, timeZone: r.tz ?? tz.identifier)))
-                    .presentationDetents([.large]).presentationCornerRadius(28)
+                    .presentationDetents([.large]).presentationCornerRadius(28).pageSheet()
             } else {
                 DayLogSheet(key: d.id, record: byDate[d.id], holiday: Holidays.name(d.id, timeZone: byDate[d.id]?.tz ?? tz.identifier),
                             travel: byDate[d.id] == nil ? Stays.travelHint(all, day: d.id) : nil)
-                    .presentationDetents([.large]).presentationCornerRadius(28)
+                    .presentationDetents([.large]).presentationCornerRadius(28).pageSheet()
             }
         }
         .task(id: "holidays|\(m)") {

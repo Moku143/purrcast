@@ -1,4 +1,4 @@
-import UIKit
+import SwiftUI
 
 /// What kind of device the app runs on.
 enum Device {
@@ -21,4 +21,12 @@ enum Column {
     static func wide(_ window: CGFloat) -> Bool { window > phoneUpTo }
     /// The column: the window itself on a phone; 536…600 pt with a margin on each side in a bigger window
     static func width(in window: CGFloat) -> CGFloat { min(window, max(phoneUpTo, min(window - 64, maxWidth))) }
+}
+
+extension View {
+    /// iPad: a sheet as a tall page sheet (the default there is a small box in the middle of the screen, which cut the
+    /// day sheet, the Plus page and the settings short). A phone's sheets are unchanged.
+    @ViewBuilder func pageSheet() -> some View {
+        if #available(iOS 18.0, *) { presentationSizing(.page) } else { self }
+    }
 }

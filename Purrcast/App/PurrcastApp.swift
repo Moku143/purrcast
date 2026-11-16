@@ -123,6 +123,7 @@ struct RootView: View {
         // purrcast://event (the App Store event card): home with the event banner, any open page closed
         .onOpenURL { url in if url.scheme == "purrcast" { day = nil; route = nil } }
         .sheet(item: $route) { r in
+            Group {
             switch r {
             case .character: CharacterSheet(route: $route).presentationDetents([.medium, .large]).presentationCornerRadius(28)
             case .paywall: PaywallView().presentationCornerRadius(28)
@@ -141,9 +142,11 @@ struct RootView: View {
             case .skyLab: SkyLabView()                 // every sky by air (UI tests only)
             case .alertLab: AlertLabView()             // every warning's bubble and line (UI tests only)
             }
+            }
+            .pageSheet()
         }
         .sheet(item: Binding(get: { day.map { DayIndex(value: $0) } }, set: { day = $0?.value })) { d in
-            DayDetailView(start: d.value).presentationDetents([.large]).presentationCornerRadius(28)
+            DayDetailView(start: d.value).presentationDetents([.large]).presentationCornerRadius(28).pageSheet()
         }
         .onAppear(perform: openFromLaunchArguments)
         #if DEBUG

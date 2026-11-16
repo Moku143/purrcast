@@ -77,7 +77,7 @@ struct OnboardingView: View {
                 withAnimation(.easeInOut(duration: 0.6)) { demo += 1 }
             }
         }
-        .sheet(isPresented: $showPlus, onDismiss: { model.onboarded = true }) { PaywallView() }
+        .sheet(isPresented: $showPlus, onDismiss: { model.onboarded = true }) { PaywallView().pageSheet() }
     }
 
     @ViewBuilder private var buttons: some View {

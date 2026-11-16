@@ -90,7 +90,7 @@ struct DayDetailView: View {
         .onAppear { if startMetric != .temp, metric == .temp { metric = startMetric } }
         .onAppear { if !focus { Ads.shared.screenOpened() } }
         .onDisappear { if !focus { Ads.shared.dayClosed() } }
-        .sheet(isPresented: $showPaywall) { PaywallView() }
+        .sheet(isPresented: $showPaywall) { PaywallView().pageSheet() }
         .onChange(of: start) { _, i in
             picked = nil; scrubbing = false
             if metric == .dust, DayHourly.make(scene: s, index: i)?.hasDust != true { metric = .temp }   // today's readings, tomorrow's forecast only
