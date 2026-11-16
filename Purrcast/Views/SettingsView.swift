@@ -54,7 +54,7 @@ struct SettingsView: View {
     private var plusPitch: String {
         var parts: [String] = []
         if Features.adsInFree { parts.append(L("광고 제거")) }
-        parts += [L("애플워치"), L("캐릭터"), L("가까운 비")]
+        parts += (Device.isPad ? [] : [L("애플워치")]) + [L("캐릭터"), L("가까운 비")]     // no watch for an iPad
         return parts.joined(separator: " · ")
     }
 
@@ -223,14 +223,17 @@ struct SettingsView: View {
 
     private var widgetsSection: some View {
         Group {
-            SectionLabel(text: L("위젯 · 워치"))
+            SectionLabel(text: Device.isPad ? L("위젯") : L("위젯 · 워치"))
             RowGroup {
                 Button { go(.widgets) } label: {
                     SettingRow(icon: "star", title: L("위젯 추가하는 법")) { RowChevron() }
                 }.buttonStyle(.row).accessibilityIdentifier("widgets")
-                RowDivider()
-                SettingRow(icon: "daynight", title: L("애플워치"), subtitle: model.plus ? L("워치에 %@를 설치하면 바로 보여요", Brand.name) : L("Plus에서 워치 앱이 열려요")) {
-                    if model.plus { RowValue(text: L("켜짐"), chevron: false) } else { PlusTag() }
+                // Apple Watch pairs with an iPhone only
+                if !Device.isPad {
+                    RowDivider()
+                    SettingRow(icon: "daynight", title: L("애플워치"), subtitle: model.plus ? L("워치에 %@를 설치하면 바로 보여요", Brand.name) : L("Plus에서 워치 앱이 열려요")) {
+                        if model.plus { RowValue(text: L("켜짐"), chevron: false) } else { PlusTag() }
+                    }
                 }
             }
         }

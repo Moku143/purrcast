@@ -27,7 +27,10 @@ struct PaywallView: View {
         f += [
             Feature(art: "air", title: L("대기질 지도"), note: L("미세먼지 매시간 업데이트 · 잠금화면 미세먼지 위젯 · 오염 물질 6종"), check: L("대기질")),
             Feature(art: "calendar", title: L("날씨 달력 · 월간 리포트"), note: L("날씨를 볼 때마다 그날 날씨와 옷차림이 달력에 쌓여요\n달마다 비 온 날 · 가장 더운 날 · 자주 입은 옷 · 1일에 알림"), check: L("날씨 달력")),
-            Feature(art: "watch", title: L("애플워치"), note: L("손목에서 지금 날씨 · 시간별 · 10일\n워치 페이스에 기온 · 비 확률 · 캐릭터"), check: L("애플워치")),
+        ]
+        // Apple Watch pairs with an iPhone only: not offered on iPad
+        if !Device.isPad { f.append(Feature(art: "watch", title: L("애플워치"), note: L("손목에서 지금 날씨 · 시간별 · 10일\n워치 페이스에 기온 · 비 확률 · 캐릭터"), check: L("애플워치"))) }
+        f += [
             Feature(art: "places", title: L("지역 여러 곳"), note: L("무료는 1곳 더, Plus는 제한 없이."), check: L("지역 여러 곳")),
             Feature(art: "chars", title: L("캐릭터 바꾸기"), note: Voice.choices.isEmpty ? L("아비시니안 · 브리티시숏헤어 · 카피바라 · 이름 짓기\n추후 업데이트로 캐릭터 추가 예정")
                                                                        : L("아비시니안 · 브리티시숏헤어 · 카피바라 · 이름 · 말투\n추후 업데이트로 캐릭터 추가 예정"), check: L("캐릭터")),

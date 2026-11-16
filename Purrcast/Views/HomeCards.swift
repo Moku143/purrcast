@@ -220,7 +220,7 @@ struct PlusPromoCard: View {
     private var lines: [String] {
         [(Features.adsInFree ? L("광고 제거") : L("말투 고르기")) + " · " + L("캐릭터 바꾸기") + " · " + L("지역 여러 곳"),
          L("새 예보마다 업데이트") + " · " + L("가까운 비 · 알림"),
-         L("대기질") + " · " + L("날씨 달력") + " · " + L("애플워치")]
+         ([L("대기질"), L("날씨 달력")] + (Device.isPad ? [] : [L("애플워치")])).joined(separator: " · ")]     // no watch for an iPad
     }
     var body: some View {
         Button { Haptic.soft(); action() } label: {
@@ -377,6 +377,7 @@ struct CompactHeader: View {
         }
         .lineLimit(1)
         .padding(.horizontal, 22).padding(.top, 6).padding(.bottom, 14)
+        .frame(maxWidth: Column.maxWidth)       // a big window: the words over the page's column, the band across it all
         .frame(maxWidth: .infinity)
         .background {
             // the band's background reaches up under the status bar; the text stays below it

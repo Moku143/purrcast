@@ -255,8 +255,11 @@ final class Ads: ObservableObject {
         return vc
     }
 
+    /// The app window's width (on iPad a Split View or Stage Manager window can be narrower than the screen)
     static var screenWidth: CGFloat {
-        UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.screen.bounds.width }.first ?? 390
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let scene = scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
+        return scene?.keyWindow?.bounds.width ?? scene?.screen.bounds.width ?? 390
     }
 }
 

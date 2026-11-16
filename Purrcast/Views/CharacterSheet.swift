@@ -32,7 +32,7 @@ struct CharacterSheet: View {
 
                 if !model.plus { plusBanner.reveal(1) }
                 if !Voice.choices.isEmpty { voiceSection.reveal(2) }
-                Text(L("위젯 · 애플워치도 같이 바뀌어요")).font(.ui(12.5)).foregroundStyle(UI.sub)
+                Text(Device.isPad ? L("위젯도 같이 바뀌어요") : L("위젯 · 애플워치도 같이 바뀌어요")).font(.ui(12.5)).foregroundStyle(UI.sub)
                     .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 24).padding(.top, 16).padding(.bottom, 24)
             }
             .scrollDismissesKeyboard(.interactively)

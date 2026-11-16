@@ -39,6 +39,8 @@ targets:
         UILaunchScreen: {}
         UIAppFonts: [PurrcastPixel-Medium.ttf]
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        # iPad: every orientation and any window size (Stage Manager, Split View); the page keeps a phone-wide column
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         UIUserInterfaceStyle: Light
         # best-effort refresh near midnight, so the day closes with where the phone is (no user prompt involved)
         UIBackgroundModes: [fetch]
@@ -119,7 +121,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.purrcast.ios
-        TARGETED_DEVICE_FAMILY: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"     # iPhone and iPad
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         # AppIcon (구름 조금) and the icons picked in 설정 › 앱 아이콘 (AppIcon.swift)
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -149,7 +151,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.purrcast.ios.widgets
-        TARGETED_DEVICE_FAMILY: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
         SKIP_INSTALL: YES
   PurrcastWatch:
     type: application

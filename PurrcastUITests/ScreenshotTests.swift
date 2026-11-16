@@ -737,6 +737,33 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    /// iPad (skipped on a phone): home, every page and the onboarding, standing and lying down, so the wide column, the
+    /// sky across the window and the sheets can be checked; the widgets at the iPad's sizes.
+    func test31Pad() throws {
+        try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .pad, "iPad only")
+        for (o, tag) in [(UIDeviceOrientation.portrait, "port"), (.landscapeLeft, "land")] {
+            XCUIDevice.shared.orientation = o
+            shot("pad-\(tag)-home-free", ["-scene", "maybe"], wait: 2)
+            shot("pad-\(tag)-home-plus", ["-scene", "spring_rain", "-plus", "-char", "brit"], wait: 2)
+            shot("pad-\(tag)-home-dust", ["-scene", "spring_dust", "-plus", "-char", "capy"], wait: 2)
+            shot("pad-\(tag)-home-cards", ["-scene", "maybe", "-plus"], wait: 2) { app in for _ in 0..<3 { app.swipeUp() }; sleep(1) }
+            shot("pad-\(tag)-home-bottom", ["-scene", "maybe"], wait: 2) { app in for _ in 0..<6 { app.swipeUp() }; sleep(1) }
+            shot("pad-\(tag)-paywall", ["-scene", "maybe", "-open", "paywall"], wait: 2)
+            for page in ["character", "settings", "places", "widgets", "day", "calendar", "air", "sources"] {
+                shot("pad-\(tag)-page-\(page)", ["-scene", "maybe", "-plus", "-open", page], wait: 2)
+            }
+            shot("pad-\(tag)-onboarding-1", ["-scene", "maybe", "-onboarding"], wait: 2)
+            shot("pad-\(tag)-onboarding-3", ["-scene", "maybe", "-onboarding"], wait: 2) { app in
+                app.buttons["next"].tap(); sleep(1); app.buttons["next"].tap(); sleep(1); app.buttons["next"].tap(); sleep(1)   // past the lock screen: no watch page
+            }
+            shot("pad-\(tag)-onboarding-plus", ["-scene", "maybe", "-onboarding", "-onbStep", "8"], wait: 2)
+        }
+        XCUIDevice.shared.orientation = .portrait
+        shot("pad-widgetlab", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab"], wait: 3)
+        shot("pad-widgetlab-2", ["-scene", "spring_rain", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage2"], wait: 3)
+        shot("pad-locklab", ["-scene", "spring_dust", "-plus", "-char", "cat", "-open", "widgetLab", "-labPage4"], wait: 3)
+    }
+
     func test10Layout() {
         var screens: [(String, [String], Int)] = [
             ("home-1", ["-scene", "maybe", "-plus", "-char", "cat"], 0),

@@ -49,6 +49,8 @@ struct HomeView: View {
         let s = model.scene
         let ink = Ink(night: night(s))
         let lv = Rules.clamp(s.level)
+        // a big window (iPad): the hero and the cards in a column in the middle, the sky across the whole window
+        let col = Column.width(in: width)
         return ZStack(alignment: .top) {
             background(level: lv, night: night(s)).ignoresSafeArea()
                 .animation(Motion.fade, value: lv).animation(Motion.fade, value: night(s))
@@ -57,7 +59,7 @@ struct HomeView: View {
             if model.hasData {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 12) {
-                        heroScaled(s, ink: ink, level: lv, width: width, topInset: topInset)
+                        heroScaled(s, ink: ink, level: lv, width: col, window: width, topInset: topInset)
                             .parallaxHero()
                         PromoBanner(ink: ink) { route = .character }
                         if let e = model.lastError { notice(e, ink: ink).transition(.move(edge: .top).combined(with: .opacity)) }
@@ -68,6 +70,7 @@ struct HomeView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.bottom, 44)
+                    .frame(width: col)
                     .frame(width: width)
                     // how far the page has scrolled (drives the compact header) — behind the stack, so it takes no
                     // room of its own: the sky picture starts at the very top
@@ -153,17 +156,21 @@ struct HomeView: View {
         }
     }
 
-    /// The hero at the design width, scaled to fit the screen (see `heroDesignW`); the sky behind it still spans the screen
-    private func heroScaled(_ s: WeatherScene, ink: Ink, level: Int, width: CGFloat, topInset: CGFloat) -> some View {
+    /// The hero at the design width, scaled to fit the column (see `heroDesignW`); the sky behind it still spans the
+    /// window. In a big window (iPad) the hero is laid out across the whole column, the temperature at its right edge
+    /// like the cards below, and never scaled up.
+    private func heroScaled(_ s: WeatherScene, ink: Ink, level: Int, width: CGFloat, window: CGFloat, topInset: CGFloat) -> some View {
         let avail = max(200, width - 32)
-        let k = min(1, avail / heroDesignW)
-        return hero(s, ink: ink, level: level, topInset: topInset / k, skyWidth: width / k, sidePad: 16 / k)
-            .frame(width: heroDesignW, height: heroH, alignment: .topLeading)
+        let designW = Column.wide(window) ? max(heroDesignW, avail) : heroDesignW
+        let k = min(1, avail / designW)
+        let margin = (window - width) / 2      // from the window's edge to the column's
+        return hero(s, ink: ink, level: level, topInset: topInset / k, skyWidth: window / k, sidePad: (16 + margin) / k)
+            .frame(width: designW, height: heroH, alignment: .topLeading)
             .scaleEffect(k, anchor: .topLeading)
             .frame(width: avail, height: heroH * k, alignment: .topLeading)
     }
 
-    private func hero(_ s: WeatherScene, ink: Ink, level: Int, topInset: CGFloat = 0, skyWidth: CGFloat = UIScreen.main.bounds.width, sidePad: CGFloat = 16) -> some View {
+    private func hero(_ s: WeatherScene, ink: Ink, level: Int, topInset: CGFloat, skyWidth: CGFloat, sidePad: CGFloat) -> some View {
         let char = model.shownCharacter
         let rain = RainState(rawValue: s.rain) ?? .none
         let catW: CGFloat = 176, catH = catW * Sprite.height / Sprite.width

@@ -25,6 +25,9 @@ struct OnboardingView: View {
     private let count = 9
     /// The pages with their own two buttons (location, notifications, iCloud, Plus)
     private static let placeStep = 5, alertsStep = 6, cloudStep = 7, plusStep = 8
+    private static let watchStep = 3
+    /// The pages shown: on iPad no Apple Watch page (a watch pairs with an iPhone only)
+    private var shown: [Int] { Array(0..<count).filter { !(Device.isPad && $0 == Self.watchStep) } }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -47,7 +50,7 @@ struct OnboardingView: View {
                                                               removal: .move(edge: .leading).combined(with: .opacity)))
 
             HStack(spacing: 6) {
-                ForEach(0..<count, id: \.self) { i in
+                ForEach(shown, id: \.self) { i in
                     Capsule().fill(i == step ? UI.accent : UI.faint.opacity(0.5)).frame(width: i == step ? 18 : 6, height: 6)
                 }
             }.padding(.bottom, 16)
@@ -57,6 +60,9 @@ struct OnboardingView: View {
             }
             .padding(.horizontal, 20).padding(.bottom, 12)
         }
+        // a big window (iPad): the pages in a phone-wide column, the background across the window
+        .frame(maxWidth: Column.maxWidth)
+        .frame(maxWidth: .infinity)
         .background(
             ZStack {
                 LinearGradient(colors: [Color(hex: step == Self.plusStep ? "#FFF3D6" : "#E4F3D9"), Color(hex: "#F4F6FA")], startPoint: .top, endPoint: .bottom)
@@ -122,8 +128,8 @@ struct OnboardingView: View {
         .accessibilityIdentifier("back")
     }
 
-    private func next() { Haptic.soft(); step = min(count - 1, step + 1) }
-    private func back() { Haptic.soft(); step = max(0, step - 1) }
+    private func next() { Haptic.soft(); step = shown.first { $0 > step } ?? step }
+    private func back() { Haptic.soft(); step = shown.last { $0 < step } ?? step }
 
     /// How a demo picture gives way to the next: the old one fades fully out before the new one fades in. A plain
     /// cross-fade overlaid both pictures for 0.6 s, so two scenes' numbers sat on each other for a fifth of the
