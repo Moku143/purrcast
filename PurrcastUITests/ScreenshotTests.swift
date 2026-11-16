@@ -870,4 +870,13 @@ final class ScreenshotTests: XCTestCase {
             app.terminate()
         }
     }
+
+    /// Marketing pictures for the other characters (abys · brit · capy), in English: store page 9 (the lock screen and
+    /// the home widget) and the app's widgets page. The iOS build workflow (only=test33CharPromo) publishes them to ci-output.
+    func test33CharPromo() {
+        for char in ["abys", "brit", "capy"] {
+            shot("promo-\(char)-screens", ["-scene", "maybe", "-plus", "-char", char, "-clock12", "-storeShot", "9", "-storeCity", "en"], wait: 3, lang: "en")
+            shot("promo-\(char)-widgets", ["-scene", "maybe", "-plus", "-char", char, "-clock12", "-open", "widgets"], wait: 2, lang: "en")
+        }
+    }
 }
