@@ -4,6 +4,64 @@ How the characters (cat · abys · brit · …) were drawn, so the next one come
 Keep this file up to date whenever a prompt changes. Every single picture asked for goes into `log.md` with its exact
 prompt, settings and result.
 
+## ★★ MASTER v4 (2026-11-17) — one picture, edited one figure at a time. USE THIS. (v2/v3 below are history.)
+
+This is the method that finished capy (log.md m11 → m15) and is now used for selkirk and bichon. Every picture is an
+**edit of one single figure**, never a sheet. One stage = one new ChatGPT chat (chatgpt.com, no credits), first result
+kept unless the head/body changed or the outfit is wrong (then one retry only). Prompts are ONE paragraph (Enter sends).
+
+**Free-plan limit:** ChatGPT Free stops image tools after a few pictures a day ("Free 플랜 한도에 도달 … 24시간 후").
+A full character is 1 base + 15 outfits + 15 umbrella arms + 15 locks = 46 pictures.
+
+### Step 0 · candidates — the step-0 prompt in log.md (selkirk / bichon 2026-11-17 entries), 2 rows of 3, 16:9.
+
+### Step 1 · base (the picked candidate, redrawn alone, 3:4)
+Attach: the picked candidate cropped alone (`NAME/ref-candN.png`).
+```
+Redraw this picture as a clean, sharp, high-resolution version of EXACTLY the same character, a {ANIMAL}. Change NOTHING about the design: {LOOK — head, ears, eyes, nose, mouth, coat, tail, in the candidate's words}, the same body proportions, arms, legs, feet and tail, the same denim-blue crew-neck sweatshirt with the white star, the same pose (standing upright facing the viewer, arms down at the sides) and the same size and position in the picture. Genuine crisp pixel art: hard square pixels on a coarse grid, flat colour fills, one solid dark-navy outline of even width all the way round, no blur, no anti-aliasing, no gradients. Plain flat light grey-blue background (#EEF1F6), no text. Portrait 3:4.
+```
+Save the capture as `NAME/base-capture.png`, upscaled to the natural size as `NAME/base.png`.
+
+### Step 2 · 15 outfits (edit of the base, stage K)
+Attach: `NAME/base-capture.png` only.
+```
+Edit this picture. Keep the {ANIMAL} EXACTLY as it is - the same head shape and size, {FEATURES}, fur colours, the same body shape and proportions, arms, legs, feet, tail, outline, size, position and pixel-art style. Only change its clothes: take off the blue star sweatshirt and dress it in: {OUTFIT K}. The outfit is drawn in the same crisp pixel-art style with the same dark-navy outline and fits this body exactly; it never makes the figure bigger or smaller.{HAT}{HOOD} Same background, no text.
+```
+- `{FEATURES}` selkirk: `the same ears, eyes, nose, mouth, whiskers, the same curly coat` ·
+  bichon: `the same floppy ears, eyes, nose, open mouth with tongue, the same fluffy round head and curly coat` ·
+  capy: see log.md 13:26 entry.
+- `{HAT}` (stages with a hat, usually 0 · 12 · 13): ` The hat sits on top of the head; both eyes stay fully visible, exactly where they are now.`
+  Dog with drop ears adds ` The floppy ears hang out below the hat.`
+- `{HOOD}` (stage 14): ` The hood frames the face; both eyes, the nose and the mouth stay fully visible, exactly where they are now.`
+- Result → `NAME/outfits/stand-K.png` (natural size) + `stand-K-capture.png` (what the viewer showed).
+- The outfit lists are in log.md (2026-11-17 "15 outfits" entry). Each new character gets its own, different list.
+
+### Step 3 · umbrella arm (edit of stand-K + guide)
+Attach: (1) `arm-guide-K.png` = stand-K with a red line (shaft) and a red circle (paw), (2–4) three umbrella cats
+(`capy/ref/abys-stand-14-umbrella.png`, `brit-stand-6-umbrella.png`, `cat-stand-2-umbrella.png`).
+```
+Edit the first picture. Keep the {ANIMAL} EXACTLY as it is - the same head, face, eyes, hat, clothes, colours, outline, size and position; do not redraw, move or resize anything. Only change its viewer-left arm: raise it so its paw sits exactly inside the red circle on the chest, gripping a thin straight light-grey stick (like the umbrella shafts in the attached cat pictures) that runs exactly along the red line, from just under the chin down through the paw to a little below it. Do not draw any umbrella canopy. Where the arm used to hang, show the clothes and body as they would look. Remove all red marks. Same pixel-art style, same background, same picture size.
+```
+The canopy is added in code (`tools/umb_build.py`, cat canopies).
+
+### Step 4 · lock screen (edit of stand-K, white on navy)
+Attach: (1) `NAME/outfits/stand-K.png` (2) `capy/m15/lock-style-ref.png`.
+```
+Redraw the first picture as its lock-screen version, in EXACTLY the monochrome style of the second picture: the same {ANIMAL} with exactly the same shape, pose, size and position, the same outfit, hat, scarf, props, prints and details, but drawn as pure white with light lavender-grey and mid-grey pixel shading for the outfit details and folds, no other colours, no dark outline, crisp hard-edged pixels, on a flat dark navy background (#20264A). {FACE LINE} Nothing added or removed. No text.
+```
+`{FACE LINE}` = what stays dark navy on the white face (capy: "The head and paws are pure white; the big rounded
+muzzle is one light grey with a soft grey edge, and its two nostrils and the two eye lines stay dark navy, in exactly
+the same place."). For a cat/dog: the eyes, nose and mouth stay dark navy in exactly the same place.
+
+### Step 5 · code
+`tools/build_singles.py` → `make_bag.py` · `umb_build.py` · `lock_from_pictures.py` · `make_face_inline.py` ·
+`face_hi.py` · `make_sun_icon.py` · `make_rain_icon.py` → `install_sprites.py NAME`.
+
+### Capturing a result (Claude in Chrome)
+JS-click the last `main img` with naturalWidth > 500 → the viewer opens → read the viewer `img` rect (CSS px) →
+screenshot coordinates = CSS × (1568 / innerWidth) → move the mouse away → `zoom` with save_to_disk → Escape →
+resize to naturalWidth × naturalHeight. A "파일이 채팅에만 추가됨" notice after each upload: click "대화 상자 닫기".
+
 ## ★ MASTER TEMPLATE v2 (2026-11-11) — use this for every new character
 
 Owner's rule: from now on only the **animal** and the **15 outfits** change. Everything else (layout, size, face

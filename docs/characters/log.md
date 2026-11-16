@@ -1534,3 +1534,69 @@ Character design candidates for a NEW character: 6 different takes on a SELKIRK 
 ```
 Character design candidates for a NEW character: 6 different takes on a BICHON FRISE dog, laid out in 2 rows of 3. Use the attached picture (four existing characters of the same app) ONLY for the pixel-art technique, the figure size, the upright front-facing pose, the head-to-body proportions and the clothing style - and treat them as the bar for how ROUND, SOFT and CUTE the new character must feel. Do NOT reuse the cats' faces, pointy ears, whiskers or stripes: this is a Bichon Frise and must read as a small fluffy white DOG at a glance - NOT a cat, NOT a sheep, NOT a polar bear. All 6 candidates share the Bichon look: a big perfectly ROUND fluffy head like a cotton ball or powder puff, with a softly scalloped cloud-like outline; soft floppy drop ears that hang down at the sides and melt into the round head fluff, NO pointy ears; big round dark eyes with a small white shine, like the attached characters; a round black button nose and a small happy dog mouth with a tiny pink tongue; the coat is WHITE, shaded with only one or two very light cream and pale grey-blue tones so it clearly stays white but still reads against the light background, with the same dark-navy outline; NO fur texture apart from the scalloped fluffy outline and a few small curl marks of 2 to 3 pixels; a small chubby body with short legs and fluffy white paws; a fluffy curled plume of a tail carried up over the back, peeking out at one side. Every candidate wears the same plain denim-blue crew-neck sweatshirt with a small white star on the chest, arms down at the sides, standing upright facing the viewer, feet flat on one baseline. The 6 variations: (1) classic round pom-pom haircut, pure white; (2) white with a faint apricot-cream tint on the ears; (3) puppy: bigger head, shorter legs, extra cute; (4) teddy-bear cut: a slightly shorter, rounder face fluff and slightly bigger eyes; (5) a taller, fluffier show-cut head pouf; (6) classic white with a small red bow on top of the head. RENDERING - the most important part. GENUINE low-resolution pixel art on a coarse pixel grid, about 64 pixels wide per figure, shown enlarged with hard square pixels exactly like the attached characters: big clearly visible square pixels, NO anti-aliasing, NO soft edges, NO blur, NO gradients, NO airbrush shading; flat colour fills only, 3 to 4 tones per material (base, one shadow, one highlight); one solid dark-navy outline, 1 pixel thick on the grid, around the whole figure and the clothes; small details simplified into a few pixels each. Each figure centred in its own cell with plenty of empty space around it, all the same height. Plain flat light grey-blue background (#EEF1F6), no text, no labels, no numbers, no shadows. Output 16:9.
 ```
+
+## 2026-11-17 01:xx · 주인: "둘다 1번으로 해줘 옷 종류는 좀 다르게 … 이전에 썼던 프롬프트 잘 저장해서 이번엔 금방 끝낼 수 있지?"
+- 고른 후보: selkirk (1) 크림·구리색 눈, bichon (1) 기본 폼폼. 잘라 둔 것 `selkirk/ref-cand1.png`, `bichon/ref-cand1.png` (630×840).
+- 방법 = prompts.md **MASTER v4** (capy m11~m15 방법 그대로: 기준 그림 한 장 → 옷 15번 편집 → 우산 팔 15번 → 잠금 15번).
+  문구 틀을 prompts.md 맨 위에 정리해 둠(이번에 "금방 끝내기" 위해).
+
+## 2026-11-17 01:xx · selkirk · step 1 · base (1차 그대로)
+- ChatGPT (크레딧 0) · 채팅 "Redraw cat pixel art" `https://chatgpt.com/c/6afb1e5a-1930-83e8-a3d7-4004a7dbc4fe` · 첨부 `selkirk/ref-cand1.png`.
+- 결과: 원본 1086×1448. 캡처 `selkirk/base-capture.png` (뷰어 508×677) → `selkirk/base.png` (1086×1448로 키움).
+- 확인: 후보 1과 같은 크림 곱슬 털, 구리색 눈, 분홍 코, 짧은 수염, 곱슬 꼬리, 파란 별 스웨트셔츠.
+
+```
+Redraw this picture as a clean, sharp, high-resolution version of EXACTLY the same character, a Selkirk Rex cat. Change NOTHING about the design: the same round head and chubby cheeks, the same ears, copper eyes, pink nose, mouth and whiskers, the same curly cream coat drawn as a softly scalloped bumpy outline with a few small curl marks, the same body proportions, arms, legs, feet and curly tail, the same denim-blue crew-neck sweatshirt with the white star, the same pose (standing upright facing the viewer, arms down at the sides) and the same size and position in the picture. Genuine crisp pixel art: hard square pixels on a coarse grid, flat colour fills, one solid dark-navy outline of even width all the way round, no blur, no anti-aliasing, no gradients. Plain flat light grey-blue background (#EEF1F6), no text. Portrait 3:4.
+```
+
+## 2026-11-17 01:xx · bichon · step 1 · base (1차 그대로)
+- ChatGPT (크레딧 0) · 채팅 "Redraw Bichon Pixel Art" `https://chatgpt.com/c/6afb1e58-ccfc-83ec-9751-3b35e7c9db32` · 첨부 `bichon/ref-cand1.png`.
+- 결과: 원본 1086×1448. 캡처 `bichon/base-capture.png` (뷰어 456×606) → `bichon/base.png`.
+- 확인: 솜뭉치 머리, 늘어진 귀, 까만 단추 코, 분홍 혀, 말린 꼬리, 파란 별 스웨트셔츠 — 후보 1 그대로.
+
+```
+Redraw this picture as a clean, sharp, high-resolution version of EXACTLY the same character, a Bichon Frise dog. Change NOTHING about the design: the same big round fluffy cotton-ball head with its softly scalloped outline, the same floppy drop ears that melt into the head fluff, the same round dark eyes with a white shine, black button nose, small happy mouth with the tiny pink tongue, the same white coat with very light cream shading, the same body proportions, arms, legs, fluffy paws and curled plume tail, the same denim-blue crew-neck sweatshirt with the white star, the same pose (standing upright facing the viewer, arms down at the sides) and the same size and position in the picture. Genuine crisp pixel art: hard square pixels on a coarse grid, flat colour fills, one solid dark-navy outline of even width all the way round, no blur, no anti-aliasing, no gradients. Plain flat light grey-blue background (#EEF1F6), no text. Portrait 3:4.
+```
+
+## 2026-11-17 · 15 outfits (selkirk · bichon) — 주인 "옷 종류는 좀 다르게": cat·abys·brit·capy와 겹치지 않게 새로 짬
+- 문구 = prompts.md MASTER v4 Step 2 ({OUTFIT}만 바꿈; 모자 칸 0·12·13, 후드 칸 14는 꼬리 문장 추가).
+- selkirk:
+  0 a pale-yellow bucket sun hat and a mint-green sleeveless top with white trim, holding a strawberry soft-serve ice-cream cone
+  1 a lilac sleeveless top with small white polka dots, holding a little glass bottle of strawberry milk with a straw
+  2 a mint-green T-shirt with one small croissant print on the chest and navy shorts
+  3 a coral-and-white gingham short-sleeve shirt and cream shorts
+  4 a white button-up shirt with a red bow tie with white polka dots
+  5 a lavender hoodie with one small cupcake print, hood down
+  6 a mustard-yellow cable-knit cardigan buttoned up with a white shirt collar showing
+  7 an olive-green corduroy jacket over a cream tee
+  8 a chestnut-brown leather aviator jacket with a thick cream shearling collar
+  9 a dusty-pink knitted poncho with a cream pompom trim
+  10 a grey herringbone wool coat with big round buttons, buttoned up, and a cherry-red scarf
+  11 a lilac short puffer jacket with white buttons and a mint-green scarf
+  12 a sky-blue puffer jacket, a cream knitted bonnet tied with a ribbon under the chin, and a coral scarf
+  13 a navy long puffer coat down to the knees and a fluffy pink faux-fur bucket hat
+  14 a cherry-red ankle-length puffer coat with its own big hood worn up with a cream fur trim around the face (ears inside the hood), white mittens and a green-and-white striped scarf
+- bichon:
+  0 a white sailor hat and a navy-and-white striped sleeveless top, holding a blue snow cone in a paper cup
+  1 a lime-green sleeveless sports top with a small white towel around the neck
+  2 a yellow T-shirt with one small bone print and red shorts
+  3 a turquoise Hawaiian shirt with white hibiscus flowers and khaki shorts
+  4 a light-blue button-up shirt with a red-and-navy striped tie
+  5 a grass-green sweatshirt with one small tennis-ball print
+  6 a navy argyle knit vest over a white shirt collar
+  7 a red blazer with gold buttons over a white tee
+  8 a bright yellow raincoat jacket with toggle buttons, hood down
+  9 a navy quilted vest over a red-and-white striped turtleneck
+  10 a navy wool coat with a big white sailor collar, buttoned up, and a red scarf
+  11 a red-and-white colour-block ski jacket and a navy scarf
+  12 a navy puffer jacket, a red knitted ski hat with a white pompom and a white snowflake band, and a yellow scarf
+  13 a sky-blue long puffer coat down to the knees and a brown aviator hat with ear flaps and goggles on top
+  14 a royal-blue ankle-length puffer coat with its own big hood worn up with a white fur trim around the face (ears inside the hood), yellow mittens and a white-and-blue Nordic-pattern scarf
+
+## 2026-11-17 0x:xx · selkirk · 옷 0~4 — 0만 됨, ChatGPT Free 하루 한도
+- 칸마다 새 대화, 첨부 `selkirk/base-capture.png`, 문구 = MASTER v4 Step 2.
+- 0 `https://chatgpt.com/c/6afb2007-ad10-83ee-9440-ba5f6ecd4c7b` — 연노랑 버킷햇(작은 흰 꽃), 민트 나시(흰 테두리, 데이지), 딸기 소프트아이스크림.
+  머리·얼굴·털·몸 그대로, 두 눈 다 보임. 원본 1086×1448. → `selkirk/outfits/stand-0.png` (+ `stand-0-capture.png` 508×677).
+- 1 `…/c/6afb201a-20bc-83ec-8930-46ed62a417a6` · 2 `…/c/6afb202a-bb9c-83e8-aa9c-3759ced1a24a` ·
+  3 `…/c/6afb202f-0078-83ee-bcc7-22a39a2e3065` · 4 `…/c/6afb2030-030c-83ee-9400-a69b29666a69`
+  → 그림 없음: "이미지 생성 요청에 대한 Free 플랜 한도에 도달했습니다. 24시간 후 한도가 재설정되면 이미지를 더 만들 수 있습니다."
