@@ -1,6 +1,7 @@
 import SwiftUI
 import UserNotifications
 import BackgroundTasks
+import StoreKit
 
 @main
 struct PurrcastApp: App {
@@ -108,6 +109,8 @@ struct RootView: View {
     @EnvironmentObject var model: AppModel
     @State private var route: Route?
     @State private var day: Int?
+    @Environment(\.requestReview) private var requestReview
+    @Environment(\.scenePhase) private var phase
 
     var body: some View {
         Group {
@@ -149,6 +152,8 @@ struct RootView: View {
             DayDetailView(start: d.value).presentationDetents([.large]).presentationCornerRadius(28).pageSheet()
         }
         .onAppear(perform: openFromLaunchArguments)
+        // Apple's rating prompt (ReviewAsk): when a real forecast is on home, after a few days of use, at a calm moment
+        .task(id: "\(model.onboarded)|\(model.hasData)|\(model.scene.updated)|\(phase == .active)") { await askForReview() }
         #if DEBUG
         .overlay(alignment: .top) { AdsConsentNote() }       // -adsEEA: what the consent SDK said
         #endif
@@ -160,6 +165,18 @@ struct RootView: View {
             day = nil
             route = .calendar
         }
+    }
+
+    /// A real forecast on home counts the day; on a day the prompt is due, it comes 3 s after the weather shows, only
+    /// if home is still alone on screen (no sheet, no full-screen ad) and the app is in front. Never on the example weather.
+    private func askForReview() async {
+        guard model.onboarded, model.hasData, !model.isSample, model.lastError == nil, phase == .active else { return }
+        ReviewAsk.sawWeather()
+        guard ReviewAsk.due() else { return }
+        try? await Task.sleep(for: .seconds(3))
+        guard !Task.isCancelled, phase == .active, route == nil, day == nil, ReviewAsk.homeAlone else { return }
+        ReviewAsk.asked()
+        requestReview()
     }
 
     /// UI tests open a page directly: -open character|paywall|settings|places|sources|widgets|language|licenses|day|today (debug builds only)

@@ -1812,6 +1812,24 @@ final class PurrcastTests: XCTestCase {
         XCTAssertEqual(r.placeName(.ko), "오류동")
     }
 
+    /// Apple's rating prompt: due only after the forecast was seen on three different days, once per version, 60 days apart
+    func testReviewAsk() throws {
+        let suite = "review-test-\(UUID().uuidString)"
+        let d = try XCTUnwrap(UserDefaults(suiteName: suite)); defer { d.removePersistentDomain(forName: suite) }
+        let old = ReviewAsk.store; ReviewAsk.store = d; defer { ReviewAsk.store = old }
+        let day: TimeInterval = 86_400
+        let t0 = Date(timeIntervalSince1970: 1_800_000_000)
+        ReviewAsk.sawWeather(now: t0); ReviewAsk.sawWeather(now: t0.addingTimeInterval(60))    // the same day twice
+        ReviewAsk.sawWeather(now: t0.addingTimeInterval(day))
+        XCTAssertFalse(ReviewAsk.due(now: t0.addingTimeInterval(day), version: "1.3"), "two days: not yet")
+        ReviewAsk.sawWeather(now: t0.addingTimeInterval(2 * day))
+        XCTAssertTrue(ReviewAsk.due(now: t0.addingTimeInterval(2 * day), version: "1.3"))
+        ReviewAsk.asked(now: t0.addingTimeInterval(2 * day), version: "1.3")
+        XCTAssertFalse(ReviewAsk.due(now: t0.addingTimeInterval(200 * day), version: "1.3"), "once per version")
+        XCTAssertFalse(ReviewAsk.due(now: t0.addingTimeInterval(30 * day), version: "1.4"), "60 days apart")
+        XCTAssertTrue(ReviewAsk.due(now: t0.addingTimeInterval(63 * day), version: "1.4"))
+    }
+
     /// iPad: the rows shared out among columns — every row once, in order within its column, the first rows across
     /// the top, the columns ending at about the same height
     func testHomeColumns() {
