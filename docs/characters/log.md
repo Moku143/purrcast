@@ -1690,3 +1690,12 @@ Redraw this picture as a clean, sharp, high-resolution version of EXACTLY the sa
   13 a thick knee-length red puffer coat, a fluffy navy knitted earflap hat with a white pompom on top, a chunky sky-blue knitted scarf and navy mittens · `d576551e-18e9-4f78-9a87-f1d231713dd4`
   14 a thick ankle-length royal-blue puffer coat with its own big hood worn up, framed by a thick fluffy white fur trim around the face (ears inside the hood), a chunky red-and-white Nordic-pattern knitted scarf, yellow mittens and a small white puff of breath beside the mouth · `0c02d554-bf5e-49d3-93ab-0adf88ff51a8`
 - 눈에 띄는 점: 셀커크 12·13 모자가 둘 다 크림 니트+방울이라 비슷함. 비숑 14 입김이 뺨 위에 겹침.
+
+## 2026-11-17 14:3x · 주인: "크롬으로 지피티한테 오늘 무료 이미지로 어제 만들던 비숑 이어서 만들어줘 힉스 사용하지 말고"
+- 다음 단계 = 비숑 우산 팔 (MASTER v4 Step 3), 옷은 `bichon/outfits-v2/`.
+- 팔 가이드 15장 `bichon/arm/arm-guide-{K}.png`: 빨간 선 x 320 (y 780~1045, 왼쪽 눈 바깥 = 고양이들처럼 얼굴 왼쪽 가장자리),
+  빨간 원 가운데 (320, 965) 반지름 55 (가슴 왼쪽). 선·원 두께 6px. 0·1번은 왼손에 소품이 있어 나중에 따로.
+- 2번 시도: ChatGPT 새 대화 "Edit Dog Image" `https://chatgpt.com/c/6afbe7ba-c2f8-83ee-a1d2-9af110b262ad`,
+  첨부 arm-guide-2 + 우산 고양이 2장(4장 올렸는데 3장만 붙음: brit-6, cat-2). 문구 = Step 3 (capybara → Bichon Frise dog, "ears" 추가).
+  → 그림 없음: "Free 플랜 한도에 도달 … PM 11:58에 다시 생성 가능 (9시간 후)". 어제 00:3x에 쓴 한도가 아직 안 풀림.
+- Higgsfield는 쓰지 않음(주인 지시). 23:58 이후에 2~6번부터 이어서.
