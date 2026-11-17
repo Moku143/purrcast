@@ -1699,3 +1699,22 @@ Redraw this picture as a clean, sharp, high-resolution version of EXACTLY the sa
   첨부 arm-guide-2 + 우산 고양이 2장(4장 올렸는데 3장만 붙음: brit-6, cat-2). 문구 = Step 3 (capybara → Bichon Frise dog, "ears" 추가).
   → 그림 없음: "Free 플랜 한도에 도달 … PM 11:58에 다시 생성 가능 (9시간 후)". 어제 00:3x에 쓴 한도가 아직 안 풀림.
 - Higgsfield는 쓰지 않음(주인 지시). 23:58 이후에 2~6번부터 이어서.
+
+## 2026-11-18 00:0x · bichon · 우산 팔 2~6 (ChatGPT 무료, 1차 그대로) — 5장 뒤 하루 한도
+- 예약 실행(00:05). 칸마다 새 대화, 첨부 (1) `bichon/arm/arm-guide-{K}.png` (2) `capy/ref/brit-stand-6-umbrella.png`
+  (3) `capy/ref/cat-stand-2-umbrella.png` (무료 계정은 한 번에 3장까지 붙음). 문구 = MASTER v4 Step 3:
+  'Edit the first picture. Keep the Bichon Frise dog EXACTLY as it is - the same head, face, eyes, ears, hat, clothes,
+  colours, outline, size and position; do not redraw, move or resize anything. Only change its viewer-left arm: raise
+  it so its paw sits exactly inside the red circle on the chest, gripping a thin straight light-grey stick (like the
+  umbrella shafts in the attached cat pictures) that runs exactly along the red line, from just under the chin down
+  through the paw to a little below it. Do not draw any umbrella canopy. Where the arm used to hang, show the clothes
+  and body as they would look. Remove all red marks. Same pixel-art style, same background, same picture size.'
+- 2 `https://chatgpt.com/c/6afc6da6-bd00-83ec-ad6e-480972b55e46` (1087×1447) — 왼팔 올림, 흰 주먹이 막대 쥠, 막대는 턱 밑~반바지 위.
+- 3 `…/c/6afc6dfa-6ac0-83e8-8cd8-67fc81f399fc` (1087×1447) — 막대 위쪽이 흐린 흰색으로 볼 앞까지 올라감.
+- 4 `…/c/6afc6e49-eddc-83ee-9840-57953fb7b3f5` (1086×1448) — 주먹이 조금 더 왼쪽(몸 밖), 막대 x도 왼쪽.
+- 5 `…/c/6afc6e9a-652c-83e8-b93f-d1705a09a22b` (1087×1447)
+- 6 `…/c/6afc6eeb-77a0-83ee-a9d7-dc0061c43cea` (1087×1447)
+- 5장 모두 머리·얼굴·옷 그대로, 빨간 표시 없음. 그림 상자 위·왼·오른쪽 끝이 옷 그림과 2~4px 안.
+- 6번 뒤 "오늘 한도를 모두 사용 … 내일 AM 12:07에 다시 생성" → 멈춤. 하루 5장.
+- 결과 → `bichon/arm/arm-{K}.png` (원본 크기로 키움) + `arm-{K}-capture.png` (뷰어 510×677), 확인 `arm-2-6-check.png`.
+- 남음: 우산 팔 7~14, 0·1(왼손 소품), 잠금 15장.
