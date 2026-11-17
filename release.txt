@@ -1,0 +1,31 @@
+app Purrcast: Weather & Outfits (6827140340)
+version 1.3.0 WAITING_FOR_REVIEW release=AFTER_APPROVAL build=84
+version 1.2.1 READY_FOR_SALE release=AFTER_APPROVAL build=83
+version 1.2 READY_FOR_SALE release=AFTER_APPROVAL build=80
+version 1.1 READY_FOR_SALE release=AFTER_APPROVAL build=76
+version 1.0 READY_FOR_SALE release=AFTER_APPROVAL build=72
+build 1.3.0 (84) VALID uploaded 2026-11-16T02:01:29-08:00 expired=false
+submission 9a13f4cd-d960-42e6-875d-df136b590c10 WAITING_FOR_REVIEW 2026-11-17T04:33:05.336Z
+submission f9da5596-be8d-4b26-a630-e465fc5f2588 COMPLETE 2026-11-12T23:52:24.991Z
+submission 4cb734c8-9a7d-4ff2-8247-0f1af35872d5 COMPLETE 2026-11-12T12:37:51.755Z
+submission cb8bc086-c546-4ea3-9d31-99b01b6b2f29 COMPLETE 2026-11-10T15:24:50.543Z
+submission 238d0fe6-b32c-43ca-abf8-079e518e20e5 COMPLETE 2026-11-10T05:22:47.039Z
+submission 3a4f2809-6936-403d-9c5a-f79de77842ad COMPLETE 2026-11-08T22:56:56.209Z
+submission d700f655-4d64-4bfc-b770-aa6f15c10be6 COMPLETE 2026-11-07T12:51:11.153Z
+submission 945a9db6-d478-4c63-98b2-4022b9bb5266 COMPLETE 2026-11-07T11:56:04.189Z
+  pt-PT: whatsNew 328 chars, promo 129 chars
+  pt-BR: whatsNew 331 chars, promo 129 chars
+  zh-Hant: whatsNew 126 chars, promo 51 chars
+  it: whatsNew 335 chars, promo 131 chars
+  ko: whatsNew 169 chars, promo 82 chars
+  ja: whatsNew 161 chars, promo 79 chars
+  en-US: whatsNew 297 chars, promo 169 chars
+  ru: whatsNew 344 chars, promo 132 chars
+  es-ES: whatsNew 374 chars, promo 137 chars
+  es-MX: whatsNew 374 chars, promo 137 chars
+  de-DE: whatsNew 322 chars, promo 142 chars
+  id: whatsNew 296 chars, promo 123 chars
+  fr-CA: whatsNew 347 chars, promo 128 chars
+  fr-FR: whatsNew 347 chars, promo 128 chars
+  zh-Hans: whatsNew 122 chars, promo 49 chars
+  review detail: present, notes 3443 chars, contact set
